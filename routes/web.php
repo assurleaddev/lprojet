@@ -1,0 +1,157 @@
+<?php
+
+declare(strict_types=1);
+
+use App\Http\Controllers\Backend\ActionLogController;
+use App\Http\Controllers\Backend\Auth\ScreenshotGeneratorLoginController;
+use App\Http\Controllers\Backend\DashboardController;
+use App\Http\Controllers\Backend\LocaleController;
+use App\Http\Controllers\Backend\MediaController;
+use App\Http\Controllers\Backend\ModuleController;
+use App\Http\Controllers\Backend\PermissionController;
+use App\Http\Controllers\Backend\PostController;
+use App\Http\Controllers\Backend\ProfileController;
+use App\Http\Controllers\Backend\RoleController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Backend\SettingController;
+use App\Http\Controllers\Backend\TermController;
+use App\Http\Controllers\Backend\TranslationController;
+use App\Http\Controllers\Backend\UserLoginAsController;
+use App\Http\Controllers\Backend\UserController;
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Backend\Marketplace\ProductController;
+use App\Http\Controllers\Backend\Marketplace\CategoryController;
+use App\Http\Controllers\Backend\Marketplace\AttributeController;
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider within a group which
+| contains the "web" middleware group. Now create something great!
+|
+*/
+
+/**
+ * User routes.
+ */
+ Route::get('/home', [HomeController::class, 'index'])->name('home');
+ Route::get('items/{product}', [HomeController::class, 'show'])->name('products.show');
+ Route::get('member/{user}', [HomeController::class, 'member_profile'])->name('vendor.show');
+ Route::post('/products/{product}/favorite', [HomeController::class, 'toggleFavorite'])
+    ->middleware('auth')
+    ->name('products.favorite');
+Route::post('/users/{user}/follow', [HomeController::class, 'toggleFollow'])
+    ->middleware('auth')
+    ->name('users.follow.toggle');
+Route::get('/product/{product}', [HomeController::class, 'checkout'])
+    ->middleware('auth')
+    ->name('product.checkout');
+/**
+ * Admin routes.
+ */
+Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('roles', RoleController::class);
+    Route::delete('roles/delete/bulk-delete', [RoleController::class, 'bulkDelete'])->name('roles.bulk-delete');
+
+    // Permissions Routes.
+    Route::get('/permissions', [PermissionController::class, 'index'])->name('permissions.index');
+    Route::get('/permissions/{permission}', [PermissionController::class, 'show'])->name('permissions.show');
+
+    // Modules Routes.
+    Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
+    Route::post('/modules/toggle-status/{module}', [ModuleController::class, 'toggleStatus'])->name('modules.toggle-status');
+    Route::post('/modules/upload', [ModuleController::class, 'store'])->name('modules.store');
+    Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.delete');
+
+    // Settings Routes.
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
+
+    // Translation Routes.
+    Route::get('/translations', [TranslationController::class, 'index'])->name('translations.index');
+    Route::post('/translations', [TranslationController::class, 'update'])->name('translations.update');
+    Route::post('/translations/create', [TranslationController::class, 'create'])->name('translations.create');
+
+    // Login as & Switch back.
+    Route::resource('users', UserController::class);
+    Route::delete('users/delete/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
+    Route::get('users/{id}/login-as', [UserLoginAsController::class, 'loginAs'])->name('users.login-as');
+    Route::post('users/switch-back', [UserLoginAsController::class, 'switchBack'])->name('users.switch-back');
+
+    // Action Log Routes.
+    Route::get('/action-log', [ActionLogController::class, 'index'])->name('actionlog.index');
+
+    // Posts/Pages Routes - Dynamic post types.
+    Route::get('/posts/{postType?}', [PostController::class, 'index'])->name('posts.index');
+    Route::get('/posts/{postType}/create', [PostController::class, 'create'])->name('posts.create');
+    Route::post('/posts/{postType}', [PostController::class, 'store'])->name('posts.store');
+    Route::get('/posts/{postType}/{post}', [PostController::class, 'show'])->name('posts.show');
+    Route::get('/posts/{postType}/{post}/edit', [PostController::class, 'edit'])->name('posts.edit');
+    Route::put('/posts/{postType}/{post}', [PostController::class, 'update'])->name('posts.update');
+    Route::delete('/posts/{postType}/{post}', [PostController::class, 'destroy'])->name('posts.destroy');
+    Route::delete('/posts/{postType}/delete/bulk-delete', [PostController::class, 'bulkDelete'])->name('posts.bulk-delete');
+
+    // Terms Routes (Categories, Tags, etc.).
+    Route::get('/terms/{taxonomy}', [TermController::class, 'index'])->name('terms.index');
+    Route::get('/terms/{taxonomy}/{term}/edit', [TermController::class, 'edit'])->name('terms.edit');
+    Route::post('/terms/{taxonomy}', [TermController::class, 'store'])->name('terms.store');
+    Route::put('/terms/{taxonomy}/{term}', [TermController::class, 'update'])->name('terms.update');
+    Route::delete('/terms/{taxonomy}/{term}', [TermController::class, 'destroy'])->name('terms.destroy');
+    Route::delete('/terms/{taxonomy}/delete/bulk-delete', [TermController::class, 'bulkDelete'])->name('terms.bulk-delete');
+
+    // Media Routes.
+    Route::prefix('media')->name('media.')->group(function () {
+        Route::get('/', [MediaController::class, 'index'])->name('index');
+        Route::get('/api', [MediaController::class, 'api'])->name('api');
+        Route::post('/', [MediaController::class, 'store'])->name('store')->middleware('check.upload.limits');
+        Route::get('/upload-limits', [MediaController::class, 'getUploadLimits'])->name('upload-limits');
+        Route::delete('/{id}', [MediaController::class, 'destroy'])->name('destroy');
+        Route::delete('/', [MediaController::class, 'bulkDelete'])->name('bulk-delete');
+    });
+
+    Route::resource('categories', CategoryController::class);
+    Route::resource('products', ProductController::class);
+    Route::post('products/{product}/approve', [ProductController::class, 'approve'])
+    ->name('products.approve');
+
+    Route::resource('orders', \App\Http\Controllers\Backend\Marketplace\OrderController::class)->only(['index', 'show']);
+    Route::patch('orders/{order}/status', [\App\Http\Controllers\Backend\Marketplace\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
+    Route::post('orders/{order}/receipt', [\App\Http\Controllers\Backend\Marketplace\OrderController::class, 'uploadReceipt'])->name('orders.uploadReceipt');
+    // Marketplace Routes
+    Route::prefix('marketplace')->as('marketplace.')->group(function () {
+        // Route::resource('products', ProductController::class);
+        // Route::resource('categories', CategoryController::class);
+        // Categories
+        // Route::resource('categories', CategoryController::class)
+            // ->names('backend.categories'); // This sets names like backend.categories.edit
+        Route::resource('attributes', AttributeController::class);
+        Route::get('categories/{category}/attributes', [ProductController::class, 'getAttributesByCategory'])->name('categories.attributes');
+        Route::delete('product-images/{image}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
+    });
+
+
+    // Editor Upload Route.
+    Route::post('/editor/upload', [App\Http\Controllers\Backend\EditorController::class, 'upload'])->name('editor.upload');
+
+    // AI Content Generation Routes.
+    Route::prefix('ai')->name('ai.')->group(function () {
+        Route::get('/providers', [App\Http\Controllers\Backend\AiContentController::class, 'getProviders'])->name('providers');
+        Route::post('/generate-content', [App\Http\Controllers\Backend\AiContentController::class, 'generateContent'])->name('generate-content');
+    });
+});
+
+/**
+ * Profile routes.
+ */
+Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth']], function () {
+    Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
+    Route::put('/update', [ProfileController::class, 'update'])->name('update');
+    Route::put('/update-additional', [ProfileController::class, 'updateAdditional'])->name('update.additional');
+});
+
+Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
+Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
+Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');
