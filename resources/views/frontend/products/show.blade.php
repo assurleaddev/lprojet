@@ -160,9 +160,16 @@
                                 class="w-full block text-center bg-vinted-teal text-white font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal-dark transition-colors">
                                 Buy Now
                             </a>
-                            <button
-                                class="w-full border border-vinted-teal text-vinted-teal font-bold py-2 rounded-md hover:bg-vinted-teal/10 transition-colors text-sm">Make
-                                Offer</button>
+                            @auth
+                                @if(auth()->id() !== $product->vendor_id)
+                                    @livewire('product-messaging-button', ['product' => $product])
+                                
+                                @else
+                                    <button type="button" x-data @click="$dispatch('open-auth-modal')" class="text-blue-500 hover:underline">
+                                        {{ __('Log in to message the seller') }}
+                                    </button>
+                                @endif
+                            @endauth
                             <button
                                 class="w-full border border-vinted-teal text-vinted-teal font-bold py-2 rounded-md hover:bg-vinted-teal/10 transition-colors text-sm">Ask
                                 Seller</button>
