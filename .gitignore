@@ -22,7 +22,7 @@ public/.DS_Store
 public/images/.DS_Store
 
 # Exclude anything from /modules folder.
-/modules/*
+# /modules/*
 # Keep the modules directory structure
 !/modules/.gitkeep
 
