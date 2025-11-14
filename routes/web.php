@@ -48,6 +48,10 @@ Route::post('/users/{user}/follow', [HomeController::class, 'toggleFollow'])
 Route::get('/product/{product}', [HomeController::class, 'checkout'])
     ->middleware('auth')
     ->name('product.checkout');
+// ⬇️ ADD THIS NEW ROUTE FOR OFFER CHECKOUT ⬇️
+Route::get('/checkout/offer/{offer}', [HomeController::class, 'offerCheckout'])
+    ->middleware('auth')
+    ->name('checkout.offer');
 /**
  * Admin routes.
  */

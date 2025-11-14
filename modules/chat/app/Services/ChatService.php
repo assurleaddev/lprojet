@@ -19,12 +19,12 @@ class ChatService
             ->with(['product', 'userOne', 'userTwo'])
             ->get();
     }
-    
+
     public function getOrCreateConversation(User $userA, User $userB, Product $product): Conversation
     {
         // To ensure consistency, sort users IDs before querying/creating
         $ids = [$userA->id, $userB->id];
-        sort($ids); 
+        sort($ids);
         $userOneId = $ids[0];
         $userTwoId = $ids[1];
 
@@ -83,32 +83,76 @@ class ChatService
     }
 
     // Add methods for sending accepted/rejected messages later
-    public function sendOfferResponseMessage(Conversation $conversation, User $responder, Offer $offer, bool $accepted, ?string $reason = null): Message
+    public function sendOfferResponseMessage(Conversation $conversation, User $responder, Offer $offer, bool $accepted, ?string $reason = null): void // Return void or array of messages
     {
         $offerDetails = sprintf(
-            "Offer of $%s for %s",
+            "offer of $%s for %s",
             number_format($offer->offer_price, 2),
             $offer->product->name
         );
 
         if ($accepted) {
-            $body = $responder->name . " accepted the " . $offerDetails;
-            $type = 'offer_accepted';
+            // --- Message 1: Confirmation of Acceptance (for both users) ---
+            $acceptanceBody = sprintf(
+                "%s accepted the %s.",
+                $responder->name, // The seller
+                $offerDetails
+            );
+            $acceptanceType = 'offer_accepted';
+
+            $acceptanceMessage = $conversation->messages()->create([
+                'user_id' => $responder->id, // Seller accepts
+                'body' => $acceptanceBody,
+                'type' => $acceptanceType,
+                'offer_id' => $offer->id, // Link to the original offer
+            ]);
+
+            // Dispatch broadcast for the acceptance message
+            MessageSent::dispatch($acceptanceMessage->load('user'));
+
+            // --- Message 2: Checkout Prompt (Primarily for Buyer) ---
+            $checkoutUrl = route('checkout.offer', ['offer' => $offer->id]);
+            $checkoutBody = sprintf(
+                "Offer accepted! Proceed to checkout for %s at $%s:\n%s",
+                $offer->product->name,
+                number_format($offer->offer_price, 2),
+                $checkoutUrl
+            );
+            $checkoutType = 'offer_checkout_prompt'; // New message type
+
+            // Create the checkout prompt message - sender is still the seller (system action)
+            $checkoutMessage = $conversation->messages()->create([
+                'user_id' => $responder->id, // Or maybe a system user ID if you have one? Let's keep seller for now.
+                'body' => $checkoutBody, // Body contains the link
+                'type' => $checkoutType,
+                'offer_id' => $offer->id, // Link to the original offer
+            ]);
+
+            // Dispatch broadcast for the checkout prompt message
+            MessageSent::dispatch($checkoutMessage->load('user'));
+
+            // Update conversation timestamp based on the *last* message sent
+            $conversation->update(['last_message_at' => $checkoutMessage->created_at]);
+
         } else {
-            $body = $responder->name . " rejected the " . $offerDetails . ($reason ? "\nReason: " . $reason : "");
-            $type = 'offer_rejected';
+            // --- Rejection Message (Only one message needed) ---
+            $rejectionBody = $responder->name . " rejected the " . $offerDetails .
+                ($reason ? "\nReason: " . $reason : "");
+            $rejectionType = 'offer_rejected';
+
+            $rejectionMessage = $conversation->messages()->create([
+                'user_id' => $responder->id,
+                'body' => $rejectionBody,
+                'type' => $rejectionType,
+                'offer_id' => $offer->id,
+            ]);
+
+            // Dispatch broadcast for rejection message
+            MessageSent::dispatch($rejectionMessage->load('user'));
+            // Update conversation timestamp
+            $conversation->update(['last_message_at' => $rejectionMessage->created_at]);
         }
 
-
-        $message = $conversation->messages()->create([
-            'user_id' => $responder->id, // The seller who responded
-            'body' => $body,
-            'type' => $type,
-            'offer_id' => $offer->id,
-        ]);
-
-        $conversation->update(['last_message_at' => now()]);
-        MessageSent::dispatch($message->load('user'));
-        return $message;
+        // No single message return needed now as we might send multiple
     }
 }

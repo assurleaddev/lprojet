@@ -6,6 +6,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\User;
+use Modules\Chat\Models\Offer; 
+use Modules\Chat\Enums\OfferStatus; 
+use Illuminate\Support\Facades\Auth;
 class HomeController extends Controller
 {
     /**
@@ -144,6 +147,29 @@ class HomeController extends Controller
     public function checkout(Product $product){
         return view('frontend.products.checkout', [
             'product' => $product,
+        ]);
+    }
+
+    public function offerCheckout(Request $request, Offer $offer) 
+    {
+        // --- Authorization ---
+        if ($offer->status !== OfferStatus::Accepted) {
+            abort(404, 'Offer not accepted.');
+        }
+        if ($offer->buyer_id !== Auth::id()) {
+            abort(403, 'You did not make this offer.');
+        }
+        
+        // --- Load Data ---
+        $product = $offer->product; 
+        $priceToPay = $offer->offer_price; 
+
+        // --- Display View ---
+        // Ensure 'frontend.products.checkout' view exists
+        return view('frontend.products.checkout', [
+            'product' => $product,
+            'checkoutPrice' => $priceToPay, // Use this variable in the view
+            'offer' => $offer 
         ]);
     }
 }

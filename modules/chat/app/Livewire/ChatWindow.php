@@ -66,6 +66,13 @@ class ChatWindow extends Component
      * @param ChatService $chatService
      * @return void
      */
+    /**
+     * Loads the conversation details and its messages.
+     * Marks messages as read upon loading.
+     *
+     * @param ChatService $chatService
+     * @return void
+     */
     protected function loadConversation(ChatService $chatService): void
     {
         $user = Auth::user();
@@ -82,10 +89,11 @@ class ChatWindow extends Component
                 $query->where('user_one_id', $user->id)
                       ->orWhere('user_two_id', $user->id);
             })
-            // Eager load messages, their sender, and any associated offer with its product and product's featured image
+            // Eager load messages, their sender, and any associated offer with its product
+            // Product model should handle loading its media automatically or define the accessor
             ->with([
                 'messages' => function ($query) {
-                    $query->with(['user', 'offer.product.media']); // Load media relation for product
+                    $query->with(['user', 'offer.product']); // Eager load product on offer
                 },
                 'product', // Load conversation's primary product
                 'userOne', // Load user one
@@ -97,15 +105,33 @@ class ChatWindow extends Component
             // Prepare messages array, ensuring offer/product data is structured correctly
             $this->messages = $this->conversation->messages->map(function ($message) {
                 $messageArray = $message->toArray(); // Convert message to array
+
                 // If there's an offer, ensure product and its featured image URL are included
                 if ($message->offer && $message->offer->product) {
-                    // Assuming getFirstMediaUrl or similar exists on Product model
-                    // Adjust 'product_images' and conversion name ('chat_thumb') as needed
-                    $messageArray['offer']['product']['featured_image_url'] = $message->offer->product->getFirstMediaUrl('product_images', 'chat_thumb');
+                    // Use the user's specific method here to get the image URL
+                    // Make sure the Product model instance is available via $message->offer->product
+                    $messageArray['offer']['product']['featured_image_url'] = $message->offer->product->getFeaturedImageUrl('preview');
+
+                    // Manually add name/price if not included by default in toArray or relationships
+                     if (!isset($messageArray['offer']['product']['name'])) {
+                         $messageArray['offer']['product']['name'] = $message->offer->product->name;
+                     }
+                     if (!isset($messageArray['offer']['product']['price'])) {
+                         $messageArray['offer']['product']['price'] = $message->offer->product->price;
+                     }
+
+                } else {
+                     // Ensure nested structure exists even if there's no offer, avoids errors in Blade
+                     if(!isset($messageArray['offer'])) $messageArray['offer'] = null;
+                     if($messageArray['offer'] && !isset($messageArray['offer']['product'])) $messageArray['offer']['product'] = null;
+                     if($messageArray['offer'] && $messageArray['offer']['product'] && !isset($messageArray['offer']['product']['featured_image_url'])) $messageArray['offer']['product']['featured_image_url'] = null;
                 }
                 return $messageArray;
             })->keyBy(function ($item) { // Key by offer or message ID after mapping
-                 return $item['offer_id'] ? 'offer_'.$item['offer_id'] : 'msg_'.$item['id'];
+                 // Use unique keys: prefix with type and ensure message ID exists
+                 $msgId = $item['id'] ?? uniqid('msg_', true);
+                 $offerId = $item['offer_id'] ?? null;
+                 return $offerId ? 'offer_'.$offerId : 'msg_'.$msgId;
             })->toArray();
 
             // Mark messages as read
