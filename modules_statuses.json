@@ -2,5 +2,6 @@
     "Crm": true,
     "TaskManager": true,
     "Site": true,
-    "Chat": true
+    "Chat": true,
+    "Wallet": true
 }

@@ -17,9 +17,11 @@ use Spatie\QueryBuilder\QueryBuilder;
 class UserDatatable extends Datatable
 {
     public string $role = '';
+    public string $status = '';
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'role' => [],
+        'status' => [],
     ];
     public string $model = User::class;
     public array $disabledRoutes = ['view'];
@@ -30,6 +32,11 @@ class UserDatatable extends Datatable
     }
 
     public function updatingRole()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingStatus()
     {
         $this->resetPage();
     }
@@ -45,6 +52,18 @@ class UserDatatable extends Datatable
                 'allLabel' => __('All Roles'),
                 'options' => app(RolesService::class)->getRolesDropdown(),
                 'selected' => $this->role,
+            ],
+            [
+                'id' => 'status',
+                'label' => __('Status'),
+                'filterLabel' => __('Filter by Status'),
+                'icon' => 'lucide:filter',
+                'allLabel' => __('All Statuses'),
+                'options' => [
+                    'active' => __('Active'),
+                    'banned' => __('Banned'),
+                ],
+                'selected' => $this->status,
             ],
         ];
     }
@@ -104,6 +123,13 @@ class UserDatatable extends Datatable
                 $query->whereHas('roles', function ($q) {
                     $q->where('name', $this->role);
                 });
+            })
+            ->when($this->status, function ($query) {
+                if ($this->status === 'active') {
+                    $query->whereNull('banned_at');
+                } elseif ($this->status === 'banned') {
+                    $query->whereNotNull('banned_at');
+                }
             });
 
         return $this->sortQuery($query);
@@ -117,53 +143,6 @@ class UserDatatable extends Datatable
     public function renderRolesColumn(User $user): Renderable
     {
         return view('backend.pages.users.partials.user-roles', compact('user'));
-    }
-
-    public function getActionCellPermissions($item): array
-    {
-        return [
-            ...parent::getActionCellPermissions($item),
-            'user.login_as' => Auth::user()->canBeModified($item, $this->getPermissions()['login_as'] ?? ''),
-        ];
-    }
-
-    public function renderAfterActionEdit($user): string|Renderable
-    {
-        return (! Auth::user()->can('user.login_as') || $user->id === Auth::id())
-            ? '' :
-            view('backend.pages.users.partials.action-button-login-as', compact('user'));
-    }
-
-    protected function handleBulkDelete(array $ids): int
-    {
-        $ids = array_filter($ids, fn ($id) => $id != Auth::id()); // Prevent self-deletion.
-        $users = User::whereIn('id', $ids)->get();
-        $deletedCount = 0;
-        foreach ($users as $user) {
-            if ($user->hasRole(Role::SUPERADMIN) || $user->id === Auth::id()) {
-                continue;
-            }
-
-            $this->authorize('delete', $user);
-
-            $user = $this->addHooks(
-                $user,
-                UserActionHook::USER_DELETED_BEFORE,
-                UserFilterHook::USER_DELETED_BEFORE
-            );
-
-            $user->delete();
-
-            $this->addHooks(
-                $user,
-                UserActionHook::USER_DELETED_AFTER,
-                UserFilterHook::USER_DELETED_AFTER
-            );
-
-            $deletedCount++;
-        }
-
-        return $deletedCount;
     }
 
     public function handleRowDelete(Model|User $user): bool
@@ -196,5 +175,73 @@ class UserDatatable extends Datatable
         );
 
         return $deleted;
+    }
+
+    public function getActionCellPermissions($item): array
+    {
+        return [
+            ...parent::getActionCellPermissions($item),
+            'user.login_as' => Auth::user()->canBeModified($item, $this->getPermissions()['login_as'] ?? ''),
+            'user.ban' => Auth::user()->canBeModified($item, 'update'), // Assuming update permission covers ban
+        ];
+    }
+
+    public function renderAfterActionEdit($user): string|Renderable
+    {
+        $buttons = '';
+
+        if (Auth::user()->can('user.login_as') && $user->id !== Auth::id()) {
+            $buttons .= view('backend.pages.users.partials.action-button-login-as', compact('user'))->render();
+        }
+
+        if (Auth::user()->can('update', $user) && $user->id !== Auth::id() && !$user->hasRole(Role::SUPERADMIN)) {
+            $buttons .= view('backend.pages.users.partials.action-button-ban', compact('user'))->render();
+        }
+
+        return $buttons;
+    }
+
+    public function ban(User $user)
+    {
+        $this->authorize('update', $user);
+
+        if ($user->id === Auth::id()) {
+            $this->dispatch('notify', [
+                'variant' => 'error',
+                'title' => __('Action Failed'),
+                'message' => __('You cannot ban your own account.'),
+            ]);
+            return;
+        }
+
+        if ($user->hasRole(Role::SUPERADMIN)) {
+            $this->dispatch('notify', [
+                'variant' => 'error',
+                'title' => __('Action Failed'),
+                'message' => __('You cannot ban a Superadmin.'),
+            ]);
+            return;
+        }
+
+        $user->update(['banned_at' => now()]);
+
+        $this->dispatch('notify', [
+            'variant' => 'success',
+            'title' => __('Success'),
+            'message' => __('User banned successfully.'),
+        ]);
+    }
+
+    public function unban(User $user)
+    {
+        $this->authorize('update', $user);
+
+        $user->update(['banned_at' => null]);
+
+        $this->dispatch('notify', [
+            'variant' => 'success',
+            'title' => __('Success'),
+            'message' => __('User unbanned successfully.'),
+        ]);
     }
 }

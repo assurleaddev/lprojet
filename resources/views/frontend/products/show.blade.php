@@ -56,12 +56,13 @@
                 <div class="lg:col-span-8 relative ">
                     <div class="grid grid-cols-2 gap-1.5 ">
                         <img src="{{ $product->getFeaturedImageUrl('preview') }}"
-                            alt="Main product image of brown flare jeans" class="w-full h-[800px] object-cover col">
+                            alt="Main product image of brown flare jeans"
+                            class="w-full h-[800px] object-cover col cursor-pointer product-gallery-image">
                         <div class="h-[800px] grid grid-rows-2 gap-1.5 grid-cols-2">
                             @forelse ($product->media as $media)
                                 @if ($loop->index < 4)
                                     <img src="{{ $media->getUrl() }}" alt="Close up of jeans fabric"
-                                        class="w-full h-full  object-cover grid-span-1">
+                                        class="w-full h-[397px] object-cover cursor-pointer product-gallery-image">
                                 @endif
                             @empty
                                 no other images
@@ -163,9 +164,10 @@
                             @auth
                                 @if(auth()->id() !== $product->vendor_id)
                                     @livewire('product-messaging-button', ['product' => $product])
-                                
+
                                 @else
-                                    <button type="button" x-data @click="$dispatch('open-auth-modal')" class="text-blue-500 hover:underline">
+                                    <button type="button" x-data @click="$dispatch('open-auth-modal')"
+                                        class="text-blue-500 hover:underline">
                                         {{ __('Log in to message the seller') }}
                                     </button>
                                 @endif
@@ -184,7 +186,7 @@
                         </svg>
                         <div>
                             <h4 class="font-bold text-vinted-gray-900">Protection acheteurs</h4>
-                            <p class="text-sm text-vinted-gray-500">Bénéficie de la Protection acheteurs Vinted en payant
+                            <p class="text-sm text-vinted-gray-500">Bénéficie de la Protection acheteurs Used en payant
                                 par le biais de Vinted. Cela inclut une politique de remboursement. <a href="#"
                                     class="text-vinted-blue-link font-semibold hover:underline">En savoir plus</a></p>
                         </div>
@@ -201,7 +203,8 @@
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
                         @forelse ($product->vendor->products as $item)
-                            <div class="flex-shrink-0 w-40">
+                            <a href="{{ route('products.show', $item) }}"
+                                class="flex-shrink-0 w-40 block hover:opacity-80 transition">
                                 <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
                                     class="w-full h-56 object-cover mb-2">
                                 <p class="font-bold text-sm">{{ $item->price }} MAD</p>
@@ -209,7 +212,7 @@
                                     {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
                                 </p>
                                 <p class="text-xs text-vinted-gray-500">{{ $product->name }}</p>
-                            </div>
+                            </a>
                         @empty
                             no products yet
                         @endforelse
@@ -225,7 +228,8 @@
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
                         @forelse ($similarProducts as $item)
-                            <div class="flex-shrink-0 w-40">
+                            <a href="{{ route('products.show', $item) }}"
+                                class="flex-shrink-0 w-40 block hover:opacity-80 transition">
                                 <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
                                     class="w-full h-56 object-cover mb-2">
                                 <p class="font-bold text-sm">{{ $item->price }} MAD</p>
@@ -233,7 +237,7 @@
                                     {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
                                 </p>
                                 <p class="text-xs text-vinted-gray-500">{{ $item->name }}</p>
-                            </div>
+                            </a>
                         @empty
                             no products yet
                         @endforelse
@@ -242,6 +246,8 @@
                 </div>
             </section>
         </div>
+        @include('frontend.products._image_modal')
+
     </main>
 @endsection
 

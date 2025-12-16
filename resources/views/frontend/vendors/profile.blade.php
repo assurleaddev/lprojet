@@ -115,8 +115,8 @@
                             <svg class="h-4 w-4 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M4 4h16v2H4V4Zm0 5h16v2H4V9Zm0 5h12v2H4v-2Z" />
                             </svg>
-                            <a href="#" class="text-teal-700 hover:underline">{{$user->followers_count }} followers</a>, <a href="#"
-                                class="text-teal-700 hover:underline">{{ $followingUsersCount }} following</a>
+                            <a href="#" class="text-teal-700 hover:underline">{{$user->followers_count }} followers</a>, <a
+                                href="#" class="text-teal-700 hover:underline">{{ $followingUsersCount }} following</a>
                         </div>
                     </div>
                     <div>
@@ -189,19 +189,19 @@
         <!-- Listings panel -->
         <section id="panel-listings" role="tabpanel" aria-labelledby="tab-listings" class="pt-6">
             <div class="text-sm text-zinc-700 mb-3">3 items</div>
-            <div class="grid grid-cols-3 gap-6">
+            <div class="grid grid-cols-5 gap-6">
                 @forelse ($user->products as $item)
-                    <div class="flex-shrink-0 w-40">
-                        <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
-                            class="w-full h-56 object-cover mb-2">
+                    <a href="{{ route('products.show', $item) }}"
+                        class="flex-shrink-0 w-full block hover:opacity-80 transition">
+                        <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover mb-2">
                         <p class="font-bold text-sm">{{ $item->price }} MAD</p>
                         <p class="text-xs text-vinted-gray-500">
                             {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
                         </p>
                         <p class="text-xs text-vinted-gray-500">{{ $user->username }}</p>
-                    </div>
+                    </a>
                 @empty
-                    no products yet
+                    <div class="col-span-5 text-center text-gray-500">no products yet</div>
                 @endforelse
             </div>
             <div class="h-16"></div>
@@ -440,8 +440,7 @@
                 <div class="mt-6 space-y-3">
                     <a href="#"
                         class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
-                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_64dp.png" class="h-5 w-5"
-                            alt="">
+                        <img src="https://www.gstatic.com/images/branding/product/1x/gsa_64dp.png" class="h-5 w-5" alt="">
                         <span class="font-medium">Continue with Google</span>
                     </a>
 
@@ -549,7 +548,7 @@
     </script>
 
     <script>
-        (function() {
+        (function () {
             const token = document.querySelector('meta[name="csrf-token"]').content;
             const modal = document.getElementById('authModal');
             const overlay = document.getElementById('authOverlay');

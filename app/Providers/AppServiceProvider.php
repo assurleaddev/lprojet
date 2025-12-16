@@ -32,9 +32,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Digikraaft\ReviewRating\Models\Review::observe(\App\Observers\ReviewObserver::class);
+        \Illuminate\Pagination\Paginator::useBootstrap();
+
         // Handle "/" route redirection.
         if (
-            ! $this->app->runningInConsole() &&
+            !$this->app->runningInConsole() &&
             request()->is('/') &&
             Hook::applyFilters(AdminFilterHook::ADMIN_SITE_ONLY, true)
         ) {

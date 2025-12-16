@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Support\Renderable;
 use App\Models\Category;
 use App\Models\Option;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+
 class ProductDatatable extends Datatable
 {
     public string $model = Product::class;
@@ -16,16 +18,40 @@ class ProductDatatable extends Datatable
     // --- Add properties for filter state ---
     public string $category = '';
     public string $option = ''; // Changed from 'attribute' to 'option
-    
+    public string $status = '';
+    public string $vendor = '';
+
+
+
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'category' => ['except' => ''],
         'option' => ['except' => ''], // Changed from 'attribute'
+        'status' => ['except' => ''],
+        'vendor' => ['except' => ''],
+
+
     ];
 
     // --- Livewire hooks for filters ---
-    public function updatingCategory() { $this->resetPage(); }
-    public function updatingOption() { $this->resetPage(); }
+    public function updatingCategory()
+    {
+        $this->resetPage();
+    }
+    public function updatingOption()
+    {
+        $this->resetPage();
+    }
+    public function updatingStatus()
+    {
+        $this->resetPage();
+    }
+    public function updatingVendor()
+    {
+        $this->resetPage();
+    }
+
+
 
 
     public function getFilters(): array
@@ -50,8 +76,33 @@ class ProductDatatable extends Datatable
                 'filterLabel' => __('Filter by attribute value'),
                 'icon' => 'lucide:sliders',
                 'allLabel' => __('All Values'),
+
                 'selected' => $this->option,
             ],
+            [
+                'id' => 'status',
+                'label' => __('Status'),
+                'options' => [
+                    'approved' => __('Approved'),
+                    'pending' => __('Pending'),
+                    'sold' => __('Sold'),
+                ],
+                'filterLabel' => __('Filter by status'),
+                'icon' => 'lucide:check-circle',
+                'allLabel' => __('All Statuses'),
+                'selected' => $this->status,
+            ],
+            [
+                'id' => 'vendor',
+                'label' => __('Vendor'),
+                'options' => User::role('vendor')->get()->pluck('full_name', 'id')->toArray(),
+                'filterLabel' => __('Filter by vendor'),
+                'icon' => 'lucide:user',
+                'allLabel' => __('All Vendors'),
+                'selected' => $this->vendor,
+            ],
+
+
         ];
     }
 
@@ -79,11 +130,11 @@ class ProductDatatable extends Datatable
     /**
      * Builds the database query with search functionality.
      */
-    
+
     /**
      * This is where the filtering logic is applied to the database query.
      */
-     protected function buildQuery(): QueryBuilder
+    protected function buildQuery(): QueryBuilder
     {
         $user = Auth::user();
 
@@ -91,7 +142,7 @@ class ProductDatatable extends Datatable
             ->with('category');
 
         // Role-based product visibility
-        if (! $user->hasRole(['admin', 'Superadmin'])) {
+        if (!$user->hasRole(['admin', 'Superadmin'])) {
             $query->where('vendor_id', $user->id);
         }
 
@@ -106,7 +157,15 @@ class ProductDatatable extends Datatable
                 $query->whereHas('options', function ($q) {
                     $q->where('option_id', $this->option);
                 });
+            })
+            ->when($this->status, function ($query) {
+                $query->where('status', $this->status);
+            })
+            ->when($this->vendor, function ($query) {
+                $query->where('vendor_id', $this->vendor);
             });
+
+
         return $this->sortQuery($query);
     }
 
@@ -124,7 +183,7 @@ class ProductDatatable extends Datatable
                     <iconify-icon icon="lucide:image" class=" text-center text-gray-400"></iconify-icon>
                 </div>
             <?php endif; ?>
-            <a href="<?php echo route('admin.products.edit',  $product->id) ?>"
+            <a href="<?php echo route('admin.products.edit', $product->id) ?>"
                 class="text-gray-700 dark:text-white font-medium hover:text-primary dark:hover:text-primary">
                 <?php echo $product->name; ?>
             </a>
@@ -152,7 +211,7 @@ class ProductDatatable extends Datatable
 
         return "<span class='px-2 py-1 font-semibold leading-tight text-xs rounded-full {$colorClasses}'>" . ucfirst($product->status) . "</span>";
     }
-    
+
     /**
      * Custom renderer for the 'category' column to display the category name.
      */

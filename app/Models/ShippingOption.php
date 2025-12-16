@@ -1,0 +1,18 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ShippingOption extends Model
+{
+    protected $fillable = [
+        'key',
+        'label',
+        'description',
+        'icon_class',
+        'type',
+        'is_active',
+    ];
+    //
+}

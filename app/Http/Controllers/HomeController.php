@@ -6,8 +6,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\User;
-use Modules\Chat\Models\Offer; 
-use Modules\Chat\Enums\OfferStatus; 
+use Modules\Chat\Models\Offer;
+use Modules\Chat\Enums\OfferStatus;
 use Illuminate\Support\Facades\Auth;
 class HomeController extends Controller
 {
@@ -24,7 +24,7 @@ class HomeController extends Controller
     /**
      * Show the application dashboard.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return \Illuminate\Contracts\Support\Renderable|string
      */
     public function index(Request $request)
     {
@@ -102,16 +102,21 @@ class HomeController extends Controller
 
     public function member_profile(User $user)
     {
-        $user->load(['products', 'products.options', 'products.category', 'products.options']);
+        $user->load(['products', 'products.options', 'products.category', 'products.options', 'receivedReviews.author']);
         // followers can be counted directly with withCount
         $user->loadCount('followers');
 
         // followings is polymorphic-by-type; count the model you care about
         $followingUsersCount = $user->followings()->count();
 
+        $reviews = $user->receivedReviews()->latest()->get();
+        \Log::info('Reviews for user ' . $user->id . ': ' . $reviews->count());
+        \Log::info($reviews);
+
         return view('frontend.vendors.profile', [
             'user' => $user,
             'followingUsersCount' => $followingUsersCount,
+            'reviews' => $reviews,
         ]);
     }
 
@@ -123,6 +128,10 @@ class HomeController extends Controller
         // New state & fresh total
         $liked = $product->isFavorited();                     // for current user
         $count = $product->favoritedBy()->count();            // total users who favorited
+
+        if ($liked) {
+            $product->vendor->notify(new \App\Notifications\ProductLikedNotification(Auth::user(), $product));
+        }
 
         return response()->json([
             'liked' => $liked,
@@ -138,19 +147,26 @@ class HomeController extends Controller
 
         $me->isFollowing($user) ? $me->unfollow($user) : $me->follow($user);
 
+        $isFollowing = $me->isFollowing($user);
+
+        if ($isFollowing) {
+            $user->notify(new \App\Notifications\NewFollowerNotification($me));
+        }
+
         return response()->json([
-            'following' => $me->isFollowing($user),
+            'following' => $isFollowing,
             'followers_count' => $user->followers()->count(),
         ]);
     }
 
-    public function checkout(Product $product){
+    public function checkout(Product $product)
+    {
         return view('frontend.products.checkout', [
             'product' => $product,
         ]);
     }
 
-    public function offerCheckout(Request $request, Offer $offer) 
+    public function offerCheckout(Request $request, Offer $offer)
     {
         // --- Authorization ---
         if ($offer->status !== OfferStatus::Accepted) {
@@ -159,17 +175,47 @@ class HomeController extends Controller
         if ($offer->buyer_id !== Auth::id()) {
             abort(403, 'You did not make this offer.');
         }
-        
+
         // --- Load Data ---
-        $product = $offer->product; 
-        $priceToPay = $offer->offer_price; 
+        $product = $offer->product;
+        $priceToPay = $offer->offer_price;
 
         // --- Display View ---
         // Ensure 'frontend.products.checkout' view exists
         return view('frontend.products.checkout', [
             'product' => $product,
             'checkoutPrice' => $priceToPay, // Use this variable in the view
-            'offer' => $offer 
+            'offer' => $offer
         ]);
+    }
+
+    public function followers(User $user)
+    {
+        $followers = $user->followers()->paginate(20);
+        return view('frontend.vendors.followers', compact('user', 'followers'));
+    }
+
+    public function following(User $user)
+    {
+        $following = $user->followings()->paginate(20);
+        return view('frontend.vendors.following', compact('user', 'following'));
+    }
+
+    public function favorites()
+    {
+        $favorites = Auth::user()->favorite(Product::class); // Returns a Collection
+
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 20;
+
+        $products = new \Illuminate\Pagination\LengthAwarePaginator(
+            $favorites->forPage($page, $perPage),
+            $favorites->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
+
+        return view('frontend.products.favorites', compact('products'));
     }
 }

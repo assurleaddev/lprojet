@@ -1,8 +1,5 @@
-<div class="flex flex-col h-full"
-     x-data="chatWindow({{ $conversationId }})"
-
-     {{-- Robust Alpine.js Pusher/Echo Listener Bridge --}}
-     x-init="() => {
+<div class="flex flex-col h-full" x-data="chatWindow({{ $conversationId }})" {{-- Robust Alpine.js Pusher/Echo Listener
+    Bridge --}} x-init="() => {
         console.log('[Alpine x-init] Initializing for conversation {{ $conversationId }}');
 
         const setupEchoListener = () => {
@@ -54,36 +51,106 @@
         // Initial call to set up the listener
         setupEchoListener();
 
-     }"
-    {{-- Add wire:key to help Livewire identify this component instance if multiple could exist --}}
-    wire:key="chat-window-{{ $conversationId }}"
->
+     }" {{-- Add wire:key to help Livewire identify this component instance if multiple could exist --}}
+    wire:key="chat-window-{{ $conversationId }}">
 
     {{-- 1. Header --}}
-    <div class="p-4 border-b dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm flex-shrink-0">
+    <div class="px-6 py-4 border-b dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm flex-shrink-0">
         @if($conversation)
-            {{-- Safely access relationships loaded in loadConversation --}}
             @php $otherUser = $conversation->getOtherUser(auth()->user()); @endphp
-            <h3 class="font-semibold text-lg">{{ $otherUser->name ?? 'User Not Found' }}</h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 truncate">
-                Regarding: {{ $conversation->product->name ?? 'Product Deleted' }}
-            </p>
+
+            <div class="flex items-center justify-between">
+                {{-- Left: User Info --}}
+                <div class="flex items-center space-x-3">
+                    <h3 class="font-bold text-lg text-teal-600">
+                        {{ optional($otherUser)->full_name ?? 'User Not Found' }}
+                    </h3>
+                </div>
+
+                {{-- Right: Info Icon --}}
+                <button class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </button>
+            </div>
+
+            {{-- Product Info Bar --}}
+            <div class="mt-4 flex items-start space-x-4 border-t pt-4">
+                <div class="flex-shrink-0">
+                    <img src="{{ $conversation->product->getFeaturedImageUrl('preview') }}"
+                        alt="{{ $conversation->product->name }}" class="w-12 h-16 object-cover rounded-md bg-gray-100">
+                </div>
+
+                <div class="flex-1">
+                    <h4 class="font-medium text-gray-900">{{ $conversation->product->name }}</h4>
+                    <p class="text-sm text-gray-500">{{ $conversation->product->price }} MAD</p>
+                    <p class="text-xs text-teal-600 flex items-center mt-1">
+                        {{ number_format($conversation->product->price * 1.05 + 10, 2) }} MAD Includes Buyer Protection
+                        <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </p>
+                </div>
+
+                <div class="flex space-x-2">
+                    <button
+                        @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $conversation->product->id }} })"
+                        class="px-4 py-2 border border-teal-600 text-teal-600 font-medium rounded-md hover:bg-teal-50 text-sm">
+                        Make an offer
+                    </button>
+                    <a href="{{ route('product.checkout', $conversation->product) }}"
+                        class="px-4 py-2 bg-teal-700 text-white font-medium rounded-md hover:bg-teal-800 text-sm">
+                        Buy now
+                    </a>
+                </div>
+            </div>
         @else
-             <h3 class="font-semibold text-lg text-gray-400">Select a conversation</h3>
-             {{-- Or show an error if conversationId was invalid --}}
-             {{-- <p class="text-red-500">Could not load conversation.</p> --}}
+            <h3 class="font-semibold text-lg text-gray-400">Select a conversation</h3>
         @endif
     </div>
 
     {{-- 2. Message Area (Scrollable) --}}
-    <div class="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900" x-ref="messageContainer">
+    <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4 bg-white dark:bg-gray-900" x-ref="messageContainer">
         @if($conversation)
+            {{-- System Message --}}
+            @php $otherUser = $conversation->getOtherUser(auth()->user()); @endphp
+            <div class="flex justify-start mb-6">
+                <div class="flex items-start space-x-3 max-w-lg">
+                    <img src="{{ $otherUser->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($otherUser->full_name) }}"
+                        alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                    <div
+                        class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none p-4 text-sm text-gray-800 dark:text-gray-200">
+                        <p>Hi, I'm {{ $otherUser->full_name }}</p>
+                        <div class="mt-2 text-xs text-gray-500 space-y-1">
+                            <p class="flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
+                                    </path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg> {{ $otherUser->city ?? 'Location not set' }}</p>
+                            <p class="flex items-center"><svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg> Last seen
+                                {{ $otherUser->last_seen_at ? \Carbon\Carbon::parse($otherUser->last_seen_at)->diffForHumans() : 'recently' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             @forelse($messages as $key => $message)
                 {{-- Robust data access & preparation --}}
                 @php
                     $messageData = (object) $message;
                     $messageType = $messageData->type ?? 'text';
-                    $messageId = $messageData->id ?? ('rand_'.rand()); // Use real ID or random fallback for key
+                    $messageId = $messageData->id ?? ('rand_' . rand()); // Use real ID or random fallback for key
                     $offerData = isset($messageData->offer) ? (object) $messageData->offer : null;
                     $offerId = $offerData->id ?? null;
                     // Correctly try to create Enum instance from status string
@@ -95,143 +162,207 @@
                     // Standard message details
                     $messageUserId = $messageData->user['id'] ?? ($messageData->user_id ?? null);
                     $messageBody = $messageData->body ?? '';
-                    $messageTime = isset($messageData->created_at) ? (\Carbon\Carbon::parse($messageData->created_at)->diffForHumans()) : ($messageData->created_at_human ?? 'Just now');
+                    $messageTime = isset($messageData->created_at) ? (\Carbon\Carbon::parse($messageData->created_at)->format('H:i')) : ($messageData->created_at_human ?? 'Just now');
                     $isOwnMessage = $messageUserId == auth()->id();
                 @endphp
 
                 {{-- Differentiate rendering based on message type --}}
-                @if(str_starts_with($messageType, 'offer_') && $messageType !== 'offer_checkout_prompt' && $offerData && $productData)
-                    {{-- OFFER MESSAGE BLOCK (Made, Accepted, Rejected INFO) --}}
-                    {{-- Key now includes status to help Livewire re-render on status change --}}
+                @if((str_starts_with($messageType, 'offer_') && $messageType !== 'offer_checkout_prompt') && $offerData && $productData)
+                    {{-- OFFER MESSAGE BLOCK --}}
                     <div wire:key="offer-msg-{{ $messageId }}-{{ $offerStatus?->value ?? 'unknown' }}">
                         <div class="flex {{ $isOwnMessage ? 'justify-end' : 'justify-start' }}">
-                            {{-- Bubble container --}}
-                            <div class="w-full max-w-sm md:max-w-md p-3 rounded-lg shadow-sm border {{
-                                ($messageType === 'offer_made' && $isOwnMessage)
-                                ? 'bg-green-50 dark:bg-green-900 border-green-200 dark:border-green-700'
-                                : (($messageType === 'offer_made' && !$isOwnMessage)
-                                    ? 'bg-yellow-50 dark:bg-yellow-900 border-yellow-200 dark:border-yellow-700'
-                                    : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600') {{-- Neutral for accepted/rejected --}}
-                                }}">
+                            {{-- Vinted-style Compact Card --}}
+                            <div
+                                class="w-full max-w-xs bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
 
-                                {{-- Flex container for Image + Details --}}
-                                <div class="flex items-start space-x-3">
-                                    {{-- Image --}}
-                                    <div class="flex-shrink-0">
-                                        <img src="{{ $featuredImageUrl ?? asset('images/default.svg') }}" {{-- Use the pre-calculated URL --}}
-                                             alt="{{ $productData->name ?? 'Product' }}"
-                                             class="w-16 h-16 object-cover rounded border dark:border-gray-600">
-                                    </div>
-
-                                    {{-- Details --}}
-                                    <div class="flex-1 min-w-0">
-                                        <p class="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{{ $productData->name ?? 'Product Name' }}</p>
-                                        {{-- Price Info --}}
-                                        <div class="text-xs mt-1">
-                                            <span class="text-gray-500 dark:text-gray-400 line-through">${{ number_format($productData->price ?? 0, 2) }}</span>
-                                            <span class="ml-1 font-bold text-green-600 dark:text-green-400">${{ number_format($offerData->offer_price ?? 0, 2) }}</span>
+                                {{-- Body: Prices & Image --}}
+                                <div class="p-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="flex items-baseline space-x-2">
+                                            <span class="text-xl font-bold text-gray-900 dark:text-white">
+                                                {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
+                                            </span>
+                                            <span class="text-sm text-gray-400 line-through">
+                                                {{ number_format($productData->price ?? 0, 2) }} MAD
+                                            </span>
                                         </div>
-
-                                        {{-- Status / Info Text based on type --}}
-                                        <div class="text-xs font-medium mt-2">
-                                            @if($messageType === 'offer_made')
-                                                <span class="text-yellow-600 dark:text-yellow-400">
-                                                    {{-- Check status directly here as well --}}
-                                                    @if ($offerStatus === \Modules\Chat\Enums\OfferStatus::Pending)
-                                                        <i class="fas fa-hourglass-half mr-1"></i> {{ $isOwnMessage ? 'Offer Sent - Pending' : 'Offer Received - Pending' }}
-                                                    @else
-                                                        {{-- Handle cases where offer_made message exists but status changed (edge case) --}}
-                                                        <i class="fas fa-info-circle mr-1"></i> Offer {{ $offerStatus?->value ?? 'Status Unknown' }}
-                                                    @endif
-                                                </span>
-                                            @elseif($messageType === 'offer_accepted')
-                                                <span class="text-green-600 dark:text-green-400">
-                                                    <i class="fas fa-check-circle mr-1"></i> Offer Accepted by {{ $messageData->user['name'] ?? 'Seller' }}
-                                                </span>
-                                            @elseif($messageType === 'offer_rejected')
-                                                 <span class="text-red-600 dark:text-red-400">
-                                                      <i class="fas fa-times-circle mr-1"></i> Offer Rejected by {{ $messageData->user['name'] ?? 'Seller' }}
-                                                 </span>
-                                                 {{-- Show reason to buyer only --}}
-                                                 @if(isset($offerData->rejection_reason) && $offerData->rejection_reason && $isOwnMessage) {{-- Correction: Show reason to buyer (isOwnMessage is true if buyer sent original offer) --}}
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">Reason: {{ $offerData->rejection_reason }}</p>
-                                                @endif
-                                            @else
-                                                {{-- Fallback for any other offer_ type --}}
-                                                <span class="text-gray-500 dark:text-gray-400">{!! isset($messageBody) ? (function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody))) : '' !!}</span>
-                                            @endif
-                                        </div>
+                                        <p class="text-xs text-gray-500 mt-1">{{ $offerStatus?->value }}</p>
                                     </div>
+                                    {{-- Optional: Small Product Thumbnail --}}
+                                    <img src="{{ $featuredImageUrl ?? asset('images/default.svg') }}" alt="Product"
+                                        class="w-10 h-10 rounded object-cover border border-gray-100">
                                 </div>
 
-                                {{-- Action Buttons Area --}}
-                                <div class="mt-3 pt-3 border-t dark:border-gray-600 flex items-center {{
-                                    ($messageType === 'offer_made' && $offerStatus === \Modules\Chat\Enums\OfferStatus::Pending && !$isOwnMessage && $offerId)
-                                    ? 'justify-between' {{-- Show buttons for seller --}}
-                                    : 'justify-end' {{-- Only show timestamp otherwise --}}
-                                    }}">
-
-                                    {{-- Timestamp always shown --}}
-                                    <span class="text-xs text-gray-400 dark:text-gray-500 italic">
-                                         {{ $messageTime }}
-                                    </span>
-
-                                    {{-- Conditional Buttons --}}
-                                    <div class="flex space-x-2">
-                                        {{-- Only show Accept/Reject on the initial 'offer_made' message when status is pending and viewed by seller --}}
-                                        @if ($messageType === 'offer_made' && $offerStatus === \Modules\Chat\Enums\OfferStatus::Pending && !$isOwnMessage && $offerId)
-                                            <button type="button"
-                                                    wire:click="acceptOffer({{ $offerId }})"
-                                                    wire:loading.attr="disabled" wire:target="acceptOffer({{ $offerId }})"
-                                                    class="px-3 py-1 text-xs font-medium text-white bg-green-600 border border-transparent rounded shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50">
-                                                Accept
-                                            </button>
-                                            <button type="button"
-                                                    wire:click="promptRejectOffer({{ $offerId }})"
-                                                    wire:loading.attr="disabled" wire:target="promptRejectOffer({{ $offerId }})"
-                                                    class="px-3 py-1 text-xs font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded shadow-sm hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
-                                                Reject
-                                            </button>
-                                        @endif
-                                        {{-- NO "Buy Now" button here anymore --}}
+                                {{-- Footer: Actions --}}
+                                {{-- 1. Vendor receiving Pending Offer --}}
+                                @if($messageType === 'offer_made' && $offerStatus === \Modules\Chat\Enums\OfferStatus::Pending && !$isOwnMessage && $offerId)
+                                    <div
+                                        class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
+                                        <button wire:click="acceptOffer({{ $offerId }})" wire:loading.attr="disabled"
+                                            class="col-span-2 w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                            Accept
+                                        </button>
+                                        <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
+                                            wire:loading.attr="disabled" type="button"
+                                            class="w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 rounded-md transition-colors">
+                                            Counter
+                                        </button>
+                                        <button wire:click="promptRejectOffer({{ $offerId }})" wire:loading.attr="disabled"
+                                            class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
+                                            Decline
+                                        </button>
                                     </div>
+
+                                    {{-- 2. Buyer receiving Counter Offer --}}
+                                @elseif($messageType === 'offer_countered' && $offerStatus === \Modules\Chat\Enums\OfferStatus::AwaitingBuyer && !$isOwnMessage && $offerId)
+                                    <div
+                                        class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
+                                        <button wire:click="acceptOffer({{ $offerId }})" wire:loading.attr="disabled"
+                                            class="col-span-2 w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                            Accept {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
+                                        </button>
+                                        <button wire:click="promptRejectOffer({{ $offerId }})" wire:loading.attr="disabled"
+                                            class="col-span-2 w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
+                                            Decline
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                @elseif ($messageType === 'item_sold')
+                    @php
+                        // Extract URL from body
+                        preg_match('/(https?:\/\/[^\s]+)/', $messageBody, $matches);
+                        $downloadUrl = $matches[0] ?? '#';
+                        $cleanBody = str_replace($downloadUrl, '', $messageBody);
+                    @endphp
+                    <div wire:key="item-sold-{{ $messageId }}" class="flex justify-center my-4">
+                        <div
+                            class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
+                            <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
+                                <div
+                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
+                                    <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Item Sold!</h3>
+                                <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                                    {{ trim($cleanBody) }}
+                                </p>
+                                <div class="mt-4 space-y-2">
+                                    <a href="{{ $downloadUrl }}" target="_blank"
+                                        class="block w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                        Download Shipping Label
+                                    </a>
+                                    @if(auth()->id() == $conversation->product->vendor_id)
+                                        <button wire:click="markAsShipped" wire:loading.attr="disabled"
+                                            class="block w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            Mark as Shipped
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                {{-- NEW BLOCK: Render the Checkout Prompt specifically --}}
+                @elseif ($messageType === 'item_shipped')
+                    <div wire:key="item-shipped-{{ $messageId }}" class="flex justify-center my-4">
+                        <div
+                            class="w-full max-w-sm bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-sm overflow-hidden">
+                            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 text-center">
+                                <div
+                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-800 mb-3">
+                                    <svg class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-medium text-blue-900 dark:text-blue-100">Item Shipped!</h3>
+                                <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                                    {{ $messageBody }}
+                                </p>
+
+                                @php
+                                    // Check if the order is already completed to hide buttons
+                                    $buyerId = auth()->id() == $conversation->product->vendor_id
+                                        ? ($conversation->user_one_id == auth()->id() ? $conversation->user_two_id : $conversation->user_one_id)
+                                        : auth()->id();
+
+                                    $latestOrder = \App\Models\Order::where('product_id', $conversation->product_id)
+                                        ->where('user_id', $buyerId)
+                                        ->latest()
+                                        ->first();
+
+                                    $isOrderCompleted = $latestOrder && $latestOrder->status === 'completed';
+                                @endphp
+
+                                @if(!$isOrderCompleted)
+                                    <div class="mt-4 grid grid-cols-2 gap-2">
+                                        <button wire:click="markAsReceived(0)" wire:loading.attr="disabled"
+                                            class="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            Item Received
+                                        </button>
+                                        <button
+                                            wire:click="$dispatch('toast', {message: 'Please contact support for refunds.', type: 'info'})"
+                                            class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            Refund
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- NEW BLOCK: Render the Checkout Prompt specifically --}}
                 @elseif ($messageType === 'offer_checkout_prompt' && $offerData && $offerId)
                     <div wire:key="offer-checkout-{{ $messageId }}">
-                        {{-- Only show button to the Buyer (who originally made the offer) --}}
+                        {{-- Only show button to the Buyer (who originally made the offer OR accepted the counter offer) --}}
                         @if (auth()->id() == $offerData->buyer_id)
                             <div class="flex justify-start"> {{-- Align left for buyer prompt --}}
-                                <div class="max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 rounded-lg shadow bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700">
-                                    <p class="text-sm text-blue-800 dark:text-blue-100 mb-3">
-                                        <i class="fas fa-check-circle mr-1 text-green-500"></i> Your offer of <strong>${{ number_format($offerData->offer_price ?? 0, 2) }}</strong> was accepted!
-                                    </p>
-                                    {{-- Buy Now Button --}}
-                                     {{-- Ensure the checkout route name is correct --}}
-                                     @php $checkoutRoute = route('checkout.offer', ['offer' => $offerId]); @endphp
-                                    <a href="{{ $checkoutRoute }}"
-                                       wire:navigate {{-- Use Livewire navigation if desired --}}
-                                       class="inline-block w-full text-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                        Proceed to Buy Now
-                                    </a>
-                                     {{-- Timestamp --}}
-                                    <span class="text-xs text-blue-400 dark:text-blue-500 mt-2 block text-right">
-                                         {{ $messageTime }}
-                                    </span>
+                                <div
+                                    class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
+                                    <div class="p-4 bg-teal-50 dark:bg-teal-900/20">
+                                        <div class="flex items-center mb-3">
+                                            <div class="flex-shrink-0 bg-teal-100 dark:bg-teal-800 rounded-full p-2">
+                                                <i class="fas fa-shopping-bag text-teal-600 dark:text-teal-300"></i>
+                                            </div>
+                                            <div class="ml-3">
+                                                <h3 class="text-sm font-medium text-teal-900 dark:text-teal-100">
+                                                    {{ $offerStatus === \Modules\Chat\Enums\OfferStatus::AwaitingBuyer ? 'Seller sent a counter offer!' : 'Offer Accepted!' }}
+                                                </h3>
+                                                <div class="text-xs text-teal-700 dark:text-teal-300">
+                                                    You can now purchase this item for
+                                                    ${{ number_format($offerData->offer_price ?? 0, 2) }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        @php $checkoutRoute = route('checkout.offer', ['offer' => $offerId]); @endphp
+                                        <a href="{{ $checkoutRoute }}" wire:navigate
+                                            class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors shadow-sm">
+                                            Buy Now
+                                        </a>
+                                    </div>
+                                    <div
+                                        class="px-4 py-2 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 text-right">
+                                        <span class="text-xs text-gray-400 dark:text-gray-500 italic">
+                                            {{ $messageTime }}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         @else
-                           {{-- Show a simple confirmation for the seller instead of the button --}}
-                            <div class="flex justify-end"> {{-- Align right for seller confirmation --}}
-                                <div class="max-w-xs md:max-w-md lg:max-w-lg px-4 py-3 rounded-lg shadow bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600">
-                                     <p class="text-xs text-gray-600 dark:text-gray-400 italic">
-                                         <i class="fas fa-info-circle mr-1"></i> Checkout prompt sent to buyer.
-                                     </p>
-                                     <span class="text-xs text-gray-400 dark:text-gray-500 mt-1 block text-right">{{ $messageTime }}</span>
+                            {{-- Show a simple confirmation for the seller --}}
+                            <div class="flex justify-end">
+                                <div
+                                    class="max-w-xs px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs italic">
+                                    Checkout link sent to buyer.
                                 </div>
                             </div>
                         @endif
@@ -240,12 +371,16 @@
                 @else
                     {{-- STANDARD TEXT MESSAGE BLOCK --}}
                     <div class="flex {{ $isOwnMessage ? 'justify-end' : 'justify-start' }}" wire:key="msg-{{ $messageId }}">
-                       {{-- Standard message bubble --}}
-                       <div class="max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg shadow {{ $isOwnMessage ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-700 dark:text-gray-200' }}">
+                        {{-- Standard message bubble --}}
+                        <div
+                            class="max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg shadow {{ $isOwnMessage ? 'bg-teal-600 text-white' : 'bg-white dark:bg-gray-700 dark:text-gray-200' }}">
                             {{-- Use linkify helper if you defined it, otherwise just display body --}}
-                            <p class="text-sm break-words whitespace-pre-wrap">{!! isset($messageBody) ? (function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody))) : '' !!}</p>
-                            <span class="text-xs {{ $isOwnMessage ? 'text-blue-200' : 'text-gray-500 dark:text-gray-400' }} mt-1 block text-right">
-                                 {{ $messageTime }}
+                            <p class="text-sm break-words whitespace-pre-wrap">
+                                {!! isset($messageBody) ? (function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody))) : '' !!}
+                            </p>
+                            <span
+                                class="text-xs {{ $isOwnMessage ? 'text-teal-100' : 'text-gray-500 dark:text-gray-400' }} mt-1 block text-right">
+                                {{ $messageTime }}
                             </span>
                         </div>
                     </div>
@@ -261,78 +396,115 @@
     </div>
 
     {{-- 3. Message Input Form --}}
-    <div class="p-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-        <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
-            <input type="text"
-                   wire:model="messageBody"
-                   placeholder="Type your message..."
-                   class="flex-1 border border-gray-300 dark:border-gray-600 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                   autocomplete="off"
-                   {{-- Disable input if conversation isn't loaded --}}
-                   @if(!$conversation) disabled @endif
-                   >
-            <button type="submit"
-                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                    wire:loading.attr="disabled"
-                    {{-- Disable button if conversation isn't loaded or message is empty --}}
-                    @if(!$conversation || empty($messageBody)) disabled @endif
-                    >
-                {{-- Loading state specific to sendMessage action --}}
-                <span wire:loading wire:target="sendMessage" class="animate-pulse">...</span>
-                <span wire:loading.remove wire:target="sendMessage">Send</span>
+    <div class="px-6 py-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+        {{-- Safety Banner --}}
+        <div class="mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex items-start space-x-3">
+            <svg class="w-5 h-5 text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                </path>
+            </svg>
+            <div class="text-xs text-gray-600 dark:text-gray-300">
+                <span class="font-semibold">Stay safe on Vinted.</span> Don't share personal data, click on external
+                links, or scan QR codes.
+                <a href="#" class="text-teal-600 hover:underline">More safety tips</a>
+            </div>
+            <button class="text-gray-400 hover:text-gray-600 ml-auto">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                    </path>
+                </svg>
             </button>
+        </div>
+
+        <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
+            <button type="button" class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+            </button>
+            <button type="button" class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+            </button>
+
+            <div class="flex-1 relative">
+                <input type="text" wire:model="messageBody" placeholder="Write a message here"
+                    class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    autocomplete="off" @if(!$conversation) disabled @endif>
+                <button type="submit"
+                    class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
+                    wire:loading.attr="disabled" @if(!$conversation || empty($messageBody)) disabled @endif>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                    </svg>
+                </button>
+            </div>
         </form>
         @error('messageBody') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
     </div>
 
     {{-- Rejection Reason Modal (controlled by Livewire showRejectionModal) --}}
-    <div x-data="{ show: @entangle('showRejectionModal') }"
-         x-show="show"
-         x-on:keydown.escape.window="show = false"
-         style="display: none;"
-         class="fixed inset-0 z-[100] overflow-y-auto" {{-- Increased z-index --}}
-         aria-labelledby="rejection-modal-title" role="dialog" aria-modal="true">
+    <div x-data="{ show: @entangle('showRejectionModal') }" x-show="show" x-on:keydown.escape.window="show = false"
+        style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" {{-- Increased z-index --}}
+        aria-labelledby="rejection-modal-title" role="dialog" aria-modal="true">
 
-        <div class="flex items-end sm:items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0"> {{-- Centering --}}
+        <div
+            class="flex items-end sm:items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            {{-- Centering --}}
             {{-- Background overlay --}}
-            <div x-show="show"
-                 x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-                 x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                 class="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-80 z-[110]" {{-- Higher z-index for overlay --}}
-                 @click.self="show = false" {{-- Close on overlay click --}}
-                 aria-hidden="true"></div>
+            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 transition-opacity bg-gray-500 opacity-75 dark:bg-gray-900 dark:bg-opacity-80 z-[110]"
+                {{-- Higher z-index for overlay --}} @click.self="show = false" {{-- Close on overlay click --}}
+                aria-hidden="true"></div>
 
             {{-- Modal panel --}}
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span> {{-- Vertical centering helper --}}
-            <div x-show="show"
-                 x-trap.inert.noscroll="show" {{-- Trap focus --}}
-                 @click.stop {{-- Stop click propagation --}}
-                 x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                 x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="relative inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg sm:align-middle z-[120]"> {{-- Highest z-index for panel --}}
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span> {{--
+            Vertical centering helper --}}
+            <div x-show="show" x-trap.inert.noscroll="show" {{-- Trap focus --}} @click.stop {{-- Stop click propagation
+                --}} x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg sm:align-middle z-[120]">
+                {{-- Highest z-index for panel --}}
 
                 <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100" id="rejection-modal-title">
                     Reason for Rejection
                 </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Please provide a reason for rejecting the offer.</p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Please provide a reason for rejecting the
+                    offer.</p>
 
                 <form wire:submit.prevent="rejectOffer" class="mt-4 space-y-4">
                     <div>
-                        <label for="rejectionReasonInputModal" class="sr-only">Rejection Reason</label> {{-- Unique ID --}}
-                        <textarea wire:model="rejectionReason" id="rejectionReasonInputModal" rows="4" {{-- Unique ID --}}
-                                  class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
-                                  placeholder="Enter reason (min 10 characters)..." required></textarea>
-                        @error('rejectionReason') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        <label for="rejectionReasonInputModal" class="sr-only">Rejection Reason</label> {{-- Unique ID
+                        --}}
+                        <textarea wire:model="rejectionReason" id="rejectionReasonInputModal" rows="4" {{-- Unique ID
+                            --}}
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
+                            placeholder="Enter reason (min 10 characters)..." required></textarea>
+                        @error('rejectionReason') <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
+                        @enderror
                     </div>
 
-                    <div class="flex justify-end space-x-2 pt-4 border-t dark:border-gray-600"> {{-- Added padding/border --}}
+                    <div class="flex justify-end space-x-2 pt-4 border-t dark:border-gray-600"> {{-- Added
+                        padding/border --}}
                         <button type="button" @click="show = false" wire:click="closeRejectionModal"
-                                class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             Cancel
                         </button>
-                        <button type="submit"
-                                wire:loading.attr="disabled" wire:target="rejectOffer"
-                                class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
+                        <button type="submit" wire:loading.attr="disabled" wire:target="rejectOffer"
+                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
                             <span wire:loading wire:target="rejectOffer" class="animate-pulse">Rejecting...</span>
                             <span wire:loading.remove wire:target="rejectOffer">Confirm Rejection</span>
                         </button>
@@ -342,51 +514,77 @@
         </div>
     </div>
 
-    {{-- Alpine JS for Scrolling Logic (Keep as is, ensure definition is loaded AFTER Alpine.js) --}}
-    <script>
-        // Ensure this function is defined globally or properly scoped if using modules
-        if (typeof chatWindow !== 'function') {
-            function chatWindow(conversationId) {
-                return {
-                    conversationId: conversationId,
-                    init() {
-                        console.log(`[Alpine Scroll] Initializing scroll behavior for conversation ${this.conversationId}`);
-                        // Wait briefly for initial messages to render before scrolling
-                        setTimeout(() => this.scrollToBottom(), 150); // Slightly increased delay
+    {{-- Review Modal --}}
+    <div x-data="{ show: @entangle('showReviewModal') }" x-show="show" x-on:keydown.escape.window="show = false"
+        style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="review-modal-title"
+        role="dialog" aria-modal="true">
 
-                        // Listen for Livewire events dispatched after message send/receive OR refresh
-                        Livewire.on('message-sent', (event) => {
-                            // Correctly access conversationId for Livewire 3+ event structure
-                            const eventData = Array.isArray(event) && event.length > 0 ? event[0] : (event.detail || event); // Adapt for LW3/LW2
-                            if (eventData && eventData.conversationId === this.conversationId) {
-                                console.log('[Alpine Scroll] message-sent received, scrolling');
-                               this.scrollToBottom();
-                            }
-                        });
-                         Livewire.on('message-received', (event) => {
-                             const eventData = Array.isArray(event) && event.length > 0 ? event[0] : (event.detail || event); // Adapt for LW3/LW2
-                             if (eventData && eventData.conversationId === this.conversationId) {
-                                console.log('[Alpine Scroll] message-received received, scrolling');
-                                this.scrollToBottom();
-                             }
-                        });
+        <div
+            class="flex items-end sm:items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 transition-opacity bg-gray-500 opacity-75 dark:bg-gray-900 dark:bg-opacity-80 z-[110]"
+                @click.self="show = false" aria-hidden="true"></div>
 
-                    },
-                    scrollToBottom() {
-                        // Use $nextTick to wait for DOM updates from Livewire/Alpine
-                        this.$nextTick(() => {
-                            const container = this.$refs.messageContainer;
-                            if (container) {
-                                // Scroll a little past the end to ensure visibility if new elements slightly change height
-                                container.scrollTop = container.scrollHeight + 50; 
-                                console.log(`[Alpine Scroll] Scrolled to bottom (scrollHeight: ${container.scrollHeight}) for conversation ${this.conversationId}`);
-                            } else {
-                                console.warn(`[Alpine Scroll] messageContainer ref not found for conversation ${this.conversationId}`);
-                            }
-                        });
-                    }
-                }
-            }
-        }
-    </script>
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="show" x-trap.inert.noscroll="show" @click.stop x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg sm:align-middle z-[120]">
+
+                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100" id="review-modal-title">
+                    Leave a Review
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Everything good? Rate your experience.</p>
+
+                <form wire:submit.prevent="submitReview" class="mt-4 space-y-4">
+                    {{-- Star Rating --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rating</label>
+                        <div class="flex items-center space-x-1">
+                            @for ($i = 1; $i <= 5; $i++)
+                                <button type="button" wire:click="$set('reviewRating', {{ $i }})"
+                                    class="focus:outline-none">
+                                    <svg class="w-8 h-8 {{ $reviewRating >= $i ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}"
+                                        fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                </button>
+                            @endfor
+                        </div>
+                        @error('reviewRating') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    {{-- Review Text --}}
+                    <div>
+                        <label for="reviewTextInput"
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Review (Optional)</label>
+                        <textarea wire:model="reviewText" id="reviewTextInput" rows="3"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
+                            placeholder="Describe your experience..."></textarea>
+                        @error('reviewText') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="flex justify-end space-x-2 pt-4 border-t dark:border-gray-600">
+                        <button type="button" @click="show = false" wire:click="closeReviewModal"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                            Cancel
+                        </button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="submitReview"
+                            class="px-4 py-2 text-sm font-medium text-white bg-teal-600 border border-transparent rounded-md shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50">
+                            <span wire:loading wire:target="submitReview" class="animate-pulse">Submitting...</span>
+                            <span wire:loading.remove wire:target="submitReview">Submit Review</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 </div>

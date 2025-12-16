@@ -1,7 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto">
+    <form action="{{ route('checkout.process') }}" method="POST"
+        class="max-w-6xl w-full grid grid-cols-1 lg:grid-cols-3 gap-6 mx-auto">
+        @csrf
+        <input type="hidden" name="product_id" value="{{ $product->id }}">
+        @if(isset($offer))
+            <input type="hidden" name="offer_id" value="{{ $offer->id }}">
+        @endif
+
         <!-- Left Section -->
         <div class="lg:col-span-2 space-y-6">
             <!-- Product Section -->
@@ -20,7 +27,8 @@
                         <div class="flex"><span class="w-1/3 text-vinted-gray-500">Brand</span> <span
                                 class="text-vinted-gray-700">{{ $product->brand }}</span></div>
                     </div>
-                    <p class="mt-2 font-medium">£1.20</p>
+                    <p class="mt-2 font-medium">
+                        £{{ isset($checkoutPrice) ? number_format($checkoutPrice, 2) : $product->price }}</p>
                 </div>
             </div>
 
@@ -28,7 +36,8 @@
             <!-- Address Section -->
             <div class="bg-white rounded-lg shadow-sm p-4 space-y-3">
                 <h3 class="font-semibold text-gray-800">Address</h3>
-                <button class="w-full border rounded-lg p-3 flex justify-between items-center hover:bg-gray-50">
+                <button type="button"
+                    class="w-full border rounded-lg p-3 flex justify-between items-center hover:bg-gray-50">
                     Add your address <span class="text-xl">＋</span>
                 </button>
             </div>
@@ -42,8 +51,8 @@
                         <div class="flex items-center gap-2">
                             <input type="radio" name="delivery" value="pickup" />
                             <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                                     <path stroke-linecap="round" stroke-linejoin="round"
@@ -62,8 +71,8 @@
                         <div class="flex items-center gap-2">
                             <input type="radio" name="delivery" value="home" checked />
                             <span>
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor" class="size-6">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
                                 </svg>
@@ -100,7 +109,8 @@
             <!-- Contact Details -->
             <div class="bg-white rounded-lg shadow-sm p-4 space-y-3">
                 <h3 class="font-semibold text-gray-800">Your contact details</h3>
-                <button class="w-full border rounded-lg p-3 flex justify-between items-center hover:bg-gray-50">
+                <button type="button"
+                    class="w-full border rounded-lg p-3 flex justify-between items-center hover:bg-gray-50">
                     Add a phone number <span class="text-xl">＋</span>
                 </button>
             </div>
@@ -109,7 +119,28 @@
             <!-- Payment -->
             <div class="bg-white rounded-lg shadow-sm p-4 space-y-3">
                 <h3 class="font-semibold text-gray-800">Payment</h3>
-                <div class="flex items-center gap-3 border rounded-lg p-3">
+
+                <!-- Wallet Option -->
+                <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="payment_method" value="wallet"
+                        class="h-5 w-5 text-vinted-teal focus:ring-vinted-teal" />
+                    <span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor" class="size-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        </svg>
+                    </span>
+                    <div>
+                        <p class="font-medium">My Wallet</p>
+                        <p class="text-sm text-gray-500">Pay with your balance
+                            (£{{ number_format(auth()->user()->wallet->balance ?? 0, 2) }})</p>
+                    </div>
+                </label>
+
+                <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="payment_method" value="card" checked
+                        class="h-5 w-5 text-vinted-teal focus:ring-vinted-teal" />
                     <span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
@@ -122,8 +153,11 @@
                         <p class="font-medium">Credit card</p>
                         <p class="text-sm text-gray-500">Use a credit or debit card</p>
                     </div>
-                </div>
-                <div class="flex items-center gap-3 border rounded-lg p-3">
+                </label>
+
+                <label class="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                    <input type="radio" name="payment_method" value="cod"
+                        class="h-5 w-5 text-vinted-teal focus:ring-vinted-teal" />
                     <span>
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor" class="size-6">
@@ -136,7 +170,7 @@
                         <p class="font-medium">Cash on delivery</p>
                         <p class="text-sm text-gray-500">Pay when good are delivered</p>
                     </div>
-                </div>
+                </label>
             </div>
         </div>
 
@@ -146,7 +180,9 @@
             <div class="bg-white rounded-lg shadow-sm p-4 space-y-3">
                 <h3 class="font-semibold text-gray-800">Price summary</h3>
                 <div class="space-y-2 text-sm">
-                    <div class="flex justify-between"><span>Order</span><span>£1.20</span></div>
+                    <div class="flex justify-between">
+                        <span>Order</span><span>£{{ isset($checkoutPrice) ? number_format($checkoutPrice, 2) : $product->price }}</span>
+                    </div>
                     <div class="flex justify-between"><span>Buyer Protection fee</span><span>£0.76</span></div>
                     <div class="flex justify-between"><span>Shipping</span><span>£1.49</span></div>
                 </div>
@@ -155,9 +191,10 @@
                 </div>
                 <div class="flex justify-between font-semibold text-lg pt-2">
                     <span>Total to pay</span>
-                    <span>£3.45</span>
+                    <span>£{{ number_format((isset($checkoutPrice) ? $checkoutPrice : $product->price) + 0.76 + 1.49, 2) }}</span>
                 </div>
-                <button class="w-full bg-vinted-teal hover:bg-vinted-teal-dark text-white py-2 rounded-lg font-medium">
+                <button type="submit"
+                    class="w-full bg-vinted-teal hover:bg-vinted-teal-dark text-white py-2 rounded-lg font-medium">
                     Pay
                 </button>
                 <p class="text-xs text-center text-gray-500">
@@ -165,5 +202,5 @@
                 </p>
             </div>
         </div>
-    </div>
+    </form>
 @endsection

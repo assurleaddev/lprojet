@@ -8,6 +8,10 @@ use Modules\Chat\Models\Conversation; // Ensure correct import for your Conversa
 use Illuminate\Database\Eloquent\Collection; // Make sure Eloquent Collection is imported
 use Illuminate\Support\Facades\Auth; // Import Auth facade
 
+use Livewire\Attributes\Url; // Import Url attribute
+use Livewire\Attributes\Layout; // Import Layout attribute
+
+#[Layout('layouts.app')]
 class ChatDashboard extends Component
 {
     /**
@@ -27,26 +31,26 @@ class ChatDashboard extends Component
      * Set by Livewire automatically if present in the route parameters.
      * @var int|null
      */
+    #[Url(as: 'id')]
     public ?int $queryConversationId = null; // Renamed to match the route parameter
 
     /**
      * Mount the component, fetch conversations, and select the initial one.
      *
      * @param ChatService $chatService
-     * @param int|null $queryConversationId Optional conversation ID from the route.
      * @return void
      */
-    public function mount(ChatService $chatService, $queryConversationId = null): void
+    public function mount(ChatService $chatService): void
     {
         // Get the authenticated user
         $user = Auth::user();
         if (!$user) {
-            $this->conversations = new Collection(); 
+            $this->conversations = new Collection();
             return;
         }
 
         $this->conversations = $chatService->getConversations($user);
-        $this->queryConversationId = $queryConversationId; 
+        // $this->queryConversationId is automatically set by Livewire from query string
         $this->initializeSelectedConversation();
     }
 
@@ -61,10 +65,10 @@ class ChatDashboard extends Component
             $conversation = $this->conversations->firstWhere('id', $this->queryConversationId);
             if ($conversation) {
                 $this->selectConversation($conversation->id);
-                return; 
+                return;
             }
         }
-        
+
         if ($this->selectedConversation === null && $this->conversations->isNotEmpty()) {
             $this->selectConversation($this->conversations->first()->id);
         }
@@ -80,10 +84,10 @@ class ChatDashboard extends Component
     public function selectConversation(int $conversationId): void
     {
         $selected = $this->conversations->firstWhere('id', $conversationId);
-        
+
         if ($selected) {
             $this->selectedConversation = $selected;
-             app(ChatService::class)->markAsRead($this->selectedConversation, Auth::user());
+            app(ChatService::class)->markAsRead($this->selectedConversation, Auth::user());
         }
     }
 

@@ -16,6 +16,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2|^8.3|^8.4",
+        "barryvdh/laravel-dompdf": "^3.1",
         "christiankuri/laravel-favorite": "^1.4",
         "cweagans/composer-patches": "^1.7",
         "dedoc/scramble": "^0.12.23",

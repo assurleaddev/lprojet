@@ -41,7 +41,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Container width to match Vinted feel */
+        /* Container width to match Used feel */
         .shell {
             max-width: 1200px;
             margin: 0 auto;
@@ -228,7 +228,7 @@
             transform: scale(1.01);
         }
 
-        /* Card texts tighter to match Vinted */
+        /* Card texts tighter to match Used */
         .brand-line {
             font-size: 12px;
             color: #757575;
@@ -343,6 +343,7 @@ $nextTick(() => {
 
     <main class="py-4">
         @yield('content')
+        {{ $slot ?? '' }}
     </main>
     @include('layouts.partials.footer')
     {{-- <livewire:popup-auth-modal /> --}}

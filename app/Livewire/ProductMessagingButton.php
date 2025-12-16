@@ -19,30 +19,31 @@ class ProductMessagingButton extends Component
         // Ensure the user is logged in
         if (!auth()->check()) {
             // Optionally dispatch an event to open your login modal
-            $this->dispatch('open-auth-modal'); 
+            $this->dispatch('open-auth-modal');
             return;
         }
 
         // Ensure the user isn't trying to message themselves
         if (auth()->id() === $this->product->user_id) {
             // Maybe flash a message?
-            return; 
+            return;
         }
 
         // Find or create the conversation using the ChatService
         $conversation = $chatService->getOrCreateConversation(
-            auth()->user(), 
+            auth()->user(),
             $this->product->vendor, // Assuming product has a 'user' relationship
             $this->product
         );
 
         // Redirect the user to the chat page/dashboard, passing the conversation ID
-        return redirect()->route('chat.show', ['queryConversationId' => $conversation->id]);
+        // Redirect the user to the chat page/dashboard, passing the conversation ID
+        return redirect()->route('chat.dashboard', ['id' => $conversation->id]);
     }
 
     public function render()
     {
         // Render just the button itself
-        return view('livewire.product-messaging-button'); 
+        return view('livewire.product-messaging-button');
     }
 }

@@ -9,18 +9,42 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media as PMedia;
 use ChristianKuri\LaravelFavorite\Traits\Favoriteable;
 
 class Product extends Model implements HasMedia
-
 {
     use InteractsWithMedia;
-    use Favoriteable; 
+    use Favoriteable;
 
     protected $fillable = ['name', 'description', 'price', 'vendor_id', 'category_id', 'status'];
-    
-    public function options() {
+
+    protected static function booted()
+    {
+        static::updated(function ($product) {
+            // Price Change Notification
+            if ($product->isDirty('price') && $product->price < $product->getOriginal('price')) {
+                // Notify users who liked/favorited this product
+                // Assuming 'favoriters' relationship from Favoriteable trait
+                foreach ($product->favoriters as $user) {
+                    $user->notify(new \App\Notifications\PriceChangeNotification($product, $product->getOriginal('price'), $product->price));
+                }
+            }
+
+            // New Product Approval Notification
+            // Assuming 'status' changes to 'active' or 1 for approval
+            if ($product->isDirty('status') && $product->status == 'active' && $product->getOriginal('status') != 'active') {
+                // Notify followers of the vendor
+                foreach ($product->vendor->followers as $follower) {
+                    $follower->notify(new \App\Notifications\NewProductNotification($product));
+                }
+            }
+        });
+    }
+
+    public function options()
+    {
         return $this->belongsToMany(Option::class, 'product_option');
     }
 
-    public function category() {
+    public function category()
+    {
         return $this->belongsTo(Category::class);
     }
     public function images()
@@ -29,7 +53,8 @@ class Product extends Model implements HasMedia
     }
 
 
-    public function vendor() {
+    public function vendor()
+    {
         return $this->belongsTo(User::class, 'vendor_id');
     }
     public function hasFeaturedImage(): bool
@@ -54,12 +79,12 @@ class Product extends Model implements HasMedia
     /**
      * Register media conversions.
      */
-    public function registerMediaConversions(PMedia $media = null): void
+    public function registerMediaConversions(?PMedia $media = null): void
     {
         $this->addMediaConversion('preview')
-              ->fit(Fit::Contain, 300, 300)
-              ->nonQueued();
-              // Thumbnail for featured images
+            ->fit(Fit::Contain, 300, 300)
+            ->nonQueued();
+        // Thumbnail for featured images
         $this->addMediaConversion('thumb')
             ->width(200)
             ->height(200)
@@ -80,7 +105,7 @@ class Product extends Model implements HasMedia
     {
         $media = $this->getFirstMedia('featured');
 
-        if (! $media) {
+        if (!$media) {
             return null;
         }
 
@@ -108,7 +133,7 @@ class Product extends Model implements HasMedia
 
     public function getSizeAttribute(): ?string
     {
-        
+
         $colorOption = $this->options->firstWhere('attribute.name', 'Size');
         return $colorOption ? $colorOption->value : null;
     }
@@ -123,7 +148,7 @@ class Product extends Model implements HasMedia
         $this->options->loadMissing('attribute');
 
         $bySlug = $this->options
-            ->groupBy(fn($o) => optional($o->attribute)->slug ?? (string)$o->attribute_id)
+            ->groupBy(fn($o) => optional($o->attribute)->slug ?? (string) $o->attribute_id)
             ->map(fn($grp) => $grp->pluck('value')->implode(' / '));
 
         $parts = collect($orderedSlugs)

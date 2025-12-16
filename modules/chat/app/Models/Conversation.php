@@ -4,7 +4,7 @@ namespace Modules\Chat\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\User; 
+use App\Models\User;
 use App\Models\Product;
 // use Modules\Chat\Database\Factories\ConversationFactory;
 
@@ -38,10 +38,18 @@ class Conversation extends Model
     {
         return $this->belongsTo(User::class, 'user_two_id');
     }
-    
+
     // Helper to get the other user in the conversation
-    public function getOtherUser(User $currentUser): User
+    public function getOtherUser(User $currentUser): ?User
     {
-        return $this->user_one_id === $currentUser->id ? $this->userTwo : $this->userOne;
+        $isUserOne = $this->user_one_id == $currentUser->id;
+        $otherUser = $isUserOne ? $this->userTwo : $this->userOne;
+
+        if (!$otherUser) {
+            $otherId = $isUserOne ? $this->user_two_id : $this->user_one_id;
+            $otherUser = User::find($otherId);
+        }
+
+        return $otherUser;
     }
 }

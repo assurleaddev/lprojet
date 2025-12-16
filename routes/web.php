@@ -36,15 +36,25 @@ use App\Http\Controllers\Backend\Marketplace\AttributeController;
 /**
  * User routes.
  */
- Route::get('/home', [HomeController::class, 'index'])->name('home');
- Route::get('items/{product}', [HomeController::class, 'show'])->name('products.show');
- Route::get('member/{user}', [HomeController::class, 'member_profile'])->name('vendor.show');
- Route::post('/products/{product}/favorite', [HomeController::class, 'toggleFavorite'])
+Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/items/new', [App\Http\Controllers\ItemController::class, 'create'])->middleware('auth')->name('items.create');
+Route::post('/items', [App\Http\Controllers\ItemController::class, 'store'])->middleware('auth')->name('items.store');
+Route::get('/items/categories/{category}/attributes', [App\Http\Controllers\ItemController::class, 'getAttributes'])->name('items.attributes');
+Route::get('items/{product}', [HomeController::class, 'show'])->name('products.show');
+Route::get('member/{user}', [HomeController::class, 'member_profile'])->name('vendor.show');
+Route::post('/products/{product}/favorite', [HomeController::class, 'toggleFavorite'])
     ->middleware('auth')
     ->name('products.favorite');
 Route::post('/users/{user}/follow', [HomeController::class, 'toggleFollow'])
     ->middleware('auth')
     ->name('users.follow.toggle');
+Route::post('/users/{user}/block', [App\Http\Controllers\BlockUserController::class, 'toggleBlock'])
+    ->middleware('auth')
+    ->name('users.block.toggle');
+Route::get('/users/{user}/followers', [HomeController::class, 'followers'])->name('users.followers');
+Route::get('/users/{user}/following', [HomeController::class, 'following'])->name('users.following');
+Route::get('/favorites', [HomeController::class, 'favorites'])->middleware('auth')->name('favorites.index');
+
 Route::get('/product/{product}', [HomeController::class, 'checkout'])
     ->middleware('auth')
     ->name('product.checkout');
@@ -52,11 +62,72 @@ Route::get('/product/{product}', [HomeController::class, 'checkout'])
 Route::get('/checkout/offer/{offer}', [HomeController::class, 'offerCheckout'])
     ->middleware('auth')
     ->name('checkout.offer');
+
+Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])
+    ->middleware('auth')
+    ->name('notifications.index');
+
+Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
+
+Route::get('/settings/profile', [App\Http\Controllers\SettingsController::class, 'profile'])
+    ->middleware('auth')
+    ->name('settings.profile');
+Route::post('/settings/profile', [App\Http\Controllers\SettingsController::class, 'updateProfile'])
+    ->middleware('auth')
+    ->name('settings.profile.update');
+
+Route::get('/settings/account', [App\Http\Controllers\SettingsController::class, 'account'])
+    ->middleware('auth')
+    ->name('settings.account');
+Route::post('/settings/account', [App\Http\Controllers\SettingsController::class, 'updateAccount'])
+    ->middleware('auth')
+    ->name('settings.account.update');
+
+Route::get('/settings/postage', [App\Http\Controllers\SettingsController::class, 'postage'])
+    ->middleware('auth')
+    ->name('settings.postage');
+Route::post('/settings/postage', [App\Http\Controllers\SettingsController::class, 'updatePostage'])
+    ->middleware('auth')
+    ->name('settings.postage.update');
+Route::post('/settings/address', [App\Http\Controllers\SettingsController::class, 'storeAddress'])
+    ->middleware('auth')
+    ->name('settings.address.store');
+
+Route::get('/settings/notifications', [App\Http\Controllers\SettingsController::class, 'notifications'])
+    ->middleware('auth')
+    ->name('settings.notifications');
+Route::post('/settings/notifications', [App\Http\Controllers\SettingsController::class, 'updateNotifications'])
+    ->middleware('auth')
+    ->name('settings.notifications.update');
+
+Route::get('/settings/security', [App\Http\Controllers\SettingsController::class, 'security'])
+    ->middleware('auth')
+    ->name('settings.security');
+Route::post('/settings/security/email/request', [App\Http\Controllers\SettingsController::class, 'requestEmailChange'])
+    ->middleware('auth')
+    ->name('settings.security.email.request');
+Route::post('/settings/security/email/verify', [App\Http\Controllers\SettingsController::class, 'verifyEmailChange'])
+    ->middleware('auth')
+    ->name('settings.security.email.verify');
+Route::post('/settings/security/password', [App\Http\Controllers\SettingsController::class, 'updatePassword'])
+    ->middleware('auth')
+    ->name('settings.security.password.update');
+Route::post('/settings/security/2fa/toggle', [App\Http\Controllers\SettingsController::class, 'toggleTwoFactor'])
+    ->middleware('auth')
+    ->name('settings.security.2fa.toggle');
+Route::post('/settings/security/2fa/verify', [App\Http\Controllers\SettingsController::class, 'verifyTwoFactor'])
+    ->middleware('auth')
+    ->name('settings.security.2fa.verify');
+Route::post('/settings/security/session/{id}/logout', [App\Http\Controllers\SettingsController::class, 'logoutSession'])
+    ->middleware('auth')
+    ->name('settings.security.logout_session');
 /**
  * Admin routes.
  */
 Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('settings', SettingController::class);
+    Route::resource('translations', TranslationController::class);
     Route::resource('roles', RoleController::class);
     Route::delete('roles/delete/bulk-delete', [RoleController::class, 'bulkDelete'])->name('roles.bulk-delete');
 
@@ -66,19 +137,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
 
     // Modules Routes.
     Route::get('/modules', [ModuleController::class, 'index'])->name('modules.index');
-    Route::post('/modules/toggle-status/{module}', [ModuleController::class, 'toggleStatus'])->name('modules.toggle-status');
-    Route::post('/modules/upload', [ModuleController::class, 'store'])->name('modules.store');
-    Route::delete('/modules/{module}', [ModuleController::class, 'destroy'])->name('modules.delete');
-
-    // Settings Routes.
-    Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::post('/settings', [SettingController::class, 'store'])->name('settings.store');
-
-    // Translation Routes.
-    Route::get('/translations', [TranslationController::class, 'index'])->name('translations.index');
-    Route::post('/translations', [TranslationController::class, 'update'])->name('translations.update');
-    Route::post('/translations/create', [TranslationController::class, 'create'])->name('translations.create');
-
     // Login as & Switch back.
     Route::resource('users', UserController::class);
     Route::delete('users/delete/bulk-delete', [UserController::class, 'bulkDelete'])->name('users.bulk-delete');
@@ -119,7 +177,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::post('products/{product}/approve', [ProductController::class, 'approve'])
-    ->name('products.approve');
+        ->name('products.approve');
 
     Route::resource('orders', \App\Http\Controllers\Backend\Marketplace\OrderController::class)->only(['index', 'show']);
     Route::patch('orders/{order}/status', [\App\Http\Controllers\Backend\Marketplace\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
@@ -130,7 +188,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         // Route::resource('categories', CategoryController::class);
         // Categories
         // Route::resource('categories', CategoryController::class)
-            // ->names('backend.categories'); // This sets names like backend.categories.edit
+        // ->names('backend.categories'); // This sets names like backend.categories.edit
         Route::resource('attributes', AttributeController::class);
         Route::get('categories/{category}/attributes', [ProductController::class, 'getAttributesByCategory'])->name('categories.attributes');
         Route::delete('product-images/{image}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
@@ -158,4 +216,4 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
-Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');
+Route::get('/demo-preview', fn() => view('demo.preview'))->name('demo.preview');

@@ -20,6 +20,7 @@ use Overtrue\LaravelFollow\Traits\Follower;   // can follow others
 use Overtrue\LaravelFollow\Traits\Followable; // can be followed
 use ChristianKuri\LaravelFavorite\Traits\Favoriteability;
 use Digikraaft\ReviewRating\Traits\HasReviewRating;
+use Modules\Wallet\Models\Wallet;
 
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable
@@ -46,6 +47,7 @@ class User extends Authenticatable
         'password',
         'username',
         'avatar_id',
+        'banned_at',
     ];
 
     /**
@@ -66,6 +68,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'banned_at' => 'datetime',
     ];
 
     /**
@@ -177,5 +180,48 @@ class User extends Authenticatable
     public function products()
     {
         return $this->hasMany(Product::class, 'vendor_id');
+    }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function receivedReviews()
+    {
+        return $this->morphMany(\App\Models\Review::class, 'model');
+    }
+
+    /**
+     * Check if the user is banned.
+     */
+    public function isBanned(): bool
+    {
+        return !is_null($this->banned_at);
+    }
+
+    /**
+     * Get the users that this user has blocked.
+     */
+    public function blockedUsers()
+    {
+        return $this->belongsToMany(User::class, 'blocked_users', 'user_id', 'blocked_user_id')->withTimestamps();
+    }
+
+    /**
+     * Scope a query to only include active users.
+     */
+    public function scopeNotBanned($query)
+    {
+        return $query->whereNull('banned_at');
+    }
+
+    /**
+     * Get user meta value.
+     */
+    public function getMeta($key, $default = null)
+    {
+        $meta = $this->userMeta->where('meta_key', $key)->first();
+        return $meta ? $meta->meta_value : $default;
     }
 }

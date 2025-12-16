@@ -77,17 +77,17 @@ class ChatWindow extends Component
     {
         $user = Auth::user();
         if (!$user) {
-             Log::error("ChatWindow: User not authenticated while trying to load conversation {$this->conversationId}");
-             $this->messages = [];
-             $this->conversation = null; // Ensure conversation is null if user isn't auth'd
-             return;
+            Log::error("ChatWindow: User not authenticated while trying to load conversation {$this->conversationId}");
+            $this->messages = [];
+            $this->conversation = null; // Ensure conversation is null if user isn't auth'd
+            return;
         }
 
         // Find the conversation, ensuring the user has access and eager load necessary relations
         $this->conversation = Conversation::where('id', $this->conversationId)
-            ->where(function($query) use ($user) {
+            ->where(function ($query) use ($user) {
                 $query->where('user_one_id', $user->id)
-                      ->orWhere('user_two_id', $user->id);
+                    ->orWhere('user_two_id', $user->id);
             })
             // Eager load messages, their sender, and any associated offer with its product
             // Product model should handle loading its media automatically or define the accessor
@@ -113,30 +113,33 @@ class ChatWindow extends Component
                     $messageArray['offer']['product']['featured_image_url'] = $message->offer->product->getFeaturedImageUrl('preview');
 
                     // Manually add name/price if not included by default in toArray or relationships
-                     if (!isset($messageArray['offer']['product']['name'])) {
-                         $messageArray['offer']['product']['name'] = $message->offer->product->name;
-                     }
-                     if (!isset($messageArray['offer']['product']['price'])) {
-                         $messageArray['offer']['product']['price'] = $message->offer->product->price;
-                     }
+                    if (!isset($messageArray['offer']['product']['name'])) {
+                        $messageArray['offer']['product']['name'] = $message->offer->product->name;
+                    }
+                    if (!isset($messageArray['offer']['product']['price'])) {
+                        $messageArray['offer']['product']['price'] = $message->offer->product->price;
+                    }
 
                 } else {
-                     // Ensure nested structure exists even if there's no offer, avoids errors in Blade
-                     if(!isset($messageArray['offer'])) $messageArray['offer'] = null;
-                     if($messageArray['offer'] && !isset($messageArray['offer']['product'])) $messageArray['offer']['product'] = null;
-                     if($messageArray['offer'] && $messageArray['offer']['product'] && !isset($messageArray['offer']['product']['featured_image_url'])) $messageArray['offer']['product']['featured_image_url'] = null;
+                    // Ensure nested structure exists even if there's no offer, avoids errors in Blade
+                    if (!isset($messageArray['offer']))
+                        $messageArray['offer'] = null;
+                    if ($messageArray['offer'] && !isset($messageArray['offer']['product']))
+                        $messageArray['offer']['product'] = null;
+                    if ($messageArray['offer'] && $messageArray['offer']['product'] && !isset($messageArray['offer']['product']['featured_image_url']))
+                        $messageArray['offer']['product']['featured_image_url'] = null;
                 }
                 return $messageArray;
             })->keyBy(function ($item) { // Key by offer or message ID after mapping
-                 // Use unique keys: prefix with type and ensure message ID exists
-                 $msgId = $item['id'] ?? uniqid('msg_', true);
-                 $offerId = $item['offer_id'] ?? null;
-                 return $offerId ? 'offer_'.$offerId : 'msg_'.$msgId;
+                // Use unique keys: prefix with type and ensure message ID exists
+                $msgId = $item['id'] ?? uniqid('msg_', true);
+                $offerId = $item['offer_id'] ?? null;
+                return $offerId ? 'offer_' . $offerId : 'msg_' . $msgId;
             })->toArray();
 
             // Mark messages as read
             $chatService->markAsRead($this->conversation, $user);
-             Log::debug("ChatWindow: Successfully loaded conversation {$this->conversationId} with " . count($this->messages) . " messages.");
+            Log::debug("ChatWindow: Successfully loaded conversation {$this->conversationId} with " . count($this->messages) . " messages.");
         } else {
             // Handle case where conversation isn't found or user doesn't have access
             $this->messages = [];
@@ -180,7 +183,8 @@ class ChatWindow extends Component
             return;
         }
         $user = Auth::user();
-        if (!$user) return;
+        if (!$user)
+            return;
 
         $newMessage = $chatService->sendMessage(
             $this->conversation,
@@ -188,26 +192,26 @@ class ChatWindow extends Component
             $this->messageBody
         );
 
-         Log::debug("ChatWindow: Message sent successfully by User {$user->id} in Conversation {$this->conversationId}");
+        Log::debug("ChatWindow: Message sent successfully by User {$user->id} in Conversation {$this->conversationId}");
 
         // Add the newly sent message immediately to the local state
         $key = 'msg_' . $newMessage->id; // Use msg_ prefix for non-offer messages
         $this->messages[$key] = [
-             'id' => $newMessage->id,
-             'conversation_id' => $this->conversationId,
-             'user_id' => $user->id,
-             'body' => $newMessage->body,
-             'read_at' => null,
-             'created_at' => $newMessage->created_at->toISOString(),
-             'updated_at' => $newMessage->updated_at->toISOString(),
-             'user' => [
-                 'id' => $user->id,
-                 'name' => $user->name, // Adjust attribute if needed
-             ],
-             'created_at_human' => $newMessage->created_at->diffForHumans(),
-             'type' => 'text', // Explicitly set type
-             'offer_id' => null, // No offer linked
-             'offer' => null, // No offer data
+            'id' => $newMessage->id,
+            'conversation_id' => $this->conversationId,
+            'user_id' => $user->id,
+            'body' => $newMessage->body,
+            'read_at' => null,
+            'created_at' => $newMessage->created_at->toISOString(),
+            'updated_at' => $newMessage->updated_at->toISOString(),
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name, // Adjust attribute if needed
+            ],
+            'created_at_human' => $newMessage->created_at->diffForHumans(),
+            'type' => 'text', // Explicitly set type
+            'offer_id' => null, // No offer linked
+            'offer' => null, // No offer data
         ];
 
         $this->reset('messageBody');
@@ -217,61 +221,82 @@ class ChatWindow extends Component
     // Method to Accept an Offer
     public function acceptOffer(int $offerId, ChatService $chatService): void
     {
-        $offer = Offer::where('id', $offerId)
-                      ->where('seller_id', Auth::id())
-                      ->where('status', OfferStatus::Pending)
-                      ->first();
+        $user = Auth::user();
+        $offer = Offer::find($offerId);
 
         if (!$offer) {
-            Log::warning("ChatWindow: Invalid or unauthorized attempt to accept offer {$offerId} by User " . Auth::id());
-            $this->dispatch('toast', message: 'Offer not found or already actioned.', type: 'error'); // Updated dispatch syntax
+            $this->dispatch('toast', message: 'Offer not found.', type: 'error');
             return;
         }
 
-        $offer->status = OfferStatus::Accepted;
-        $offer->responded_at = now();
-        $offer->save();
+        // Case 1: Seller accepting a Pending offer (Standard flow)
+        if ($offer->status === OfferStatus::Pending && $offer->seller_id === $user->id) {
+            $offer->status = OfferStatus::Accepted;
+            $offer->responded_at = now();
+            $offer->save();
 
-        Log::info("ChatWindow: Offer {$offerId} accepted by User " . Auth::id());
+            Log::info("ChatWindow: Offer {$offerId} accepted by Seller " . $user->id);
 
-        $chatService->sendOfferResponseMessage($offer->conversation, Auth::user(), $offer, true);
+            $chatService->sendOfferResponseMessage($offer->conversation, $user, $offer, true);
 
-        // Refresh messages to show updated status
-        $this->loadConversation($chatService); // Re-fetch to update $this->messages
-        $this->dispatch('toast', message: 'Offer accepted!', type: 'success'); // Updated dispatch syntax
+            $this->loadConversation($chatService);
+            $this->dispatch('toast', message: 'Offer accepted!', type: 'success');
+            return;
+        }
+
+        // Case 2: Buyer accepting a Counter Offer (AwaitingBuyer)
+        if ($offer->status === OfferStatus::AwaitingBuyer && $offer->buyer_id === $user->id) {
+            $offer->status = OfferStatus::Accepted;
+            $offer->responded_at = now();
+            $offer->save();
+
+            Log::info("ChatWindow: Counter Offer {$offerId} accepted by Buyer " . $user->id);
+
+            // Send message confirming acceptance
+            $chatService->sendOfferResponseMessage($offer->conversation, $user, $offer, true, 'Counter offer accepted');
+
+            // Redirect to checkout
+            $this->redirect(route('checkout.offer', ['offer' => $offer->id]), navigate: true);
+            return;
+        }
+
+        // If neither case matched
+        Log::warning("ChatWindow: Invalid accept attempt for offer {$offerId} by User " . $user->id);
+        $this->dispatch('toast', message: 'Unauthorized action or invalid offer status.', type: 'error');
     }
 
     // Method to show the rejection reason modal
     public function promptRejectOffer(int $offerId): void
     {
         $offerExists = Offer::where('id', $offerId)
-                            ->where('seller_id', Auth::id())
-                            ->where('status', OfferStatus::Pending)
-                            ->exists();
+            ->where('seller_id', Auth::id())
+            ->where('status', OfferStatus::Pending)
+            ->exists();
 
         if ($offerExists) {
             $this->offerToRejectId = $offerId;
             $this->reset('rejectionReason');
             $this->showRejectionModal = true;
         } else {
-             Log::warning("ChatWindow: Invalid or unauthorized attempt to prompt rejection for offer {$offerId} by User " . Auth::id());
-             $this->dispatch('toast', message: 'Offer not found or already actioned.', type: 'error'); // Updated dispatch syntax
+            Log::warning("ChatWindow: Invalid or unauthorized attempt to prompt rejection for offer {$offerId} by User " . Auth::id());
+            $this->dispatch('toast', message: 'Offer not found or already actioned.', type: 'error'); // Updated dispatch syntax
         }
     }
 
     // Method to submit the rejection with reason
     public function rejectOffer(ChatService $chatService): void
     {
-        if ($this->offerToRejectId === null) return;
+        if ($this->offerToRejectId === null)
+            return;
 
         $validated = $this->validate([
             'rejectionReason' => 'required|string|min:10|max:500',
         ]);
 
         $offer = Offer::where('id', $this->offerToRejectId)
-                      ->where('seller_id', Auth::id())
-                      ->where('status', OfferStatus::Pending)
-                      ->first();
+            ->where('seller_id', Auth::id())
+            ->where('status', OfferStatus::Pending)
+            ->first();
 
         if (!$offer) {
             Log::warning("ChatWindow: Offer {$this->offerToRejectId} not found or invalid state during rejection by User " . Auth::id());
@@ -300,6 +325,136 @@ class ChatWindow extends Component
         $this->offerToRejectId = null;
         $this->reset('rejectionReason');
         $this->resetValidation('rejectionReason');
+    }
+
+    public function markAsShipped(ChatService $chatService)
+    {
+        // Find the order associated with this conversation's product
+        // Assuming one active order per product/conversation context
+        $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
+            ->where('vendor_id', Auth::id())
+            ->where('status', 'processing') // Only look for processing orders
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            $this->dispatch('toast', message: 'No processing order found to ship.', type: 'error');
+            return;
+        }
+
+        $order->update(['status' => 'shipped']);
+
+        // Send structured message
+        $chatService->sendItemShippedMessage($this->conversation, Auth::user(), $order);
+
+        $this->dispatch('toast', message: 'Order marked as shipped.', type: 'success');
+        $this->loadConversation($chatService);
+    }
+
+    // Properties for Review Modal
+    public bool $showReviewModal = false;
+    public int $reviewRating = 0;
+    public string $reviewText = '';
+    public ?int $orderToReviewId = null;
+
+    public function markAsReceived(int $orderId)
+    {
+        if ($orderId === 0) {
+            // Try to find the order if ID is not passed (e.g. from chat view)
+            $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
+                ->where('user_id', Auth::id()) // Current user must be the buyer
+                ->where('status', 'shipped')
+                ->latest()
+                ->first();
+        } else {
+            $order = \App\Models\Order::find($orderId);
+        }
+
+        if (!$order || $order->user_id !== Auth::id()) {
+            $this->dispatch('toast', message: 'Unauthorized action or order not found.', type: 'error');
+            return;
+        }
+
+        if ($order->status !== 'shipped') {
+            $this->dispatch('toast', message: 'Order cannot be marked as received yet.', type: 'error');
+            return;
+        }
+
+        // Open Review Modal instead of completing immediately
+        $this->orderToReviewId = $order->id;
+        $this->reset(['reviewRating', 'reviewText']);
+        $this->showReviewModal = true;
+    }
+
+    public function submitReview(ChatService $chatService)
+    {
+        $this->validate([
+            'reviewRating' => 'required|integer|min:1|max:5',
+            'reviewText' => 'nullable|string|max:1000',
+        ]);
+
+        if (!$this->orderToReviewId)
+            return;
+
+        $order = \App\Models\Order::find($this->orderToReviewId);
+        if (!$order)
+            return;
+
+        // 1. Create Review
+        $reviewContent = empty(trim($this->reviewText)) ? "Auto generated review by user" : $this->reviewText;
+
+        \App\Models\Review::create([
+            'rating' => $this->reviewRating,
+            'review' => $reviewContent,
+            'model_id' => $order->vendor_id, // Reviewing the Seller
+            'model_type' => \App\Models\User::class,
+            'author_id' => Auth::id(), // Buyer
+            'author_type' => \App\Models\User::class,
+            // 'order_id' => $order->id, // If we added order_id to reviews table, which we didn't in the migration I saw. 
+            // The migration had morphs for model and author. 
+            // If we want to link to order, we'd need a column. For now, let's skip strict order linking in DB 
+            // or put it in title/meta if needed. But requirement didn't strictly say "link in DB", just "added to buyer reviews".
+        ]);
+
+        // 2. Release Funds & Complete Order
+        try {
+            $walletService = app(\Modules\Wallet\Services\WalletService::class);
+            $walletService->releasePendingFunds($order->vendor, $order->amount, 'Order #' . $order->id);
+
+            $order->update(['status' => 'completed']); // Use completed instead of delivered for final state
+
+            // 3. Send Message
+            $chatService->sendOrderCompletedMessage($this->conversation, Auth::user(), $order);
+
+            $this->dispatch('toast', message: 'Order completed and review submitted!', type: 'success');
+            $this->closeReviewModal();
+            $this->loadConversation($chatService);
+
+        } catch (\Exception $e) {
+            Log::error("ChatWindow: Error completing order {$order->id}: " . $e->getMessage());
+            $this->dispatch('toast', message: 'Error completing order: ' . $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function closeReviewModal()
+    {
+        $this->showReviewModal = false;
+        $this->orderToReviewId = null;
+        $this->reset(['reviewRating', 'reviewText']);
+    }
+
+    /**
+     * Triggers the Counter Offer Modal by dispatching an event.
+     * This acts as a proxy to ensure the event is dispatched from the backend.
+     *
+     * @param int $productId
+     * @param int $targetBuyerId
+     * @return void
+     */
+    public function triggerCounterOffer(int $productId, int $targetBuyerId): void
+    {
+        Log::info("ChatWindow: Triggering counter offer modal for Product {$productId} and Buyer {$targetBuyerId}");
+        $this->dispatch('open-counter-offer-modal', productId: $productId, targetBuyerId: $targetBuyerId);
     }
 
     /**

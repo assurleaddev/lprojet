@@ -1,0 +1,30 @@
+{
+    "name": "laradashboard/wallet",
+    "description": "",
+    "authors": [
+        {
+            "name": "LaraDashboard",
+            "email": "admin@laradashboard.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Wallet\\": "app/",
+            "Modules\\Wallet\\Database\\Factories\\": "database/factories/",
+            "Modules\\Wallet\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\Wallet\\Tests\\": "tests/"
+        }
+    }
+}
