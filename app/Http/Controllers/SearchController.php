@@ -19,58 +19,69 @@ class SearchController extends Controller
         $categories = [];
         $attributes = [];
 
-        if ($query || !empty($categoryIds) || !empty($attributeFilters)) {
-            if ($type === 'user') {
+        // Initialize filtered collection
+        $results = collect();
+        $categories = [];
+        $attributes = [];
+
+        if ($type === 'user') {
+            // User search logic remains same (only runs if query is present, or maybe user wants to browse all vendors?)
+            // For now, let's keep user search requiring a query as listing all users might not be desired default behavior
+            if ($query) {
                 $results = User::where('first_name', 'like', "%{$query}%")
                     ->orWhere('last_name', 'like', "%{$query}%")
                     ->orWhere('username', 'like', "%{$query}%")
                     ->orWhere('email', 'like', "%{$query}%")
                     ->paginate(20)
                     ->appends(['query' => $query, 'type' => $type]);
-            } else {
-                // Default to product search with filters
-                $productsQuery = Product::query()->with(['category', 'options.attribute']);
+            }
+        } else {
+            // Default to product search
+            // Start with base query for products
+            $productsQuery = Product::query()->with(['category', 'options.attribute']);
 
-                // Text search
-                if ($query) {
-                    $productsQuery->where(function ($q) use ($query) {
-                        $q->where('name', 'like', "%{$query}%")
-                            ->orWhere('description', 'like', "%{$query}%");
-                    });
-                }
+            // OPTIONAL: Filter by status 'approved' or 'active' if that's your logic (copied from HomeController)
+            $productsQuery->where('status', 'approved'); // or 'approved' depending on your DB
 
-                // Category filter
-                if (!empty($categoryIds)) {
-                    $productsQuery->whereIn('category_id', $categoryIds);
-                }
+            // Text search
+            if ($query) {
+                $productsQuery->where(function ($q) use ($query) {
+                    $q->where('name', 'like', "%{$query}%")
+                        ->orWhere('description', 'like', "%{$query}%");
+                });
+            }
 
-                // Attribute filters
-                if (!empty($attributeFilters)) {
-                    foreach ($attributeFilters as $attributeId => $optionIds) {
-                        if (!empty($optionIds)) {
-                            $productsQuery->whereHas('options', function ($q) use ($attributeId, $optionIds) {
-                                $q->where('attribute_id', $attributeId)
-                                    ->whereIn('id', $optionIds);
-                            });
-                        }
+            // Category filter
+            if (!empty($categoryIds)) {
+                $productsQuery->whereIn('category_id', $categoryIds);
+            }
+
+            // Attribute filters
+            if (!empty($attributeFilters)) {
+                foreach ($attributeFilters as $attributeId => $optionIds) {
+                    if (!empty($optionIds)) {
+                        $productsQuery->whereHas('options', function ($q) use ($attributeId, $optionIds) {
+                            $q->where('attribute_id', $attributeId)
+                                ->whereIn('id', $optionIds);
+                        });
                     }
                 }
+            }
 
-                $results = $productsQuery->paginate(20)
-                    ->appends(['query' => $query, 'type' => $type, 'categories' => $categoryIds, 'attributes' => $attributeFilters]);
+            // Execute query
+            $results = $productsQuery->latest()->paginate(20)
+                ->appends(['query' => $query, 'type' => $type, 'categories' => $categoryIds, 'attributes' => $attributeFilters]);
 
-                // Get all categories for filter sidebar
-                $categories = \App\Models\Category::with('children')->whereNull('parent_id')->get();
+            // Get all categories for filter sidebar
+            $categories = \App\Models\Category::with('children')->whereNull('parent_id')->get();
 
-                // Get attributes for selected categories
-                if (!empty($categoryIds)) {
-                    $attributes = \App\Models\Attribute::whereHas('categories', function ($q) use ($categoryIds) {
-                        $q->whereIn('categories.id', $categoryIds);
-                    })->with('options')->get();
-                } else {
-                    // If no category selected, show all attributes
-                    $attributes = \App\Models\Attribute::with('options')->get();
-                }
+            // Get attributes logic
+            if (!empty($categoryIds)) {
+                $attributes = \App\Models\Attribute::whereHas('categories', function ($q) use ($categoryIds) {
+                    $q->whereIn('categories.id', $categoryIds);
+                })->with('options')->get();
+            } else {
+                $attributes = \App\Models\Attribute::with('options')->get();
             }
         }
 

@@ -46,14 +46,14 @@
                 <div>
                     <label class="block font-semibold mb-1">Title</label>
                     <input type="text" name="title"
-                        class="w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
                         placeholder="e.g. White COS Jumper" required>
                 </div>
 
                 <div>
                     <label class="block font-semibold mb-1">Describe your item</label>
                     <textarea name="description" rows="4"
-                        class="w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
                         placeholder="e.g. only worn a few times, true to size" required></textarea>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                 <div>
                     <label class="block font-semibold mb-1">Category</label>
                     <select name="category_id" id="category-select"
-                        class="w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500" required>
+                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500" required>
                         <option value="">Select a category</option>
                         @foreach($categories as $category)
                             <optgroup label="{{ $category->name }}">
@@ -79,23 +79,6 @@
                     <!-- Attributes will be injected here -->
                 </div>
 
-                <div>
-                    <label class="block font-semibold mb-1">Brand</label>
-                    <input type="text" name="brand"
-                        class="w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500"
-                        placeholder="Select a brand">
-                </div>
-
-                <div>
-                    <label class="block font-semibold mb-1">Condition</label>
-                    <select name="condition"
-                        class="w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500">
-                        <option value="">Select a condition</option>
-                        @foreach($conditions as $condition)
-                            <option value="{{ $condition }}">{{ $condition }}</option>
-                        @endforeach
-                    </select>
-                </div>
             </div>
 
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
@@ -103,7 +86,7 @@
                     <label class="block font-semibold mb-1">Price</label>
                     <div class="relative">
                         <input type="number" name="price" step="0.01"
-                            class="w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500 pl-8"
+                            class="w-full border border-gray-300 rounded-md py-2.5 pl-12 focus:ring-teal-500 focus:border-teal-500"
                             placeholder="0.00" required>
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">MAD</span>
                     </div>
@@ -141,7 +124,7 @@
                                     if (attr.options && attr.options.length > 0) {
                                         const select = document.createElement('select');
                                         select.name = `attributes[${attr.id}]`; // Adjust naming convention as needed
-                                        select.className = 'w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500';
+                                        select.className = 'w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500';
 
                                         const defaultOption = document.createElement('option');
                                         defaultOption.value = '';
@@ -159,7 +142,7 @@
                                         const input = document.createElement('input');
                                         input.type = 'text';
                                         input.name = `attributes[${attr.id}]`;
-                                        input.className = 'w-full border-gray-300 rounded-md focus:ring-teal-500 focus:border-teal-500';
+                                        input.className = 'w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500';
                                         div.appendChild(input);
                                     }
 
@@ -218,11 +201,11 @@
                             div.dataset.index = file.tempId;
 
                             div.innerHTML = `
-                                                <img src="${e.target.result}" class="w-full h-full object-cover">
-                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
-                                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                </button>
-                                            `;
+                                                        <img src="${e.target.result}" class="w-full h-full object-cover">
+                                                        <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
+                                                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                        </button>
+                                                    `;
 
                             // Insert before the upload button
                             document.getElementById('drop-zone').insertBefore(div, document.getElementById('upload-btn-container'));

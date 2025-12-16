@@ -4,7 +4,7 @@
     <h2 class="text-2xl font-semibold text-gray-900 dark:text-white mb-4">Edit Category</h2>
 
     <x-card>
-        <form action="{{ route('admin.categories.update', $category) }}" method="POST">
+        <form action="{{ route('admin.categories.update', $category) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
             @include('backend.marketplace.categories._form', ['category' => $category])

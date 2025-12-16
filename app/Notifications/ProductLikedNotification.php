@@ -75,7 +75,20 @@ class ProductLikedNotification extends Notification
             'liker_id' => $this->liker->id,
             'product_id' => $this->product->id,
             'message' => "{$this->liker->full_name} liked your product {$this->product->name}.",
-            'url' => route('products.show', $this->product->slug),
+            'url' => route('products.show', $this->product),
         ];
+    }
+
+    /**
+     * Get the mail representation of the notification.
+     */
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject('New Like on your product')
+            ->greeting("Hello {$notifiable->first_name},")
+            ->line("{$this->liker->full_name} liked your product: {$this->product->name}.")
+            ->action('View Product', route('products.show', $this->product))
+            ->line('Thank you for using our application!');
     }
 }

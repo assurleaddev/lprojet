@@ -15,13 +15,29 @@
             <div class="flex items-center" style="padding-left: {{ $indentation }}px;">
                 @if($category->children->isNotEmpty())
                     <button @click="open = !open" class="mr-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                        <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-90': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-90': open }" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
                     </button>
                 @else
                     <span class="w-4 h-4 mr-2"></span> {{-- Alignment placeholder --}}
                 @endif
                 <span>{{ $category->name }}</span>
             </div>
+        </td>
+        {{-- Icon Column --}}
+        <td class="px-6 py-4" wire:ignore>
+            @if($category->getFirstMediaUrl('icon'))
+                <img src="{{ $category->getFirstMediaUrl('icon') }}" alt="Icon" class="w-8 h-8 rounded object-cover">
+            @elseif($category->icon)
+                <div class="flex items-center">
+                    <iconify-icon icon="{{ $category->icon }}"
+                        class="text-2xl text-gray-600 dark:text-gray-400"></iconify-icon>
+                </div>
+            @else
+                <span class="text-gray-400">-</span>
+            @endif
         </td>
         {{-- Slug Column --}}
         <td class="px-6 py-4">{{ $category->slug }}</td>
@@ -30,7 +46,7 @@
             @include('backend.livewire.datatable.action-buttons', ['item' => $category])
         </td>
     </tr>
-    
+
     {{-- Render children if they exist and the row is open --}}
     @if($category->children->isNotEmpty())
         <tr x-show="open" x-cloak class="bg-gray-50 dark:bg-gray-900/50">

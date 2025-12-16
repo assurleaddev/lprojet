@@ -29,7 +29,7 @@ class AdminMenuService
     {
         $group = $group ?: __('Main');
         $menuItem = $this->createAdminMenuItem($item);
-        if (! isset($this->groups[$group])) {
+        if (!isset($this->groups[$group])) {
             $this->groups[$group] = [];
         }
 
@@ -51,7 +51,7 @@ class AdminMenuService
                 function ($child) {
                     // Check if user is authenticated
                     $user = auth()->user();
-                    if (! $user) {
+                    if (!$user) {
                         return null;
                     }
 
@@ -121,44 +121,51 @@ class AdminMenuService
         ]);
 
         $this->addMenuItem([
-            'label'       => __('Marketplace'),
-            'icon'        => 'lucide:shopping-bag', // Changed icon to one available in the project
-            'id'          => 'marketplace-submenu',
-            'active'      => Route::is('admin.marketplace.*'),
-            'priority'    => 36, // Set priority to appear after Media
+            'label' => __('Marketplace'),
+            'icon' => 'lucide:shopping-bag', // Changed icon to one available in the project
+            'id' => 'marketplace-submenu',
+            'active' => Route::is('admin.marketplace.*'),
+            'priority' => 36, // Set priority to appear after Media
             'permissions' => ['categories.manage', 'attributes.manage', 'products.manage'],
-            'children'    => [
+            'children' => [
                 [
-                    'label'       => __('Products'),
-                    'route'       => route('admin.products.index'),
-                    'active'      => Route::is('admin.products.*'),
-                    'priority'    => 10,
+                    'label' => __('Products'),
+                    'route' => route('admin.products.index'),
+                    'active' => Route::is('admin.products.*'),
+                    'priority' => 10,
                     'permissions' => 'product.create',
                 ],
                 [
-                    'label'       => __('Categories'),
-                    'route'       => route('admin.categories.index'),
-                    'active'      => Route::is('admin.categories.*'),
-                    'priority'    => 20,
+                    'label' => __('Categories'),
+                    'route' => route('admin.categories.index'),
+                    'active' => Route::is('admin.categories.*'),
+                    'priority' => 20,
                     'permissions' => 'categories.manage',
                 ],
                 [
-                    'label'       => __('Attributes'),
-                    'route'       => route('admin.marketplace.attributes.index'),
-                    'active'      => Route::is('admin.marketplace.attributes.*'),
-                    'priority'    => 30,
+                    'label' => __('Attributes'),
+                    'route' => route('admin.marketplace.attributes.index'),
+                    'active' => Route::is('admin.marketplace.attributes.*'),
+                    'priority' => 30,
                     'permissions' => 'attributes.manage',
+                ],
+                [
+                    'label' => __('Shipping Options'),
+                    'route' => route('admin.shipping-options.index'),
+                    'active' => Route::is('admin.shipping-options.*'),
+                    'priority' => 40,
+                    'permissions' => 'settings.edit',
                 ],
             ],
         ], __('More')); // Add this to place it in the "More" group like other items
 
-         $this->addMenuItem([
-            'label'       => __('Order Management'),
-            'icon'        => 'lucide:shopping-cart', // Icon for the order menu
-            'id'          => 'orders-menu',
-            'route'       => route('admin.orders.index'),
-            'active'      => Route::is('backend.orders.*'),
-            'priority'    => 37, // Set priority to appear after the Marketplace menu
+        $this->addMenuItem([
+            'label' => __('Order Management'),
+            'icon' => 'lucide:shopping-cart', // Icon for the order menu
+            'id' => 'orders-menu',
+            'route' => route('admin.orders.index'),
+            'active' => Route::is('backend.orders.*'),
+            'priority' => 37, // Set priority to appear after the Marketplace menu
             'permissions' => ['order.view'], // User must have one of these to see the link
         ], __('Order Management'));
         // END: ADD YOUR NEW MENU BLOCK HERE
@@ -300,7 +307,7 @@ class AdminMenuService
 
         foreach ($postTypes as $typeName => $type) {
             // Skip if not showing in menu.
-            if (isset($type->show_in_menu) && ! $type->show_in_menu) {
+            if (isset($type->show_in_menu) && !$type->show_in_menu) {
                 continue;
             }
 
@@ -311,7 +318,7 @@ class AdminMenuService
                     'route' => 'admin.posts.index',
                     'params' => $typeName,
                     'active' => request()->is('admin/posts/' . $typeName) ||
-                        (request()->is('admin/posts/' . $typeName . '/*') && ! request()->is('admin/posts/' . $typeName . '/create')),
+                        (request()->is('admin/posts/' . $typeName . '/*') && !request()->is('admin/posts/' . $typeName . '/create')),
                     'priority' => 10,
                     'permissions' => 'post.view',
                 ],
@@ -326,7 +333,7 @@ class AdminMenuService
             ];
 
             // Add taxonomies as children of this post type if this post type has them.
-            if (! empty($type->taxonomies)) {
+            if (!empty($type->taxonomies)) {
                 $taxonomies = $contentService->getTaxonomies()
                     ->whereIn('name', $type->taxonomies);
 
@@ -348,7 +355,7 @@ class AdminMenuService
                 'icon' => get_post_type_icon($typeName),
                 'id' => 'post-type-' . $typeName,
                 'active' => request()->is('admin/posts/' . $typeName . '*') ||
-                    (! empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies)),
+                    (!empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies)),
                 'priority' => 10,
                 'permissions' => 'post.view',
                 'children' => $children,
@@ -363,7 +370,7 @@ class AdminMenuService
      */
     protected function isCurrentTermBelongsToPostType(array $taxonomies): bool
     {
-        if (! request()->is('admin/terms/*')) {
+        if (!request()->is('admin/terms/*')) {
             return false;
         }
 
@@ -395,7 +402,7 @@ class AdminMenuService
             $filteredItems = Hook::applyFilters(AdminFilterHook::SIDEBAR_MENU->value . strtolower((string) $group), $filteredItems);
 
             // Only add the group if it has items after filtering.
-            if (! empty($filteredItems)) {
+            if (!empty($filteredItems)) {
                 $result[$group] = $filteredItems;
             }
         }

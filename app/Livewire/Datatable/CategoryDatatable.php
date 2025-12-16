@@ -19,6 +19,7 @@ class CategoryDatatable extends Datatable
     {
         return [
             ['id' => 'name', 'title' => __('Name'), 'sortable' => true, 'sortBy' => 'name'],
+            ['id' => 'icon_display', 'title' => __('Icon'), 'sortable' => false],
             ['id' => 'slug', 'title' => __('Slug'), 'sortable' => false],
             ['id' => 'actions', 'title' => __('Actions'), 'sortable' => false, 'is_action' => true],
         ];
@@ -31,16 +32,33 @@ class CategoryDatatable extends Datatable
     protected function buildQuery(): QueryBuilder
     {
         return QueryBuilder::for($this->model)
-            ->with(['children.children']) // Eager load up to 3 levels
+            ->with(['children.children.media', 'children.media', 'media']) // Eager load media for all levels
             ->whereNull('parent_id')
             ->when($this->search, function ($query) {
                 $query->where(function ($q) {
                     $q->where('name', 'like', "%{$this->search}%")
-                      ->orWhereHas('children', function ($subQuery) {
-                          $subQuery->where('name', 'like', "%{$this->search}%");
-                      });
+                        ->orWhereHas('children', function ($subQuery) {
+                            $subQuery->where('name', 'like', "%{$this->search}%");
+                        });
                 });
             });
+    }
+
+    /**
+     * Renders the Icon column.
+     * Auto-discovered by datatable component based on 'icon_display' header ID.
+     */
+    public function renderIconDisplayColumn($item)
+    {
+        if ($item->getFirstMediaUrl('icon')) {
+            return '<img src="' . $item->getFirstMediaUrl('icon') . '" alt="Icon" class="w-8 h-8 rounded object-cover">';
+        }
+
+        if ($item->icon) {
+            return '<div class="flex items-center" wire:ignore><iconify-icon icon="' . $item->icon . '" class="text-2xl text-gray-600 dark:text-gray-400"></iconify-icon></div>';
+        }
+
+        return '<span class="text-gray-400">-</span>';
     }
 
     /**

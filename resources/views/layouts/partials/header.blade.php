@@ -1,4 +1,4 @@
-<header class="sticky top-0 z-50" id="main-header">
+<header class="sticky top-0 z-50" id="main-header" style="overflow: visible !important;">
     <div class="shell px-4 md:px-6">
         <!-- Top row -->
         <div class="flex items-center justify-between py-2 border-b">
@@ -135,85 +135,9 @@
             </div>
         </div>
 
-        <!-- Bottom nav -->
-        <nav class="hidden md:flex items-center justify-center gap-6 relative">
-            <a href="#" class="nav-link" data-menu="women">Women</a>
-            <a href="#" class="nav-link" data-menu="men">Men</a>
-            <a href="#" class="nav-link" data-menu="designer">Designer</a>
-            <a href="#" class="nav-link" data-menu="kids">Kids</a>
-            <a href="#" class="nav-link" data-menu="home">Home</a>
-            <a href="#" class="nav-link" data-menu="electronics">Electronics</a>
-            <a href="#" class="nav-link" data-menu="entertainment">Entertainment</a>
-            <a href="#" class="nav-link" data-menu="hobbies">Hobbies &amp; Collectables</a>
-            <a href="#" class="nav-link" data-menu="sports">Sports</a>
-            <a href="#" class="nav-link">About</a>
-            <a href="#" class="nav-link">Our Platform</a>
-        </nav>
+        <!-- (Moved Bottom nav out of shell) -->
     </div>
-
-    <!-- Megamenus -->
-    <div id="megamenus-container" class="relative">
-        <div id="men-megamenu" class="megamenu" style="display: none;">
-            <div class="shell px-4 md:px-6 py-8 flex gap-10">
-                <!-- Left list -->
-                <div class="w-1/4">
-                    <ul class="space-y-2">
-                        <li><a href="#" class="megamenu-category-link active"><svg class="w-5 h-5 text-teal-500"
-                                    fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z">
-                                    </path>
-                                </svg>Recommended</a></li>
-                        <li><a href="#" class="megamenu-category-link"><svg class="w-5 h-5 text-teal-500" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M5.52 19c.64-2.2 1.84-3 3.22-3h6.52c1.38 0 2.58.8 3.22 3"></path>
-                                    <path d="M12 13a3 3 0 100-6 3 3 0 000 6z"></path>
-                                    <path d="M18.74 3.26a8 8 0 11-13.48 0"></path>
-                                </svg>Clothing</a></li>
-                        <li><a href="#" class="megamenu-category-link"><svg class="w-5 h-5 text-teal-500" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M7 19v-2.125a2 2 0 01.5-1.414L16 6.961a2 2 0 012.828 0L20.5 8.636a2 2 0 010 2.828L11.5 20.5a2 2 0 01-1.414.5H8a1 1 0 01-1-1z">
-                                    </path>
-                                </svg>Shoes</a></li>
-                        <li><a href="#" class="megamenu-category-link"><svg class="w-5 h-5 text-teal-500" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>Accessories</a></li>
-                        <li><a href="#" class="megamenu-category-link"><svg class="w-5 h-5 text-teal-500" fill="none"
-                                    stroke="currentColor" viewBox="0 0 24 24">
-                                    <path
-                                        d="M20.57 4.25a1 1 0 00-1.41 0L14 9.42l-2.12-2.12a1 1 0 00-1.42 0L3.43 14.34a1 1 0 000 1.41l1.41 1.41a1 1 0 001.42 0L12 11.24l2.12 2.12a1 1 0 001.42 0l6.02-6.02a1 1 0 000-1.42z">
-                                    </path>
-                                    <path d="M18 10.42V18a2 2 0 01-2 2H8a2 2 0 01-2-2v-4.59"></path>
-                                </svg>Grooming</a></li>
-                    </ul>
-                </div>
-                <!-- Right columns -->
-                <div class="w-3/4 grid grid-cols-2 gap-x-8">
-                    <ul class="space-y-3">
-                        <li><a href="#" class="megamenu-link font-bold">See all</a></li>
-                        <li><a href="#" class="megamenu-link">Outerwear</a></li>
-                        <li><a href="#" class="megamenu-link">Suits &amp; blazers</a></li>
-                        <li><a href="#" class="megamenu-link">Trousers</a></li>
-                        <li><a href="#" class="megamenu-link">Socks &amp; underwear</a></li>
-                        <li><a href="#" class="megamenu-link">Swimwear</a></li>
-                        <li><a href="#" class="megamenu-link">Costumes &amp; special outfits</a></li>
-                    </ul>
-                    <ul class="space-y-3">
-                        <li><a href="#" class="megamenu-link">Jeans</a></li>
-                        <li><a href="#" class="megamenu-link">Tops &amp; t-shirts</a></li>
-                        <li><a href="#" class="megamenu-link">Jumpers &amp; sweaters</a></li>
-                        <li><a href="#" class="megamenu-link">Shorts</a></li>
-                        <li><a href="#" class="megamenu-link">Sleepwear</a></li>
-                        <li><a href="#" class="megamenu-link">Activewear</a></li>
-                        <li><a href="#" class="megamenu-link">Other men's clothing</a></li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-        <!-- Add more megamenus as needed -->
-    </div>
+    
+    <!-- Bottom nav & Megamenus -->
+    <livewire:home-menu />
 </header>

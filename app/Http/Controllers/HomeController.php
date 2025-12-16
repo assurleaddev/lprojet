@@ -44,6 +44,7 @@ class HomeController extends Controller
             $offset = $initialLoadSize + (($currentPage - 2) * $ajaxLoadSize);
 
             $products = Product::with(['category', 'options'])
+                ->where('status', 'approved')
                 ->latest()
                 ->skip($offset)
                 ->take($ajaxLoadSize)
@@ -56,6 +57,7 @@ class HomeController extends Controller
 
             // Laravel's paginator is fine here for the first load.
             $products = Product::with(['category', 'options'])
+                ->where('status', 'approved')
                 ->latest()
                 ->paginate($initialLoadSize);
 

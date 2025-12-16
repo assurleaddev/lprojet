@@ -191,12 +191,10 @@ class ProductDatatable extends Datatable
         <?php
         return ob_get_clean();
     }
-    // public function renderAfterActionEdit($user): string|Renderable
-    // {
-    //     return (! Auth::user()->can('product.login_as') || $user->id === Auth::id())
-    //         ? '' :
-    //         view('backend.marketplace.products.partials.action-button-aprove', compact('user'));
-    // }
+    public function renderAfterActionEdit($product): string|Renderable
+    {
+        return view('backend.marketplace.products.partials.action-button-approve', compact('product'));
+    }
     /**
      * Custom renderer for the 'status' column to show a styled badge.
      */

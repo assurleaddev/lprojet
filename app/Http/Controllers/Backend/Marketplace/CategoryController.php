@@ -22,15 +22,15 @@ class CategoryController extends Controller
         $searchTerm = $request->input('search');
 
         $categories = Category::with([
-                'children' => function ($query) use ($searchTerm) {
-                    if ($searchTerm) {
-                        $query->where('name', 'like', '%' . $searchTerm . '%');
-                    }
-                },
-                'children.children',
-                'parent'
+            'children' => function ($query) use ($searchTerm) {
+                if ($searchTerm) {
+                    $query->where('name', 'like', '%' . $searchTerm . '%');
+                }
+            },
+            'children.children',
+            'parent'
 
-            ])
+        ])
             ->when($searchTerm, function ($query) use ($searchTerm) {
                 $query->where(function ($q) use ($searchTerm) {
                     $q->where('name', 'like', '%' . $searchTerm . '%')
@@ -62,6 +62,9 @@ class CategoryController extends Controller
 
     public function store(Request $request)
     {
+        \Log::info('Category Store Request:', $request->all());
+        \Log::info('Category Store File:', [$request->file('icon_image')]);
+
         $request->validate([
             'name' => [
                 'required',
@@ -73,7 +76,9 @@ class CategoryController extends Controller
                 }),
             ],
             'parent_id' => 'nullable|exists:categories,id',
-            'attributes' => 'nullable|array' // Validate attributes array
+            'attributes' => 'nullable|array',
+            'icon' => 'nullable|string',
+            'icon_image' => 'nullable|image|max:2048',
 
         ]);
 
@@ -85,6 +90,14 @@ class CategoryController extends Controller
 
         // Sync the selected attributes with the new category
         $category->attributes()->sync($request->input('attributes', []));
+
+        // Handle Icon
+        if ($request->hasFile('icon_image')) {
+            $category->addMediaFromRequest('icon_image')->toMediaCollection('icon');
+            $category->update(['icon' => null]); // Clear icon class if image uploaded
+        } elseif ($request->filled('icon')) {
+            $category->update(['icon' => $request->icon]);
+        }
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category created successfully.');
@@ -111,7 +124,9 @@ class CategoryController extends Controller
                 })->ignore($category->id),
             ],
             'parent_id' => 'nullable|exists:categories,id',
-            'attributes' => 'nullable|array'
+            'attributes' => 'nullable|array',
+            'icon' => 'nullable|string',
+            'icon_image' => 'nullable|image|max:2048',
         ]);
 
         $category->update([
@@ -122,6 +137,16 @@ class CategoryController extends Controller
 
         // Sync the selected attributes
         $category->attributes()->sync($request->input('attributes', []));
+
+        // Handle Icon
+        if ($request->hasFile('icon_image')) {
+            $category->clearMediaCollection('icon');
+            $category->addMediaFromRequest('icon_image')->toMediaCollection('icon');
+            $category->update(['icon' => null]);
+        } elseif ($request->filled('icon')) {
+            $category->clearMediaCollection('icon'); // Remove image if class provided
+            $category->update(['icon' => $request->icon]);
+        }
 
         return redirect()->route('admin.categories.index')
             ->with('success', 'Category updated successfully.');

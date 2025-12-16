@@ -54,6 +54,13 @@ class SettingsController extends Controller
             }
         }
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Profile updated successfully.',
+                'avatar_url' => $user->avatar_url, // Return new avatar URL if needed
+            ]);
+        }
+
         return back()->with('success', 'Profile updated successfully.');
     }
 

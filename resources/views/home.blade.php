@@ -8,7 +8,8 @@
             style="background-image:url('{{ asset('images/home/hero.png') }}');">
             <div class="shell px-4 md:px-6 h-full">
                 <div class="absolute top-1/2 -translate-y-1/2 bg-white p-6 md:p-8 rounded-lg shadow-lg w-[90%] max-w-sm">
-                    <h1 class="text-[28px] md:text-[32px] leading-tight font-extrabold text-gray-800 mb-5">Ready to declutter
+                    <h1 class="text-[28px] md:text-[32px] leading-tight font-extrabold text-gray-800 mb-5">Ready to
+                        declutter
                         your wardrobe?</h1>
                     <a href="#" class="block w-full mb-3 py-3 text-center text-white font-bold rounded"
                         style="background:var(--brand)">Sell now</a>
@@ -38,52 +39,10 @@
 @endsection
 
 @section('after_body')
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const navLinks = document.querySelectorAll('.nav-link[data-menu]');
-            const header = document.getElementById('main-header');
-            const menus = document.querySelectorAll('.megamenu');
-            let hideTimer;
 
-            const show = (id) => {
-                clearTimeout(hideTimer);
-                menus.forEach(m => m.style.display = 'none');
-                navLinks.forEach(l => l.classList.remove('active'));
-                if (!id) return;
-                const menu = document.getElementById(`${id}-megamenu`);
-                const link = document.querySelector(`.nav-link[data-menu="${id}"]`);
-                if (menu) menu.style.display = 'block';
-                if (link) link.classList.add('active');
-            };
-
-            const scheduleHide = () => {
-                hideTimer = setTimeout(() => show(null), 150);
-            };
-
-            navLinks.forEach(link => {
-                link.addEventListener('mouseenter', () => show(link.getAttribute('data-menu')));
-            });
-
-            // Keep open when hovering the header or the menu zone
-            header.addEventListener('mouseleave', scheduleHide);
-            menus.forEach(menu => {
-                menu.addEventListener('mouseenter', () => clearTimeout(hideTimer));
-                menu.addEventListener('mouseleave', scheduleHide);
-            });
-        });
-    </script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // // This is your existing menu script, keep it.
-            // const navLinks = document.querySelectorAll('.nav-link[data-menu]');
-            // // ... rest of your menu script ...
-            // // ...
-            // // Keep open when hovering the header or the menu zone
-            // header.addEventListener('mouseleave', scheduleHide);
-            // menus.forEach(menu => {
-            //     menu.addEventListener('mouseenter', () => clearTimeout(hideTimer));
-            //     menu.addEventListener('mouseleave', scheduleHide);
-            // });
 
             // // ✨ --- LAZY LOADING SCRIPT --- ✨
 
@@ -113,10 +72,10 @@
                 }
 
                 fetch(`?page=${page}`, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
                     .then(response => response.text())
                     .then(html => {
                         if (html.trim().length === 0) {
@@ -145,6 +104,75 @@
                 if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
                     loadMoreProducts();
                 }
+            });
+
+            // Handle Like Button Click using Event Delegation
+            document.addEventListener('click', (e) => {
+                const button = e.target.closest('.fav-badge');
+                if (!button) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const url = button.dataset.url;
+                if (!url) return;
+
+                const svg = button.querySelector('svg');
+                const countSpan = button.querySelector('span');
+
+                // Optimistic UI update
+                const isLiked = svg.classList.contains('!text-red-500');
+                if (isLiked) {
+                    svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                    let count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = Math.max(0, count - 1);
+                } else {
+                    svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                    let count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = count + 1;
+                }
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute(
+                            'content'),
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => {
+                        if (response.status === 401) {
+                            window.location.href = '/login'; // Redirect to login if not authenticated
+                            return;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data) {
+                            // Update with actual server state if needed
+                            if (data.liked) {
+                                svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                            } else {
+                                svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                            }
+                            countSpan.textContent = data.count;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error toggling favorite:', error);
+                        // Revert optimistic update on error
+                        if (isLiked) {
+                            svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                            let count = parseInt(countSpan.textContent) || 0;
+                            countSpan.textContent = count + 1;
+                        } else {
+                            svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                            let count = parseInt(countSpan.textContent) || 0;
+                            countSpan.textContent = Math.max(0, count - 1);
+                        }
+                    });
             });
         });
     </script>

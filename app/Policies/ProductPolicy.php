@@ -55,7 +55,7 @@ class ProductPolicy
     public function approve(User $user, Product $product): bool
     {
         // A user can approve a product if they have the permission and it's currently pending
-        return $user->can('product.approve') && $product->status === 'pending';
+        return $user->can('products.approve') && $product->status === 'pending';
     }
 
     public function delete(User $user, Product $product): bool

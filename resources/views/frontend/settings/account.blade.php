@@ -88,7 +88,7 @@
                             <label class="text-base font-medium text-gray-900 w-1/3">Gender</label>
                             <div class="w-2/3">
                                 <select name="gender"
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50">
+                                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-teal-500 focus:border-teal-500">
                                     <option value="" disabled {{ !$user->getMeta('gender') ? 'selected' : '' }}>Select
                                         gender</option>
                                     <option value="Male" {{ $user->getMeta('gender') == 'Male' ? 'selected' : '' }}>Male
@@ -105,7 +105,7 @@
                             <label class="text-base font-medium text-gray-900 w-1/3">Birthday</label>
                             <div class="w-2/3">
                                 <input type="date" name="birthday" value="{{ $user->getMeta('birthday') }}"
-                                    class="w-full border-gray-300 rounded-md shadow-sm focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50">
+                                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-teal-500 focus:border-teal-500">
                             </div>
                         </div>
                     </div>

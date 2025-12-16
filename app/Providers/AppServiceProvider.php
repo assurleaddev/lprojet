@@ -36,14 +36,14 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Pagination\Paginator::useBootstrap();
 
         // Handle "/" route redirection.
-        if (
-            !$this->app->runningInConsole() &&
-            request()->is('/') &&
-            Hook::applyFilters(AdminFilterHook::ADMIN_SITE_ONLY, true)
-        ) {
-            redirect('/admin')->send();
-            exit;
-        }
+        // if (
+        //     !$this->app->runningInConsole() &&
+        //     request()->is('/') &&
+        //     Hook::applyFilters(AdminFilterHook::ADMIN_SITE_ONLY, true)
+        // ) {
+        //     redirect('/admin')->send();
+        //     exit;
+        // }
 
         // Scramable auth configuration.
         Scramble::configure()

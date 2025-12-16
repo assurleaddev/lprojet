@@ -36,7 +36,7 @@ use App\Http\Controllers\Backend\Marketplace\AttributeController;
 /**
  * User routes.
  */
-Route::get('/home', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/items/new', [App\Http\Controllers\ItemController::class, 'create'])->middleware('auth')->name('items.create');
 Route::post('/items', [App\Http\Controllers\ItemController::class, 'store'])->middleware('auth')->name('items.store');
 Route::get('/items/categories/{category}/attributes', [App\Http\Controllers\ItemController::class, 'getAttributes'])->name('items.attributes');
@@ -202,7 +202,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
     Route::prefix('ai')->name('ai.')->group(function () {
         Route::get('/providers', [App\Http\Controllers\Backend\AiContentController::class, 'getProviders'])->name('providers');
         Route::post('/generate-content', [App\Http\Controllers\Backend\AiContentController::class, 'generateContent'])->name('generate-content');
+        Route::post('/generate-content', [App\Http\Controllers\Backend\AiContentController::class, 'generateContent'])->name('generate-content');
     });
+
+    Route::resource('shipping-options', \App\Http\Controllers\Backend\ShippingOptionController::class);
 });
 
 /**
