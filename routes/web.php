@@ -58,6 +58,27 @@ Route::get('/favorites', [HomeController::class, 'favorites'])->middleware('auth
 Route::get('/product/{product}', [HomeController::class, 'checkout'])
     ->middleware('auth')
     ->name('product.checkout');
+
+Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store')->middleware('auth');
+
+// Verification Route
+Route::get('/verify-email', \App\Livewire\Auth\VerifyEmail::class)
+    ->middleware('auth')
+    ->name('verify-email');
+Route::get('/auth/secure-account', \App\Livewire\Auth\SecureAccountPrompt::class)
+    ->middleware('auth')
+    ->name('auth.secure_account');
+Route::get('/auth/verify-phone', \App\Livewire\Auth\VerifyPhone::class)
+    ->middleware('auth')
+    ->name('auth.verify_phone');
+Route::get('/auth/verify-phone-code', \App\Livewire\Auth\VerifyPhoneCode::class)
+    ->middleware('auth')
+    ->name('auth.verify_phone_code');
+
+Route::get('/email/verify', function () {
+    return redirect()->route('verify-email');
+})->middleware('auth')->name('verification.notice');
+
 // ⬇️ ADD THIS NEW ROUTE FOR OFFER CHECKOUT ⬇️
 Route::get('/checkout/offer/{offer}', [HomeController::class, 'offerCheckout'])
     ->middleware('auth')
@@ -124,6 +145,11 @@ Route::post('/settings/security/session/{id}/logout', [App\Http\Controllers\Sett
 /**
  * Admin routes.
  */
+Route::group(['prefix' => 'auth', 'as' => 'auth.social.'], function () {
+    Route::get('/{provider}', [App\Http\Controllers\Auth\SocialAuthController::class, 'redirect'])->name('redirect');
+    Route::get('/{provider}/callback', [App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])->name('callback');
+});
+
 Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('settings', SettingController::class);

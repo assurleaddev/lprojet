@@ -203,20 +203,40 @@
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
                         @forelse ($product->vendor->products as $item)
-                            <a href="{{ route('products.show', $item) }}"
-                                class="flex-shrink-0 w-40 block hover:opacity-80 transition">
-                                <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
-                                    class="w-full h-56 object-cover mb-2">
-                                <p class="font-bold text-sm">{{ $item->price }} MAD</p>
-                                <p class="text-xs text-vinted-gray-500">
-                                    {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
-                                </p>
-                                <p class="text-xs text-vinted-gray-500">{{ $product->name }}</p>
-                            </a>
-                        @empty
-                            no products yet
-                        @endforelse
+                            <div class="flex-shrink-0 w-40 block relative group">
+                                <a href="{{ route('products.show', $item) }}"
+                                    class="block hover:opacity-80 transition relative">
+                                    <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
+                                        class="w-full h-56 object-cover mb-2 rounded-md">
 
+                                    @php
+                                        $isLiked = auth()->check() && $item->isFavorited();
+                                        $count = $item->favoritedBy()->count();
+                                    @endphp
+                                    <button type="button"
+                                        class="like-btn absolute bottom-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm transition-transform hover:scale-105 {{ $isLiked ? 'text-red-500' : 'text-gray-400' }}"
+                                        data-product-id="{{ $item->id }}" aria-label="Add to favourites"
+                                        style="height: 32px; width: 32px; bottom: 16px; right: 8px;"
+                                        aria-pressed="{{ $isLiked ? 'true' : 'false' }}">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                            <path
+                                                d="M12 21s-7.5-4.46-9.5-8.32C1 8.86 3.42 6 6.5 6c1.74 0 3.41.81 4.5 2.09C12.09 6.81 13.76 6 15.5 6 18.58 6 21 8.86 21.5 12.68 19.5 16.54 12 21 12 21z"
+                                                fill="currentColor" />
+                                        </svg>
+                                        {{-- Optional: hide count on small cards or show if needed --}}
+                                    </button>
+                                </a>
+                                <a href="{{ route('products.show', $item) }}" class="block">
+                                    <p class="font-bold text-sm">{{ $item->price }} MAD</p>
+                                    <p class="text-xs text-vinted-gray-500 truncate">
+                                        {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
+                                    </p>
+                                    <p class="text-xs text-vinted-gray-500 truncate">{{ $product->name }}</p>
+                                </a>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">No products yet</p>
+                        @endforelse
                     </div>
                 </div>
             </section>
@@ -228,20 +248,40 @@
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
                         @forelse ($similarProducts as $item)
-                            <a href="{{ route('products.show', $item) }}"
-                                class="flex-shrink-0 w-40 block hover:opacity-80 transition">
-                                <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
-                                    class="w-full h-56 object-cover mb-2">
-                                <p class="font-bold text-sm">{{ $item->price }} MAD</p>
-                                <p class="text-xs text-vinted-gray-500">
-                                    {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
-                                </p>
-                                <p class="text-xs text-vinted-gray-500">{{ $item->name }}</p>
-                            </a>
-                        @empty
-                            no products yet
-                        @endforelse
+                            <div class="flex-shrink-0 w-40 block relative group">
+                                <a href="{{ route('products.show', $item) }}"
+                                    class="block hover:opacity-80 transition relative">
+                                    <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
+                                        class="w-full h-56 object-cover mb-2 rounded-md">
 
+                                    @php
+                                        $isLiked = auth()->check() && $item->isFavorited();
+                                        $count = $item->favoritedBy()->count();
+                                    @endphp
+                                    <button type="button"
+                                        class="like-btn absolute bottom-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm transition-transform hover:scale-105 {{ $isLiked ? 'text-red-500' : 'text-gray-400' }}"
+                                        data-product-id="{{ $item->id }}" aria-label="Add to favourites"
+                                        style="height: 32px; width: 32px; bottom: 16px; right: 8px;"
+                                        aria-pressed="{{ $isLiked ? 'true' : 'false' }}">
+                                        <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                            <path
+                                                d="M12 21s-7.5-4.46-9.5-8.32C1 8.86 3.42 6 6.5 6c1.74 0 3.41.81 4.5 2.09C12.09 6.81 13.76 6 15.5 6 18.58 6 21 8.86 21.5 12.68 19.5 16.54 12 21 12 21z"
+                                                fill="currentColor" />
+                                        </svg>
+                                        {{-- Optional: hide count on small cards or show if needed --}}
+                                    </button>
+                                </a>
+                                <a href="{{ route('products.show', $item) }}" class="block">
+                                    <p class="font-bold text-sm">{{ $item->price }} MAD</p>
+                                    <p class="text-xs text-vinted-gray-500 truncate">
+                                        {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
+                                    </p>
+                                    <p class="text-xs text-vinted-gray-500 truncate">{{ $item->name }}</p>
+                                </a>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-500">No similar products</p>
+                        @endforelse
                     </div>
                 </div>
             </section>
@@ -256,6 +296,10 @@
         document.addEventListener('click', async (e) => {
             const btn = e.target.closest('.like-btn');
             if (!btn) return;
+
+            // Prevent default button action and stop propagation
+            e.preventDefault();
+            e.stopPropagation();
 
             const productId = btn.dataset.productId;
             const countEl = btn.querySelector('.like-count');
@@ -274,7 +318,7 @@
                 });
 
                 if (res.status === 401) {
-                    window.location.href = '/login';
+                    Livewire.dispatch('open-login-popup');
                     return;
                 }
 
@@ -286,12 +330,14 @@
                 btn.classList.toggle('text-gray-400', !data.liked);
 
                 // count show/hide
-                if (data.count > 0) {
-                    countEl.textContent = data.count;
-                    countEl.classList.remove('hidden');
-                } else {
-                    countEl.textContent = '';
-                    countEl.classList.add('hidden');
+                if (countEl) {
+                    if (data.count > 0) {
+                        countEl.textContent = data.count;
+                        countEl.classList.remove('hidden');
+                    } else {
+                        countEl.textContent = '';
+                        countEl.classList.add('hidden');
+                    }
                 }
             } catch (err) {
                 console.error(err);

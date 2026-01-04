@@ -63,7 +63,9 @@
                 {{-- Left: User Info --}}
                 <div class="flex items-center space-x-3">
                     <h3 class="font-bold text-lg text-teal-600">
-                        {{ optional($otherUser)->full_name ?? 'User Not Found' }}
+                        <a href="{{ route('vendor.show', $otherUser) }}" class="hover:underline">
+                            {{ optional($otherUser)->full_name ?? 'User Not Found' }}
+                        </a>
                     </h3>
                 </div>
 
@@ -96,17 +98,30 @@
                 </div>
 
                 <div class="flex space-x-2">
-                    <button
-                        @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $conversation->product->id }} })"
-                        class="px-4 py-2 border border-teal-600 text-teal-600 font-medium rounded-md hover:bg-teal-50 text-sm">
-                        Make an offer
-                    </button>
-                    <a href="{{ route('product.checkout', $conversation->product) }}"
-                        class="px-4 py-2 bg-teal-700 text-white font-medium rounded-md hover:bg-teal-800 text-sm">
-                        Buy now
-                    </a>
+                    @if($conversation->product->status === 'approved')
+                        <button
+                            @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $conversation->product->id }} })"
+                            class="px-3 py-1 bg-white border border-teal-600 text-teal-600 text-sm font-medium rounded hover:bg-teal-50">
+                            Make Offer
+                        </button>
+                        <button
+                            @click="window.location.href='{{ route('product.checkout', $conversation->product) }}'"
+                            class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700">
+                            Buy Now
+                        </button>
+                    @else
+                       <button disabled
+                            class="px-3 py-1 bg-gray-100 border border-gray-300 text-gray-400 text-sm font-medium rounded cursor-not-allowed">
+                            Make Offer
+                        </button>
+                        <button disabled
+                            class="px-3 py-1 bg-gray-300 text-gray-500 text-sm font-medium rounded cursor-not-allowed">
+                            {{ ucfirst($conversation->product->status) }}
+                        </button>
+                    @endif
                 </div>
             </div>
+
         @else
             <h3 class="font-semibold text-lg text-gray-400">Select a conversation</h3>
         @endif
@@ -238,86 +253,99 @@
                         $downloadUrl = $matches[0] ?? '#';
                         $cleanBody = str_replace($downloadUrl, '', $messageBody);
                     @endphp
-                    <div wire:key="item-sold-{{ $messageId }}" class="flex justify-center my-4">
-                        <div
-                            class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
-                            <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
-                                <div
-                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
-                                    <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                                        </path>
-                                    </svg>
+                    @if(auth()->id() == $conversation->product->vendor_id)
+                        <div wire:key="item-sold-{{ $messageId }}" class="flex justify-center my-4">
+                            <div
+                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
+                                <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
+                                    <div
+                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
+                                        <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Item Sold!</h3>
+                                    <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                                        {{ trim($cleanBody) }}
+                                    </p>
+                                    <div class="mt-4 space-y-2">
+                                        <a href="{{ $downloadUrl }}" target="_blank"
+                                            class="block w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            Download Shipping Label
+                                        </a>
+                                        @if(auth()->id() == $conversation->product->vendor_id)
+                                            <button wire:click="markAsShipped" wire:loading.attr="disabled"
+                                                class="block w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                Mark as Shipped
+                                            </button>
+                                        @endif
+                                    </div>
                                 </div>
-                                <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Item Sold!</h3>
-                                <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
-                                    {{ trim($cleanBody) }}
-                                </p>
-                                <div class="mt-4 space-y-2">
-                                    <a href="{{ $downloadUrl }}" target="_blank"
-                                        class="block w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                        Download Shipping Label
-                                    </a>
-                                    @if(auth()->id() == $conversation->product->vendor_id)
-                                        <button wire:click="markAsShipped" wire:loading.attr="disabled"
-                                            class="block w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                            Mark as Shipped
-                                        </button>
+                            </div>
+                        </div>
+                    @endif
+
+                @elseif ($messageType === 'item_shipped')
+                    @if(auth()->id() != $conversation->product->vendor_id)
+                        <div wire:key="item-shipped-{{ $messageId }}" class="flex justify-center my-4">
+                            <div
+                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-sm overflow-hidden">
+                                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 text-center">
+                                    <div
+                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-800 mb-3">
+                                        <svg class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-medium text-blue-900 dark:text-blue-100">Item Shipped!</h3>
+                                    <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
+                                        {{ $messageBody }}
+                                    </p>
+
+                                    @php
+                                        // Check if the order is already completed to hide buttons
+                                        $buyerId = auth()->id() == $conversation->product->vendor_id
+                                            ? ($conversation->user_one_id == auth()->id() ? $conversation->user_two_id : $conversation->user_one_id)
+                                            : auth()->id();
+
+                                        $latestOrder = \App\Models\Order::where('product_id', $conversation->product_id)
+                                            ->where('user_id', $buyerId)
+                                            ->latest()
+                                            ->first();
+
+                                        $isOrderCompleted = $latestOrder && $latestOrder->status === 'completed';
+                                    @endphp
+
+                                    @if(!$isOrderCompleted)
+                                        <div class="mt-4 grid grid-cols-2 gap-2">
+                                            @if(isset($latestOrder) && $latestOrder->status === 'delivered')
+                                                {{-- If delivered but not completed, show Leave Review --}}
+                                                <button wire:click="openReviewModal({{ $latestOrder->id }})" wire:loading.attr="disabled"
+                                                    class="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                    Leave Review
+                                                </button>
+                                            @else
+                                                {{-- Standard Item Received Button --}}
+                                                <button wire:click="markAsReceived(0)" wire:loading.attr="disabled"
+                                                    class="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                    Item Received
+                                                </button>
+                                            @endif
+                                            <button
+                                                wire:click="$dispatch('toast', {message: 'Please contact support for refunds.', type: 'info'})"
+                                                class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                Refund
+                                            </button>
+                                        </div>
                                     @endif
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                @elseif ($messageType === 'item_shipped')
-                    <div wire:key="item-shipped-{{ $messageId }}" class="flex justify-center my-4">
-                        <div
-                            class="w-full max-w-sm bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-sm overflow-hidden">
-                            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 text-center">
-                                <div
-                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-800 mb-3">
-                                    <svg class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-lg font-medium text-blue-900 dark:text-blue-100">Item Shipped!</h3>
-                                <p class="mt-1 text-sm text-blue-700 dark:text-blue-300">
-                                    {{ $messageBody }}
-                                </p>
-
-                                @php
-                                    // Check if the order is already completed to hide buttons
-                                    $buyerId = auth()->id() == $conversation->product->vendor_id
-                                        ? ($conversation->user_one_id == auth()->id() ? $conversation->user_two_id : $conversation->user_one_id)
-                                        : auth()->id();
-
-                                    $latestOrder = \App\Models\Order::where('product_id', $conversation->product_id)
-                                        ->where('user_id', $buyerId)
-                                        ->latest()
-                                        ->first();
-
-                                    $isOrderCompleted = $latestOrder && $latestOrder->status === 'completed';
-                                @endphp
-
-                                @if(!$isOrderCompleted)
-                                    <div class="mt-4 grid grid-cols-2 gap-2">
-                                        <button wire:click="markAsReceived(0)" wire:loading.attr="disabled"
-                                            class="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                            Item Received
-                                        </button>
-                                        <button
-                                            wire:click="$dispatch('toast', {message: 'Please contact support for refunds.', type: 'info'})"
-                                            class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                            Refund
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
+                    @endif
 
                     {{-- NEW BLOCK: Render the Checkout Prompt specifically --}}
                 @elseif ($messageType === 'offer_checkout_prompt' && $offerData && $offerId)
@@ -343,11 +371,24 @@
                                             </div>
                                         </div>
 
-                                        @php $checkoutRoute = route('checkout.offer', ['offer' => $offerId]); @endphp
-                                        <a href="{{ $checkoutRoute }}" wire:navigate
-                                            class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors shadow-sm">
-                                            Buy Now
-                                        </a>
+                                        @php 
+                                            $checkoutRoute = route('checkout.offer', ['offer' => $offerId]);
+                                            $isSold = $conversation->product->status === 'sold';
+                                            // Check specifically if this user bought it or just general sold status? 
+                                            // Usually if sold, nobody can buy.
+                                        @endphp
+
+                                        @if($isSold)
+                                            <button disabled
+                                                class="block w-full text-center bg-gray-400 text-white text-sm font-medium py-2 px-4 rounded-md cursor-not-allowed shadow-sm">
+                                                Sold
+                                            </button>
+                                        @else
+                                            <a href="{{ $checkoutRoute }}" wire:navigate
+                                                class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors shadow-sm">
+                                                Buy Now
+                                            </a>
+                                        @endif
                                     </div>
                                     <div
                                         class="px-4 py-2 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 text-right">
@@ -374,10 +415,59 @@
                         {{-- Standard message bubble --}}
                         <div
                             class="max-w-xs md:max-w-md lg:max-w-lg px-4 py-2 rounded-lg shadow {{ $isOwnMessage ? 'bg-teal-600 text-white' : 'bg-white dark:bg-gray-700 dark:text-gray-200' }}">
+
+                            @if(isset($messageData->attachments) && count($messageData->attachments) > 0)
+                                <div class="mb-2 grid grid-cols-2 gap-2">
+                                    @foreach($messageData->attachments as $att)
+                                        @php $att = (object) $att; @endphp
+                                        <div class="relative">
+                                            @if($att->file_type === 'image')
+                                                <a href="{{ Storage::url($att->file_path) }}" target="_blank">
+                                                    <img src="{{ Storage::url($att->file_path) }}"
+                                                        class="rounded max-w-full h-auto max-h-32 object-cover w-full" alt="Attachment">
+                                                </a>
+                                            @else
+                                                <a href="{{ Storage::url($att->file_path) }}" target="_blank"
+                                                    class="flex flex-col items-center justify-center p-2 bg-gray-100 dark:bg-gray-600 rounded text-center {{ $isOwnMessage ? 'text-teal-900' : 'text-teal-600 dark:text-teal-200' }}">
+                                                    <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                        </path>
+                                                    </svg>
+                                                    <span class="text-xs truncate w-full">{{ $att->file_name ?? 'File' }}</span>
+                                                </a>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @elseif(isset($messageData->attachment_path) && $messageData->attachment_path)
+                                {{-- Legacy single file support --}}
+                                <div class="mb-2">
+                                    @if(isset($messageData->attachment_type) && $messageData->attachment_type === 'image')
+                                        <a href="{{ Storage::url($messageData->attachment_path) }}" target="_blank">
+                                            <img src="{{ Storage::url($messageData->attachment_path) }}"
+                                                class="rounded max-w-full h-auto max-h-64 object-cover" alt="Attachment">
+                                        </a>
+                                    @else
+                                        <a href="{{ Storage::url($messageData->attachment_path) }}" target="_blank"
+                                            class="flex items-center space-x-2 {{ $isOwnMessage ? 'text-teal-100 hover:text-white' : 'text-teal-600 hover:text-teal-800' }}">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                </path>
+                                            </svg>
+                                            <span class="underline text-sm">Download Attachment</span>
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
+
                             {{-- Use linkify helper if you defined it, otherwise just display body --}}
-                            <p class="text-sm break-words whitespace-pre-wrap">
-                                {!! isset($messageBody) ? (function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody))) : '' !!}
-                            </p>
+                            @if (!empty($messageBody))
+                                <p class="text-sm break-words whitespace-pre-wrap">
+                                    {!! function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody)) !!}
+                                </p>
+                            @endif
                             <span
                                 class="text-xs {{ $isOwnMessage ? 'text-teal-100' : 'text-gray-500 dark:text-gray-400' }} mt-1 block text-right">
                                 {{ $messageTime }}
@@ -398,7 +488,8 @@
     {{-- 3. Message Input Form --}}
     <div class="px-6 py-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
         {{-- Safety Banner --}}
-        <div class="mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex items-start space-x-3">
+        <div class="mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex items-start space-x-3"
+            x-data="{ showSafety: true }" x-show="showSafety" x-transition.duration.300ms>
             <svg class="w-5 h-5 text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
@@ -409,7 +500,7 @@
                 links, or scan QR codes.
                 <a href="#" class="text-teal-600 hover:underline">More safety tips</a>
             </div>
-            <button class="text-gray-400 hover:text-gray-600 ml-auto">
+            <button @click="showSafety = false" class="text-gray-400 hover:text-gray-600 ml-auto">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                     </path>
@@ -417,23 +508,57 @@
             </button>
         </div>
 
+        {{-- Preview Block (Placed between Safety Banner and Input) --}}
+        @if ($attachments)
+            <div class="mb-3 px-2 flex items-center space-x-2 overflow-x-auto">
+                @foreach ($attachments as $index => $file)
+                    <div class="relative inline-block flex-shrink-0" wire:key="preview-{{ $index }}">
+                        @if (str_contains($file->getMimeType(), 'image'))
+                            <img src="{{ $file->temporaryUrl() }}"
+                                class="w-16 h-16 object-cover rounded-md border border-gray-200 dark:border-gray-600">
+                        @else
+                            <div
+                                class="w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-md text-gray-500 dark:text-gray-300 text-xs text-center p-1 break-all border border-gray-200 dark:border-gray-600">
+                                {{ $file->getClientOriginalName() }}
+                            </div>
+                        @endif
+                        <button type="button" wire:click="removeAttachment({{ $index }})"
+                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 shadow-sm border border-white dark:border-gray-800">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                                </path>
+                            </svg>
+                        </button>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
-            <button type="button" class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-            </button>
-            <button type="button" class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md">
+            <!-- File Input -->
+            <input type="file" id="chat-attachment-input" wire:model="attachments" class="hidden" multiple>
+
+            <button type="button" onclick="document.getElementById('chat-attachment-input').click()"
+                class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md relative">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z">
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
                     </path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
+
+                <!-- Loading indicator for upload -->
+                <div wire:loading wire:target="attachments" class="absolute -top-1 -right-1">
+                    <span class="flex h-3 w-3 relative">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                    </span>
+                </div>
             </button>
 
             <div class="flex-1 relative">
+
+
                 <input type="text" wire:model="messageBody" placeholder="Write a message here"
                     class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     autocomplete="off" @if(!$conversation) disabled @endif>
@@ -514,6 +639,53 @@
         </div>
     </div>
 
+    {{-- Reception Confirmation Modal --}}
+    <div x-data="{ show: @entangle('showReceptionConfirmationModal') }" x-show="show" x-on:keydown.escape.window="show = false"
+        style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="reception-modal-title"
+        role="dialog" aria-modal="true">
+
+        <div
+            class="flex items-end sm:items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 transition-opacity bg-gray-500 opacity-75 dark:bg-gray-900 dark:bg-opacity-80 z-[110]"
+                @click.self="show = false" aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="show" x-trap.inert.noscroll="show" @click.stop x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg sm:align-middle z-[120]">
+
+                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100" id="reception-modal-title">
+                    Confirm Item Reception
+                </h3>
+                <div class="mt-2">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                        Please confirm that you have received the item and it is as described. This action cannot be undone.
+                    </p>
+                </div>
+
+                <div class="mt-5 sm:mt-6 grid grid-cols-2 gap-3">
+                    <button type="button" @click="show = false"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:mt-0 sm:col-start-1 sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
+                        Cancel
+                    </button>
+                    <button type="button" wire:click="confirmReception" wire:loading.attr="disabled"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:col-start-2 sm:text-sm">
+                        <span wire:loading.remove wire:target="confirmReception">Confirm Received</span>
+                        <span wire:loading wire:target="confirmReception">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {{-- Review Modal --}}
     <div x-data="{ show: @entangle('showReviewModal') }" x-show="show" x-on:keydown.escape.window="show = false"
         style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" aria-labelledby="review-modal-title"
@@ -542,6 +714,7 @@
                 </h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Everything good? Rate your experience.</p>
 
+
                 <form wire:submit.prevent="submitReview" class="mt-4 space-y-4">
                     {{-- Star Rating --}}
                     <div>
@@ -564,10 +737,10 @@
                     {{-- Review Text --}}
                     <div>
                         <label for="reviewTextInput"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Review (Optional)</label>
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Review (Required)</label>
                         <textarea wire:model="reviewText" id="reviewTextInput" rows="3"
                             class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
-                            placeholder="Describe your experience..."></textarea>
+                            placeholder="Describe your experience..." required></textarea>
                         @error('reviewText') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 

@@ -111,14 +111,61 @@ class HomeController extends Controller
         // followings is polymorphic-by-type; count the model you care about
         $followingUsersCount = $user->followings()->count();
 
-        $reviews = $user->receivedReviews()->latest()->get();
+        $reviews = $user->receivedReviews()->with('author')->latest()->get();
         \Log::info('Reviews for user ' . $user->id . ': ' . $reviews->count());
-        \Log::info($reviews);
+
+        // Calculate Stats
+        $totalReviews = $reviews->count();
+        $averageRating = $totalReviews > 0 ? $reviews->avg('rating') : 0;
+
+        $autoReviews = $reviews->filter(function ($review) {
+            return str_contains($review->review, 'Auto-feedback');
+        });
+        $memberReviews = $reviews->diff($autoReviews);
+
+        $memberCount = $memberReviews->count();
+        $memberAvg = $memberCount > 0 ? $memberReviews->avg('rating') : 0;
+
+        $autoCount = $autoReviews->count();
+        $autoAvg = $autoCount > 0 ? $autoReviews->avg('rating') : 0;
+
+        // Check for pending review for the authenticated user visiting this profile
+        $pendingReviewOrder = null;
+        if (Auth::check() && Auth::id() !== $user->id) {
+            $pendingReviewOrder = \App\Models\Order::where('vendor_id', $user->id)
+                ->where('user_id', Auth::id())
+                ->where('status', 'delivered')
+                ->where('received_at', '>', now()->subHours(48)) // Within 48h window
+                ->latest()
+                ->first();
+
+            // Manual check if relationship doesn't exist to be safe
+            if ($pendingReviewOrder) {
+                $alreadyReviewed = \App\Models\Review::where('author_id', Auth::id())
+                    ->where('model_id', $user->id)
+                    ->where('model_type', \App\Models\User::class)
+                    ->where('created_at', '>', $pendingReviewOrder->created_at)
+                    ->exists();
+
+                if ($alreadyReviewed) {
+                    $pendingReviewOrder = null;
+                }
+            }
+        }
 
         return view('frontend.vendors.profile', [
             'user' => $user,
             'followingUsersCount' => $followingUsersCount,
             'reviews' => $reviews,
+            'pendingReviewOrder' => $pendingReviewOrder,
+            'stats' => [
+                'total' => $totalReviews,
+                'avg' => $averageRating,
+                'member_count' => $memberCount,
+                'member_avg' => $memberAvg,
+                'auto_count' => $autoCount,
+                'auto_avg' => $autoAvg,
+            ]
         ]);
     }
 
@@ -208,7 +255,7 @@ class HomeController extends Controller
         $favorites = Auth::user()->favorite(Product::class); // Returns a Collection
 
         $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
-        $perPage = 20;
+        $perPage = 10;
 
         $products = new \Illuminate\Pagination\LengthAwarePaginator(
             $favorites->forPage($page, $perPage),

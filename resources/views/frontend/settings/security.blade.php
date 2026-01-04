@@ -51,7 +51,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Current Email</label>
                             <input type="email" value="{{ $user->email }}" disabled
-                                class="w-full bg-gray-100 border-gray-300 rounded-md shadow-sm">
+                                class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2.5 shadow-sm">
                         </div>
 
                         @if(session('email_verification_sent'))
@@ -60,9 +60,9 @@
                                 <form action="{{ route('settings.security.email.verify') }}" method="POST" class="flex gap-2">
                                     @csrf
                                     <input type="text" name="code" placeholder="Enter code"
-                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                        class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                     <button type="submit"
-                                        class="bg-teal-600 text-white px-4 py-2 rounded font-medium hover:bg-teal-700">Verify</button>
+                                        class="bg-teal-600 text-white px-6 py-2 rounded font-medium hover:bg-teal-700">Verify</button>
                                 </form>
                             </div>
                         @else
@@ -70,7 +70,7 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">New Email</label>
                                 <div class="flex gap-2">
                                     <input type="email" name="new_email"
-                                        class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                        class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                     <button type="submit"
                                         class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded font-medium hover:bg-gray-50">Change</button>
                                 </div>
@@ -90,22 +90,22 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
                             <input type="password" name="current_password"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                             @error('current_password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
                             <input type="password" name="new_password"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                             @error('new_password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
                             <input type="password" name="new_password_confirmation"
-                                class="w-full border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                         </div>
                         <button type="submit"
-                            class="bg-teal-600 text-white px-4 py-2 rounded font-medium hover:bg-teal-700">Update
+                            class="bg-teal-600 text-white px-6 py-2 rounded font-medium hover:bg-teal-700">Update
                             Password</button>
                     </form>
                 </div>
@@ -134,9 +134,9 @@
                             <form action="{{ route('settings.security.2fa.verify') }}" method="POST" class="flex gap-2">
                                 @csrf
                                 <input type="text" name="code" placeholder="Enter code"
-                                    class="flex-1 border-gray-300 rounded-md shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                                    class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-teal-500 focus:ring-teal-500">
                                 <button type="submit"
-                                    class="bg-teal-600 text-white px-4 py-2 rounded font-medium hover:bg-teal-700">Verify &
+                                    class="bg-teal-600 text-white px-6 py-2 rounded font-medium hover:bg-teal-700">Verify &
                                     Enable</button>
                             </form>
                         </div>

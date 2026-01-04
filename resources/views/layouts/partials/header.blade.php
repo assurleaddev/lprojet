@@ -3,7 +3,7 @@
         <!-- Top row -->
         <div class="flex items-center justify-between py-2 border-b">
             <div class="flex items-center gap-2">
-                <a href="{{ route('home') }}" class="vinted-brand-text">
+                <a href="{{ route('home') }}" class="brand-text">
                      <img
                         class="dark:hidden max-h-[80px]"
                         src="{{ config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}"
@@ -119,6 +119,7 @@
                     </div>
                 @else
                     <button
+                        @click="$dispatch('open-login-popup')"
                         class="px-4 border border-vinted-teal text-vinted-teal font-bold py-2 rounded-md hover:bg-vinted-teal/10 transition-colors text-sm">
                         Login / register
                     </button>

@@ -48,6 +48,11 @@ class User extends Authenticatable
         'username',
         'avatar_id',
         'banned_at',
+        'phone_country_code',
+        'phone_number',
+        'phone_verified_at',
+        'phone_verification_code',
+        'phone_verification_code_expires_at',
     ];
 
     /**
@@ -69,6 +74,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'banned_at' => 'datetime',
+        'phone_verified_at' => 'datetime',
+        'phone_verification_code_expires_at' => 'datetime',
     ];
 
     /**
@@ -161,7 +168,8 @@ class User extends Authenticatable
      */
     public function getGravatarUrl(int $size = 80): string
     {
-        return "https://ui-avatars.com/api/{$this->full_name}/{$size}/635bff/fff/2";
+        // Use site logo as default avatar
+        return asset('images/logo/lara-dashboard.png');
     }
 
     /**
@@ -223,5 +231,17 @@ class User extends Authenticatable
     {
         $meta = $this->userMeta->where('meta_key', $key)->first();
         return $meta ? $meta->meta_value : $default;
+    }
+    /**
+     * Generate and save a new verification code.
+     */
+    public function generateVerificationCode()
+    {
+        $code = rand(1000, 9999);
+        $this->verification_code = $code;
+        $this->verification_code_expires_at = now()->addMinutes(15);
+        $this->save();
+
+        return $code;
     }
 }

@@ -18,6 +18,10 @@ class Order extends Model
         'delivery_receipt_path'
     ];
 
+    protected $casts = [
+        'received_at' => 'datetime',
+    ];
+
     // The customer who placed the order
     public function user()
     {

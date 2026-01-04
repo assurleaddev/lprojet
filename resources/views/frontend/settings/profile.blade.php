@@ -47,7 +47,9 @@
                     </div>
                 @endif
 
-                <div x-show="successMessage" x-transition class="mb-4 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded" style="display: none;">
+                <div x-show="successMessage" x-transition
+                    class="mb-4 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded"
+                    style="display: none;">
                     <span x-text="successMessage"></span>
                 </div>
 
@@ -178,13 +180,51 @@
                             :disabled="isLoading" x-text="isLoading ? 'Updating...' : 'Update profile'">
                         </button>
                     </div>
+
+                    <!-- Cropper Modal -->
+                    <div x-show="showCropper" style="display: none;"
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black opacity-75 p-4">
+                        <div class="bg-white rounded-lg p-4 w-full max-w-lg">
+                            <h3 class="text-lg font-bold mb-4">Crop Profile Picture</h3>
+
+                            <div class="mb-4">
+                                <div class="h-96 w-full bg-gray-100 rounded overflow-hidden">
+                                    <img x-ref="cropImage" class="max-w-full" style="display: block; max-width: 100%;">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-3">
+                                <button type="button" @click="closeCropper"
+                                    class="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300">
+                                    Cancel
+                                </button>
+                                <button type="button" @click="cropAndClose"
+                                    class="px-4 py-2 text-white bg-teal-600 rounded hover:bg-teal-700">
+                                    Crop & Save
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
-    @push('scripts')
-        <script>
+@endsection
+
+@push('styles')
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" />
+    <style>
+        .cropper-container {
+            max-height: 500px;
+            width: 100%;
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
         document.addEventListener('alpine:init', () => {
             Alpine.data('profileForm', (initialCountry, initialCity) => ({
                 countries: [],
@@ -199,7 +239,11 @@
                 isLoading: false,
                 successMessage: '',
                 avatarPreview: null,
-                avatarFile: null,
+
+                // Cropper Variables
+                showCropper: false,
+                cropperInstance: null,
+                croppedBlob: null,
 
                 async init() {
                     // Fetch countries logic
@@ -215,7 +259,7 @@
                     }
 
                     this.$watch('searchCountry', (value) => {
-                         if (value !== this.selectedCountry) this.selectedCountry = value; 
+                        if (value !== this.selectedCountry) this.selectedCountry = value;
                     });
                 },
 
@@ -262,8 +306,46 @@
                 handleAvatarChange(event) {
                     const file = event.target.files[0];
                     if (file) {
-                        this.avatarFile = file;
-                        this.avatarPreview = URL.createObjectURL(file);
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.$refs.cropImage.src = e.target.result;
+                            this.showCropper = true;
+
+                            // Destroy old instance if exists
+                            if (this.cropperInstance) {
+                                this.cropperInstance.destroy();
+                            }
+
+                            // Initialize Cropper
+                            this.$nextTick(() => {
+                                this.cropperInstance = new Cropper(this.$refs.cropImage, {
+                                    aspectRatio: 1,
+                                    viewMode: 1,
+                                    autoCropArea: 1,
+                                });
+                            });
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                    // Reset input to allow re-selecting same file
+                    event.target.value = '';
+                },
+
+                cropAndClose() {
+                    if (this.cropperInstance) {
+                        this.cropperInstance.getCroppedCanvas().toBlob((blob) => {
+                            this.croppedBlob = blob;
+                            this.avatarPreview = URL.createObjectURL(blob);
+                            this.closeCropper();
+                        }, 'image/jpeg');
+                    }
+                },
+
+                closeCropper() {
+                    this.showCropper = false;
+                    if (this.cropperInstance) {
+                        this.cropperInstance.destroy();
+                        this.cropperInstance = null;
                     }
                 },
 
@@ -271,9 +353,14 @@
                 async submitForm() {
                     this.isLoading = true;
                     this.successMessage = '';
-                    
-                    const form = this.$el; 
+
+                    const form = this.$el;
                     const formData = new FormData(form);
+
+                    // Append cropped image if exists
+                    if (this.croppedBlob) {
+                        formData.set('avatar', this.croppedBlob, 'avatar.jpg');
+                    }
 
                     try {
                         const response = await fetch("{{ route('settings.profile.update') }}", {
@@ -308,10 +395,5 @@
                 }
             }));
         });
-        </script>
-    @endpush
-
-    </div>
-    </div>
-    </div>
-@endsection
+    </script>
+@endpush

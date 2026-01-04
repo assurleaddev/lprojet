@@ -60,7 +60,7 @@
                         </svg>
                     </div>
 
-                    <a href="#" class="text-teal-700 hover:underline text-[15px]">55 reviews</a>
+                    <a href="#reviews" class="text-teal-700 hover:underline text-[15px]">{{ $stats['total'] }} reviews</a>
                 </div>
 
                 <!-- badges row -->
@@ -111,13 +111,7 @@
                             </svg>
                             Last seen 3 hours ago
                         </div>
-                        <div class="mt-1 flex items-center gap-2 text-[15px]">
-                            <svg class="h-4 w-4 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M4 4h16v2H4V4Zm0 5h16v2H4V9Zm0 5h12v2H4v-2Z" />
-                            </svg>
-                            <a href="#" class="text-teal-700 hover:underline">{{$user->followers_count }} followers</a>, <a
-                                href="#" class="text-teal-700 hover:underline">{{ $followingUsersCount }} following</a>
-                        </div>
+                        <livewire:follower-stats :user="$user" />
                     </div>
                     <div>
                         <div class="text-sm font-semibold text-zinc-700 mb-2">Verified info:</div>
@@ -134,19 +128,7 @@
             <!-- Follow button (right) -->
             <div class="col-span-2 flex justify-end">
                 <div class="relative flex items-center gap-3">
-                    @php
-                        $isAuth = auth()->check();
-                        $isSelf = $isAuth && auth()->id() === $user->id; // <— prevent self-follow
-                        $following = $isAuth && auth()->user()->isFollowing($user);
-                    @endphp
-
-                    <button type="button"
-                        class="follow-btn rounded-md bg-teal-700 px-5 py-2.5 text-white font-semibold shadow-card hover:bg-teal-800"
-                        data-user-id="{{ $user->id }}" data-url="{{ route('users.follow.toggle', $user) }}"
-                        data-auth="{{ $isAuth ? 1 : 0 }}" data-self="{{ $isSelf ? 1 : 0 }}"
-                        aria-pressed="{{ $following ? 'true' : 'false' }}">
-                        <span class="label">{{ $following ? 'Following' : 'Follow' }}</span>
-                    </button>
+                    <livewire:follow-button :user="$user" />
 
                     <!-- Report dropdown trigger -->
                     <button id="reportBtn"
@@ -209,213 +191,171 @@
 
         <!-- Reviews panel -->
         <section id="panel-reviews" role="tabpanel" aria-labelledby="tab-reviews" class="pt-6 hidden">
+
+            @if(isset($pendingReviewOrder) && $pendingReviewOrder)
+                <div class="mb-8 bg-teal-50 border border-teal-200 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-teal-900 mb-2">Leave a review for your recent purchase</h3>
+                    <p class="text-sm text-teal-700 mb-4">
+                        You recently received an item from {{ $user->username }}. Please let us know how it went!
+                    </p>
+
+                    <form action="{{ route('reviews.store') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="order_id" value="{{ $pendingReviewOrder->id }}">
+
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                            <div class="flex items-center space-x-2">
+                                @for ($i = 1; $i <= 5; $i++)
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="rating" value="{{ $i }}" class="sr-only peer" required {{ $i === 5 ? 'checked' : '' }}>
+                                        <svg class="w-8 h-8 text-gray-300 peer-checked:text-amber-400 hover:text-amber-300 transition-colors"
+                                            fill="currentColor" viewBox="0 0 20 20">
+                                            <path
+                                                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
+                                        </svg>
+                                    </label>
+                                @endfor
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="review" class="block text-sm font-medium text-gray-700 mb-1">Review (Required)</label>
+                            <textarea name="review" id="review" rows="3" required minlength="5"
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                placeholder="Write your review here..."></textarea>
+                        </div>
+
+                        <button type="submit"
+                            class="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-md hover:bg-teal-700 shadow-sm">
+                            Submit Review
+                        </button>
+                    </form>
+                </div>
+            @endif
+
             <div class="grid grid-cols-12">
                 <div class="col-span-8">
                     <div class="flex items-end gap-10">
                         <div class="flex items-center gap-4">
-                            <div class="text-[72px] leading-none font-light">4.8</div>
+                            <div class="text-[72px] leading-none font-light">{{ number_format($stats['avg'], 1) }}</div>
                             <div>
                                 <div class="flex gap-1 text-amber-400">
-                                    <!-- ⭐⭐⭐⭐⭐ -->
-                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path
-                                            d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                    </svg>
-                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path
-                                            d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                    </svg>
-                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path
-                                            d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                    </svg>
-                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path
-                                            d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                    </svg>
-                                    <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path
-                                            d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                    </svg>
+                                    {{-- Main Stars --}}
+                                    @for ($i = 0; $i < 5; $i++)
+                                        <svg class="h-5 w-5 {{ $i < round($stats['avg']) ? 'text-amber-400' : 'text-gray-300' }}"
+                                            viewBox="0 0 20 20" fill="currentColor">
+                                            <path
+                                                d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
+                                        </svg>
+                                    @endfor
                                 </div>
-                                <div class="text-sm text-zinc-600">(48)</div>
+                                <div class="text-sm text-zinc-600">({{ $stats['total'] }})</div>
                             </div>
                             <div class="hidden md:block h-12 w-px bg-zinc-200"></div>
                             <div>
-                                <div class="text-[15px] font-semibold">Member reviews (39)</div>
-                                <div class="mt-1 flex items-center gap-2 text-[15px]">5.0 <span
-                                        class="text-amber-400">★</span></div>
-                                <div class="mt-4 text-[15px] font-semibold">Automatic reviews (9)</div>
-                                <div class="mt-1 flex items-center gap-2 text-[15px]">4.1 <span
-                                        class="text-amber-400">★</span></div>
+                                <div class="text-[15px] font-semibold">Member reviews ({{ $stats['member_count'] }})</div>
+                                <div class="mt-1 flex items-center gap-2 text-[15px]">
+                                    {{ number_format($stats['member_avg'], 1) }} <span class="text-amber-400">★</span>
+                                </div>
+                                <div class="mt-4 text-[15px] font-semibold">Automatic reviews ({{ $stats['auto_count'] }})
+                                </div>
+                                <div class="mt-1 flex items-center gap-2 text-[15px]">
+                                    {{ number_format($stats['auto_avg'], 1) }} <span class="text-amber-400">★</span>
+                                </div>
                             </div>
                             <div class="ml-auto">
                                 <a href="#" class="text-teal-700 hover:underline">How reviews work</a>
                             </div>
                         </div>
                     </div>
-                    <div class="col-span-12 mt-8 flex gap-4">
-                        <button class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] bg-zinc-100">All</button>
-                        <button class="rounded-full border border-zinc-300 px-5 py-2 text-[15px]">From members</button>
-                        <button class="rounded-full border border-zinc-300 px-5 py-2 text-[15px]">Automatic</button>
-                    </div>
                 </div>
             </div>
             <div class="h-16"></div>
-            <!-- Reviews list -->
-            <ul class="mt-8 divide-y divide-zinc-200">
 
-                <!-- Review 1: member review -->
-                <li class="py-6">
-                    <div class="flex items-start gap-4">
-                        <!-- avatar -->
-                        <div class="h-12 w-12 rounded-full bg-zinc-200 grid place-items-center text-zinc-500">
-                            <!-- generic user -->
-                            <svg class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                                <path
-                                    d="M12 12a5 5 0 1 0-5-5 5 5 0 0 0 5 5Zm0 2c-4.42 0-8 2.24-8 5v1h16v-1c0-2.76-3.58-5-8-5Z" />
-                            </svg>
-                        </div>
+            <!-- Reviews Filter and List with Alpine.js -->
+            <div x-data="{ filter: 'all' }">
+                <div class="flex gap-4 mb-8">
+                    <button @click="filter = 'all'" :class="filter === 'all' ? 'bg-zinc-100' : ''"
+                        class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] hover:bg-zinc-50 transition">
+                        All
+                    </button>
+                    <button @click="filter = 'member'" :class="filter === 'member' ? 'bg-zinc-100' : ''"
+                        class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] hover:bg-zinc-50 transition">
+                        From members
+                    </button>
+                    <button @click="filter = 'auto'" :class="filter === 'auto' ? 'bg-zinc-100' : ''"
+                        class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] hover:bg-zinc-50 transition">
+                        Automatic
+                    </button>
+                </div>
 
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between">
-                                <div class="font-semibold text-[16px]">rossperston</div>
-                                <div class="text-sm text-zinc-500">18 hours ago</div>
+                <!-- Reviews list -->
+                <ul class="divide-y divide-zinc-200">
+                    @forelse($reviews as $review)
+                        @php
+                            $isAuto = $review->is_auto || \Str::contains($review->review, 'Auto-feedback');
+                        @endphp
+                        <li class="py-6"
+                            x-show="filter === 'all' || (filter === 'auto' && {{ $isAuto ? 'true' : 'false' }}) || (filter === 'member' && {{ $isAuto ? 'false' : 'true' }})"
+                            x-transition>
+                            <div class="flex items-start gap-4">
+                                @if($isAuto)
+                                    <!-- System Icon for Auto Review -->
+                                    <div
+                                        class="h-12 w-12 rounded-full bg-white border border-gray-200 grid place-items-center overflow-hidden">
+                                        <img src="{{ asset('images/logo/reviews_logo_mini.png') }}" alt="{{ config('app.name') }}"
+                                            class="w-full h-full object-cover">
+                                    </div>
+                                @else
+                                    <!-- Member Avatar -->
+                                    <div
+                                        class="h-12 w-12 rounded-full bg-zinc-200 grid place-items-center text-zinc-500 overflow-hidden">
+                                        <img src="{{ $review->author->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($review->author->full_name ?? 'User') }}"
+                                            alt="{{ $review->author->full_name ?? 'User' }}" class="w-full h-full object-cover">
+                                    </div>
+                                @endif
+
+                                <div class="flex-1">
+                                    <div class="flex items-center justify-between">
+                                        <div class="font-semibold text-[16px]">
+                                            {{ $isAuto ? config('app.name') : ($review->author->username ?? 'Deleted User') }}
+                                        </div>
+                                        <div class="text-sm text-zinc-500">{{ $review->created_at->diffForHumans() }}</div>
+                                    </div>
+
+                                    <!-- Stars -->
+                                    <div class="mt-1 flex items-center gap-1 text-amber-400">
+                                        @for ($i = 0; $i < 5; $i++)
+                                            <svg class="h-4 w-4 {{ $i < $review->rating ? 'text-amber-400' : 'text-gray-300' }}"
+                                                viewBox="0 0 20 20" fill="currentColor">
+                                                <path
+                                                    d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
+                                            </svg>
+                                        @endfor
+                                    </div>
+
+                                    <p class="mt-2 text-[15px]">
+                                        {{ $review->review }}
+                                    </p>
+
+                                    <button
+                                        class="mt-3 inline-flex items-center gap-2 text-teal-700 hover:underline text-[14px]">
+                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
+                                        </svg>
+                                        Translate this
+                                    </button>
+                                </div>
                             </div>
-
-                            <!-- stars -->
-                            <div class="mt-1 flex items-center gap-1 text-amber-400">
-                                <!-- ⭐⭐⭐⭐⭐ -->
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                            </div>
-
-                            <p class="mt-2 text-[15px]">Fast delivery <span class="align-middle">👍</span></p>
-
-                            <button class="mt-3 inline-flex items-center gap-2 text-teal-700 hover:underline text-[14px]">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
-                                </svg>
-                                Translate this
-                            </button>
-                        </div>
-                    </div>
-                </li>
-
-                <!-- Review 2: automatic (Vinted) -->
-                <li class="py-6">
-                    <div class="flex items-start gap-4">
-                        <!-- V icon -->
-                        <div class="h-12 w-12 rounded-full bg-teal-700 text-white grid place-items-center font-black">V
-                        </div>
-
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between">
-                                <div class="font-semibold text-[16px]">Vinted</div>
-                                <div class="text-sm text-zinc-500">20 hours ago</div>
-                            </div>
-
-                            <div class="mt-1 flex items-center gap-1 text-amber-400">
-                                <!-- ⭐⭐⭐⭐⭐ -->
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                            </div>
-
-                            <p class="mt-2 text-[15px]">
-                                Auto-feedback: Sale completed successfully
-                            </p>
-
-                            <button class="mt-3 inline-flex items-center gap-2 text-teal-700 hover:underline text-[14px]">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
-                                </svg>
-                                Translate this
-                            </button>
-                        </div>
-                    </div>
-                </li>
-
-                <!-- Review 3: another automatic -->
-                <li class="py-6">
-                    <div class="flex items-start gap-4">
-                        <div class="h-12 w-12 rounded-full bg-teal-700 text-white grid place-items-center font-black">V
-                        </div>
-                        <div class="flex-1">
-                            <div class="flex items-center justify-between">
-                                <div class="font-semibold text-[16px]">Vinted</div>
-                                <div class="text-sm text-zinc-500">4 days ago</div>
-                            </div>
-                            <div class="mt-1 flex items-center gap-1 text-amber-400">
-                                <!-- ⭐⭐⭐⭐⭐ (same icons as above) -->
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                                <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z" />
-                                </svg>
-                            </div>
-                            <p class="mt-2 text-[15px]">Auto-feedback: Sale completed successfully</p>
-                            <button class="mt-3 inline-flex items-center gap-2 text-teal-700 hover:underline text-[14px]">
-                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                                    <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
-                                </svg>
-                                Translate this
-                            </button>
-                        </div>
-                    </div>
-                </li>
-
-            </ul>
+                        </li>
+                    @empty
+                        <li class="py-6 text-center text-gray-500">
+                            No reviews yet.
+                        </li>
+                    @endforelse
+                </ul>
+            </div>
 
         </section>
     </div>

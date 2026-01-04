@@ -168,9 +168,8 @@
                                         alt="{{ $product->name }}">
 
                                     {{-- Heart Icon (Bottom Right, Vinted Style) --}}
-                                    <button
-                                                        id="like-btn-{{ $product->id }}"
-                                         class="absolute bottom-2 right-2 p-1.5 bg-white rounded-full shadow hover:bg-gray-50 text-gray-400 hover:text-red-500 transition-colors z-10"
+                                    <button id="like-btn-{{ $product->id }}"
+                                        class="absolute bottom-2 right-2 p-1.5 bg-white rounded-full shadow hover:bg-gray-50 text-gray-400 hover:text-red-500 transition-colors z-10"
                                         aria-label="Favourite" onclick="event.preventDefault(); toggleLike({{ $product->id }});">
                                         <svg class="w-5 h-5" fill="{{ $product->isFavorited() ? '#ef4444' : 'none' }}"
                                             stroke="{{ $product->isFavorited() ? '#ef4444' : 'currentColor' }}" viewBox="0 0 24 24">
@@ -278,7 +277,17 @@
                 })
                     .then(response => {
                         if (response.status === 401) {
-                            window.location.href = '/login';
+                            Livewire.dispatch('open-login-popup');
+                            // Revert UI change since action failed
+                            if (isLiked) {
+                                svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                                svg.setAttribute('fill', '#ef4444');
+                                svg.setAttribute('stroke', '#ef4444');
+                            } else {
+                                svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                                svg.setAttribute('fill', 'none');
+                                svg.setAttribute('stroke', 'currentColor');
+                            }
                             return;
                         }
                         if (!response.ok) throw new Error('Network response was not ok');

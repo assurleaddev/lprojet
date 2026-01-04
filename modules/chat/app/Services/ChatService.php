@@ -36,12 +36,34 @@ class ChatService
         ]);
     }
 
-    public function sendMessage(Conversation $conversation, User $sender, string $body): Message
+    public function sendMessage(Conversation $conversation, User $sender, string $body, array $attachments = []): Message
     {
-        $message = $conversation->messages()->create([
+        $data = [
             'user_id' => $sender->id,
             'body' => $body,
-        ]);
+        ];
+
+        // Attachments are now handled separately via relation, but we create the message first.
+        $message = $conversation->messages()->create($data);
+
+        if (!empty($attachments)) {
+            foreach ($attachments as $attachment) {
+                // Determine file type
+                $mime = $attachment->getMimeType();
+                $type = str_contains($mime, 'image') ? 'image' : 'file';
+
+                // Store file
+                $path = $attachment->store('chat_attachments', 'public');
+
+                // Create attachment record
+                $message->attachments()->create([
+                    'file_path' => $path,
+                    'file_name' => $attachment->getClientOriginalName(),
+                    'file_type' => $type,
+                    'file_size' => $attachment->getSize(),
+                ]);
+            }
+        }
 
         $conversation->update(['last_message_at' => now()]);
 

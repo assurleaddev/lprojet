@@ -220,39 +220,91 @@
                     @else
                         @if (isset($filters))
                             @foreach ($filters as $filter)
-                                <div class="flex items-center justify-center relative" x-data="{ open: false }">
-                                    <button @click="open = !open"
-                                        class="btn-default flex items-center justify-center gap-2" type="button">
-                                        @if ($filter['icon'] ?? false)
-                                            <iconify-icon icon="{{ $filter['icon'] ?? '' }}"></iconify-icon>
-                                        @endif
+                                @if (($filter['type'] ?? '') === 'searchable')
+                                    <div class="relative" 
+                                        x-data="{ 
+                                            open: false, 
+                                            search: '', 
+                                            options: {{ json_encode($filter['options']) }},
+                                            limit: 50,
+                                            get filtered() {
+                                                const term = this.search.toLowerCase();
+                                                return Object.entries(this.options)
+                                                    .filter(([key, value]) => value.toLowerCase().includes(term))
+                                                    .slice(0, this.limit);
+                                            }
+                                        }"
+                                    >
+                                        <button @click="open = !open" type="button" class="btn-default flex items-center justify-center gap-2">
+                                            @if ($filter['icon'] ?? false)
+                                                <iconify-icon icon="{{ $filter['icon'] ?? '' }}"></iconify-icon>
+                                            @endif
+                                            {{ $filter['filterLabel'] }}
+                                            <iconify-icon icon="lucide:chevron-down" class="transition-transform duration-200" :class="{ 'rotate-180': open }"></iconify-icon>
+                                        </button>
 
-                                        {{ $filter['filterLabel'] }}
-                                        <iconify-icon icon="lucide:chevron-down"
-                                            class="transition-transform duration-200"
-                                            :class="{ 'rotate-180': open }"></iconify-icon>
-                                    </button>
-
-                                    <div x-show="open" @click.outside="open = false" x-transition
-                                        class="absolute top-10 right-0 mt-2 w-56 rounded-md shadow bg-white dark:bg-gray-700 z-10 p-3 overflow-y-auto max-h-80">
-                                        <ul class="space-y-2">
-                                            <li class="cursor-pointer text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1.5 rounded"
-                                                @if ($enableLivewire) wire:click="$set('{{ $filter['id'] }}', ''); $dispatch('resetPage')" @endif
-                                                @click="open = false">
-                                                {{ $filter['allLabel'] }}
-                                            </li>
-                                            @foreach ($filter['options'] as $key => $value)
-                                                <li class="cursor-pointer text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1.5 rounded {{ $filter['selected'] == $key ? 'bg-gray-200 dark:bg-gray-600 font-bold' : '' }}"
-                                                    @if ($enableLivewire) wire:click="$set('{{ $filter['id'] }}', '{{ $key }}'); $dispatch('resetPage')"
-                                                @else
-                                                    onclick="window.location.href = '{{ $filter['route'] }}?{{ $filter['id'] }}={{ $key }}';" @endif
+                                        <div x-show="open" @click.outside="open = false" x-transition class="absolute top-10 right-0 mt-2 w-64 rounded-md shadow bg-white dark:bg-gray-700 z-10 p-3">
+                                            <div class="mb-2">
+                                                <input type="text" x-model="search" placeholder="Search..." class="form-control w-full text-sm">
+                                            </div>
+                                            <ul class="space-y-1 max-h-60 overflow-y-auto">
+                                                <li class="cursor-pointer text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1.5 rounded"
+                                                    @if ($enableLivewire) wire:click="$set('{{ $filter['id'] }}', ''); $dispatch('resetPage')" @endif
                                                     @click="open = false">
-                                                    {{ ucfirst($value) }}
+                                                    {{ $filter['allLabel'] }}
                                                 </li>
-                                            @endforeach
-                                        </ul>
+                                                <template x-for="[key, value] in filtered" :key="key">
+                                                    <li class="cursor-pointer text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1.5 rounded"
+                                                        :class="{ 'bg-gray-200 dark:bg-gray-600 font-bold': '{{ $filter['selected'] }}' == key }"
+                                                        @if ($enableLivewire) 
+                                                            @click="$wire.set('{{ $filter['id'] }}', key); $dispatch('resetPage'); open = false"
+                                                        @else
+                                                            @click="window.location.href = '{{ $filter['route'] ?? '' }}?{{ $filter['id'] }}=' + key"
+                                                        @endif
+                                                    >
+                                                        <span x-text="value"></span>
+                                                    </li>
+                                                </template>
+                                                <li x-show="Object.keys(options).length === 0" class="text-xs text-gray-500 text-center py-2">{{ __('No options') }}</li>
+                                                <li x-show="filtered.length === 0 && Object.keys(options).length > 0" class="text-xs text-gray-500 text-center py-2">{{ __('No matches') }}</li>
+                                            </ul>
+                                        </div>
                                     </div>
-                                </div>
+                                @else
+                                    <div class="flex items-center justify-center relative" x-data="{ open: false }">
+                                        <button @click="open = !open"
+                                            class="btn-default flex items-center justify-center gap-2" type="button">
+                                            @if ($filter['icon'] ?? false)
+                                                <iconify-icon icon="{{ $filter['icon'] ?? '' }}"></iconify-icon>
+                                            @endif
+    
+                                            {{ $filter['filterLabel'] }}
+                                            <iconify-icon icon="lucide:chevron-down"
+                                                class="transition-transform duration-200"
+                                                :class="{ 'rotate-180': open }"></iconify-icon>
+                                        </button>
+    
+                                        <div x-show="open" @click.outside="open = false" x-transition
+                                            class="absolute top-10 right-0 mt-2 w-56 rounded-md shadow bg-white dark:bg-gray-700 z-10 p-3 overflow-y-auto max-h-80">
+                                            <ul class="space-y-2">
+                                                <li class="cursor-pointer text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1.5 rounded"
+                                                    @if ($enableLivewire) wire:click="$set('{{ $filter['id'] }}', ''); $dispatch('resetPage')" @endif
+                                                    @click="open = false">
+                                                    {{ $filter['allLabel'] }}
+                                                </li>
+                                                @foreach ($filter['options'] as $key => $value)
+                                                    <li class="cursor-pointer text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600 px-2 py-1.5 rounded {{ $filter['selected'] == $key ? 'bg-gray-200 dark:bg-gray-600 font-bold' : '' }}"
+                                                        @if ($enableLivewire) wire:click="$set('{{ $filter['id'] }}', '{{ $key }}'); $dispatch('resetPage')"
+                                                    @else
+                                                        onclick="window.location.href = '{{ $filter['route'] }}?{{ $filter['id'] }}={{ $key }}';" @endif
+                                                        @click="open = false">
+                                                        {{ ucfirst($value) }}
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </div>
+                                    </div>
+                                @endif
                             @endforeach
                         @endif
                     @endif

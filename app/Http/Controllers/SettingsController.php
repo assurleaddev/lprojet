@@ -78,13 +78,15 @@ class SettingsController extends Controller
             'gender' => 'nullable|string|in:Male,Female,Other',
             'birthday' => 'nullable|date',
             'holiday_mode' => 'nullable|boolean',
-            'phone_number' => 'nullable|string|max:20',
+            'holiday_mode' => 'nullable|boolean',
         ]);
 
         $this->updateMeta($user, 'gender', $request->gender);
         $this->updateMeta($user, 'birthday', $request->birthday);
         $this->updateMeta($user, 'holiday_mode', $request->has('holiday_mode') ? '1' : '0');
-        $this->updateMeta($user, 'phone_number', $request->phone_number);
+        $this->updateMeta($user, 'holiday_mode', $request->has('holiday_mode') ? '1' : '0');
+        // Phone number is handled via verification flow
+
 
         return back()->with('success', 'Account settings updated successfully.');
     }

@@ -58,11 +58,11 @@
                         <div class="pt-2 space-y-4">
                             <label class="flex items-start">
                                 <input type="checkbox" wire:model.defer="offersAccepted" class="w-5 h-5 mt-0.5 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
-                                <span class="ml-2 text-sm text-gray-600">I'd like to receive personalised offers and be the first to know about the latest updates to Used via email.</span>
+                                <span class="ml-2 text-sm text-gray-600">I'd like to receive personalised offers and be the first to know about the latest updates to {{ config('app.name') }} via email.</span>
                             </label>
                             <label class="flex items-start">
                                 <input type="checkbox" wire:model.defer="termsAccepted" class="w-5 h-5 mt-0.5 text-teal-600 border-gray-300 rounded focus:ring-teal-500 @error('termsAccepted') border-red-500 @enderror">
-                                <span class="ml-2 text-sm text-gray-600">By registering, I confirm that I accept <a href="#" class="font-semibold text-teal-600 hover:underline">Vinted's Terms and Conditions</a>, have read the <a href="#" class="font-semibold text-teal-600 hover:underline">Privacy Policy</a>, and am at least 18 years old.</span>
+                                <span class="ml-2 text-sm text-gray-600">By registering, I confirm that I accept <a href="#" class="font-semibold text-teal-600 hover:underline">{{ config('app.name') }}'s Terms and Conditions</a>, have read the <a href="#" class="font-semibold text-teal-600 hover:underline">Privacy Policy</a>, and am at least 18 years old.</span>
                             </label>
                              @error('termsAccepted') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>

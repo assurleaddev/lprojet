@@ -40,6 +40,12 @@ class ChatWindow extends Component
      */
     public string $messageBody = '';
 
+    // File Uploads
+    use \Livewire\WithFileUploads;
+    // File Uploads
+    use \Livewire\WithFileUploads;
+    public $attachments = []; // For the file input (multiple)
+
     // Properties for Rejection Modal
     public bool $showRejectionModal = false;
     public ?int $offerToRejectId = null;
@@ -93,7 +99,7 @@ class ChatWindow extends Component
             // Product model should handle loading its media automatically or define the accessor
             ->with([
                 'messages' => function ($query) {
-                    $query->with(['user', 'offer.product']); // Eager load product on offer
+                    $query->with(['user', 'offer.product', 'attachments']); // Eager load product on offer and attachments
                 },
                 'product', // Load conversation's primary product
                 'userOne', // Load user one
@@ -175,7 +181,15 @@ class ChatWindow extends Component
      */
     public function sendMessage(ChatService $chatService): void
     {
-        $this->validate(['messageBody' => 'required|string|max:2000']);
+        $this->validate([
+            'messageBody' => 'nullable|string|max:2000',
+            'attachments.*' => 'file|max:10240', // Max 10MB per file
+        ]);
+
+        if (empty($this->messageBody) && empty($this->attachments)) {
+            $this->addError('messageBody', 'Message or file is required.');
+            return;
+        }
 
         if (!$this->conversation) {
             Log::error("ChatWindow: Attempted to send message on unloaded conversation ID {$this->conversationId}");
@@ -189,7 +203,8 @@ class ChatWindow extends Component
         $newMessage = $chatService->sendMessage(
             $this->conversation,
             $user,
-            $this->messageBody
+            $this->messageBody,
+            $this->attachments // Pass the uploaded files array
         );
 
         Log::debug("ChatWindow: Message sent successfully by User {$user->id} in Conversation {$this->conversationId}");
@@ -212,10 +227,19 @@ class ChatWindow extends Component
             'type' => 'text', // Explicitly set type
             'offer_id' => null, // No offer linked
             'offer' => null, // No offer data
+            'attachments' => $newMessage->attachments->toArray(), // Load new attachments
         ];
 
-        $this->reset('messageBody');
+        $this->reset(['messageBody', 'attachments']); // Reset attachments
         $this->dispatch('message-sent', conversationId: $this->conversationId);
+    }
+
+    public function removeAttachment($index)
+    {
+        if (isset($this->attachments[$index])) {
+            unset($this->attachments[$index]);
+            $this->attachments = array_values($this->attachments); // Re-index array
+        }
     }
 
     // Method to Accept an Offer
@@ -357,12 +381,15 @@ class ChatWindow extends Component
     public string $reviewText = '';
     public ?int $orderToReviewId = null;
 
+    // Properties for Reception Confirmation Modal
+    public bool $showReceptionConfirmationModal = false;
+
     public function markAsReceived(int $orderId)
     {
         if ($orderId === 0) {
             // Try to find the order if ID is not passed (e.g. from chat view)
             $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
-                ->where('user_id', Auth::id()) // Current user must be the buyer
+                ->where('user_id', Auth::id())
                 ->where('status', 'shipped')
                 ->latest()
                 ->first();
@@ -376,12 +403,47 @@ class ChatWindow extends Component
         }
 
         if ($order->status !== 'shipped') {
+            // If already delivered but not reviewed?
+            if ($order->status === 'delivered') {
+                $this->openReviewModal($order->id);
+                return;
+            }
             $this->dispatch('toast', message: 'Order cannot be marked as received yet.', type: 'error');
             return;
         }
 
-        // Open Review Modal instead of completing immediately
-        $this->orderToReviewId = $order->id;
+        // Open Confirmation Modal
+        $this->orderToReviewId = $order->id; // Using temporary storage
+        $this->showReceptionConfirmationModal = true;
+    }
+
+    public function confirmReception()
+    {
+        if (!$this->orderToReviewId)
+            return;
+
+        $order = \App\Models\Order::find($this->orderToReviewId);
+        if (!$order || $order->user_id !== Auth::id())
+            return;
+
+        // Update Status to Delivered
+        $order->update([
+            'status' => 'delivered',
+            'received_at' => now(),
+        ]);
+
+        $this->showReceptionConfirmationModal = false;
+
+        // Immediately open review modal
+        $this->openReviewModal($order->id);
+
+        $this->dispatch('toast', message: 'Item marked as received. Please leave a review.', type: 'success');
+        $this->loadConversation(app(ChatService::class));
+    }
+
+    public function openReviewModal($orderId)
+    {
+        $this->orderToReviewId = $orderId;
         $this->reset(['reviewRating', 'reviewText']);
         $this->showReviewModal = true;
     }
@@ -390,7 +452,7 @@ class ChatWindow extends Component
     {
         $this->validate([
             'reviewRating' => 'required|integer|min:1|max:5',
-            'reviewText' => 'nullable|string|max:1000',
+            'reviewText' => 'required|string|min:5|max:1000', // Required per request
         ]);
 
         if (!$this->orderToReviewId)
@@ -400,20 +462,40 @@ class ChatWindow extends Component
         if (!$order)
             return;
 
-        // 1. Create Review
-        $reviewContent = empty(trim($this->reviewText)) ? "Auto generated review by user" : $this->reviewText;
+        // Ensure order is delivered before reviewing/completing
+        if ($order->status !== 'delivered' && $order->status !== 'completed') {
+            // Handle edge case if status wasn't updated correctly, or force update?
+            // Assuming normal flow: shipped -> delivered -> completed
+            // If manual override needed, we might allow it but standard flow requires delivered.
+            if ($order->status === 'shipped') {
+                // Auto-move to delivered if skipping confirmation? No, enforce flow.
+                $this->dispatch('toast', message: 'Please confirm item reception first.', type: 'error');
+                return;
+            }
+        }
 
+        // Check if already reviewed (prevent duplicates)
+        $existingReview = \App\Models\Review::where('author_id', Auth::id())
+            ->where('model_id', $order->vendor_id)
+            ->where('model_type', \App\Models\User::class)
+            ->where('created_at', '>', $order->created_at) // Simple heuristic or need exact order link
+            // Ideally should check against order ID if we linked it, but for now we enforce via status check
+            ->exists();
+
+        if ($order->status === 'completed') {
+            $this->dispatch('toast', message: 'Order already completed and reviewed.', type: 'info');
+            $this->closeReviewModal();
+            return;
+        }
+
+        // 1. Create Review
         \App\Models\Review::create([
             'rating' => $this->reviewRating,
-            'review' => $reviewContent,
+            'review' => $this->reviewText,
             'model_id' => $order->vendor_id, // Reviewing the Seller
             'model_type' => \App\Models\User::class,
             'author_id' => Auth::id(), // Buyer
             'author_type' => \App\Models\User::class,
-            // 'order_id' => $order->id, // If we added order_id to reviews table, which we didn't in the migration I saw. 
-            // The migration had morphs for model and author. 
-            // If we want to link to order, we'd need a column. For now, let's skip strict order linking in DB 
-            // or put it in title/meta if needed. But requirement didn't strictly say "link in DB", just "added to buyer reviews".
         ]);
 
         // 2. Release Funds & Complete Order
@@ -421,7 +503,7 @@ class ChatWindow extends Component
             $walletService = app(\Modules\Wallet\Services\WalletService::class);
             $walletService->releasePendingFunds($order->vendor, $order->amount, 'Order #' . $order->id);
 
-            $order->update(['status' => 'completed']); // Use completed instead of delivered for final state
+            $order->update(['status' => 'completed']);
 
             // 3. Send Message
             $chatService->sendOrderCompletedMessage($this->conversation, Auth::user(), $order);

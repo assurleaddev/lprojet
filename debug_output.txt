@@ -1,0 +1,15 @@
+﻿DEBUG: All delivered orders count: 13
+ID: 1, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 5, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 7, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 13, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 15, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 16, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 23, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 27, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 33, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 39, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 41, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 42, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+ID: 44, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
+Found 0 orders eligible for auto-review.

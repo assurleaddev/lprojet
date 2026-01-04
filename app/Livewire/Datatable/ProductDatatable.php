@@ -17,7 +17,7 @@ class ProductDatatable extends Datatable
 
     // --- Add properties for filter state ---
     public string $category = '';
-    public string $option = ''; // Changed from 'attribute' to 'option
+
     public string $status = '';
     public string $vendor = '';
 
@@ -26,7 +26,7 @@ class ProductDatatable extends Datatable
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'category' => ['except' => ''],
-        'option' => ['except' => ''], // Changed from 'attribute'
+
         'status' => ['except' => ''],
         'vendor' => ['except' => ''],
 
@@ -38,10 +38,7 @@ class ProductDatatable extends Datatable
     {
         $this->resetPage();
     }
-    public function updatingOption()
-    {
-        $this->resetPage();
-    }
+
     public function updatingStatus()
     {
         $this->resetPage();
@@ -67,18 +64,7 @@ class ProductDatatable extends Datatable
                 'allLabel' => __('All Categories'),
                 'selected' => $this->category,
             ],
-            [
-                'id' => 'option', // Changed from 'attribute'
-                'label' => __('Attribute Value'), // Changed label
-                // --- Fetch options (values) instead of attribute names ---
-                'options' => Option::pluck('value', 'id')->toArray(),
-                // --- Add missing keys ---
-                'filterLabel' => __('Filter by attribute value'),
-                'icon' => 'lucide:sliders',
-                'allLabel' => __('All Values'),
 
-                'selected' => $this->option,
-            ],
             [
                 'id' => 'status',
                 'label' => __('Status'),
@@ -95,6 +81,7 @@ class ProductDatatable extends Datatable
             [
                 'id' => 'vendor',
                 'label' => __('Vendor'),
+                'type' => 'searchable',
                 'options' => User::role('vendor')->get()->pluck('full_name', 'id')->toArray(),
                 'filterLabel' => __('Filter by vendor'),
                 'icon' => 'lucide:user',
@@ -153,11 +140,7 @@ class ProductDatatable extends Datatable
             ->when($this->category, function ($query) {
                 $query->where('category_id', $this->category);
             })
-            ->when($this->option, function ($query) {
-                $query->whereHas('options', function ($q) {
-                    $q->where('option_id', $this->option);
-                });
-            })
+
             ->when($this->status, function ($query) {
                 $query->where('status', $this->status);
             })

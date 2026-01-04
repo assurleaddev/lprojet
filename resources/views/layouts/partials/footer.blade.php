@@ -2,9 +2,9 @@
   <div class="shell px-4 md:px-6 py-10">
     <div class="grid grid-cols-2 md:grid-cols-5 gap-8">
       <div class="col-span-2 md:col-span-1">
-        <h3 class="font-bold text-lg mb-4">Vinted</h3>
+        <h3 class="font-bold text-lg mb-4">{{ config('app.name') }}</h3>
         <ul class="space-y-2">
-          <li><a href="#" class="footer-link">About Vinted</a></li>
+          <li><a href="#" class="footer-link">About {{ config('app.name') }}</a></li>
           <li><a href="#" class="footer-link">Jobs</a></li>
           <li><a href="#" class="footer-link">Sustainability</a></li>
           <li><a href="#" class="footer-link">Press</a></li>
@@ -59,7 +59,8 @@
           <img src="https://placehold.co/120x40/000000/ffffff?text=Google+Play" alt="Google Play" class="h-10" />
         </div>
       </div>
-      <p class="text-center text-xs text-gray-500 mt-8">&copy; 2024 Used | <a href="#" class="hover:underline">Privacy
+      <p class="text-center text-xs text-gray-500 mt-8">&copy; {{ date('Y') }} {{ config('app.name') }} | <a href="#"
+          class="hover:underline">Privacy
           Policy</a> | <a href="#" class="hover:underline">Terms &amp; Conditions</a></p>
     </div>
   </div>

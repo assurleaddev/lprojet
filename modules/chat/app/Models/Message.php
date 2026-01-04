@@ -23,6 +23,8 @@ class Message extends Model
         'read_at',
         'offer_id',
         'type',
+        'attachment_path',
+        'attachment_type',
     ];
 
     /**
@@ -45,6 +47,11 @@ class Message extends Model
     {
         // Links the 'offer_id' column on this message table 
         // to the 'id' column on the 'chat_offers' table.
-        return $this->belongsTo(Offer::class, 'offer_id'); 
+        return $this->belongsTo(Offer::class, 'offer_id');
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(MessageAttachment::class);
     }
 }

@@ -67,9 +67,29 @@
                     <!-- Phone number -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
                         <div class="flex items-center justify-between mb-2">
-                            <h3 class="text-base font-medium text-gray-900">Phone number</h3>
-                            <button type="button"
-                                class="text-vinted-teal border border-vinted-teal px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Verify</button>
+                            <div>
+                                @if($user->phone_number)
+                                    <h3 class="text-base font-medium text-gray-900">{{ $user->phone_country_code }}
+                                        {{ $user->phone_number }}</h3>
+                                    @if($user->phone_verified_at)
+                                        <span class="text-xs text-gray-500 flex items-center gap-1">Verified <svg
+                                                class="w-3 h-3 text-green-500" fill="none" stroke="currentColor"
+                                                viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M5 13l4 4L19 7"></path>
+                                            </svg></span>
+                                    @else
+                                        <span class="text-xs text-red-500">Not verified</span>
+                                    @endif
+                                @else
+                                    <h3 class="text-base font-medium text-gray-900">Phone number</h3>
+                                @endif
+                            </div>
+
+                            <a href="{{ route('auth.verify_phone') }}"
+                                class="text-vinted-teal border border-vinted-teal px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
+                                {{ $user->phone_verified_at ? 'Change' : 'Verify' }}
+                            </a>
                         </div>
                         <p class="text-xs text-gray-500">Your phone number will only be used to help you log in. It won't be
                             made public, or used for marketing purposes.</p>

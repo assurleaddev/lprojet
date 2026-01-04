@@ -48,7 +48,7 @@
         }
 
         /* Brand wordmark */
-        .vinted-brand-text {
+        .brand-text {
             font-weight: 800;
             font-size: 20px;
             color: var(--brand);
@@ -346,9 +346,25 @@ $nextTick(() => {
         {{ $slot ?? '' }}
     </main>
     @include('layouts.partials.footer')
-    {{-- <livewire:popup-auth-modal /> --}}
+    @livewire(\App\Livewire\LoginPopup::class)
     @yield('after_body')
     @stack('scripts')
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('login_required')) {
+                // Dispatch Livewire event to open the login popup
+                Livewire.dispatch('open-login-popup');
+
+                // Clean up the URL
+                const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({
+                    path: newUrl
+                }, '', newUrl);
+            }
+        });
+    </script>
 
     @if (!empty(config('settings.global_custom_js')))
         <script>

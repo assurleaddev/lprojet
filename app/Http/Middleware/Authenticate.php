@@ -15,7 +15,7 @@ class Authenticate extends Middleware
     protected function redirectTo($request)
     {
         // If the request does not expect JSON, redirect to the appropriate login page.
-        if (! $request->expectsJson()) {
+        if (!$request->expectsJson()) {
             // Check if the request is for an admin route
             if ($request->is('admin/*') || $request->is('admin')) {
                 $disableRedirect = config('settings.disable_default_admin_redirect', '0') === '1';
@@ -28,8 +28,8 @@ class Authenticate extends Middleware
                 return route('admin.login');
             }
 
-            // For frontend routes, redirect to frontend login.
-            return route('login');
+            // For frontend routes, redirect to home with a flag to trigger the login popup.
+            return route('home', ['login_required' => 1]);
         }
 
         return null;

@@ -18,6 +18,11 @@ class Review extends Model
         'model_type',
         'author_id',
         'author_type',
+        'is_auto',
+    ];
+
+    protected $casts = [
+        'is_auto' => 'boolean',
     ];
 
     public function model()

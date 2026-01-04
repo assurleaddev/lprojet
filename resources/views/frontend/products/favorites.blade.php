@@ -40,7 +40,7 @@
             </div>
 
             <div class="mt-8">
-                {{ $products->links() }}
+                {{ $products->links('pagination::tailwind') }}
             </div>
         @else
             <div class="text-center py-20">

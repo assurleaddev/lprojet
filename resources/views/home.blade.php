@@ -54,6 +54,7 @@
             const productGrid = document.getElementById('product-grid');
 
             // This function handles the actual fetching of new products
+            // This function handles the actual fetching of new products
             const loadMoreProducts = () => {
                 if (loading || noMoreProducts) return;
                 loading = true;
@@ -64,12 +65,12 @@
                 // 1. Create and show 5 skeleton placeholders immediately
                 const skeletons = [];
                 for (let i = 0; i < 5; i++) {
-                    // Clone the template's content
                     const skeletonNode = skeletonTemplate.content.cloneNode(true);
                     productGrid.appendChild(skeletonNode);
-                    // Keep a reference to the newly added skeleton element to remove it later
                     skeletons.push(productGrid.lastElementChild);
                 }
+
+                console.log('Fetching page', page);
 
                 fetch(`?page=${page}`, {
                     headers: {
@@ -80,19 +81,20 @@
                     .then(html => {
                         if (html.trim().length === 0) {
                             noMoreProducts = true;
-                            return; // Stop here if no more products
+                            // Optional: Hide loading indicator or show "No more products"
+                            return;
                         }
 
                         // 3. Append the real product data
                         productGrid.insertAdjacentHTML('beforeend', html);
                         page++;
 
-                        // Re-run the image observer for the new real images
-                        observeLazyImages();
+                        // Re-run the image observer if it existed (removed to prevent error)
+                        // if (typeof observeLazyImages === 'function') observeLazyImages();
                     })
                     .catch(error => console.error('Error loading more products:', error))
                     .finally(() => {
-                        // 2. ALWAYS remove the skeleton placeholders, even if there was an error
+                        // 2. ALWAYS remove the skeleton placeholders
                         skeletons.forEach(skeleton => skeleton.remove());
                         loading = false;
                     });
@@ -100,8 +102,11 @@
 
             // Listen for scroll events on the window
             window.addEventListener('scroll', () => {
-                // Check if the user has scrolled to 500px from the bottom of the page
-                if ((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 500) {
+                const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const scrolled = window.scrollY;
+
+                // Check if the user has scrolled to 500px from the bottom
+                if (scrollableHeight - scrolled <= 500) {
                     loadMoreProducts();
                 }
             });
@@ -144,7 +149,17 @@
                 })
                     .then(response => {
                         if (response.status === 401) {
-                            window.location.href = '/login'; // Redirect to login if not authenticated
+                            Livewire.dispatch('open-login-popup');
+                            // Revert optimistic update since action failed
+                            if (isLiked) {
+                                svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                                let count = parseInt(countSpan.textContent) || 0;
+                                countSpan.textContent = count + 1;
+                            } else {
+                                svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                                let count = parseInt(countSpan.textContent) || 0;
+                                countSpan.textContent = Math.max(0, count - 1);
+                            }
                             return;
                         }
                         return response.json();
