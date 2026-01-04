@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire;
+namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\User;
@@ -65,7 +65,7 @@ class PopupAuthModal extends Component
         $this->view = $view;
         $this->modalOpen = true;
     }
-    
+
     /**
      * Change the current view of the modal.
      */
@@ -89,7 +89,7 @@ class PopupAuthModal extends Component
         ]);
 
         Auth::login($user);
-        
+
         $this->modalOpen = false;
         return redirect()->intended('/');
     }
