@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Attribute extends Model
 {
-    protected $fillable = ['name'];
-    public function options() {
+    protected $fillable = ['name', 'type', 'code', 'icon'];
+    public function options()
+    {
         return $this->hasMany(Option::class);
     }
 

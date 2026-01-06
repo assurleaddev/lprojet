@@ -1,0 +1,6 @@
+START DEBUG ACCESSOR
+Category Found: Women (ID: 1)
+Accessor Result Count: 1
+First Item Type: integer
+First Item Value: 1
+Available Keys on Collection: 0

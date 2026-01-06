@@ -94,17 +94,27 @@
 
                 <aside class="lg:col-span-4">
                     <div class="p-6 bg-white">
-                        <p class="text-xl font-bold mb-4 text-vinted-gray-900">{{ $product->name }} MAD</p>
+                        <p class="text-xl font-bold mb-4 text-vinted-gray-900">{{ $product->name }}
+                            {{ number_format($product->price, 2) }} MAD</p>
 
                         <div class="space-y-3 text-sm border-b border-vinted-gray-200 pb-4 mb-4">
-                            <div class="flex"><span class="w-1/3 text-vinted-gray-500">TAILLE</span> <span
-                                    class="text-vinted-gray-700">{{ $product->size }}</span></div>
-                            <div class="flex"><span class="w-1/3 text-vinted-gray-500">ÉTAT</span> <span
-                                    class="text-vinted-gray-900 font-semibold">{{ $product->condition }}</span></div>
-                            <div class="flex"><span class="w-1/3 text-vinted-gray-500">COULEUR</span> <span
-                                    class="text-vinted-gray-700">{{ $product->color }}</span></div>
-                            <div class="flex"><span class="w-1/3 text-vinted-gray-500">Brand</span> <span
-                                    class="text-vinted-gray-700">{{ $product->brand }}</span></div>
+                            @if($product->size)
+                                <div class="flex"><span class="w-1/3 text-vinted-gray-500">TAILLE</span> <span
+                                        class="text-vinted-gray-700">{{ $product->size }}</span></div>
+                            @endif
+                            @if($product->condition)
+                                <div class="flex"><span class="w-1/3 text-vinted-gray-500">ÉTAT</span> <span
+                                        class="text-vinted-gray-900 font-semibold">{{ ucwords(str_replace('_', ' ', $product->condition)) }}</span>
+                                </div>
+                            @endif
+                            @if($product->color)
+                                <div class="flex"><span class="w-1/3 text-vinted-gray-500">COULEUR</span> <span
+                                        class="text-vinted-gray-700">{{ $product->color }}</span></div>
+                            @endif
+                            @if($product->brand)
+                                <div class="flex"><span class="w-1/3 text-vinted-gray-500">Brand</span> <span
+                                        class="text-vinted-gray-700">{{ $product->brand->name }}</span></div>
+                            @endif
                         </div>
 
                         <div class="mb-5">
@@ -157,25 +167,120 @@
                         </div>
 
                         <div class="space-y-2.5">
-                            <a href="{{ route('product.checkout', $product) }}"
-                                class="w-full block text-center bg-vinted-teal text-white font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal-dark transition-colors">
-                                Buy Now
-                            </a>
                             @auth
-                                @if(auth()->id() !== $product->vendor_id)
-                                    @livewire('product-messaging-button', ['product' => $product])
+                                @if(auth()->id() === $product->vendor_id && in_array($product->status, ['approved', 'reserved']))
+                                    {{-- Owner's action buttons --}}
+                                    <button type="button" x-data @click="$dispatch('open-bump-modal')"
+                                        class="w-full bg-vinted-teal text-white font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal-dark transition-colors">
+                                        Bump
+                                    </button>
+                                    <form action="{{ route('items.markAsSold', $product) }}" method="POST">
+                                        @csrf
+                                        <button type="submit"
+                                            class="w-full border border-gray-300 text-gray-700 font-bold py-2.5 rounded-md text-sm hover:bg-gray-50 transition-colors">
+                                            Mark as sold
+                                        </button>
+                                    </form>
 
+                                    @if($product->status !== 'reserved')
+                                        <button type="button" x-data @click="$dispatch('open-reserve-modal')"
+                                            class="w-full border border-gray-300 text-gray-700 font-bold py-2.5 rounded-md text-sm hover:bg-gray-50 transition-colors">
+                                            Mark as reserved
+                                        </button>
+                                    @else
+                                        {{-- If already reserved, show unreserve button --}}
+                                        <div class="w-full bg-blue-50 border border-blue-200 rounded-md p-2.5">
+                                            <p class="text-sm text-blue-800 font-semibold text-center mb-2">
+                                                ✓ Reserved @if($product->buyer) for {{ $product->buyer->name }} @endif
+                                            </p>
+                                            <form action="{{ route('items.unreserve', $product) }}" method="POST">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="w-full border border-blue-400 bg-white text-blue-700 font-bold py-1.5 rounded text-sm hover:bg-blue-50 transition-colors">
+                                                    ✕ Remove Reservation
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
+
+                                    <button type="button" x-data @click="$dispatch('open-hide-modal')"
+                                        class="w-full border border-gray-300 text-gray-700 font-bold py-2.5 rounded-md text-sm hover:bg-gray-50 transition-colors">
+                                        Hide
+                                    </button>
+                                    <a href="{{ route('items.edit', $product) }}"
+                                        class="w-full block text-center border border-gray-300 text-gray-700 font-bold py-2.5 rounded-md text-sm hover:bg-gray-50 transition-colors">
+                                        Edit listing
+                                    </a>
+                                    <button type="button" x-data @click="$dispatch('open-delete-modal')"
+                                        class="w-full border border-red-500 text-red-500 font-bold py-2.5 rounded-md text-sm hover:bg-red-50 transition-colors">
+                                        Delete
+                                    </button>
+                                @elseif(auth()->id() === $product->vendor_id)
+                                    {{-- Owner's pending/sold status message --}}
+                                    <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
+                                        <p class="font-semibold text-yellow-800 mb-1">Product {{ ucfirst($product->status) }}</p>
+                                        <p class="text-yellow-700 mb-3">
+                                            @if($product->status === 'pending')
+                                                Your product is awaiting approval from our team.
+                                            @elseif($product->status === 'sold')
+                                                This product has been sold.
+                                            @endif
+                                        </p>
+
+                                        @if($product->status === 'sold')
+                                            <a href="{{ route('items.create', ['duplicate' => $product->id]) }}"
+                                                class="w-full block text-center bg-teal-600 text-white font-bold py-2.5 rounded-md text-sm hover:bg-teal-700 transition-colors">
+                                                ↻ Repost This Item
+                                            </a>
+                                        @endif
+                                    </div>
                                 @else
+                                    {{-- Buyer's action buttons --}}
+                                    @if($product->status === 'reserved' && $product->buyer_id !== auth()->id())
+                                        {{-- Product reserved for someone else - show disabled state --}}
+                                        <button type="button" disabled
+                                            class="w-full bg-gray-300 text-gray-500 font-bold py-2.5 rounded-md text-sm cursor-not-allowed">
+                                            Reserved
+                                        </button>
+                                        <p class="text-center text-sm text-gray-500">This item is reserved for another buyer</p>
+                                    @else
+                                        {{-- Product available or reserved for this user --}}
+                                        <a href="{{ route('product.checkout', $product) }}"
+                                            class="w-full block text-center bg-vinted-teal text-white font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal-dark transition-colors">
+                                            {{ $product->status === 'reserved' ? 'Buy Now (Reserved for you)' : 'Buy Now' }}
+                                        </a>
+
+                                        @livewire('product-messaging-button', ['product' => $product])
+
+                                        <button type="button"
+                                            class="w-full border border-vinted-teal text-vinted-teal font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal/10 transition-colors">
+                                            Make Offer
+                                        </button>
+                                    @endif
+                                @endif
+                            @else
+                                {{-- Guest user buttons --}}
+                                @if($product->status === 'reserved')
+                                    <button type="button" disabled
+                                        class="w-full bg-gray-300 text-gray-500 font-bold py-2.5 rounded-md text-sm cursor-not-allowed">
+                                        Reserved
+                                    </button>
+                                    <p class="text-center text-sm text-gray-500">This item is reserved</p>
+                                @else
+                                    <a href="{{ route('product.checkout', $product) }}"
+                                        class="w-full block text-center bg-vinted-teal text-white font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal-dark transition-colors">
+                                        Buy Now
+                                    </a>
                                     <button type="button" x-data @click="$dispatch('open-auth-modal')"
-                                        class="text-blue-500 hover:underline">
-                                        {{ __('Log in to message the seller') }}
+                                        class="w-full border border-vinted-teal text-vinted-teal font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal/10 transition-colors">
+                                        Log in to message seller
+                                    </button>
+                                    <button type="button"
+                                        class="w-full border border-vinted-teal text-vinted-teal font-bold py-2.5 rounded-md text-sm hover:bg-vinted-teal/10 transition-colors">
+                                        Make Offer
                                     </button>
                                 @endif
                             @endauth
-                            <button
-                                class="w-full border border-vinted-teal text-vinted-teal font-bold py-2 rounded-md hover:bg-vinted-teal/10 transition-colors text-sm">Ask
-                                Seller</button>
-
                         </div>
                     </div>
                     <div class="bg-white p-4 flex items-start space-x-4 mt-2">
@@ -198,7 +303,8 @@
             <section class="mt-8 p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Member's items</h2>
-                    <a href="#" class="text-sm font-semibold text-vinted-blue-link hover:underline">Voir tout</a>
+                    <a href="{{ route('search', ['vendor_id' => $product->vendor->id]) }}"
+                        class="text-sm font-semibold text-vinted-blue-link hover:underline">Voir tout</a>
                 </div>
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
@@ -243,7 +349,8 @@
             <section class="mt-8 p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Similar products</h2>
-                    <a href="#" class="text-sm font-semibold text-vinted-blue-link hover:underline">Voir tout</a>
+                    <a href="{{ route('search', ['categories' => [$product->category_id]]) }}"
+                        class="text-sm font-semibold text-vinted-blue-link hover:underline">Voir tout</a>
                 </div>
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
@@ -287,6 +394,124 @@
             </section>
         </div>
         @include('frontend.products._image_modal')
+
+        {{-- Reserve Confirmation Modal --}}
+        <div x-data="{ showReserveModal: false }" @open-reserve-modal.window="showReserveModal = true"
+            x-show="showReserveModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+            <!-- Overlay -->
+            <div class="fixed inset-0 bg-black opacity-50" @click="showReserveModal = false"></div>
+
+            <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Reserve this item</h3>
+                <p class="text-sm text-gray-600 mb-4">
+                    You can reserve this item for a specific buyer. They will still be able to buy it, but others won't.
+                </p>
+
+                <form action="{{ route('items.reserve', $product) }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Reserve for (username or
+                            email)</label>
+                        <input type="text" name="username" id="username" placeholder="Optional"
+                            class="w-full border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500 text-sm">
+                        <p class="text-xs text-gray-500 mt-1">Leave empty to reserve generally.</p>
+                    </div>
+
+                    <div class="flex gap-3 justify-end">
+                        <button type="button" @click="showReserveModal = false"
+                            class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                            class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors">
+                            Reserve
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {{-- Bump Feature Modal --}}
+        <div x-data="{ showBumpModal: false }" @open-bump-modal.window="showBumpModal = true" x-show="showBumpModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center">
+            <!-- Overlay -->
+            <div class="fixed inset-0 bg-black opacity-50" @click="showBumpModal = false"></div>
+
+            <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 text-center">
+                <div class="mb-4">
+                    <span class="inline-block p-3 rounded-full bg-teal-100 text-teal-600">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </span>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Boost Feature Coming Soon!</h3>
+                <p class="text-gray-600 mb-6 leading-relaxed">
+                    We're working on a new way to help you sell faster. The <strong>Bump</strong> feature will allow you to
+                    boost your product's visibility to reach more buyers. Stay tuned!
+                </p>
+                <button @click="showBumpModal = false"
+                    class="w-full px-4 py-2 bg-teal-600 text-white font-bold rounded-md hover:bg-teal-700 transition-colors">
+                    Got it!
+                </button>
+            </div>
+        </div>
+
+        {{-- Delete Confirmation Modal --}}
+        <div x-data="{ showDeleteModal: false }" @open-delete-modal.window="showDeleteModal = true" x-show="showDeleteModal"
+            x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+            <!-- Overlay -->
+            <div class="fixed inset-0 bg-black opacity-50" @click="showDeleteModal = false"></div>
+
+            <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Delete Product?</h3>
+                <p class="text-sm text-gray-600 mb-6">
+                    Are you sure you want to delete this product? This action cannot be undone.
+                </p>
+                <div class="flex gap-3 justify-end">
+                    <button @click="showDeleteModal = false"
+                        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <form action="{{ route('items.destroy', $product) }}" method="POST" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors">
+                            Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Hide Confirmation Modal --}}
+        <div x-data="{ showHideModal: false }" @open-hide-modal.window="showHideModal = true" x-show="showHideModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center">
+            <!-- Overlay -->
+            <div class="fixed inset-0 bg-black opacity-50" @click="showHideModal = false"></div>
+
+            <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Hide Product?</h3>
+                <p class="text-sm text-gray-600 mb-6">
+                    Are you sure you want to hide this product? It will no longer be visible to other users.
+                </p>
+                <div class="flex gap-3 justify-end">
+                    <button @click="showHideModal = false"
+                        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <form action="{{ route('items.hide', $product) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit"
+                            class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                            Hide
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
 
     </main>
 @endsection

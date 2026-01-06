@@ -22,9 +22,29 @@ class Category extends Model implements HasMedia
     {
         return $this->belongsTo(Category::class, 'parent_id');
     }
-    public function attributes()
+    public function assignedAttributes()
     {
-        return $this->belongsToMany(Attribute::class, 'attribute_category');
+        return $this->belongsToMany(\App\Models\Attribute::class, 'attribute_category');
+    }
+
+    /**
+     * Get all attributes for this category AND its parents.
+     */
+    public function getInheritedAttributesAttribute()
+    {
+        $attributes = collect();
+        $category = $this;
+
+        while ($category) {
+            // Eager load attributes for the current level
+            $category->loadMissing('assignedAttributes.options');
+
+            $current = $category->assignedAttributes;
+            $attributes = $attributes->merge($current);
+            $category = $category->parent;
+        }
+
+        return $attributes->unique('id')->values();
     }
 
     public function registerMediaCollections(): void

@@ -13,7 +13,19 @@ class Product extends Model implements HasMedia
     use InteractsWithMedia;
     use Favoriteable;
 
-    protected $fillable = ['name', 'description', 'price', 'vendor_id', 'category_id', 'status'];
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'vendor_id',
+        'buyer_id',
+        'category_id',
+        'status',
+        'brand_id',
+        'condition',
+        'size'
+    ];
+
 
     protected static function booted()
     {
@@ -57,6 +69,17 @@ class Product extends Model implements HasMedia
     {
         return $this->belongsTo(User::class, 'vendor_id');
     }
+
+    public function buyer()
+    {
+        return $this->belongsTo(User::class, 'buyer_id');
+    }
+
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class);
+    }
+
     public function hasFeaturedImage(): bool
     {
         return $this->hasMedia('featured');
@@ -112,19 +135,6 @@ class Product extends Model implements HasMedia
         return $conversion ? $media->getUrl($conversion) : $media->getUrl();
     }
 
-
-    public function getBrandAttribute(): ?string
-    {
-        $brandOption = $this->options->firstWhere('attribute.name', 'brand');
-        return $brandOption ? $brandOption->value : null;
-    }
-
-    public function getConditionAttribute(): ?string
-    {
-        $conditionOption = $this->options->firstWhere('attribute.name', 'condition');
-        return $conditionOption ? $conditionOption->value : null;
-    }
-
     public function getColorAttribute(): ?string
     {
         $colorOption = $this->options->firstWhere('attribute.name', 'Colors');
@@ -133,10 +143,10 @@ class Product extends Model implements HasMedia
 
     public function getSizeAttribute(): ?string
     {
-
-        $colorOption = $this->options->firstWhere('attribute.name', 'Size');
-        return $colorOption ? $colorOption->value : null;
+        $sizeOption = $this->options->firstWhere('attribute.name', 'Size');
+        return $sizeOption ? $sizeOption->value : null;
     }
+
     public function getOptionsSummaryAttribute(): string
     {
         $grouped = $this->options->groupBy('attribute_id');

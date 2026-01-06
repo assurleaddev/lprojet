@@ -29,7 +29,7 @@
                                                 <span class="font-medium">£{{ number_format($request->amount, 2) }}</span>
                                                 <span
                                                     class="px-2 py-1 text-xs rounded-full 
-                                                    {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                                        {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' :
                                 ($request->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                                     {{ ucfirst($request->status) }}
                                                 </span>
@@ -99,7 +99,7 @@
     </div>
 
     <!-- Withdraw Modal -->
-    <div id="withdrawModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div id="withdrawModal" class="fixed inset-0 bg-black opacity-50 hidden z-50 flex items-center justify-center">
         <div class="bg-white rounded-lg w-full max-w-md mx-4 p-6">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-lg font-semibold">Request Withdrawal</h3>

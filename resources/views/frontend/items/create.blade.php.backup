@@ -45,7 +45,7 @@
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
                     <label class="block font-semibold mb-1">Title</label>
-                    <input type="text" name="title" value="{{ $duplicateProduct->name ?? '' }}"
+                    <input type="text" name="title"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
                         placeholder="e.g. White COS Jumper" required>
                 </div>
@@ -54,7 +54,7 @@
                     <label class="block font-semibold mb-1">Describe your item</label>
                     <textarea name="description" rows="4"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
-                        placeholder="e.g. only worn a few times, true to size" required>{{ $duplicateProduct->description ?? '' }}</textarea>
+                        placeholder="e.g. only worn a few times, true to size" required></textarea>
                 </div>
             </div>
 
@@ -81,7 +81,8 @@
                     </select>
                 </div>
 
-                <div x-data="brandDropdown">
+                <div
+                    x-data="searchableSelect({ id: 'brand_id', options: @json($brands->map(fn($b) => ['value' => $b->id, 'label' => $b->name])), placeholder: 'Select Brand' })">
                     <label class="block font-semibold mb-1">Brand</label>
                     <div class="relative">
                         <button @click="toggle" type="button"
@@ -127,7 +128,7 @@
                 <div>
                     <label class="block font-semibold mb-1">Price</label>
                     <div class="relative">
-                        <input type="number" name="price" step="0.01" value="{{ $duplicateProduct->price ?? '' }}"
+                        <input type="number" name="price" step="0.01"
                             class="w-full border border-gray-300 rounded-md py-2.5 pl-12 focus:ring-teal-500 focus:border-teal-500"
                             placeholder="0.00" required>
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">MAD</span>
@@ -143,141 +144,56 @@
     @push('scripts')
         <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
         <script>
-            // Alpine.js Searchable Select Component
-            document.addEventListener('alpine:init', () => {
-                Alpine.data('brandDropdown', () => ({
-                    open: false,
-                    search: '',
-                    selected: null,
-                    selectedLabel: 'Select Brand',
-                    options: @json($brands->map(fn($b) => ['value' => $b->id, 'label' => $b->name])),
-
-                    init() {
-                        window.addEventListener('set-brand-selection', (e) => {
-                            this.select(e.detail.value, e.detail.label);
-                        });
-                    },
-
-                    get filteredOptions() {
-                        if (!this.search) return this.options;
-                        return this.options.filter(opt =>
-                            opt.label.toLowerCase().includes(this.search.toLowerCase())
-                        );
-                    },
-
-                    select(value, label) {
-                        this.selected = value;
-                        this.selectedLabel = label;
-                        this.open = false;
-                        this.search = '';
-                    },
-
-                    toggle() {
-                        this.open = !this.open;
-                        if (this.open) {
-                            this.$nextTick(() => this.$refs.searchInput.focus());
-                        }
-                    },
-
-                    close() {
-                        this.open = false;
-                    },
-                    
-                    // Helper to programmatically select (for repost)
-                    setSelection(value, label) {
-                        this.selected = value;
-                        this.selectedLabel = label;
-                    }
-                }));
-            });
-
             document.addEventListener('DOMContentLoaded', function () {
                 // --- Dynamic Attributes Logic ---
                 const categorySelect = document.getElementById('category-select');
                 const attributesContainer = document.getElementById('dynamic-attributes');
 
-                // Reusable function to fetch and render attributes
-                function fetchAndRenderAttributes(categoryId) {
+                categorySelect.addEventListener('change', function () {
+                    const categoryId = this.value;
                     attributesContainer.innerHTML = ''; // Clear existing
-                    if (!categoryId) return Promise.resolve();
 
-                    return fetch(`/items/categories/${categoryId}/attributes`)
-                        .then(response => response.json())
-                        .then(attributes => {
-                            attributes.forEach(attr => {
-                                const attrName = attr.name || `Attribute #${attr.id}`;
-                                const div = document.createElement('div');
-                                div.className = 'mb-4';
+                    if (categoryId) {
+                        fetch(`/items/categories/${categoryId}/attributes`)
+                            .then(response => response.json())
+                            .then(attributes => {
+                                attributes.forEach(attr => {
+                                    const div = document.createElement('div');
+                                    const label = document.createElement('label');
+                                    label.className = 'block font-semibold mb-1';
+                                    label.innerText = attr.name;
+                                    div.appendChild(label);
 
-                                const label = document.createElement('label');
-                                label.className = 'block font-semibold mb-2';
-                                label.innerText = attrName;
-                                div.appendChild(label);
-
-                                if (attr.type === 'color') {
-                                    // Render color swatches
-                                    const colorContainer = document.createElement('div');
-                                    colorContainer.className = 'flex flex-wrap gap-2';
-                                    (attr.options || []).forEach(option => {
-                                        const colorStyle = option.value.toLowerCase();
-                                        const labelEl = document.createElement('label');
-                                        labelEl.className = 'cursor-pointer group relative';
-                                        labelEl.innerHTML = `
-                                                    <input type="checkbox" name="options[${attr.id}][]" value="${option.id}" class="peer sr-only color-option">
-                                                    <div class="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-teal-500 shadow-sm transition" style="background-color: ${colorStyle};"></div>
-                                                    <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">${option.value}</span>
-                                                `;
-                                        colorContainer.appendChild(labelEl);
-                                    });
-                                    div.appendChild(colorContainer);
-                                } else if (attr.type === 'radio') {
-                                    // Render radio buttons
-                                    const radioContainer = document.createElement('div');
-                                    radioContainer.className = 'grid grid-cols-2 gap-2';
-                                    (attr.options || []).forEach(option => {
-                                        const labelEl = document.createElement('label');
-                                        labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-teal-50 transition cursor-pointer';
-                                        labelEl.innerHTML = `
-                                                    <input type="radio" name="options[${attr.id}]" value="${option.id}" class="form-radio text-teal-600 focus:ring-teal-500">
-                                                    <span class="text-sm">${option.value}</span>
-                                                `;
-                                        radioContainer.appendChild(labelEl);
-                                    });
-                                    div.appendChild(radioContainer);
-                                } else {
-                                    // Render select dropdown (default)
                                     if (attr.options && attr.options.length > 0) {
                                         const select = document.createElement('select');
-                                        select.name = `options[${attr.id}]`;
+                                        select.name = `attributes[${attr.id}]`; // Adjust naming convention as needed
                                         select.className = 'w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500';
 
                                         const defaultOption = document.createElement('option');
                                         defaultOption.value = '';
-                                        defaultOption.innerText = `Select ${attrName}`;
+                                        defaultOption.innerText = `Select ${attr.name}`;
                                         select.appendChild(defaultOption);
 
                                         attr.options.forEach(opt => {
                                             const option = document.createElement('option');
-                                            option.value = opt.id;
-                                            option.innerText = opt.value;
+                                            option.value = opt.id; // Assuming option ID is value
+                                            option.innerText = opt.value; // Assuming option value is label
                                             select.appendChild(option);
                                         });
                                         div.appendChild(select);
+                                    } else {
+                                        const input = document.createElement('input');
+                                        input.type = 'text';
+                                        input.name = `attributes[${attr.id}]`;
+                                        input.className = 'w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500';
+                                        div.appendChild(input);
                                     }
-                                }
-                                attributesContainer.appendChild(div);
-                            });
-                            return attributes; // Return attributes for chaining
-                        })
-                        .catch(error => {
-                            console.error('Error fetching attributes:', error);
-                            return Promise.reject(error); // Propagate error
-                        });
-                }
 
-                // Event listener
-                categorySelect.addEventListener('change', function () {
-                    fetchAndRenderAttributes(this.value);
+                                    attributesContainer.appendChild(div);
+                                });
+                            })
+                            .catch(error => console.error('Error fetching attributes:', error));
+                    }
                 });
 
                 // --- Image Upload Logic ---
@@ -328,11 +244,11 @@
                             div.dataset.index = file.tempId;
 
                             div.innerHTML = `
-                                                                                                        <img src="${e.target.result}" class="w-full h-full object-cover">
-                                                                                                        <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
-                                                                                                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                                                                        </button>
-                                                                                                    `;
+                                                                <img src="${e.target.result}" class="w-full h-full object-cover">
+                                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
+                                                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                </button>
+                                                            `;
 
                             // Insert before the upload button
                             document.getElementById('drop-zone').insertBefore(div, document.getElementById('upload-btn-container'));
@@ -380,105 +296,35 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => {
-                        if (response.redirected) {
-                            window.location.href = response.url;
-                        } else {
-                            return response.json().then(data => {
-                                if (data.errors) {
-                                    let errorMsg = 'Validation Error:\n';
-                                    for (const [key, messages] of Object.entries(data.errors)) {
-                                        errorMsg += messages.join('\n') + '\n';
-                                    }
-                                    alert(errorMsg);
-                                } else if (data.message) {
-                                    alert(data.message);
-                                } else {
-                                    // Fallback if no redirect
-                                    window.location.reload();
-                                }
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred. Please try again.');
-                    })
-                    .finally(() => {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = 'Upload';
-                    });
-                });
-
-                // --- Duplicate Product Pre-fill Logic (Repost Feature) ---
-                @if($duplicateProduct)
-                    // Pre-select brand via event
-                    window.dispatchEvent(new CustomEvent('set-brand-selection', {
-                        detail: { 
-                            value: {{ $duplicateProduct->brand_id ?? 'null' }}, 
-                            label: '{{ $duplicateProduct->brand->name ?? '' }}' 
-                        }
-                    }));
-
-                    // Pre-select condition
-                    const conditionSelect = document.querySelector('select[name="condition"]');
-                    if (conditionSelect) {
-                        conditionSelect.value = '{{ $duplicateProduct->condition }}';
-                    }
-
-                    // Pre-select category and trigger attribute loading
-                    const selectedCategoryId = {{ $duplicateProduct->category_id }};
-                    if (selectedCategoryId && categorySelect) {
-                        categorySelect.value = selectedCategoryId;
-                        
-                        // Load attributes and then pre-select options
-                        fetchAndRenderAttributes(selectedCategoryId).then(() => {
-                            const selectedOptionIds = @json($duplicateProduct->options->pluck('id'));
-                            
-                            // Pre-select checkboxes and radio buttons
-                            selectedOptionIds.forEach(optionId => {
-                                const input = document.querySelector(`input[name="options[]"][value="${optionId}"]`);
-                                if (input) {
-                                    input.checked = true;
-                                    // Trigger visual update for color swatches
-                                    if (input.classList.contains('color-option')) {
-                                        input.parentElement.classList.add('ring-2', 'ring-teal-500');
-                                    }
-                                }
-                                
-                                // Handle select dropdowns
-                                document.querySelectorAll(`select[name^="options"] option[value="${optionId}"]`).forEach(opt => {
-                                    opt.parentElement.value = optionId;
-                                });
-                            });
-                        });
-                    }
-
-                    // Display duplicate product images
-                    const duplicateImages = @json($duplicateProduct->getMedia('products')->map(fn($m) => $m->getUrl()));
-                    const dropZone = document.getElementById('drop-zone');
-                    
-                    if (duplicateImages.length > 0 && dropZone) {
-                        duplicateImages.forEach((imageUrl, index) => {
-                            const div = document.createElement('div');
-                            div.className = 'preview-item w-32 h-32 relative border border-gray-200 rounded overflow-hidden group';
-                            div.innerHTML = `
-                                <img src="${imageUrl}" class="w-full h-full object-cover">
-                                <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                                    From original
-                                </div>
-                                <input type="hidden" name="duplicate_images[]" value="${imageUrl}">
-                            `;
-                            const uploadBtnContainer = dropZone.querySelector('.upload-btn-container'); // Need class check, previously ID logic was used
-                            if (uploadBtnContainer) {
-                                dropZone.insertBefore(div, uploadBtnContainer);
+                        .then(response => {
+                            if (response.redirected) {
+                                window.location.href = response.url;
                             } else {
-                                // Fallback if regular upload btn logic changed
-                                dropZone.appendChild(div);
+                                return response.json().then(data => {
+                                    if (data.errors) {
+                                        let errorMsg = 'Validation Error:\n';
+                                        for (const [key, messages] of Object.entries(data.errors)) {
+                                            errorMsg += messages.join('\n') + '\n';
+                                        }
+                                        alert(errorMsg);
+                                    } else if (data.message) {
+                                        alert(data.message);
+                                    } else {
+                                        // Fallback if no redirect
+                                        window.location.reload();
+                                    }
+                                });
                             }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred. Please try again.');
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = 'Upload';
                         });
-                    }
-                @endif
+                });
             });
         </script>
     @endpush

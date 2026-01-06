@@ -73,7 +73,13 @@ class HomeController extends Controller
             'vendor' => function ($query) {
                 $query->withCount('followers');
             },
-            'vendor.products',
+            'vendor.products' => function ($query) use ($product) {
+                // Filter member's other items
+                $query->where('status', 'approved')
+                    ->where('id', '!=', $product->id) // Optional: exclude current product from the "more from user" list
+                    ->latest()
+                    ->take(10); // Limit to reasonable amount
+            },
             'vendor.products.options',
             'vendor.products.category',
             'vendor.products.images',
@@ -84,9 +90,10 @@ class HomeController extends Controller
 
         $similarProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
+            ->where('status', 'approved')
             ->with([
                 'vendor',
-                'vendor.products',
+                'vendor.products', // This nested eager load might also need filtering if used deeply, but typically similar items card doesn't show deep vendor items
                 'vendor.products.options',
                 'vendor.products.category',
                 'vendor.products.images',

@@ -11,38 +11,41 @@ use Illuminate\Support\Facades\DB;
 
 class ItemController extends Controller
 {
-    public function create()
+    public function create(Request $request)
     {
-        $categories = Category::whereNull('parent_id')->with('children')->get();
-        $conditions = ['New with tags', 'New without tags', 'Very good', 'Good', 'Satisfactory'];
+        $categories = Category::whereNull('parent_id')->with('children.children')->get();
+        $brands = \App\Models\Brand::orderBy('name')->get();
+        $conditions = ['new_with_tags', 'new_without_tags', 'very_good', 'good', 'satisfactory', 'heavily_worn'];
 
-        return view('frontend.items.create', compact('categories', 'conditions'));
+        // Check if duplicating an existing product (Repost feature)
+        $duplicateProduct = null;
+        if ($request->has('duplicate')) {
+            $duplicateProduct = Product::with(['options', 'media', 'brand'])
+                ->where('id', $request->duplicate)
+                ->where('vendor_id', auth()->id()) // Only allow duplicating own products
+                ->first();
+        }
+
+        return view('frontend.items.create', compact('categories', 'brands', 'conditions', 'duplicateProduct'));
     }
 
     public function getAttributes(Category $category)
     {
-        $category->load('attributes.options');
-        return response()->json($category->attributes);
+        $attributes = $category->inherited_attributes;
+        return response()->json($attributes->values()->all());
     }
 
     public function store(Request $request)
     {
-        \Illuminate\Support\Facades\Log::info('Item Store Request', $request->all());
-        if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $file) {
-                \Illuminate\Support\Facades\Log::info('File: ' . $file->getClientOriginalName() . ' Size: ' . $file->getSize() . ' Error: ' . $file->getError());
-            }
-        } else {
-            \Illuminate\Support\Facades\Log::info('No images found in request.');
-        }
-
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category_id' => 'required|exists:categories,id',
             'price' => 'required|numeric|min:0',
+            'brand_id' => 'nullable|exists:brands,id',
+            'condition' => 'nullable|string',
             'images' => 'required|array|min:1',
-            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
         DB::beginTransaction();
@@ -53,23 +56,51 @@ class ItemController extends Controller
                 'description' => $request->description,
                 'price' => $request->price,
                 'category_id' => $request->category_id,
+                'brand_id' => $request->brand_id,
+                'condition' => $request->condition,
                 'vendor_id' => Auth::id(),
                 'status' => 'pending',
             ]);
 
-            // Handle Attributes (Brand, Size, Condition, etc.)
-            // This part depends on how attributes are stored. 
-            // I'll assume a simple attachment for now or just basic fields if they were on the product table.
-            // Since Product model has `options` relationship, we might need to attach options.
-            // For this MVP, I'll focus on the core product and images.
+            // Flatten nested options array structure from frontend
+            $optionIds = [];
+            if ($request->has('options')) {
+                foreach ($request->options as $value) {
+                    if (is_array($value)) {
+                        $optionIds = array_merge($optionIds, $value);
+                    } else {
+                        $optionIds[] = $value;
+                    }
+                }
+            }
+            $product->options()->sync($optionIds);
 
-            // Handle Images
+            // Handle Duplicate Images (for Repost feature)
+            if ($request->has('duplicate_images') && is_array($request->duplicate_images)) {
+                foreach ($request->duplicate_images as $index => $imageUrl) {
+                    try {
+                        if ($index === 0) {
+                            $product->addMediaFromUrl($imageUrl)->toMediaCollection('featured');
+                        } else {
+                            $product->addMediaFromUrl($imageUrl)->toMediaCollection('products');
+                        }
+                    } catch (\Exception $e) {
+                        // Silently skip if image copy fails
+                        \Log::warning("Failed to copy duplicate image: " . $e->getMessage());
+                    }
+                }
+            }
+
+            // Handle New Images Upload
             if ($request->hasFile('images')) {
                 $images = $request->file('images');
 
-                // The images array should be in the order they were submitted (reordered by JS)
                 foreach ($images as $index => $image) {
-                    if ($index === 0) {
+                    // If duplicate images exist, offset the index
+                    $actualIndex = $request->has('duplicate_images') ?
+                        $index + count($request->duplicate_images) : $index;
+
+                    if ($actualIndex === 0) {
                         $product->addMedia($image)->toMediaCollection('featured');
                     } else {
                         $product->addMedia($image)->toMediaCollection('products');
@@ -82,15 +113,201 @@ class ItemController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'message' => 'Item listed successfully!',
-                    'redirect_url' => route('products.show', $product)
+                    'redirect_url' => route('items.create')
                 ]);
             }
 
-            return redirect()->route('products.show', $product)->with('success', 'Item listed successfully!');
+            return redirect()->route('items.create')->with('success', 'Item listed successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withInput()->with('error', 'Error listing item: ' . $e->getMessage());
         }
+    }
+
+    public function edit(Product $product)
+    {
+        // Ensure the user owns this product
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Load necessary relationships
+        $product->load(['options', 'media']);
+
+        $categories = Category::whereNull('parent_id')->with('children.children')->get();
+        $brands = \App\Models\Brand::orderBy('name')->get();
+        $conditions = ['new_with_tags', 'new_without_tags', 'very_good', 'good', 'satisfactory', 'heavily_worn'];
+
+        // Get selected option IDs grouped by attribute
+        $selectedOptions = $product->options->pluck('id')->toArray();
+
+        return view('frontend.items.edit', compact('product', 'categories', 'brands', 'conditions', 'selectedOptions'));
+    }
+
+    public function update(Request $request, Product $product)
+    {
+        // Ensure the user owns this product
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category_id' => 'required|exists:categories,id',
+            'price' => 'required|numeric|min:0',
+            'brand_id' => 'nullable|exists:brands,id',
+            'condition' => 'nullable|string',
+            'images' => 'nullable|array',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+        ]);
+
+        DB::beginTransaction();
+
+        try {
+            $product->update([
+                'name' => $request->title,
+                'description' => $request->description,
+                'price' => $request->price,
+                'category_id' => $request->category_id,
+                'brand_id' => $request->brand_id,
+                'condition' => $request->condition,
+            ]);
+
+            // Flatten nested options array structure from frontend
+            $optionIds = [];
+            if ($request->has('options')) {
+                foreach ($request->options as $value) {
+                    if (is_array($value)) {
+                        $optionIds = array_merge($optionIds, $value);
+                    } else {
+                        $optionIds[] = $value;
+                    }
+                }
+            }
+            $product->options()->sync($optionIds);
+
+            // Handle new images if uploaded
+            if ($request->hasFile('images')) {
+                $images = $request->file('images');
+
+                foreach ($images as $index => $image) {
+                    if ($index === 0 && $product->getMedia('featured')->isEmpty()) {
+                        $product->addMedia($image)->toMediaCollection('featured');
+                    } else {
+                        $product->addMedia($image)->toMediaCollection('products');
+                    }
+                }
+            }
+
+            DB::commit();
+
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'message' => 'Item updated successfully!',
+                    'redirect_url' => route('products.show', $product)
+                ]);
+            }
+
+            return redirect()->route('products.show', $product)->with('success', 'Item updated successfully!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withInput()->with('error', 'Error updating item: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(Product $product)
+    {
+        // Ensure the user owns this product
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        try {
+            // Delete product media
+            $product->clearMediaCollection('featured');
+            $product->clearMediaCollection('products');
+
+            // Delete product
+            $product->delete();
+
+            return redirect()->route('home')->with('success', 'Product deleted successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error deleting product: ' . $e->getMessage());
+        }
+    }
+
+    public function markAsSold(Product $product)
+    {
+        // Ensure the user owns this product
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Update product status to sold
+        $product->update(['status' => 'sold']);
+
+        return redirect()->route('products.show', $product)->with('success', 'Product marked as sold!');
+    }
+
+    public function reserve(Request $request, Product $product)
+    {
+        // Ensure the user owns this product
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $buyerId = null;
+        if ($request->filled('username')) {
+            $user = \App\Models\User::where('name', $request->username)
+                ->orWhere('email', $request->username)
+                ->first();
+
+            if (!$user) {
+                return back()->with('error', 'User not found with that name or email.');
+            }
+            $buyerId = $user->id;
+        }
+
+        // Update product status to reserved
+        $product->update([
+            'status' => 'reserved',
+            'buyer_id' => $buyerId
+        ]);
+
+        return redirect()->route('products.show', $product)->with('success', 'Product marked as reserved!');
+    }
+
+    public function unreserve(Product $product)
+    {
+        // Ensure the user owns this product
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Only unreserve if currently reserved
+        if ($product->status !== 'reserved') {
+            return back()->with('error', 'Product is not reserved.');
+        }
+
+        // Update product status back to approved and clear buyer_id
+        $product->update([
+            'status' => 'approved',
+            'buyer_id' => null
+        ]);
+
+        return redirect()->route('products.show', $product)->with('success', 'Reservation removed!');
+    }
+    public function hide(Product $product)
+    {
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403);
+        }
+
+        $product->update(['status' => 'hidden']);
+
+        return back()->with('success', 'Product hidden successfully.');
     }
 }

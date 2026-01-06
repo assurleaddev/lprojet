@@ -128,7 +128,7 @@ Use the modal component for dialogs:
 ```html
 <div
     x-show="showModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black opacity-50"
 >
     <div
         class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full transform transition-all duration-300 scale-100"

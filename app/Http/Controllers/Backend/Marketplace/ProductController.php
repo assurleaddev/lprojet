@@ -33,66 +33,65 @@ class ProductController extends Controller
     }
     public function getAttributesByCategory(Category $category)
     {
-        // Eager load the attributes and their options
-        $category->load('attributes.options');
+        $attributes = $category->inherited_attributes;
+        // Ensure options are loaded (they were loaded in the accessor but good to be sure or formatted)
+        // The accessor already loaded 'options'.
 
-        return response()->json($category->attributes);
+        return response()->json($attributes->values()->all());
     }
     public function create()
     {
-        $categories = Category::all();
-        $attributes = Attribute::with('options')->get(); // We'll handle this dynamically later
-        return view('backend.marketplace.products.create', compact('categories', 'attributes'));
+        $categories = Category::whereNull('parent_id')->with('children')->get(); // Better to get root categories
+        // $attributes = Attribute::with('options')->get(); // No longer needed as we fetch dynamically
+        $brands = \App\Models\Brand::orderBy('name')->get();
+        return view('backend.marketplace.products.create', compact('categories', 'brands'));
     }
 
-
-    public function approve(Product $product)
-    {
-        // Check if the user has permission
-        $this->authorize('approve', $product);
-
-        // Update the product status
-        $product->update(['status' => 'approved']);
-
-        // Redirect back with a success message
-        return back()->with('success', 'Product has been approved.');
-    }
     public function store(Request $request)
     {
-        // dd( MLib::whereIn('id', $request->input('images'))->get());
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
-            'options' => 'nullable|array',
+            'brand_id' => 'nullable|exists:brands,id',
+            'condition' => 'nullable|string',
+            'size' => 'nullable|string',
             'images' => 'required|array|min:3|max:7',
             'images.*' => 'exists:media,id',
         ]);
+
         DB::transaction(function () use ($request) {
+            $product = Product::create(array_merge(
+                $request->except('images', 'options'),
+                ['vendor_id' => Auth::id()]
+            ));
 
-            $product = Product::create([
-                'name' => $request->name,
-                'description' => $request->description,
-                'price' => $request->price,
-                'category_id' => $request->category_id,
-                'vendor_id' => Auth::id(),
-                'status' => Auth::user()->can('products.approve') ? 'approved' : 'pending',
-            ]);
-
+            // Flatten nested options array structure from frontend
+            $optionIds = [];
             if ($request->has('options')) {
-                $product->options()->sync($request->options);
+                foreach ($request->options as $value) {
+                    if (is_array($value)) {
+                        $optionIds = array_merge($optionIds, $value);
+                    } else {
+                        $optionIds[] = $value;
+                    }
+                }
+            }
+            $product->options()->sync($optionIds);
+
+            if ($request->has('images')) {
+                foreach ($request->input('images') as $mediaId) {
+                    $this->mediaService->associateExistingMedia($product, $mediaId, 'products');
+                }
             }
 
-
-            if ($request->hasFile('featured_image')) {
-                $product->addMediaFromRequest('featured_image')->toMediaCollection('featured');
-            } elseif (!empty($request->input('featured_image'))) {
-                $this->mediaService->associateExistingMedia($product, $request->input('featured_image'), 'featured');
-            }
-
-            foreach ($request->input('images') as $mediaId) {
-                $this->mediaService->associateExistingMedia($product, $mediaId, 'products');
+            if ($request->filled('featured_image')) {
+                $this->mediaService->associateExistingMedia(
+                    $product,
+                    $request->input('featured_image'),
+                    'featured'
+                );
             }
         });
 
@@ -100,13 +99,17 @@ class ProductController extends Controller
             ->with('success', 'Product created successfully.');
     }
 
+    // ...
+
     public function edit(Product $product)
     {
         // Eager load relations
         $product->load(['options']);
         // dd($product->getMedia('products'));
-        $categories = Category::whereNull('parent_id')->get();
-        $attributes = Attribute::with('options')->get();
+        $categories = Category::whereNull('parent_id')->with('children')->get();
+        $brands = \App\Models\Brand::orderBy('name')->get();
+
+        // $attributes = Attribute::with('options')->get(); // Not needed
 
         // Transform media for the component
         // $existingMedia = $product->getMedia('products')
@@ -121,8 +124,8 @@ class ProductController extends Controller
         return view('backend.marketplace.products.edit', compact(
             'product',
             'categories',
-            'attributes',
-            'existingMedia'
+            'existingMedia',
+            'brands'
         ));
     }
 
@@ -133,15 +136,32 @@ class ProductController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'category_id' => 'required|exists:categories,id',
+            'brand_id' => 'nullable|exists:brands,id',
+            'condition' => 'nullable|string',
+            'size' => 'nullable|string',
             'images' => 'required|array|min:3|max:7',
             'images.*' => 'exists:media,id',
         ]);
 
 
         DB::transaction(function () use ($request, $product) {
-            $product->update($request->except('images', 'options'));
+            $product->fill($request->except('images', 'options'));
+            // Explicitly set these if not in fillable or just to be safe, but they are fillable now.
+            // Actually $request->except('images', 'options') covers name, description, price, category_id, brand_id, condition, size...
+            $product->save();
 
-            $product->options()->sync($request->options ?? []);
+            // Flatten nested options array structure from frontend
+            $optionIds = [];
+            if ($request->has('options')) {
+                foreach ($request->options as $value) {
+                    if (is_array($value)) {
+                        $optionIds = array_merge($optionIds, $value);
+                    } else {
+                        $optionIds[] = $value;
+                    }
+                }
+            }
+            $product->options()->sync($optionIds);
             // Delete all old image records for this product
 
 
@@ -196,6 +216,16 @@ class ProductController extends Controller
 
         return back()->with('success', 'Image deleted successfully.');
     }
+
+    public function approve(Product $product)
+    {
+        $this->authorize('approve', $product);
+
+        $product->update(['status' => 'approved']);
+
+        return back()->with('success', 'Product approved successfully.');
+    }
+
     public function destroy(Product $product)
     {
         $product->delete();
