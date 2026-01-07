@@ -92,7 +92,6 @@
             border: 1px solid var(--line);
             border-radius: 8px;
             height: 35px;
-            overflow: hidden;
         }
 
         .search-btn {

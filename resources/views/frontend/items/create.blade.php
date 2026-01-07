@@ -54,31 +54,15 @@
                     <label class="block font-semibold mb-1">Describe your item</label>
                     <textarea name="description" rows="4"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
-                        placeholder="e.g. only worn a few times, true to size" required>{{ $duplicateProduct->description ?? '' }}</textarea>
+                        placeholder="e.g. only worn a few times, true to size"
+                        required>{{ $duplicateProduct->description ?? '' }}</textarea>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
                     <label class="block font-semibold mb-1">Category</label>
-                    <select name="category_id" id="category-select"
-                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
-                        required>
-                        <option value="">Select a category</option>
-                        @foreach($categories as $parent)
-                            <optgroup label="{{ $parent->name }}">
-                                @foreach($parent->children as $child)
-                                    @if($child->children->isNotEmpty())
-                                        @foreach($child->children as $leaf)
-                                            <option value="{{ $leaf->id }}">&nbsp;&nbsp;{{ $child->name }} > {{ $leaf->name }}</option>
-                                        @endforeach
-                                    @else
-                                        <option value="{{ $child->id }}">&nbsp;&nbsp;{{ $child->name }}</option>
-                                    @endif
-                                @endforeach
-                            </optgroup>
-                        @endforeach
-                    </select>
+                    <livewire:category-selector name="category_id" :value="$duplicateProduct->category_id ?? null" />
                 </div>
 
                 <div x-data="brandDropdown">
@@ -182,7 +166,7 @@
                     close() {
                         this.open = false;
                     },
-                    
+
                     // Helper to programmatically select (for repost)
                     setSelection(value, label) {
                         this.selected = value;
@@ -193,7 +177,7 @@
 
             document.addEventListener('DOMContentLoaded', function () {
                 // --- Dynamic Attributes Logic ---
-                const categorySelect = document.getElementById('category-select');
+                // Removed ID selector as element is gone
                 const attributesContainer = document.getElementById('dynamic-attributes');
 
                 // Reusable function to fetch and render attributes
@@ -223,10 +207,10 @@
                                         const labelEl = document.createElement('label');
                                         labelEl.className = 'cursor-pointer group relative';
                                         labelEl.innerHTML = `
-                                                    <input type="checkbox" name="options[${attr.id}][]" value="${option.id}" class="peer sr-only color-option">
-                                                    <div class="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-teal-500 shadow-sm transition" style="background-color: ${colorStyle};"></div>
-                                                    <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">${option.value}</span>
-                                                `;
+                                                            <input type="checkbox" name="options[${attr.id}][]" value="${option.id}" class="peer sr-only color-option">
+                                                            <div class="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-teal-500 shadow-sm transition" style="background-color: ${colorStyle};"></div>
+                                                            <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">${option.value}</span>
+                                                        `;
                                         colorContainer.appendChild(labelEl);
                                     });
                                     div.appendChild(colorContainer);
@@ -238,9 +222,9 @@
                                         const labelEl = document.createElement('label');
                                         labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-teal-50 transition cursor-pointer';
                                         labelEl.innerHTML = `
-                                                    <input type="radio" name="options[${attr.id}]" value="${option.id}" class="form-radio text-teal-600 focus:ring-teal-500">
-                                                    <span class="text-sm">${option.value}</span>
-                                                `;
+                                                            <input type="radio" name="options[${attr.id}]" value="${option.id}" class="form-radio text-teal-600 focus:ring-teal-500">
+                                                            <span class="text-sm">${option.value}</span>
+                                                        `;
                                         radioContainer.appendChild(labelEl);
                                     });
                                     div.appendChild(radioContainer);
@@ -275,9 +259,9 @@
                         });
                 }
 
-                // Event listener
-                categorySelect.addEventListener('change', function () {
-                    fetchAndRenderAttributes(this.value);
+                // Event listener for Livewire Category Selector
+                window.addEventListener('category-selected', event => {
+                    fetchAndRenderAttributes(event.detail.id);
                 });
 
                 // --- Image Upload Logic ---
@@ -328,11 +312,11 @@
                             div.dataset.index = file.tempId;
 
                             div.innerHTML = `
-                                                                                                        <img src="${e.target.result}" class="w-full h-full object-cover">
-                                                                                                        <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
-                                                                                                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                                                                        </button>
-                                                                                                    `;
+                                                                                                                <img src="${e.target.result}" class="w-full h-full object-cover">
+                                                                                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
+                                                                                                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                                                                </button>
+                                                                                                            `;
 
                             // Insert before the upload button
                             document.getElementById('drop-zone').insertBefore(div, document.getElementById('upload-btn-container'));
@@ -380,43 +364,43 @@
                             'X-Requested-With': 'XMLHttpRequest'
                         }
                     })
-                    .then(response => {
-                        if (response.redirected) {
-                            window.location.href = response.url;
-                        } else {
-                            return response.json().then(data => {
-                                if (data.errors) {
-                                    let errorMsg = 'Validation Error:\n';
-                                    for (const [key, messages] of Object.entries(data.errors)) {
-                                        errorMsg += messages.join('\n') + '\n';
+                        .then(response => {
+                            if (response.redirected) {
+                                window.location.href = response.url;
+                            } else {
+                                return response.json().then(data => {
+                                    if (data.errors) {
+                                        let errorMsg = 'Validation Error:\n';
+                                        for (const [key, messages] of Object.entries(data.errors)) {
+                                            errorMsg += messages.join('\n') + '\n';
+                                        }
+                                        alert(errorMsg);
+                                    } else if (data.message) {
+                                        alert(data.message);
+                                    } else {
+                                        // Fallback if no redirect
+                                        window.location.reload();
                                     }
-                                    alert(errorMsg);
-                                } else if (data.message) {
-                                    alert(data.message);
-                                } else {
-                                    // Fallback if no redirect
-                                    window.location.reload();
-                                }
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert('An error occurred. Please try again.');
-                    })
-                    .finally(() => {
-                        submitBtn.disabled = false;
-                        submitBtn.innerText = 'Upload';
-                    });
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred. Please try again.');
+                        })
+                        .finally(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = 'Upload';
+                        });
                 });
 
                 // --- Duplicate Product Pre-fill Logic (Repost Feature) ---
                 @if($duplicateProduct)
                     // Pre-select brand via event
                     window.dispatchEvent(new CustomEvent('set-brand-selection', {
-                        detail: { 
-                            value: {{ $duplicateProduct->brand_id ?? 'null' }}, 
-                            label: '{{ $duplicateProduct->brand->name ?? '' }}' 
+                        detail: {
+                            value: {{ $duplicateProduct->brand_id ?? 'null' }},
+                            label: '{{ $duplicateProduct->brand->name ?? '' }}'
                         }
                     }));
 
@@ -430,11 +414,11 @@
                     const selectedCategoryId = {{ $duplicateProduct->category_id }};
                     if (selectedCategoryId && categorySelect) {
                         categorySelect.value = selectedCategoryId;
-                        
+
                         // Load attributes and then pre-select options
                         fetchAndRenderAttributes(selectedCategoryId).then(() => {
                             const selectedOptionIds = @json($duplicateProduct->options->pluck('id'));
-                            
+
                             // Pre-select checkboxes and radio buttons
                             selectedOptionIds.forEach(optionId => {
                                 const input = document.querySelector(`input[name="options[]"][value="${optionId}"]`);
@@ -445,7 +429,7 @@
                                         input.parentElement.classList.add('ring-2', 'ring-teal-500');
                                     }
                                 }
-                                
+
                                 // Handle select dropdowns
                                 document.querySelectorAll(`select[name^="options"] option[value="${optionId}"]`).forEach(opt => {
                                     opt.parentElement.value = optionId;
@@ -457,18 +441,18 @@
                     // Display duplicate product images
                     const duplicateImages = @json($duplicateProduct->getMedia('products')->map(fn($m) => $m->getUrl()));
                     const dropZone = document.getElementById('drop-zone');
-                    
+
                     if (duplicateImages.length > 0 && dropZone) {
                         duplicateImages.forEach((imageUrl, index) => {
                             const div = document.createElement('div');
                             div.className = 'preview-item w-32 h-32 relative border border-gray-200 rounded overflow-hidden group';
                             div.innerHTML = `
-                                <img src="${imageUrl}" class="w-full h-full object-cover">
-                                <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                                    From original
-                                </div>
-                                <input type="hidden" name="duplicate_images[]" value="${imageUrl}">
-                            `;
+                                            <img src="${imageUrl}" class="w-full h-full object-cover">
+                                            <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                                                From original
+                                            </div>
+                                            <input type="hidden" name="duplicate_images[]" value="${imageUrl}">
+                                        `;
                             const uploadBtnContainer = dropZone.querySelector('.upload-btn-container'); // Need class check, previously ID logic was used
                             if (uploadBtnContainer) {
                                 dropZone.insertBefore(div, uploadBtnContainer);
@@ -479,7 +463,7 @@
                         });
                     }
                 @endif
-            });
+                    });
         </script>
     @endpush
 @endsection

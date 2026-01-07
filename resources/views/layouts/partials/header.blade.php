@@ -21,27 +21,7 @@
 
             <!-- Search -->
             <div class="hidden md:flex flex-1 max-w-[720px] mx-6 items-center search-wrap">
-                <form action="{{ route('search') }}" method="GET" class="w-full flex items-center">
-                    <div class="relative">
-                        <select name="type" class="appearance-none bg-transparent border-none text-gray-700 py-2 pl-4 pr-8 leading-tight focus:outline-none focus:ring-0 cursor-pointer text-sm font-medium">
-                            <option value="product" {{ request('type') == 'product' ? 'selected' : '' }}>Item</option>
-                            <option value="user" {{ request('type') == 'user' ? 'selected' : '' }}>Member</option>
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
-                        </div>
-                    </div>
-                    <div class="h-6 w-px bg-[#d9d9d9] mx-2"></div>
-                    <div class="flex-1 relative">
-                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24"
-                            fill="none" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M21 21l-6-6m2-5a7 7 0 10-14 0 7 7 0 0014 0z"></path>
-                        </svg>
-                        <input type="text" name="query" value="{{ request('query') }}" class="search-input pl-10 w-full focus:outline-none" placeholder="Search for items or members">
-                    </div>
-                    <button type="submit" class="hidden"></button>
-                </form>
+                <x-search-bar />
             </div>
 
             <!-- Actions -->

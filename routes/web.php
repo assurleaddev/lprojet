@@ -91,10 +91,15 @@ Route::get('/checkout/offer/{offer}', [HomeController::class, 'offerCheckout'])
     ->middleware('auth')
     ->name('checkout.offer');
 
+Route::post('/notifications/mark-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])
+    ->middleware('auth')
+    ->name('notifications.mark-read');
+
 Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])
     ->middleware('auth')
     ->name('notifications.index');
 
+Route::get('/search/suggestions', [App\Http\Controllers\SearchController::class, 'suggestions'])->name('search.suggestions');
 Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
 
 Route::get('/settings/profile', [App\Http\Controllers\SettingsController::class, 'profile'])
@@ -103,6 +108,10 @@ Route::get('/settings/profile', [App\Http\Controllers\SettingsController::class,
 Route::post('/settings/profile', [App\Http\Controllers\SettingsController::class, 'updateProfile'])
     ->middleware('auth')
     ->name('settings.profile.update');
+
+Route::post('/settings/account/holiday-mode', [App\Http\Controllers\SettingsController::class, 'toggleHolidayMode'])
+    ->middleware('auth')
+    ->name('settings.account.holiday-mode');
 
 Route::get('/settings/account', [App\Http\Controllers\SettingsController::class, 'account'])
     ->middleware('auth')
@@ -207,6 +216,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('/', [MediaController::class, 'bulkDelete'])->name('bulk-delete');
     });
 
+    Route::get('categories/{category}/children', [CategoryController::class, 'getChildren'])->name('categories.children');
     Route::resource('categories', CategoryController::class);
     Route::resource('products', ProductController::class);
     Route::post('products/{product}/approve', [ProductController::class, 'approve'])

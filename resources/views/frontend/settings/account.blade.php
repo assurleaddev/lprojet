@@ -47,7 +47,8 @@
                     </div>
                 @endif
 
-                <form action="{{ route('settings.account.update') }}" method="POST">
+                <form action="{{ route('settings.account.update') }}" method="POST"
+                    x-data="holidaySettings({{ $user->getMeta('holiday_mode') ? 'true' : 'false' }})">
                     @csrf
 
                     <!-- Email -->
@@ -70,7 +71,8 @@
                             <div>
                                 @if($user->phone_number)
                                     <h3 class="text-base font-medium text-gray-900">{{ $user->phone_country_code }}
-                                        {{ $user->phone_number }}</h3>
+                                        {{ $user->phone_number }}
+                                    </h3>
                                     @if($user->phone_verified_at)
                                         <span class="text-xs text-gray-500 flex items-center gap-1">Verified <svg
                                                 class="w-3 h-3 text-green-500" fill="none" stroke="currentColor"
@@ -131,14 +133,20 @@
                     </div>
 
                     <!-- Holiday mode -->
-                    <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
-                        <label class="text-base font-medium text-gray-900">Holiday mode</label>
+                    <!-- Holiday mode -->
+                    <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between relative">
+                        <div>
+                            <label class="text-base font-medium text-gray-900">Holiday mode</label>
+                            <p class="text-sm text-gray-500 mt-1">Hide your items from search results and catalog.</p>
+                        </div>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="holiday_mode" value="1" class="sr-only peer" {{ $user->getMeta('holiday_mode') ? 'checked' : '' }}>
+                            <input type="checkbox" name="holiday_mode" value="1" class="sr-only peer" x-model="holidayMode"
+                                @click.prevent="toggleHolidayMode()">
                             <div
                                 class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600">
                             </div>
                         </label>
+
                     </div>
 
                     <!-- Social Accounts -->
@@ -177,8 +185,118 @@
                         <button type="submit"
                             class="bg-teal-600 text-white px-6 py-2 rounded font-medium hover:bg-teal-700">Save</button>
                     </div>
+
+                    <!-- Warning Modal (Moved to end of form) -->
+                    <div x-show="showWarning" style="display: none;"
+                        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                        x-transition.opacity x-cloak>
+                        <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 transform transition-all"
+                            @click.away="showWarning = false" x-transition:enter="ease-out duration-300"
+                            x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                            x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100">
+
+                            <div class="flex items-center gap-3 mb-4"
+                                :class="pendingState ? 'text-amber-600' : 'text-teal-600'">
+                                <template x-if="pendingState">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                        </path>
+                                    </svg>
+                                </template>
+                                <template x-if="!pendingState">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </template>
+                                <h3 class="text-lg font-bold text-gray-900"
+                                    x-text="pendingState ? 'Activate Holiday Mode?' : 'Disable Holiday Mode?'"></h3>
+                            </div>
+
+                            <p class="text-gray-600 mb-6 leading-relaxed">
+                                <template x-if="pendingState">
+                                    <span>Your <strong>{{ $approvedProductsCount }}</strong> approved products will be
+                                        hidden from listings until you disable it.</span>
+                                </template>
+                                <template x-if="!pendingState">
+                                    <span>Your <strong>{{ $holidayProductsCount }}</strong> products will be visible to
+                                        buyers again.</span>
+                                </template>
+                            </p>
+
+                            <div class="flex justify-end gap-3">
+                                <button type="button" @click="showWarning = false"
+                                    class="px-4 py-2 text-gray-700 font-medium hover:bg-gray-100 rounded-lg transition-colors">
+                                    Cancel
+                                </button>
+                                <button type="button" @click="confirmHolidayMode()"
+                                    class="px-4 py-2 text-white font-medium rounded-lg shadow-sm transition-colors"
+                                    :class="pendingState ? 'bg-amber-600 hover:bg-amber-700' : 'bg-teal-600 hover:bg-teal-700'">
+                                    Confirm
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
+
+    @push('scripts')
+        <script>
+            document.addEventListener('alpine:init', () => {
+                Alpine.data('holidaySettings', (initialState) => ({
+                    holidayMode: initialState,
+                    showWarning: false,
+                    pendingState: false,
+
+                    init() {
+                        console.log('Holiday Settings Initialized. State:', this.holidayMode);
+                    },
+
+                    toggleHolidayMode() {
+                        // Determine what the new state WOULD be
+                        this.pendingState = !this.holidayMode;
+                        console.log('Toggle Clicked. Current:', this.holidayMode, 'Pending:', this.pendingState);
+
+                        // Always show warning/confirmation
+                        this.showWarning = true;
+                    },
+
+                    confirmHolidayMode() {
+                        console.log('Confirmed. Setting mode to:', this.pendingState);
+
+                        // Optimistic update
+                        this.holidayMode = this.pendingState;
+                        this.showWarning = false;
+
+                        // Send Request
+                        fetch('{{ route("settings.account.holiday-mode") }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                holiday_mode: this.pendingState
+                            })
+                        })
+                            .then(response => response.json())
+                            .then(data => {
+                                console.log('Server response:', data);
+                                // Optional: Show a toast notification here
+                                // If we had a toast system: showToast(data.message, 'success');
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                // Revert on error
+                                this.holidayMode = !this.pendingState;
+                                alert('Something went wrong. Please try again.');
+                            });
+                    }
+                }));
+            });
+        </script>
+    @endpush
 @endsection

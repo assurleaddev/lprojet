@@ -18,7 +18,8 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             SettingsSeeder::class,
             ContentSeeder::class,
-            MarketplacePermissionsSeeder::class
+            MarketplacePermissionsSeeder::class,
+            RealProductSeeder::class,
         ]);
     }
 }

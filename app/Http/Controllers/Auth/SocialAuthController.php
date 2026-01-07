@@ -33,6 +33,7 @@ class SocialAuthController extends Controller
         try {
             $socialUser = Socialite::driver($provider)->user();
         } catch (\Exception $e) {
+            \Log::error('Socialite Error: ' . $e->getMessage());
             return redirect()->route('login')->with('error', 'Unable to login using ' . $provider . '. Please try again.');
         }
 
@@ -44,21 +45,56 @@ class SocialAuthController extends Controller
             // For simplicity, we just log them in if email matches. 
             // In a real app, strict security checks (like verifying email ownership) are recommended.
             Auth::login($user);
+
+            // Redirect to secure account if phone is missing
+            if (empty($user->phone_number)) {
+                return redirect()->route('auth.secure_account');
+            }
+
             return redirect('/');
         } else {
-            // Create a new user
-            // Note: You might want to force them to set a password later or just handle social-only users
-            $user = User::create([
-                'name' => $socialUser->getName() ?? $socialUser->getNickname(),
-                'email' => $socialUser->getEmail(),
-                'password' => bcrypt(Str::random(16)), // Random password
-                'email_verified_at' => now(), // Assuming social login verifies email
-                // 'provider_id' => $socialUser->getId(), // if you have this column
-                // 'provider_name' => $provider,        // if you have this column
-            ]);
+            // Generate a unique username
+            $baseUsername = Str::slug($socialUser->getName() ?? $socialUser->getNickname() ?? explode('@', $socialUser->getEmail())[0]);
+            if (empty($baseUsername)) {
+                $baseUsername = 'user';
+            }
 
-            Auth::login($user);
-            return redirect('/');
+            $username = $baseUsername;
+            $count = 1;
+            while (User::where('username', $username)->exists()) {
+                $username = $baseUsername . $count;
+                $count++;
+            }
+
+            try {
+                // Split name
+                $fullName = $socialUser->getName() ?? $socialUser->getNickname() ?? 'User';
+                $nameParts = explode(' ', $fullName, 2);
+                $firstName = $nameParts[0];
+                $lastName = $nameParts[1] ?? '';
+
+                // Create a new user
+                $user = User::create([
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $socialUser->getEmail(),
+                    'username' => $username, // Added username
+                    'password' => bcrypt(Str::random(16)), // Random password
+                    'email_verified_at' => now(), // Assuming social login verifies email
+                    // 'provider_id' => $socialUser->getId(), // if you have this column
+                    // 'provider_name' => $provider,        // if you have this column
+                ]);
+
+                // Try to download avatar if possible (Optional, requires HasMedia or custom logic)
+                // Leaving this purely as user creation for now to solve the crash.
+
+                Auth::login($user);
+                return redirect()->route('auth.secure_account');
+            } catch (\Exception $e) {
+                dd($e->getMessage());
+                // \Log::error('Social Login Error: ' . $e->getMessage());
+                // return redirect()->route('login')->with('error', 'Unable to create account. Please try again.');
+            }
         }
     }
 }

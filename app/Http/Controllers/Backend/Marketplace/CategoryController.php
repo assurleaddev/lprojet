@@ -21,24 +21,20 @@ class CategoryController extends Controller
     {
         $searchTerm = $request->input('search');
 
-        $categories = Category::with([
-            'children' => function ($query) use ($searchTerm) {
-                if ($searchTerm) {
-                    $query->where('name', 'like', '%' . $searchTerm . '%');
-                }
-            },
-            'children.children',
-            'parent'
+        $query = Category::query();
 
-        ])
-            ->when($searchTerm, function ($query) use ($searchTerm) {
-                $query->where(function ($q) use ($searchTerm) {
-                    $q->where('name', 'like', '%' . $searchTerm . '%')
-                        ->orWhereHas('children', function ($subQuery) use ($searchTerm) {
-                            $subQuery->where('name', 'like', '%' . $searchTerm . '%');
-                        });
-                });
-            })
+        if ($searchTerm) {
+            // If searching, we might still want to show the tree or just flat results?
+            // Usually flat results are better for search.
+            // But let's keep the user's current logic if possible, or fallback to flat list for search.
+            $query->where('name', 'like', '%' . $searchTerm . '%');
+        } else {
+            // Only roots for initial load
+            $query->whereNull('parent_id');
+        }
+
+        $categories = $query->withCount('children')
+            ->orderBy('order') // Ensure order is respected
             ->latest()
             ->paginate(20);
 
@@ -50,6 +46,15 @@ class CategoryController extends Controller
         }
 
         return view('backend.marketplace.categories.index', compact('categories'));
+    }
+
+    public function getChildren(Category $category)
+    {
+        // Load children with their children count to show/hide expand button
+        $children = $category->children()->orderBy('order')->withCount('children')->get();
+
+        // Return the HTML partial
+        return view('backend.marketplace.categories._child_rows', compact('children'))->render();
     }
 
     public function create()

@@ -75,25 +75,7 @@
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
                     <label class="block font-semibold mb-1">Category</label>
-                    <select name="category_id" id="category-select"
-                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
-                        required>
-                        <option value="">Select a category</option>
-                        @foreach($categories as $parent)
-                            <optgroup label="{{ $parent->name }}">
-                                @foreach($parent->children as $child)
-                                    @if($child->children->isNotEmpty())
-                                        @foreach($child->children as $leaf)
-                                            <option value="{{ $leaf->id }}" @selected(old('category_id', $product->category_id) == $leaf->id)>
-                                                &nbsp;&nbsp;{{ $child->name }} > {{ $leaf->name }}</option>
-                                        @endforeach
-                                    @else
-                                        <option value="{{ $child->id }}" @selected(old('category_id', $product->category_id) == $child->id)>&nbsp;&nbsp;{{ $child->name }}</option>
-                                    @endif
-                                @endforeach
-                            </optgroup>
-                        @endforeach
-                    </select>
+                    <livewire:category-selector name="category_id" :value="old('category_id', $product->category_id)" />
                 </div>
 
                 <div x-data="brandDropdown">
@@ -208,11 +190,11 @@
 
             document.addEventListener('DOMContentLoaded', function () {
                 // --- Dynamic Attributes Logic ---
-                const categorySelect = document.getElementById('category-select');
                 const attributesContainer = document.getElementById('dynamic-attributes');
 
-                categorySelect.addEventListener('change', function () {
-                    const categoryId = this.value;
+                // Event listener
+                window.addEventListener('category-selected', function (event) {
+                    const categoryId = event.detail.id;
                     attributesContainer.innerHTML = ''; // Clear existing
 
                     if (categoryId) {
@@ -241,10 +223,10 @@
                                             const labelEl = document.createElement('label');
                                             labelEl.className = 'cursor-pointer group relative';
                                             labelEl.innerHTML = `
-                                                                <input type="checkbox" name="options[${attr.id}][]" value="${option.id}" ${isSelected ? 'checked' : ''} class="peer sr-only">
-                                                                <div class="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-teal-500 shadow-sm transition" style="background-color: ${colorStyle};"></div>
-                                                                <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">${option.value}</span>
-                                                            `;
+                                                                        <input type="checkbox" name="options[${attr.id}][]" value="${option.id}" ${isSelected ? 'checked' : ''} class="peer sr-only">
+                                                                        <div class="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-teal-500 shadow-sm transition" style="background-color: ${colorStyle};"></div>
+                                                                        <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">${option.value}</span>
+                                                                    `;
                                             colorContainer.appendChild(labelEl);
                                         });
                                         div.appendChild(colorContainer);
@@ -257,9 +239,9 @@
                                             const labelEl = document.createElement('label');
                                             labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-teal-50 transition cursor-pointer';
                                             labelEl.innerHTML = `
-                                                                <input type="radio" name="options[${attr.id}]" value="${option.id}" ${isSelected ? 'checked' : ''} class="form-radio text-teal-600 focus:ring-teal-500">
-                                                                <span class="text-sm">${option.value}</span>
-                                                            `;
+                                                                        <input type="radio" name="options[${attr.id}]" value="${option.id}" ${isSelected ? 'checked' : ''} class="form-radio text-teal-600 focus:ring-teal-500">
+                                                                        <span class="text-sm">${option.value}</span>
+                                                                    `;
                                             radioContainer.appendChild(labelEl);
                                         });
                                         div.appendChild(radioContainer);
@@ -293,9 +275,14 @@
                     }
                 });
 
-                // Trigger category change on page load to load existing attributes (AFTER event listener is set up)
-                if (categorySelect.value) {
-                    categorySelect.dispatchEvent(new Event('change'));
+                // Trigger category change on page load (via Livewire? Wait, Livewire handles this)
+                // But we still need attributes if page loads with selection.
+                // Livewire component does NOT emit on mount.
+                // So we can manually trigger if needed, or let component dispatch "init-selection".
+                // Simplest: Check input value on logic
+                const catInput = document.querySelector('input[name="category_id"]');
+                if (catInput && catInput.value) {
+                    window.dispatchEvent(new CustomEvent('category-selected', { detail: { id: catInput.value } }));
                 }
 
 
@@ -347,11 +334,11 @@
                             div.dataset.index = file.tempId;
 
                             div.innerHTML = `
-                                                                                                                                                        <img src="${e.target.result}" class="w-full h-full object-cover">
-                                                                                                                                                        <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
-                                                                                                                                                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                                                                                                                        </button>
-                                                                                                                                                    `;
+                                                                                                                                                                <img src="${e.target.result}" class="w-full h-full object-cover">
+                                                                                                                                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
+                                                                                                                                                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                                                                                                                </button>
+                                                                                                                                                            `;
 
                             // Insert before the upload button
                             document.getElementById('drop-zone').insertBefore(div, document.getElementById('upload-btn-container'));

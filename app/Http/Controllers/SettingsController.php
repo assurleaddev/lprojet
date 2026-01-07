@@ -67,7 +67,10 @@ class SettingsController extends Controller
     public function account()
     {
         $user = Auth::user();
-        return view('frontend.settings.account', compact('user'));
+        $approvedProductsCount = $user->products()->where('status', 'approved')->count();
+        $holidayProductsCount = $user->products()->where('status', 'holiday')->count();
+
+        return view('frontend.settings.account', compact('user', 'approvedProductsCount', 'holidayProductsCount'));
     }
 
     public function updateAccount(Request $request)
@@ -77,18 +80,47 @@ class SettingsController extends Controller
         $request->validate([
             'gender' => 'nullable|string|in:Male,Female,Other',
             'birthday' => 'nullable|date',
-            'holiday_mode' => 'nullable|boolean',
-            'holiday_mode' => 'nullable|boolean',
         ]);
 
         $this->updateMeta($user, 'gender', $request->gender);
         $this->updateMeta($user, 'birthday', $request->birthday);
-        $this->updateMeta($user, 'holiday_mode', $request->has('holiday_mode') ? '1' : '0');
-        $this->updateMeta($user, 'holiday_mode', $request->has('holiday_mode') ? '1' : '0');
-        // Phone number is handled via verification flow
-
 
         return back()->with('success', 'Account settings updated successfully.');
+    }
+
+    public function toggleHolidayMode(Request $request)
+    {
+        $request->validate([
+            'holiday_mode' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+        $enable = $request->holiday_mode;
+
+        // Transaction to ensure data consistency
+        \Illuminate\Support\Facades\DB::transaction(function () use ($user, $enable) {
+            $this->updateMeta($user, 'holiday_mode', $enable ? '1' : '0');
+
+            if ($enable) {
+                // Turning ON: Move 'approved' -> 'holiday'
+                $user->products()
+                    ->where('status', 'approved')
+                    ->update(['status' => 'holiday']);
+            } else {
+                // Turning OFF: Move 'holiday' -> 'approved'
+                $user->products()
+                    ->where('status', 'holiday')
+                    ->update(['status' => 'approved']);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => $enable
+                ? 'Holiday mode activated. Your items are now hidden.'
+                : 'Holiday mode disabled. Your items are visible again.',
+            'status' => $enable
+        ]);
     }
 
     public function postage()

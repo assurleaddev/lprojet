@@ -3,7 +3,16 @@
 @section('content')
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-3xl mx-auto">
-            <h1 class="text-2xl font-bold mb-6">Notifications</h1>
+            <div class="flex items-center justify-between mb-6">
+                <h1 class="text-2xl font-bold">Notifications</h1>
+                @if($notifications->count() > 0)
+                    <form action="{{ route('notifications.mark-read') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="text-sm font-medium text-teal-600 hover:text-teal-700 hover:underline">Mark
+                            all as read</button>
+                    </form>
+                @endif
+            </div>
 
             <div class="bg-white rounded-lg shadow overflow-hidden">
                 @forelse ($notifications as $notification)
@@ -13,7 +22,8 @@
                             <div class="flex-1">
                                 <a href="{{ $notification->data['url'] ?? '#' }}" class="block">
                                     <p class="text-gray-800 font-medium">
-                                        {{ $notification->data['message'] ?? 'New Notification' }}</p>
+                                        {{ $notification->data['message'] ?? 'New Notification' }}
+                                    </p>
                                     <p class="text-sm text-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
                                 </a>
                             </div>
@@ -30,7 +40,7 @@
             </div>
 
             <div class="mt-6">
-                {{ $notifications->links() }}
+                {{ $notifications->links('pagination::tailwind') }}
             </div>
         </div>
     </div>

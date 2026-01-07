@@ -47,7 +47,13 @@ class SearchController extends Controller
             if ($query) {
                 $productsQuery->where(function ($q) use ($query) {
                     $q->where('name', 'like', "%{$query}%")
-                        ->orWhere('description', 'like', "%{$query}%");
+                        ->orWhere('description', 'like', "%{$query}%")
+                        ->orWhereHas('brand', function ($q) use ($query) {
+                            $q->where('name', 'like', "%{$query}%");
+                        })
+                        ->orWhereHas('category', function ($q) use ($query) {
+                            $q->where('name', 'like', "%{$query}%");
+                        });
                 });
             }
 
@@ -86,5 +92,73 @@ class SearchController extends Controller
         }
 
         return view('search.results', compact('results', 'query', 'type', 'categories', 'attributes', 'categoryIds', 'attributeFilters'));
+    }
+    public function suggestions(Request $request)
+    {
+        $query = $request->input('query');
+        $type = $request->input('type', 'product');
+
+        if (!$query || strlen($query) < 2) {
+            return response()->json([]);
+        }
+
+        $results = [];
+
+        if ($type === 'product') {
+            // 1. Suggest Categories
+            $categories = \App\Models\Category::where('name', 'like', "%{$query}%")
+                ->limit(3)
+                ->get()
+                ->map(function ($cat) {
+                    return [
+                        'type' => 'category',
+                        'label' => 'In ' . $cat->name,
+                        'value' => $cat->id,
+                        'url' => route('search', ['categories' => [$cat->id]])
+                    ];
+                });
+
+            // 2. Suggest Products
+            $products = Product::where('status', 'approved')
+                ->where(function ($q) use ($query) {
+                    $q->where('name', 'like', "%{$query}%")
+                        ->orWhereHas('brand', function ($q) use ($query) {
+                            $q->where('name', 'like', "%{$query}%");
+                        })
+                        ->orWhereHas('category', function ($q) use ($query) {
+                            $q->where('name', 'like', "%{$query}%");
+                        });
+                })
+                ->limit(5)
+                ->get()
+                ->map(function ($product) {
+                    return [
+                        'type' => 'product',
+                        'label' => $product->name,
+                        'sub' => $product->price . ' MAD',
+                        'image' => $product->getFeaturedImageUrl('preview'),
+                        'url' => route('products.show', $product)
+                    ];
+                });
+
+            $results = $categories->concat($products);
+        } else {
+            // Suggest Users
+            $results = User::where('username', 'like', "%{$query}%")
+                ->orWhere('first_name', 'like', "%{$query}%")
+                ->limit(5)
+                ->get()
+                ->map(function ($user) {
+                    return [
+                        'type' => 'user',
+                        'label' => $user->full_name,
+                        'sub' => '@' . $user->username,
+                        'image' => $user->profile_photo_url, // or helper method
+                        'url' => route('vendor.show', $user)
+                    ];
+                });
+        }
+
+        return response()->json($results);
     }
 }
