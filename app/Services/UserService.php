@@ -119,7 +119,7 @@ class UserService
 
     private function shouldUpdatePassword(array $data): bool
     {
-        return isset($data['password']) && ! empty($data['password']);
+        return isset($data['password']) && !empty($data['password']);
     }
 
     private function updateUserAttributes(User $user, array $userData): void
@@ -153,7 +153,7 @@ class UserService
 
     private function shouldProcessMetadataField(string $field, array $data): bool
     {
-        return array_key_exists($field, $data) && ! empty($data[$field]);
+        return array_key_exists($field, $data) && !empty($data[$field]);
     }
 
     private function getMetadataFieldValueForUpdate(string $field, array $data, $request = null): ?string
@@ -163,7 +163,7 @@ class UserService
             return $request->input($field, '');
         }
 
-        if (! $request && array_key_exists($field, $data)) {
+        if (!$request && array_key_exists($field, $data)) {
             return $data[$field] ?? '';
         }
 
@@ -172,7 +172,7 @@ class UserService
 
     private function handleUserRoles(User $user, array $data, string $operation = 'create'): void
     {
-        if (! isset($data['roles'])) {
+        if (!isset($data['roles'])) {
             return;
         }
 
@@ -185,13 +185,13 @@ class UserService
 
     private function assignUserRoles(User $user, array $roles): void
     {
-        if (! $roles) {
+        if (!$roles) {
             return;
         }
 
         $filteredRoles = array_filter($roles);
 
-        if (! empty($filteredRoles)) {
+        if (!empty($filteredRoles)) {
             $user->syncRoles($filteredRoles);
         }
     }
@@ -207,7 +207,7 @@ class UserService
         $allFields = collect($this->getUserMetadataFieldGroups())->flatten();
 
         $metadataToProcess = $allFields
-            ->map(fn ($field) => $this->prepareMetadataRecord($user, $field, $data, $operation, $request))
+            ->map(fn($field) => $this->prepareMetadataRecord($user, $field, $data, $operation, $request))
             ->filter()
             ->values();
 
@@ -224,7 +224,7 @@ class UserService
 
     private function prepareMetadataRecord(User $user, string $field, array $data, string $operation, $request = null): ?array
     {
-        if ($operation === 'create' && ! $this->shouldProcessMetadataField($field, $data)) {
+        if ($operation === 'create' && !$this->shouldProcessMetadataField($field, $data)) {
             return null;
         }
 
@@ -270,12 +270,39 @@ class UserService
         $deletedCount = 0;
 
         foreach ($users as $user) {
-            if ($user->hasRole('superadmin')) {
+            // Case-insensitive role check for Superadmin
+            if ($user->roles->contains(fn($role) => strcasecmp($role->name, 'superadmin') === 0)) {
                 continue;
             }
             if ($currentUserId && $user->id == $currentUserId) {
                 continue;
             }
+            $user->delete();
+            $deletedCount++;
+        }
+
+        return $deletedCount;
+    }
+
+    public function forceBulkDeleteUsers(array $ids, ?int $currentUserId = null): int
+    {
+        $users = User::whereIn('id', $ids)->get();
+        $deletedCount = 0;
+
+        foreach ($users as $user) {
+            // Case-insensitive role check for Superadmin
+            if ($user->roles->contains(fn($role) => strcasecmp($role->name, 'superadmin') === 0)) {
+                continue;
+            }
+            if ($currentUserId && $user->id == $currentUserId) {
+                continue;
+            }
+
+            // Force delete logic: delete relations first
+            $user->products()->delete();
+            $user->orders()->delete();
+            // Add other relations here if needed (e.g. wallet)
+
             $user->delete();
             $deletedCount++;
         }

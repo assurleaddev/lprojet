@@ -12,12 +12,17 @@ use App\Models\User;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Livewire\WithPagination; // Add if missing or just rely on parent
+use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class UserDatatable extends Datatable
 {
     public string $role = '';
     public string $status = '';
+    public bool $confirmingForceDelete = false;
+    public array $usersWithDependencies = [];
+    public array $usersToDeleteIds = [];
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'role' => [],
@@ -143,6 +148,80 @@ class UserDatatable extends Datatable
     public function renderRolesColumn(User $user): Renderable
     {
         return view('backend.pages.users.partials.user-roles', compact('user'));
+    }
+
+    public function bulkDelete(): void
+    {
+        $ids = $this->selectedItems;
+        $ids = array_filter($ids, 'is_numeric');
+
+        if (empty($ids)) {
+            $this->dispatch('notify', [
+                'variant' => 'error',
+                'title' => __('Bulk Delete Failed'),
+                'message' => __('No users selected for deletion.'),
+            ]);
+            return;
+        }
+
+        // Check for dependencies
+        $usersWithDependencies = User::whereIn('id', $ids)
+            ->withCount(['products', 'orders'])
+            ->having(DB::raw('products_count + orders_count'), '>', 0)
+            ->get();
+
+        if ($usersWithDependencies->isNotEmpty()) {
+            $this->usersWithDependencies = $usersWithDependencies->toArray();
+            $this->usersToDeleteIds = $ids;
+            $this->confirmingForceDelete = true;
+            return;
+        }
+
+        // Proceed with normal delete if no dependencies
+        parent::bulkDelete();
+    }
+
+    public function cancelForceDelete()
+    {
+        $this->confirmingForceDelete = false;
+        $this->usersWithDependencies = [];
+        $this->usersToDeleteIds = [];
+    }
+
+    public function confirmedForceDelete()
+    {
+        $deletedCount = app(\App\Services\UserService::class)->forceBulkDeleteUsers($this->usersToDeleteIds, Auth::id());
+
+        if ($deletedCount > 0) {
+            $this->dispatch('notify', [
+                'variant' => 'success',
+                'title' => __('Bulk Delete Successful'),
+                'message' => __(':count users deleted successfully', ['count' => $deletedCount]),
+            ]);
+        } else {
+            $this->dispatch('notify', [
+                'variant' => 'error',
+                'title' => __('Bulk Delete Failed'),
+                'message' => __('No users were deleted.'),
+            ]);
+        }
+
+        $this->selectedItems = [];
+        $this->dispatch('resetSelectedItems');
+        $this->resetPage();
+        $this->cancelForceDelete();
+    }
+
+    public function render(): Renderable
+    {
+        $this->headers = $this->getHeaders();
+
+        return view('backend.livewire.datatable.user-datatable', [
+            'headers' => $this->headers,
+            'data' => $this->getData(),
+            'perPage' => $this->perPage,
+            'perPageOptions' => $this->perPageOptions,
+        ]);
     }
 
     public function handleRowDelete(Model|User $user): bool
