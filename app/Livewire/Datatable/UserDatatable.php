@@ -164,25 +164,54 @@ class UserDatatable extends Datatable
             return;
         }
 
-        \Illuminate\Support\Facades\Log::info('Bulk Deleting IDs:', $ids);
+        // Fetch users to check existence first, eager loading roles
+        $users = User::with('roles')->whereIn('id', $ids)->get();
 
-        // Filter out Superadmin and Current User from the processing list
-        $validUsers = User::whereIn('id', $ids)
-            ->where('id', '!=', Auth::id())
-            ->get()
-            ->filter(function ($user) {
-                return !$user->hasRole(Role::SUPERADMIN) &&
-                    !$user->roles->contains(fn($r) => strcasecmp($r->name, 'superadmin') === 0);
-            });
+        if ($users->isEmpty()) {
+            $this->dispatch('notify', [
+                'variant' => 'warning',
+                'title' => __('Bulk Delete'),
+                'message' => __('Selected users no longer exist.'),
+            ]);
+            $this->selectedItems = [];
+            $this->dispatch('resetSelectedItems');
+            $this->resetPage();
+            return;
+        }
+
+        $debugReasons = [];
+        // Filter out Superadmin and Current User
+        $validUsers = $users->filter(function ($user) use (&$debugReasons) {
+            // Exclude current user
+            if ($user->id === Auth::id()) {
+                $debugReasons[] = "ID {$user->id} matches Auth ID";
+                return false;
+            }
+            // Exclude Superadmin (check role + check string)
+            if ($user->hasRole(Role::SUPERADMIN)) {
+                $debugReasons[] = "ID {$user->id} hasRole(" . Role::SUPERADMIN . ")";
+                return false;
+            }
+            // Defensiive check against case variations if strict mode fails
+            if ($user->roles->contains(fn($r) => strcasecmp($r->name, 'superadmin') === 0)) {
+                $debugReasons[] = "ID {$user->id} roles contains superadmin";
+                return false;
+            }
+            return true;
+        });
 
         $validIds = $validUsers->pluck('id')->toArray();
 
         if (empty($validIds)) {
+            $reasonStr = implode(', ', array_slice($debugReasons, 0, 5));
             $this->dispatch('notify', [
                 'variant' => 'error',
                 'title' => __('Bulk Delete Failed'),
-                'message' => __('Selected users are protected (Superadmin or You) and cannot be deleted. Debug IDs: ' . implode(', ', $ids)),
+                'message' => __('Protected users detected. Validation details: ' . $reasonStr),
             ]);
+            // Clear selection since no valid actions can be taken
+            $this->selectedItems = [];
+            $this->dispatch('resetSelectedItems');
             return;
         }
 
