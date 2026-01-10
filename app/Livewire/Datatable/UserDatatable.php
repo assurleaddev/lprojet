@@ -164,6 +164,8 @@ class UserDatatable extends Datatable
             return;
         }
 
+        \Illuminate\Support\Facades\Log::info('Bulk Deleting IDs:', $ids);
+
         // Filter out Superadmin and Current User from the processing list
         $validUsers = User::whereIn('id', $ids)
             ->where('id', '!=', Auth::id())
