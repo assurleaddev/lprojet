@@ -181,7 +181,7 @@ class UserDatatable extends Datatable
             $this->dispatch('notify', [
                 'variant' => 'error',
                 'title' => __('Bulk Delete Failed'),
-                'message' => __('Selected users are protected (Superadmin or You) and cannot be deleted.'),
+                'message' => __('Selected users are protected (Superadmin or You) and cannot be deleted. Debug IDs: ' . implode(', ', $ids)),
             ]);
             return;
         }
