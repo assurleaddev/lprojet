@@ -72,13 +72,17 @@
     },
     init() {
         window.addEventListener('resetSelectedItems', () => {
-            this.selectedItems = [];
-            this.selectAll = false;
-
-            // Uncheck all checkboxes.
-            document.querySelectorAll('.item-checkbox').forEach(checkbox => {
-                checkbox.checked = false;
-            });
+             this.resetSelection();
+        });
+        window.addEventListener('reset-selected-items', () => {
+             this.resetSelection();
+        });
+    },
+    resetSelection() {
+        this.selectedItems = [];
+        this.selectAll = false;
+        document.querySelectorAll('.item-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
         });
     }
 }">
