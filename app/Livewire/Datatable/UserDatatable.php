@@ -164,15 +164,38 @@ class UserDatatable extends Datatable
             return;
         }
 
-        // Check for dependencies
-        $usersWithDependencies = User::whereIn('id', $ids)
+        // Filter out Superadmin and Current User from the processing list
+        $validUsers = User::whereIn('id', $ids)
+            ->where('id', '!=', Auth::id())
+            ->get()
+            ->filter(function ($user) {
+                return !$user->hasRole(Role::SUPERADMIN) &&
+                    !$user->roles->contains(fn($r) => strcasecmp($r->name, 'superadmin') === 0);
+            });
+
+        $validIds = $validUsers->pluck('id')->toArray();
+
+        if (empty($validIds)) {
+            $this->dispatch('notify', [
+                'variant' => 'error',
+                'title' => __('Bulk Delete Failed'),
+                'message' => __('Selected users are protected (Superadmin or You) and cannot be deleted.'),
+            ]);
+            return;
+        }
+
+        // Update selected items to only valid ones so parent logic uses clean list
+        $this->selectedItems = array_map('strval', $validIds);
+
+        // Check for dependencies within the VALID list
+        $usersWithDependencies = User::whereIn('id', $validIds)
             ->withCount(['products', 'orders'])
             ->having(DB::raw('products_count + orders_count'), '>', 0)
             ->get();
 
         if ($usersWithDependencies->isNotEmpty()) {
             $this->usersWithDependencies = $usersWithDependencies->toArray();
-            $this->usersToDeleteIds = $ids;
+            $this->usersToDeleteIds = $validIds;
             $this->confirmingForceDelete = true;
             return;
         }
