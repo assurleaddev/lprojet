@@ -156,7 +156,7 @@ class User extends Authenticatable
      */
     public function getAvatarUrlAttribute(): string
     {
-        if ($this->avatar_id) {
+        if ($this->avatar_id && $this->avatar) {
             return asset('storage/media/' . $this->avatar->file_name);
         }
 
