@@ -4,20 +4,22 @@
     <main class="w-full">
         {{-- Hero Section (no changes) --}}
         <!-- Hero -->
-        <section class="relative mb-8 h-[350px] md:h-[450px] bg-cover bg-center"
-            style="background-image:url('{{ asset('images/home/hero.png') }}');">
-            <div class="shell px-4 md:px-6 h-full">
-                <div class="absolute top-1/2 -translate-y-1/2 bg-white p-6 md:p-8 rounded-lg shadow-lg w-[90%] max-w-sm">
-                    <h1 class="text-[28px] md:text-[32px] leading-tight font-extrabold text-gray-800 mb-5">Ready to
-                        declutter
-                        your wardrobe?</h1>
-                    <a href="#" class="block w-full mb-3 py-3 text-center text-white font-bold rounded"
-                        style="background:var(--brand)">Sell now</a>
-                    <a href="#" class="block w-full text-center text-teal-600 hover:underline font-bold">Learn how it
-                        works</a>
+        @guest
+            <section class="relative mb-8 h-[350px] md:h-[450px] bg-cover bg-center"
+                style="background-image:url('{{ asset('images/home/hero.png') }}');">
+                <div class="shell px-4 md:px-6 h-full">
+                    <div class="absolute top-1/2 -translate-y-1/2 bg-white p-6 md:p-8 rounded-lg shadow-lg w-[90%] max-w-sm">
+                        <h1 class="text-[28px] md:text-[32px] leading-tight font-extrabold text-gray-800 mb-5">Ready to
+                            declutter
+                            your wardrobe?</h1>
+                        <a href="#" class="block w-full mb-3 py-3 text-center text-white font-bold rounded"
+                            style="background:var(--brand)">Sell now</a>
+                        <a href="#" class="block w-full text-center text-teal-600 hover:underline font-bold">Learn how it
+                            works</a>
+                    </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        @endguest
 
         {{-- Product Grid Section with Infinite Scroll --}}
         <section class="shell px-4 md:px-6 py-6 md:py-8">
