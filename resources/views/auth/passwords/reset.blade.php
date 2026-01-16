@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+    <div class="flex items-center justify-center py-12 bg-gray-100 dark:bg-gray-900 sm:px-6 lg:px-8">
         <div class="relative w-full max-w-md p-6 bg-white rounded-xl shadow-xl dark:bg-gray-800">
 
             <!-- Header -->

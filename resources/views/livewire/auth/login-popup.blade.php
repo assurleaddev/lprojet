@@ -1,8 +1,8 @@
 <div x-data="{ open: @entangle('open') }" x-show="open" style="display: none;"
-    class="fixed inset-0 z-50 flex items-center justify-center" x-transition:enter="transition ease-out duration-300"
-    x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-    x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-    x-transition:leave-end="opacity-0">
+    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-100 dark:bg-gray-900"
+    x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
+    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
 
     <div @click.away="open = false"
         class="relative w-full max-w-md p-6 bg-white rounded-xl shadow-xl dark:bg-gray-800 transform transition-all"
