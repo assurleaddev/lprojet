@@ -80,16 +80,17 @@
         }
     }" @click.outside="open = false" class="relative mb-4">
         <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">Select Icon</label>
-        
+
         <!-- Search Icons -->
-        <input type="text" x-model="search" @focus="open = true" placeholder="Search icons..." 
+        <input type="text" x-model="search" @focus="open = true" placeholder="Search icons..."
             class="mb-3 bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
 
         <!-- Hidden Input for Form Submission -->
         <input type="hidden" name="icon" :value="selectedIcon">
 
         <!-- Selected Icon Preview (When Closed) -->
-         <div x-show="!open && selectedIcon" class="mb-3 flex items-center p-2 border border-gray-200 rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <div x-show="!open && selectedIcon"
+            class="mb-3 flex items-center p-2 border border-gray-200 rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <span class="text-sm text-gray-500 mr-2">Selected:</span>
             <iconify-icon :icon="selectedIcon" class="text-2xl text-blue-600"></iconify-icon>
             <span x-text="selectedIcon" class="ml-2 font-mono text-sm"></span>
@@ -99,12 +100,12 @@
         </div>
 
         <!-- Icon Grid Dropdown -->
-        <div x-show="open" x-transition 
+        <div x-show="open" x-transition
             class="absolute z-50 w-full bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700 max-h-60 overflow-y-auto p-2"
             style="top: 100%;">
             <div class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
                 <template x-for="icon in filteredIcons" :key="icon">
-                    <div @click="selectIcon(icon)" 
+                    <div @click="selectIcon(icon)"
                         :class="{ 'bg-blue-100 ring-2 ring-blue-500 dark:bg-blue-900': selectedIcon === icon, 'hover:bg-gray-100 dark:hover:bg-gray-700': selectedIcon !== icon }"
                         class="cursor-pointer p-2 rounded flex items-center justify-center transition-all"
                         :title="icon">
@@ -139,7 +140,7 @@
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2">
         @foreach($attributes as $attribute)
             <label class="flex items-center space-x-3">
-                <input type="checkbox" name="attributes[]" value="{{ $attribute->id }}" @if(isset($category) && $category->attributes->contains($attribute->id)) checked @endif
+                <input type="checkbox" name="attributes[]" value="{{ $attribute->id }}" @if(isset($category) && $category->assignedAttributes->contains($attribute->id)) checked @endif
                     class="form-checkbox h-5 w-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:focus:ring-blue-600">
                 <span class="text-gray-700 dark:text-gray-300">{{ $attribute->name }}</span>
             </label>

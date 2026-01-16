@@ -1,29 +1,29 @@
-<tbody>
-    @forelse($categories as $category)
-        <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
-            x-data="{ open: false, loaded: false, loading: false }">
+@forelse($categories as $category)
+    <tbody x-data="{ open: false, loaded: false, loading: false }" class="border-b dark:border-gray-700">
+        <tr class="bg-white dark:bg-gray-800">
             <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
                 <div class="flex items-center">
                     @if ($category->children_count > 0)
                         <button @click="
-                                    if (!loaded) {
-                                        loading = true;
-                                        fetch('{{ route('admin.categories.children', $category->id) }}')
-                                            .then(response => response.text())
-                                            .then(html => {
-                                                $refs.childRows.innerHTML = html;
-                                                loaded = true;
-                                                open = true;
-                                                loading = false;
-                                            })
-                                            .catch(err => {
-                                                console.error(err);
-                                                loading = false;
-                                            });
-                                    } else {
-                                        open = !open;
-                                    }
-                                " class="mr-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none">
+                                            if (!loaded) {
+                                                loading = true;
+                                                fetch('{{ route('admin.categories.children', $category->id) }}')
+                                                    .then(response => response.text())
+                                                    .then(html => {
+                                                        $refs.childTable.innerHTML = html;
+                                                        loaded = true;
+                                                        open = true;
+                                                        loading = false;
+                                                    })
+                                                    .catch(err => {
+                                                        console.error(err);
+                                                        loading = false;
+                                                    });
+                                            } else {
+                                                open = !open;
+                                            }
+                                        "
+                            class="mr-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none">
                             <!-- Loading Spinner -->
                             <svg x-show="loading" class="animate-spin h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
@@ -54,16 +54,16 @@
         {{-- Container for Children --}}
         <tr x-show="open" x-cloak>
             <td colspan="3" class="p-0 border-0">
-                <table class="w-full">
-                    <tbody x-ref="childRows">
-                        {{-- AJAX Loaded content goes here --}}
-                    </tbody>
+                <table class="w-full" x-ref="childTable">
+                    {{-- AJAX Loaded content goes here --}}
                 </table>
             </td>
         </tr>
-    @empty
+    </tbody>
+@empty
+    <tbody>
         <tr>
             <td colspan="3" class="px-6 py-4 text-center">No categories found.</td>
         </tr>
-    @endforelse
-</tbody>
+    </tbody>
+@endforelse

@@ -26,13 +26,19 @@ class ItemController extends Controller
                 ->first();
         }
 
-        return view('frontend.items.create', compact('categories', 'brands', 'conditions', 'duplicateProduct'));
+        // Check for listed product in session (success modal)
+        $listedProduct = null;
+        if (session('listed_product_id')) {
+            $listedProduct = Product::with(['brand', 'media'])->find(session('listed_product_id'));
+        }
+
+        return view('frontend.items.create', compact('categories', 'brands', 'conditions', 'duplicateProduct', 'listedProduct'));
     }
 
     public function getAttributes(Category $category)
     {
-        $attributes = $category->inherited_attributes;
-        return response()->json($attributes->values()->all());
+        $category->load('assignedAttributes.options');
+        return response()->json($category->assignedAttributes->values()->all());
     }
 
     public function store(Request $request)
@@ -110,14 +116,25 @@ class ItemController extends Controller
 
             DB::commit();
 
+            session()->flash('success', 'Item listed successfully!');
+            session()->flash('listed_product_id', $product->id);
+
             if ($request->wantsJson()) {
+                // Prepare data for client-side modal
                 return response()->json([
                     'message' => 'Item listed successfully!',
-                    'redirect_url' => route('items.create')
+                    'product' => [
+                        'image_url' => $product->getFirstMediaUrl('featured') ?: $product->getFirstMediaUrl('products'),
+                        'name' => $product->name,
+                        'brand_name' => $product->brand ? $product->brand->name : 'No Brand',
+                        'condition_label' => $product->condition ? ucwords(str_replace('_', ' ', $product->condition)) : 'Pre-owned',
+                        'price_formatted' => number_format($product->price, 2),
+                    ],
+                    'redirect_url' => route('items.create') // Used for "List another" reload
                 ]);
             }
 
-            return redirect()->route('items.create')->with('success', 'Item listed successfully!');
+            return redirect()->route('items.create');
 
         } catch (\Exception $e) {
             DB::rollBack();

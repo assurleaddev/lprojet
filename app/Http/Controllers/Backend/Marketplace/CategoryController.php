@@ -48,13 +48,14 @@ class CategoryController extends Controller
         return view('backend.marketplace.categories.index', compact('categories'));
     }
 
-    public function getChildren(Category $category)
+    public function getChildren(Request $request, Category $category)
     {
+        $depth = $request->input('depth', 20);
         // Load children with their children count to show/hide expand button
         $children = $category->children()->orderBy('order')->withCount('children')->get();
 
         // Return the HTML partial
-        return view('backend.marketplace.categories._child_rows', compact('children'))->render();
+        return view('backend.marketplace.categories._child_rows', compact('children', 'depth'))->render();
     }
 
     public function create()
@@ -94,7 +95,7 @@ class CategoryController extends Controller
         ]);
 
         // Sync the selected attributes with the new category
-        $category->attributes()->sync($request->input('attributes', []));
+        $category->assignedAttributes()->sync($request->input('attributes', []));
 
         // Handle Icon
         if ($request->hasFile('icon_image')) {
@@ -112,7 +113,7 @@ class CategoryController extends Controller
     {
         $categories = Category::where('id', '!=', $category->id)->get();
         $attributes = Attribute::all(); // Get all attributes
-        $category->load('attributes'); // Eager load the currently selected attributes
+        $category->load('assignedAttributes'); // Eager load the currently selected attributes
         return view('backend.marketplace.categories.edit', compact('category', 'categories', 'attributes'));
     }
 
@@ -141,7 +142,7 @@ class CategoryController extends Controller
         ]);
 
         // Sync the selected attributes
-        $category->attributes()->sync($request->input('attributes', []));
+        $category->assignedAttributes()->sync($request->input('attributes', []));
 
         // Handle Icon
         if ($request->hasFile('icon_image')) {
