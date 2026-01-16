@@ -27,8 +27,171 @@
                 {{-- Category Filter --}}
                 <livewire:search.category-filter :categoryIds="$categoryIds" />
 
-                {{-- Attribute Filters --}}
-                @foreach($attributes as $attribute)
+                {{-- Size Filter (Grouped) --}}
+                @if($sizeAttributes->isNotEmpty())
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 {{ isset($attributeFilters) && !empty(array_intersect(array_keys($attributeFilters), $sizeAttributes->pluck('id')->toArray())) ? 'border-teal-600 ring-1 ring-teal-600' : '' }}">
+                            <span>{{ __('Taille') }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" @click.away="open = false" style="display: none;"
+                            class="absolute z-10 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto p-4">
+                            <form method="GET" action="{{ route('search') }}">
+                                <input type="hidden" name="query" value="{{ $query }}">
+                                <input type="hidden" name="type" value="{{ $type }}">
+                                @foreach($categoryIds as $catId)
+                                    <input type="hidden" name="categories[]" value="{{ $catId }}">
+                                @endforeach
+                                {{-- Preserve OTHER attribute filters --}}
+                                @foreach($attributeFilters as $attrId => $options)
+                                    @if(!$sizeAttributes->contains('id', $attrId))
+                                        @foreach($options as $optionId)
+                                            <input type="hidden" name="attributes[{{ $attrId }}][]" value="{{ $optionId }}">
+                                        @endforeach
+                                    @endif
+                                @endforeach
+
+                                <div class="space-y-4">
+                                    @foreach($sizeAttributes as $attribute)
+                                        <div>
+                                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">{{ $attribute->name }}</h4>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                @foreach($attribute->options as $option)
+                                                    <label class="flex items-center text-sm cursor-pointer hover:text-teal-600">
+                                                        <input type="checkbox" name="attributes[{{ $attribute->id }}][]" value="{{ $option->id }}"
+                                                            {{ isset($attributeFilters[$attribute->id]) && in_array($option->id, $attributeFilters[$attribute->id]) ? 'checked' : '' }} 
+                                                            class="rounded text-teal-600 mr-2 border-gray-300 focus:ring-teal-500">
+                                                        <span>{{ $option->value }}</span>
+                                                    </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="mt-4 pt-3 border-t flex justify-end">
+                                     <button type="submit" class="text-xs font-bold text-white bg-teal-600 px-3 py-1.5 rounded hover:bg-teal-700">Apply</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Brand Filter --}}
+                @if($brands->isNotEmpty())
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50">
+                            <span>{{ __('Marque') }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                         <div x-show="open" @click.away="open = false" style="display: none;"
+                            class="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto">
+                            {{-- Placeholder for brand logic --}}
+                            <div class="p-4 text-sm text-gray-500">Brand filtering logic to be connected to Product query.</div>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Condition Filter --}}
+                @if(count($conditions) > 0)
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 {{ !empty($conditionsFilter) ? 'border-teal-600 ring-1 ring-teal-600' : '' }}">
+                            <span>{{ __('État') }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" @click.away="open = false" style="display: none;"
+                            class="absolute z-10 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-2">
+                            <form method="GET" action="{{ route('search') }}">
+                                <input type="hidden" name="query" value="{{ $query }}">
+                                <input type="hidden" name="type" value="{{ $type }}">
+                                @foreach($categoryIds as $catId)
+                                    <input type="hidden" name="categories[]" value="{{ $catId }}">
+                                @endforeach
+                                @foreach($attributeFilters as $attrId => $options)
+                                    @foreach($options as $optionId)
+                                        <input type="hidden" name="attributes[{{ $attrId }}][]" value="{{ $optionId }}">
+                                    @endforeach
+                                @endforeach
+
+                                @foreach($conditions as $condition)
+                                    <label class="flex items-center py-2 px-2 cursor-pointer hover:bg-gray-50 rounded">
+                                        <input type="checkbox" name="conditions[]" value="{{ $condition }}"
+                                            {{ in_array($condition, $conditionsFilter) ? 'checked' : '' }} 
+                                            class="rounded text-teal-600 mr-2 border-gray-300 focus:ring-teal-500" onchange="this.form.submit()">
+                                        <span class="capitalize">{{ str_replace('_', ' ', $condition) }}</span>
+                                    </label>
+                                @endforeach
+                            </form>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Color Filter --}}
+                @if($colorAttribute)
+                    <div x-data="{ open: false }" class="relative">
+                        <button @click="open = !open"
+                            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 {{ isset($attributeFilters[$colorAttribute->id]) ? 'border-teal-600 ring-1 ring-teal-600' : '' }}">
+                            <span>{{ __('Couleur') }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="open" @click.away="open = false" style="display: none;"
+                            class="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto p-3">
+                            <form method="GET" action="{{ route('search') }}">
+                                <input type="hidden" name="query" value="{{ $query }}">
+                                <input type="hidden" name="type" value="{{ $type }}">
+                                @foreach($categoryIds as $catId)
+                                    <input type="hidden" name="categories[]" value="{{ $catId }}">
+                                @endforeach
+                                @foreach($attributeFilters as $attrId => $options)
+                                    @if($attrId != $colorAttribute->id)
+                                        @foreach($options as $optionId)
+                                            <input type="hidden" name="attributes[{{ $attrId }}][]" value="{{ $optionId }}">
+                                        @endforeach
+                                    @endif
+                                @endforeach
+                                
+                                <div class="grid grid-cols-2 gap-2">
+                                    @foreach($colorAttribute->options as $option)
+                                        <label class="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                             <input type="checkbox" name="attributes[{{ $colorAttribute->id }}][]" value="{{ $option->id }}"
+                                                {{ isset($attributeFilters[$colorAttribute->id]) && in_array($option->id, $attributeFilters[$colorAttribute->id]) ? 'checked' : '' }} 
+                                                class="rounded text-teal-600 mr-2 border-gray-300 focus:ring-teal-500" onchange="this.form.submit()">
+                                             <div class="flex items-center gap-1">
+                                                 <span class="w-4 h-4 rounded-full border border-gray-200" style="background-color: {{ $option->value }}"></span>
+                                                 <span class="text-sm text-gray-700">{{ $option->name ?? $option->value }}</span>
+                                             </div>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                @endif
+                
+                {{-- Price Filter (Placeholder) --}}
+                <div x-data="{ open: false }" class="relative">
+                     <button @click="open = !open"
+                            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50">
+                            <span>{{ __('Prix') }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        {{-- Price filter UI content --}}
+                </div>
+
+                {{-- Other Attributes --}}
+                @foreach($otherAttributes as $attribute)
                     <div x-data="{ open: false }" class="relative">
                         <button @click="open = !open"
                             class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50">
@@ -37,7 +200,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
-                        <div x-show="open" @click.away="open = false"
+                        <div x-show="open" @click.away="open = false" style="display: none;"
                             class="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto">
                             <form method="GET" action="{{ route('search') }}">
                                 <input type="hidden" name="query" value="{{ $query }}">

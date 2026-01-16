@@ -14,6 +14,7 @@ class SearchController extends Controller
         $type = $request->input('type', 'product'); // Default to product
         $categoryIds = $request->input('categories', []);
         $attributeFilters = $request->input('attributes', []);
+        $conditionsFilter = $request->input('conditions', []);
 
         $results = collect();
         $categories = [];
@@ -74,6 +75,11 @@ class SearchController extends Controller
                 }
             }
 
+            // Condition Filter
+            if (!empty($conditionsFilter)) {
+                $productsQuery->whereIn('condition', $conditionsFilter);
+            }
+
             // Execute query
             $results = $productsQuery->latest()->paginate(20)
                 ->appends(['query' => $query, 'type' => $type, 'categories' => $categoryIds, 'attributes' => $attributeFilters]);
@@ -82,16 +88,51 @@ class SearchController extends Controller
             $categories = \App\Models\Category::with('children')->whereNull('parent_id')->get();
 
             // Get attributes logic
+            // Get attributes logic
+            $allAttributes = [];
             if (!empty($categoryIds)) {
-                $attributes = \App\Models\Attribute::whereHas('categories', function ($q) use ($categoryIds) {
+                $allAttributes = \App\Models\Attribute::whereHas('categories', function ($q) use ($categoryIds) {
                     $q->whereIn('categories.id', $categoryIds);
                 })->with('options')->get();
             } else {
-                $attributes = \App\Models\Attribute::with('options')->get();
+                $allAttributes = \App\Models\Attribute::with('options')->get();
             }
+
+            // Group Attributes
+            $sizeAttributes = $allAttributes->filter(function ($attr) {
+                return \Illuminate\Support\Str::startsWith($attr->code, 'size_group_') || $attr->code === 'sizes';
+            });
+
+            $colorAttribute = $allAttributes->firstWhere('type', 'color') ?? $allAttributes->firstWhere('code', 'colors');
+
+            // Fetch distinct product conditions for filter sidebar
+            $conditions = \App\Models\Product::whereNotNull('condition')->distinct()->pluck('condition');
+
+            // Brands - assuming Brand model is primary source, we fetch them separately
+            $brands = \App\Models\Brand::orderBy('name')->get();
+
+            // Other attributes (excluding sizes, color)
+            // Note: condition is now handled separately, so it's implicitly excluded from otherAttributes
+            $otherAttributes = $allAttributes->reject(function ($attr) use ($sizeAttributes, $colorAttribute) {
+                return $sizeAttributes->contains('id', $attr->id)
+                    || ($colorAttribute && $attr->id === $colorAttribute->id);
+            });
         }
 
-        return view('search.results', compact('results', 'query', 'type', 'categories', 'attributes', 'categoryIds', 'attributeFilters'));
+        return view('search.results', compact(
+            'results',
+            'query',
+            'type',
+            'categories',
+            'categoryIds',
+            'attributeFilters',
+            'conditionsFilter', // Pass the applied condition filters to the view
+            'sizeAttributes',
+            'colorAttribute',
+            'conditions', // Pass all available conditions to the view
+            'brands',
+            'otherAttributes'
+        ));
     }
     public function suggestions(Request $request)
     {
