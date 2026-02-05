@@ -20,7 +20,7 @@
                         class="p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors {{ $notification->read_at ? '' : 'bg-blue-50' }}">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
-                                <a href="{{ $notification->data['url'] ?? '#' }}" class="block">
+                                <a href="{{ route('notifications.read', $notification->id) }}" class="block">
                                     <p class="text-gray-800 font-medium">
                                         {{ $notification->data['message'] ?? 'New Notification' }}
                                     </p>

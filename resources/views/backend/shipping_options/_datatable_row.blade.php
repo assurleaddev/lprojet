@@ -24,6 +24,10 @@
             </span>
         @endif
     </td>
+    {{-- Price Column --}}
+    <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+        {{ number_format($option->price, 2) }} MAD
+    </td>
     {{-- Key Column --}}
     <td class="px-6 py-4 font-mono text-sm text-gray-500">
         {{ $option->key }}

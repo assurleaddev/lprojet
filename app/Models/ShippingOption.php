@@ -14,6 +14,7 @@ class ShippingOption extends Model
         'icon_class',
         'type',
         'is_active',
+        'price',
     ];
     //
 }

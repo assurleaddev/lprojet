@@ -79,7 +79,7 @@
                             </div>
                         @else
                             <div class="flex flex-col items-center justify-center">
-                                <div class="relative group w-full h-full">
+                                <div class="relative group w-full" style="height: {{ $height }}">
                                     <img src="{{ $existingMedia[0]['url'] ?? $existingMedia[0] }}"
                                          alt="{{ $existingMedia[0]['alt'] ?? '' }}"
                                          class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
@@ -94,7 +94,7 @@
                         @endif
                     @else
                         <div class="flex flex-col items-center justify-center">
-                            <div class="relative group w-full h-full">
+                            <div class="relative group w-full" style="height: {{ $height }}">
                                 <img src="{{ $existingMedia }}"
                                      alt="{{ $existingAltText }}"
                                      class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
@@ -134,7 +134,7 @@
                 <div x-show="!multiple">
                     <div class="flex flex-col items-center justify-center">
                         <template x-for="(media, index) in selectedMedia" :key="media.id">
-                            <div class="relative group w-full h-full">
+                            <div class="relative group w-full" style="height: {{ $height }}">
                                 <img :src="media.thumbnail_url || media.url"
                                      :alt="media.name"
                                      class="'w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"

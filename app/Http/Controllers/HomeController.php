@@ -83,8 +83,10 @@ class HomeController extends Controller
             'vendor.products.options',
             'vendor.products.category',
             'vendor.products.images',
+            'vendor.products.images',
             'category',
             'options',
+            'options.attribute',
             'images'
         ]);
 
@@ -102,10 +104,23 @@ class HomeController extends Controller
                 'images'
             ])
             ->take(20)
+            ->take(20)
             ->get();
+
+        // Build Breadcrumbs
+        $breadcrumbs = [];
+        $currentCategory = $product->category;
+
+        while ($currentCategory) {
+            $breadcrumbs[] = $currentCategory;
+            $currentCategory = $currentCategory->parent; // Assuming 'parent' relationship works
+        }
+        $breadcrumbs = array_reverse($breadcrumbs);
+
         return view('frontend.products.show', [
             'product' => $product,
             'similarProducts' => $similarProducts,
+            'breadcrumbs' => $breadcrumbs
         ]);
     }
 
@@ -178,6 +193,11 @@ class HomeController extends Controller
 
     public function toggleFavorite(Request $request, Product $product)
     {
+        // Prevent self-like
+        if (Auth::id() === $product->vendor_id) {
+            abort(422, 'You cannot like your own product.');
+        }
+
         // Toggle favorite for the authenticated user
         $product->toggleFavorite();
 
@@ -217,8 +237,42 @@ class HomeController extends Controller
 
     public function checkout(Product $product)
     {
+        $addresses = Auth::user()->addresses;
+        $allShippingOptions = \App\Models\ShippingOption::where('is_active', true)->get();
+
+        // Filter options based on Vendor preferences
+        $shippingOptions = $allShippingOptions->filter(function ($option) use ($product) {
+            // Default to enabled ('1') if not set
+            return $product->vendor->getMeta($option->key, '1') !== '0';
+        });
+
+        // If seller has no shipping options, use admin's default shipping options
+        if ($shippingOptions->isEmpty()) {
+            $defaultShippingIds = json_decode(config('settings.default_shipping_options', '[]'), true) ?? [];
+            if (!empty($defaultShippingIds)) {
+                $shippingOptions = $allShippingOptions->whereIn('id', $defaultShippingIds)->values();
+                \Log::info('Using default shipping options', [
+                    'default_ids' => $defaultShippingIds,
+                    'filtered_count' => $shippingOptions->count(),
+                    'options' => $shippingOptions->pluck('id', 'label')->toArray()
+                ]);
+            }
+        }
+
+        // Fee Settings
+        $buyerProtectionPercentage = config('settings.buyer_protection_fee_percentage', 5);
+        $buyerProtectionFixed = config('settings.buyer_protection_fee_fixed', 0.70);
+        $deliveryFeeFixed = config('settings.delivery_fee_fixed', 5.00);
+
+        // Calculate default protection fee
+        $protectionFee = ($product->price * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
+
         return view('frontend.products.checkout', [
             'product' => $product,
+            'addresses' => $addresses,
+            'shippingOptions' => $shippingOptions,
+            'protectionFee' => $protectionFee,
+            'deliveryFeeFixed' => $deliveryFeeFixed,
         ]);
     }
 
@@ -235,13 +289,32 @@ class HomeController extends Controller
         // --- Load Data ---
         $product = $offer->product;
         $priceToPay = $offer->offer_price;
+        $addresses = Auth::user()->addresses;
+        $allShippingOptions = \App\Models\ShippingOption::where('is_active', true)->get();
+
+        // Filter options based on Vendor preferences
+        $shippingOptions = $allShippingOptions->filter(function ($option) use ($product) {
+            return $product->vendor->getMeta($option->key, '1') !== '0';
+        });
+
+        // Fee Settings
+        $buyerProtectionPercentage = config('settings.buyer_protection_fee_percentage', 5);
+        $buyerProtectionFixed = config('settings.buyer_protection_fee_fixed', 0.70);
+        $deliveryFeeFixed = config('settings.delivery_fee_fixed', 5.00);
+
+        // Calculate default protection fee
+        $protectionFee = ($priceToPay * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
 
         // --- Display View ---
         // Ensure 'frontend.products.checkout' view exists
         return view('frontend.products.checkout', [
             'product' => $product,
             'checkoutPrice' => $priceToPay, // Use this variable in the view
-            'offer' => $offer
+            'offer' => $offer,
+            'addresses' => $addresses,
+            'shippingOptions' => $shippingOptions,
+            'protectionFee' => $protectionFee,
+            'deliveryFeeFixed' => $deliveryFeeFixed,
         ]);
     }
 

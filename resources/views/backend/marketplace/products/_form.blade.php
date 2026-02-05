@@ -3,7 +3,15 @@
         <div class="lg:col-span-4 space-y-6">
             <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 p-3 space-y-2 sm:p-4">
                 <div class="col-span-12">
-                    <x-media-selector name="featured_image" :label="__('Featured Image')" :model="$product ?? null" collection="featured" />
+                <div class="col-span-12">
+                     <x-media-selector 
+                        name="featured_image" 
+                        :label="__('Featured Image')" 
+                        :existingMedia="$featuredMedia ?? []"
+                        :existingAltText="$product->name ?? ''"
+                        height="300px"
+                    />
+                </div>
                 </div>
                 <x-media-selector
                     name="images"

@@ -185,8 +185,11 @@ class SearchController extends Controller
             $results = $categories->concat($products);
         } else {
             // Suggest Users
-            $results = User::where('username', 'like', "%{$query}%")
-                ->orWhere('first_name', 'like', "%{$query}%")
+            $results = User::where(function ($q) use ($query) {
+                $q->where('username', 'like', "%{$query}%")
+                    ->orWhere('first_name', 'like', "%{$query}%")
+                    ->orWhere('email', 'like', "%{$query}%");
+            })
                 ->limit(5)
                 ->get()
                 ->map(function ($user) {

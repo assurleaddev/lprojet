@@ -120,11 +120,23 @@ class ProductController extends Controller
                 'alt' => $media->getCustomProperty('alt') ?? $product->name,
             ];
         })->toArray();
+
+        // Retrieve featured image
+        $featuredMedia = [];
+        if ($media = $product->getFirstMedia('featured')) {
+            $featuredMedia[] = [
+                'id' => $media->id,
+                'url' => $media->getUrl(),
+                'alt' => $media->getCustomProperty('alt') ?? $product->name,
+            ];
+        }
+
         // dd($existingMedia);
         return view('backend.marketplace.products.edit', compact(
             'product',
             'categories',
             'existingMedia',
+            'featuredMedia',
             'brands'
         ));
     }
@@ -165,28 +177,59 @@ class ProductController extends Controller
             // Delete all old image records for this product
 
 
+            // Handle Featured Image
             if ($request->boolean('remove_featured_image')) {
                 $product->clearMediaCollection('featured');
-            }
-            // New upload provided
-            elseif ($request->hasFile('featured_image')) {
+            } elseif ($request->hasFile('featured_image')) {
+                // New file upload
                 $product->clearMediaCollection('featured');
                 $product->addMediaFromRequest('featured_image')->toMediaCollection('featured');
-            }
-            // Existing media id provided (same behavior as in store())
-            elseif ($request->filled('featured_image')) {
-                $product->clearMediaCollection('featured');
-                $this->mediaService->associateExistingMedia(
-                    $product,
-                    $request->input('featured_image'),
-                    'featured'
-                );
+            } elseif ($request->filled('featured_image')) {
+                // Existing media ID provided
+                $newFeaturedId = $request->input('featured_image');
+                $currentFeatured = $product->getFirstMedia('featured');
+
+                // Only update if it's different
+                if (!$currentFeatured || $currentFeatured->id != $newFeaturedId) {
+                    $product->clearMediaCollection('featured');
+                    $this->mediaService->associateExistingMedia(
+                        $product,
+                        $newFeaturedId,
+                        'featured'
+                    );
+                }
             }
 
+            // Handle Product Gallery Images
             if ($request->has('images')) {
-                $product->clearMediaCollection('products');
-                foreach ($request->input('images') as $mediaId) {
+                $newImageIds = $request->input('images');
+                $currentMedia = $product->getMedia('products');
+                $currentMediaIds = $currentMedia->pluck('id')->toArray();
+
+                // 1. Identify images to remove (present in current, missing in new)
+                $toRemove = array_diff($currentMediaIds, $newImageIds);
+                if (!empty($toRemove)) {
+                    $product->media()->whereIn('id', $toRemove)->delete();
+                }
+
+                // 2. Identify images to add (present in new, missing in current)
+                // Note: We don't filter by 'missing in current' solely because we might want to re-order, 
+                // but Spatie Media Library doesn't support explicit ordering via simple sync easily without custom 'order_column'.
+                // For now, let's just ensure we associate any that aren't currently associated.
+                // However, since associateExistingMedia typically moves/copies, we must be careful.
+                // If they are already associated, we don't need to re-associate TO THE SAME model.
+
+                $toAdd = array_diff($newImageIds, $currentMediaIds);
+                foreach ($toAdd as $mediaId) {
                     $this->mediaService->associateExistingMedia($product, $mediaId, 'products');
+                }
+
+                // Optional: Update order (if your MediaLibraryService or Model supports it)
+                // ProductImage::setNewOrder($newImageIds); // If using a specific model with sorting trait
+
+                // Manual ordering if needed by updating 'order_column'
+                if (count($newImageIds) > 0) {
+                    MLib::setNewOrder($newImageIds);
                 }
             }
         });

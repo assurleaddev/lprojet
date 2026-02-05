@@ -7,7 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewMessageNotification extends Notification
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class NewMessageNotification extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -22,7 +25,7 @@ class NewMessageNotification extends Notification
 
     public function via($notifiable)
     {
-        $channels = ['database'];
+        $channels = ['database', 'broadcast'];
 
         // Check if user wants notifications for new messages
         if ($notifiable->getMeta('notify_high_priority_messages', '1') !== '1') {
@@ -35,6 +38,17 @@ class NewMessageNotification extends Notification
         }
 
         return $channels;
+    }
+
+    public function toBroadcast($notifiable)
+    {
+        return new BroadcastMessage([
+            'type' => 'new_message',
+            'message_id' => $this->message->id,
+            'sender_id' => $this->sender->id,
+            'message' => "{$this->sender->full_name} sent you a message.",
+            'url' => route('chat.dashboard', ['id' => $this->message->conversation_id]),
+        ]);
     }
 
     public function toMail($notifiable)
@@ -57,3 +71,5 @@ class NewMessageNotification extends Notification
         ];
     }
 }
+
+

@@ -190,6 +190,7 @@ class ItemController extends Controller
                 'category_id' => $request->category_id,
                 'brand_id' => $request->brand_id,
                 'condition' => $request->condition,
+                'status' => 'pending',
             ]);
 
             // Flatten nested options array structure from frontend
@@ -227,7 +228,7 @@ class ItemController extends Controller
                 ]);
             }
 
-            return redirect()->route('products.show', $product)->with('success', 'Item updated successfully!');
+            return redirect()->route('home')->with('success', 'Item updated successfully! It is now pending review.');
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -278,7 +279,8 @@ class ItemController extends Controller
 
         $buyerId = null;
         if ($request->filled('username')) {
-            $user = \App\Models\User::where('name', $request->username)
+            $user = \App\Models\User::where('username', $request->username)
+                ->orWhere('first_name', $request->username) // Optional: also search first_name
                 ->orWhere('email', $request->username)
                 ->first();
 

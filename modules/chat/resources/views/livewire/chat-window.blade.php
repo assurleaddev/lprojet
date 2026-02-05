@@ -98,26 +98,28 @@
                 </div>
 
                 <div class="flex space-x-2">
-                    @if($conversation->product->status === 'approved')
-                        <button
-                            @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $conversation->product->id }} })"
-                            class="px-3 py-1 bg-white border border-teal-600 text-teal-600 text-sm font-medium rounded hover:bg-teal-50">
-                            Make Offer
-                        </button>
-                        <button
-                            @click="window.location.href='{{ route('product.checkout', $conversation->product) }}'"
-                            class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700">
-                            Buy Now
-                        </button>
-                    @else
-                       <button disabled
-                            class="px-3 py-1 bg-gray-100 border border-gray-300 text-gray-400 text-sm font-medium rounded cursor-not-allowed">
-                            Make Offer
-                        </button>
-                        <button disabled
-                            class="px-3 py-1 bg-gray-300 text-gray-500 text-sm font-medium rounded cursor-not-allowed">
-                            {{ ucfirst($conversation->product->status) }}
-                        </button>
+                    @if(auth()->id() !== $conversation->product->vendor_id)
+                        @if($conversation->product->status === 'approved')
+                            <button
+                                @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $conversation->product->id }} })"
+                                class="px-3 py-1 bg-white border border-teal-600 text-teal-600 text-sm font-medium rounded hover:bg-teal-50">
+                                Make Offer
+                            </button>
+                            <button
+                                @click="window.location.href='{{ route('product.checkout', $conversation->product) }}'"
+                                class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700">
+                                Buy Now
+                            </button>
+                        @else
+                           <button disabled
+                                class="px-3 py-1 bg-gray-100 border border-gray-300 text-gray-400 text-sm font-medium rounded cursor-not-allowed">
+                                Make Offer
+                            </button>
+                            <button disabled
+                                class="px-3 py-1 bg-gray-300 text-gray-500 text-sm font-medium rounded cursor-not-allowed">
+                                {{ ucfirst($conversation->product->status) }}
+                            </button>
+                        @endif
                     @endif
                 </div>
             </div>
@@ -496,7 +498,7 @@
                 </path>
             </svg>
             <div class="text-xs text-gray-600 dark:text-gray-300">
-                <span class="font-semibold">Stay safe on Vinted.</span> Don't share personal data, click on external
+                <span class="font-semibold">Stay safe on Used.</span> Don't share personal data, click on external
                 links, or scan QR codes.
                 <a href="#" class="text-teal-600 hover:underline">More safety tips</a>
             </div>

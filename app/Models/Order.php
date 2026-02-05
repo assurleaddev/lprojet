@@ -14,8 +14,15 @@ class Order extends Model
         'product_id',
         'vendor_id',
         'amount',
+        'shipping_cost',
+        'buyer_protection_fee',
+        'platform_commission',
+        'total_amount',
         'status',
-        'delivery_receipt_path'
+        'delivery_receipt_path',
+        'payment_method',
+        'address_id',
+        'shipping_option_id',
     ];
 
     protected $casts = [
@@ -38,5 +45,16 @@ class Order extends Model
     public function product()
     {
         return $this->belongsTo(Product::class);
+    }
+
+    // The delivery address for the order
+    public function address()
+    {
+        return $this->belongsTo(Address::class);
+    }
+
+    public function shippingOption()
+    {
+        return $this->belongsTo(ShippingOption::class);
     }
 }

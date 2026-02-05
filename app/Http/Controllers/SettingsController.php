@@ -168,6 +168,45 @@ class SettingsController extends Controller
         return back()->with('success', 'Address added successfully.');
     }
 
+    public function updateAddress(Request $request, Address $address)
+    {
+        // Ensure user owns the address
+        if ($address->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $request->validate([
+            'country' => 'required|string',
+            'full_name' => 'required|string',
+            'address_line_1' => 'required|string',
+            'address_line_2' => 'nullable|string',
+            'city' => 'required|string',
+            'postcode' => 'required|string',
+        ]);
+
+        $address->update([
+            'country' => $request->country,
+            'full_name' => $request->full_name,
+            'address_line_1' => $request->address_line_1,
+            'address_line_2' => $request->address_line_2,
+            'city' => $request->city,
+            'postcode' => $request->postcode,
+        ]);
+
+        return back()->with('success', 'Address updated successfully.');
+    }
+
+    public function deleteAddress(Address $address)
+    {
+        if ($address->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $address->delete();
+
+        return back()->with('success', 'Address deleted successfully.');
+    }
+
     public function notifications()
     {
         $user = auth()->user();

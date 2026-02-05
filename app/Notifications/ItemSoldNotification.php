@@ -40,7 +40,7 @@ class ItemSoldNotification extends Notification
             ->subject('Item Sold: ' . $this->order->product->name)
             ->line('Great news! ' . $this->buyer->full_name . ' has bought your item: ' . $this->order->product->name)
             ->line('Please download the shipping label and ship the item.')
-            ->action('View Order', route('chat.dashboard', ['id' => $this->order->product->conversations->where('user_two_id', $this->buyer->id)->first()->id ?? null]));
+            ->action('View Order', route('chat.dashboard'));
         // Note: Linking to chat is tricky if conversation ID isn't handy. 
         // Ideally we pass conversation or find it. 
         // For now, let's assume the user can find it in their inbox or we link to a "My Sales" page if it existed.

@@ -7,7 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OfferNotification extends Notification
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class OfferNotification extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -25,7 +28,7 @@ class OfferNotification extends Notification
 
     public function via($notifiable)
     {
-        $channels = ['database'];
+        $channels = ['database', 'broadcast'];
 
         // Check if user wants notifications for offers (treating as high priority messages)
         if ($notifiable->getMeta('notify_high_priority_messages', '1') !== '1') {
@@ -38,6 +41,23 @@ class OfferNotification extends Notification
         }
 
         return $channels;
+    }
+
+    public function toBroadcast($notifiable)
+    {
+        $message = match ($this->type) {
+            'received' => "New offer of $" . number_format($this->offer->offer_price, 2) . " on {$this->offer->product->name}",
+            'accepted' => "Your offer for {$this->offer->product->name} was accepted!",
+            'rejected' => "Your offer for {$this->offer->product->name} was rejected.",
+            default => "Offer update on {$this->offer->product->name}"
+        };
+
+        return new BroadcastMessage([
+            'type' => 'offer_' . $this->type,
+            'offer_id' => $this->offer->id,
+            'message' => $message,
+            'url' => route('chat.dashboard', ['id' => $this->offer->conversation_id]),
+        ]);
     }
 
     public function toDatabase($notifiable)

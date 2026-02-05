@@ -40,8 +40,16 @@ class Product extends Model implements HasMedia
             }
 
             // New Product Approval Notification
-            // Assuming 'status' changes to 'active' or 1 for approval
-            if ($product->isDirty('status') && $product->status == 'active' && $product->getOriginal('status') != 'active') {
+            if ($product->isDirty('status') && $product->status == 'approved' && $product->getOriginal('status') != 'approved') {
+                // Notify followers of the vendor
+                foreach ($product->vendor->followers as $follower) {
+                    $follower->notify(new \App\Notifications\NewProductNotification($product));
+                }
+            }
+        });
+
+        static::created(function ($product) {
+            if ($product->status == 'approved') {
                 // Notify followers of the vendor
                 foreach ($product->vendor->followers as $follower) {
                     $follower->notify(new \App\Notifications\NewProductNotification($product));
@@ -135,15 +143,26 @@ class Product extends Model implements HasMedia
         return $conversion ? $media->getUrl($conversion) : $media->getUrl();
     }
 
-    public function getColorAttribute(): ?string
+    public function getColorAttribute($value): ?string
     {
-        $colorOption = $this->options->firstWhere('attribute.name', 'Colors');
-        return $colorOption ? $colorOption->value : null;
+        if ($value)
+            return $value;
+        // Check for 'Couleurs' or 'Colors' or 'Color'
+        $colorOptions = $this->options->filter(function ($option) {
+            return in_array(optional($option->attribute)->name, ['Couleurs', 'Colors', 'Color', 'Couleur']);
+        });
+
+        return $colorOptions->isNotEmpty() ? $colorOptions->pluck('value')->implode(', ') : null;
     }
 
-    public function getSizeAttribute(): ?string
+    public function getSizeAttribute($value): ?string
     {
-        $sizeOption = $this->options->firstWhere('attribute.name', 'Size');
+        if ($value)
+            return $value;
+        // Check for 'Tailles' or 'Size' or 'Sizes'
+        $sizeOption = $this->options->first(function ($option) {
+            return in_array(optional($option->attribute)->name, ['Tailles', 'Size', 'Sizes', 'Taille']);
+        });
         return $sizeOption ? $sizeOption->value : null;
     }
 

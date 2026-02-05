@@ -185,6 +185,19 @@
                     attributesContainer.innerHTML = ''; // Clear existing
                     if (!categoryId) return Promise.resolve();
 
+                    // One-time listener for closing dropdowns
+                    if (!window.multiselectListenerAdded) {
+                        document.addEventListener('click', (e) => {
+                            document.querySelectorAll('.custom-multiselect-container .absolute').forEach(list => {
+                                const container = list.closest('.custom-multiselect-container');
+                                if (container && !container.contains(e.target)) {
+                                    list.classList.add('hidden');
+                                }
+                            });
+                        });
+                        window.multiselectListenerAdded = true;
+                    }
+
                     return fetch(`/items/categories/${categoryId}/attributes`)
                         .then(response => response.json())
                         .then(attributes => {
@@ -199,21 +212,81 @@
                                 div.appendChild(label);
 
                                 if (attr.type === 'color') {
-                                    // Render color swatches
-                                    const colorContainer = document.createElement('div');
-                                    colorContainer.className = 'flex flex-wrap gap-2';
-                                    (attr.options || []).forEach(option => {
-                                        const colorStyle = option.value.toLowerCase();
-                                        const labelEl = document.createElement('label');
-                                        labelEl.className = 'cursor-pointer group relative';
-                                        labelEl.innerHTML = `
-                                                                                    <input type="checkbox" name="options[${attr.id}][]" value="${option.id}" class="peer sr-only color-option">
-                                                                                    <div class="w-10 h-10 rounded-full border-2 border-gray-300 peer-checked:ring-2 peer-checked:ring-offset-2 peer-checked:ring-teal-500 shadow-sm transition" style="background-color: ${colorStyle};"></div>
-                                                                                    <span class="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none">${option.value}</span>
-                                                                                `;
-                                        colorContainer.appendChild(labelEl);
+                                    // Custom Multi-select Dropdown for Colors (Max 2)
+                                    const dropdown = document.createElement('div');
+                                    dropdown.className = 'relative custom-multiselect-container';
+
+                                    // Toggle Button
+                                    const btn = document.createElement('button');
+                                    btn.type = 'button';
+                                    btn.className = 'w-full border border-gray-300 rounded-md p-2.5 text-left bg-white flex justify-between items-center focus:ring-teal-500 focus:border-teal-500';
+                                    btn.innerHTML = `<span class="truncate text-gray-500">Select ${attrName} (Max 2)</span>
+                                                             <svg class="w-4 h-4 text-gray-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
+
+                                    // Dropdown List
+                                    const list = document.createElement('div');
+                                    list.className = 'absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto hidden';
+
+                                    btn.addEventListener('click', (e) => {
+                                        // Toggle visibility
+                                        const isHidden = list.classList.contains('hidden');
+                                        // Close others
+                                        document.querySelectorAll('.custom-multiselect-container .absolute').forEach(el => el.classList.add('hidden'));
+                                        if (isHidden) list.classList.remove('hidden');
                                     });
-                                    div.appendChild(colorContainer);
+
+                                    // Options
+                                    (attr.options || []).forEach(option => {
+                                        const row = document.createElement('label');
+                                        row.className = 'flex items-center px-4 py-2 hover:bg-teal-50 cursor-pointer border-b border-gray-50 last:border-0';
+
+                                        const checkbox = document.createElement('input');
+                                        checkbox.type = 'checkbox';
+                                        checkbox.name = `options[${attr.id}][]`;
+                                        checkbox.value = option.id;
+                                        checkbox.className = 'w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 mr-3 color-checkbox';
+                                        checkbox.dataset.label = option.value;
+
+                                        checkbox.addEventListener('change', () => {
+                                            const checked = list.querySelectorAll('input[type="checkbox"]:checked');
+
+                                            if (checked.length > 2) {
+                                                checkbox.checked = false;
+                                                alert('You can select a maximum of 2 colors.');
+                                                return;
+                                            }
+
+                                            // Update Button Text
+                                            if (checked.length > 0) {
+                                                const names = Array.from(checked).map(c => c.dataset.label);
+                                                btn.querySelector('span').innerText = names.join(', ');
+                                                btn.querySelector('span').classList.remove('text-gray-500');
+                                                btn.querySelector('span').classList.add('text-gray-900');
+                                            } else {
+                                                btn.querySelector('span').innerText = `Select ${attrName} (Max 2)`;
+                                                btn.querySelector('span').classList.remove('text-gray-900');
+                                                btn.querySelector('span').classList.add('text-gray-500');
+                                            }
+                                        });
+
+                                        const colorCircle = document.createElement('span');
+                                        colorCircle.className = 'w-6 h-6 rounded-full border border-gray-200 mr-3';
+                                        colorCircle.style.backgroundColor = option.value.toLowerCase();
+
+                                        const text = document.createElement('span');
+                                        text.className = 'text-sm text-gray-700';
+                                        text.innerText = option.value;
+
+                                        row.appendChild(checkbox);
+                                        row.appendChild(colorCircle);
+                                        row.appendChild(text);
+                                        list.appendChild(row);
+                                    });
+
+                                    dropdown.appendChild(btn);
+                                    dropdown.appendChild(list);
+                                    div.appendChild(dropdown);
+
                                 } else if (attr.type === 'radio') {
                                     // Render radio buttons
                                     const radioContainer = document.createElement('div');
@@ -222,9 +295,9 @@
                                         const labelEl = document.createElement('label');
                                         labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-teal-50 transition cursor-pointer';
                                         labelEl.innerHTML = `
-                                                                                    <input type="radio" name="options[${attr.id}]" value="${option.id}" class="form-radio text-teal-600 focus:ring-teal-500">
-                                                                                    <span class="text-sm">${option.value}</span>
-                                                                                `;
+                                                                                            <input type="radio" name="options[${attr.id}]" value="${option.id}" class="form-radio text-teal-600 focus:ring-teal-500">
+                                                                                            <span class="text-sm">${option.value}</span>
+                                                                                        `;
                                         radioContainer.appendChild(labelEl);
                                     });
                                     div.appendChild(radioContainer);
@@ -312,11 +385,11 @@
                             div.dataset.index = file.tempId;
 
                             div.innerHTML = `
-                                                                                                                                        <img src="${e.target.result}" class="w-full h-full object-cover">
-                                                                                                                                        <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
-                                                                                                                                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                                                                                                        </button>
-                                                                                                                                    `;
+                                                                                                                                                <img src="${e.target.result}" class="w-full h-full object-cover">
+                                                                                                                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
+                                                                                                                                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                                                                                                </button>
+                                                                                                                                            `;
 
                             // Insert before the upload button
                             document.getElementById('drop-zone').insertBefore(div, document.getElementById('upload-btn-container'));
@@ -459,12 +532,12 @@
                             const div = document.createElement('div');
                             div.className = 'preview-item w-32 h-32 relative border border-gray-200 rounded overflow-hidden group';
                             div.innerHTML = `
-                                                                                <img src="${imageUrl}" class="w-full h-full object-cover">
-                                                                                <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
-                                                                                    From original
-                                                                                </div>
-                                                                                <input type="hidden" name="duplicate_images[]" value="${imageUrl}">
-                                                                            `;
+                                                                                            <img src="${imageUrl}" class="w-full h-full object-cover">
+                                                                                            <div class="absolute top-1 right-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                                                                                                From original
+                                                                                            </div>
+                                                                                            <input type="hidden" name="duplicate_images[]" value="${imageUrl}">
+                                                                                        `;
                             const uploadBtnContainer = dropZone.querySelector('.upload-btn-container'); // Need class check, previously ID logic was used
                             if (uploadBtnContainer) {
                                 dropZone.insertBefore(div, uploadBtnContainer);
@@ -475,7 +548,7 @@
                         });
                     }
                 @endif
-                                            });
+                                                    });
         </script>
     @endpush
 

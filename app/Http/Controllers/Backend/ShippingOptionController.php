@@ -35,7 +35,9 @@ class ShippingOptionController extends Controller
             'key' => 'required|string|unique:shipping_options,key',
             'icon_class' => 'nullable|string',
             'is_active' => 'boolean',
+            'is_active' => 'boolean',
             'logo' => 'nullable|image|max:1024',
+            'price' => 'required|numeric|min:0',
         ]);
 
         $validated['is_active'] = $request->has('is_active');
@@ -72,6 +74,7 @@ class ShippingOptionController extends Controller
             'icon_class' => 'nullable|string',
             'is_active' => 'boolean',
             'logo' => 'nullable|image|max:1024',
+            'price' => 'required|numeric|min:0',
         ]);
 
         $validated['is_active'] = $request->has('is_active');

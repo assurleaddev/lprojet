@@ -14,7 +14,7 @@ class OrderController extends Controller
         // Add constructor to apply permissions to all methods
         $this->authorizeResource(Order::class, 'order');
     }
-    
+
     public function index()
     {
         $this->authorize('viewAny', Order::class);
@@ -36,7 +36,7 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
         // Load the single product and related users
-        $order->load('product', 'user', 'vendor'); 
+        $order->load('product', 'user', 'vendor', 'address');
         return view('backend.marketplace.orders.show', compact('order'));
     }
 
@@ -45,7 +45,7 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         $request->validate(['status' => 'required|in:pending,processing,shipped,delivered,cancelled']);
-        
+
         $order->update(['status' => $request->status]);
 
         return back()->with('success', 'Order status updated successfully.');
@@ -69,7 +69,7 @@ class OrderController extends Controller
 
         $path = $request->file('receipt')->store('receipts', 'public');
         $order->update(['delivery_receipt_path' => $path]);
-        
+
         return back()->with('success', 'Delivery receipt uploaded successfully.');
     }
 }

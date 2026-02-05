@@ -8,7 +8,7 @@
                 <div class="bg-white rounded-lg shadow-sm p-6">
                     <h2 class="text-lg font-semibold text-gray-800 mb-4">My Wallet</h2>
                     <div class="flex items-baseline gap-2 mb-6">
-                        <span class="text-3xl font-bold text-gray-900">£{{ number_format($wallet->balance, 2) }}</span>
+                        <span class="text-3xl font-bold text-gray-900">{{ number_format($wallet->balance, 2) }} MAD</span>
                         <span class="text-sm text-gray-500">Available Balance</span>
                     </div>
 
@@ -26,10 +26,10 @@
                             @foreach($withdrawalRequests as $request)
                                         <div class="border-b border-gray-100 last:border-0 pb-3 last:pb-0">
                                             <div class="flex justify-between items-center">
-                                                <span class="font-medium">£{{ number_format($request->amount, 2) }}</span>
+                                                <span class="font-medium">{{ number_format($request->amount, 2) }} MAD</span>
                                                 <span
                                                     class="px-2 py-1 text-xs rounded-full 
-                                                                        {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' :
+                                                                                            {{ $request->status === 'approved' ? 'bg-green-100 text-green-800' :
                                 ($request->status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800') }}">
                                                     {{ ucfirst($request->status) }}
                                                 </span>
@@ -77,7 +77,8 @@
                                         </td>
                                         <td
                                             class="px-6 py-4 text-right font-medium {{ $transaction->amount > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                            {{ $transaction->amount > 0 ? '+' : '' }}£{{ number_format($transaction->amount, 2) }}
+                                            {{ $transaction->amount > 0 ? '+' : '' }}{{ number_format($transaction->amount, 2) }}
+                                            MAD
                                         </td>
                                     </tr>
                                 @empty
@@ -116,7 +117,7 @@
                 @csrf
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount (£)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount (MAD)</label>
                         <input type="number" name="amount" step="0.01" min="1" max="{{ $wallet->balance }}" required
                             class="w-full rounded-lg border-gray-300 focus:border-vinted-teal focus:ring-vinted-teal">
                     </div>

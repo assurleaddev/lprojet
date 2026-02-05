@@ -100,6 +100,7 @@ class ProductDatatable extends Datatable
     {
         return [
             ['id' => 'name', 'title' => __('Name'), 'sortable' => true, 'sortBy' => 'name'],
+            ['id' => 'vendor', 'title' => __('Vendor'), 'sortable' => false],
             ['id' => 'category', 'title' => __('Category'), 'sortable' => false],
             ['id' => 'price', 'title' => __('Price'), 'sortable' => true, 'sortBy' => 'price'],
             [
@@ -126,7 +127,7 @@ class ProductDatatable extends Datatable
         $user = Auth::user();
 
         $query = QueryBuilder::for($this->model)
-            ->with('category');
+            ->with(['category', 'vendor']);
 
         // Role-based product visibility
         if (!$user->hasRole(['admin', 'Superadmin'])) {
@@ -173,6 +174,12 @@ class ProductDatatable extends Datatable
         </div>
         <?php
         return ob_get_clean();
+    }
+    public function renderVendorColumn(Product $product): string
+    {
+        if (!$product->vendor)
+            return 'N/A';
+        return '<span class="text-gray-600 dark:text-gray-300 font-medium text-sm">' . $product->vendor->username . '</span>';
     }
     public function renderAfterActionEdit($product): string|Renderable
     {

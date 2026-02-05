@@ -82,7 +82,7 @@ class SettingController extends Controller
                 continue;
             }
 
-            if (! isset($fields[$checkboxField]) && $request->has('_token')) {
+            if (!isset($fields[$checkboxField]) && $request->has('_token')) {
                 // If the form was submitted but checkbox wasn't checked, set to 0
                 $fields[$checkboxField] = '0';
             }
@@ -99,6 +99,15 @@ class SettingController extends Controller
                 $validPages = array_keys($this->recaptchaService::getAvailablePages());
                 $enabledPages = array_intersect($enabledPages, $validPages);
                 $this->settingService->addSetting($fieldName, json_encode(array_values($enabledPages)));
+            } elseif ($fieldName === 'default_shipping_options') {
+                // Handle default shipping options checkboxes
+                $selectedOptions = $request->input('default_shipping_options', []);
+                // Validate against existing shipping options
+                $validOptions = \App\Models\ShippingOption::whereIn('id', $selectedOptions)
+                    ->where('is_active', true)
+                    ->pluck('id')
+                    ->toArray();
+                $this->settingService->addSetting($fieldName, json_encode(array_values($validOptions)));
             } else {
                 $this->settingService->addSetting($fieldName, $fieldValue);
             }

@@ -232,6 +232,11 @@ class User extends Authenticatable
         $meta = $this->userMeta->where('meta_key', $key)->first();
         return $meta ? $meta->meta_value : $default;
     }
+    public function addresses()
+    {
+        return $this->hasMany(Address::class);
+    }
+
     /**
      * Generate and save a new verification code.
      */
@@ -243,5 +248,18 @@ class User extends Authenticatable
         $this->save();
 
         return $code;
+    }
+    /**
+     * Get the count of unread messages for this user.
+     */
+    public function unreadMessagesCount()
+    {
+        return \Modules\Chat\Models\Message::whereNull('read_at')
+            ->where('user_id', '!=', $this->id)
+            ->whereHas('conversation', function ($query) {
+                $query->where('user_one_id', $this->id)
+                    ->orWhere('user_two_id', $this->id);
+            })
+            ->count();
     }
 }

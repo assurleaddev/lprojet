@@ -25,6 +25,15 @@ class AppServiceProvider extends ServiceProvider
         if (PHP_VERSION_ID >= 80400) {
             error_reporting(E_ALL & ~E_DEPRECATED);
         }
+
+        // Disable SSL verification for local development (fixes Pusher SSL errors)
+        if (config('app.env') === 'local') {
+            $this->app->bind(\GuzzleHttp\Client::class, function () {
+                return new \GuzzleHttp\Client([
+                    'verify' => false,
+                ]);
+            });
+        }
     }
 
     /**
@@ -33,6 +42,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Digikraaft\ReviewRating\Models\Review::observe(\App\Observers\ReviewObserver::class);
+        \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \Illuminate\Pagination\Paginator::useBootstrap();
 
         // Handle "/" route redirection.

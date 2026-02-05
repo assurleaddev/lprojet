@@ -1,15 +1,271 @@
-﻿DEBUG: All delivered orders count: 13
-ID: 1, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 5, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 7, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 13, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 15, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 16, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 23, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 27, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 33, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 39, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 41, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 42, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-ID: 44, Rec: , Cutoff: 2025-12-17 19:17:08, Eligible: YES
-Found 0 orders eligible for auto-review.
+All Active Shipping Options:
+[
+    {
+        "id": 1,
+        "key": "shipping_inpost_locker",
+        "label": "tawsil",
+        "price": "35.00",
+        "logo_path": "shipping_logos\/yYbyczpXwktBSHGspx5V9nHQ4N9PhWcEEyZ3SzeX.png",
+        "description": "Prepaid label. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-yellow-400",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:58:26.000000Z"
+    },
+    {
+        "id": 2,
+        "key": "shipping_dpd_pickup",
+        "label": "DPD Pickup",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Prepaid drop-off QR code. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-red-600",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 3,
+        "key": "shipping_evri_home",
+        "label": "Evri",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Home collection. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-blue-600",
+        "type": "home_pickup",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 4,
+        "key": "shipping_evri_parcelshop",
+        "label": "Evri ParcelShop",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Prepaid label. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-blue-400",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 5,
+        "key": "shipping_inpost_home",
+        "label": "InPost Home Delivery",
+        "price": "15.00",
+        "logo_path": null,
+        "description": "Prepaid label (print-at-home only). Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-yellow-400",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:55:29.000000Z"
+    },
+    {
+        "id": 6,
+        "key": "shipping_relay_home",
+        "label": "Relay Home Delivery",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Prepaid drop-off QR code. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-black",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 7,
+        "key": "shipping_relay_pickup",
+        "label": "Relay Shop Pick-up",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Prepaid drop-off QR code. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-black",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 8,
+        "key": "shipping_royal_mail",
+        "label": "Royal Mail",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Home collection. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-red-600",
+        "type": "home_pickup",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 9,
+        "key": "shipping_yodel_door",
+        "label": "Yodel Store to Door",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Prepaid label. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-green-500",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 10,
+        "key": "shipping_yodel_store",
+        "label": "Yodel Store to Store",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Prepaid label. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-green-500",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 11,
+        "key": "shipping_anyvan",
+        "label": "AnyVan",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Home to home delivery. Includes tracking.",
+        "icon_class": "bg-blue-500",
+        "type": "home_pickup",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 12,
+        "key": "shipping_yodel_door_to_door",
+        "label": "Yodel Door to Door",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Prepaid label (print-at-home only). Parcel collected from your address.",
+        "icon_class": "bg-green-500",
+        "type": "home_pickup",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 13,
+        "key": "shipping_yodel_home",
+        "label": "Yodel Direct",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Home collection. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-green-600",
+        "type": "home_pickup",
+        "is_active": 1,
+        "created_at": "2025-12-16T14:54:49.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 14,
+        "key": "shipping_dpd",
+        "label": "DPD",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Home collection. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-red-500",
+        "type": "home_pickup",
+        "is_active": 1,
+        "created_at": "2025-12-16T14:54:49.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 15,
+        "key": "shipping_evri_shop",
+        "label": "Evri",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "ParcelShop drop-off. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-blue-600",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-16T14:54:49.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 16,
+        "key": "shipping_yodel_shop",
+        "label": "Yodel Direct",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Store drop-off. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-green-600",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-16T14:54:49.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 17,
+        "key": "shipping_inpost",
+        "label": "InPost",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Locker drop-off. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-yellow-400",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-16T14:54:49.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    },
+    {
+        "id": 18,
+        "key": "shipping_ups",
+        "label": "UPS",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Access Point\u2122 drop-off. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-amber-700",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-16T14:54:49.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    }
+]
+
+Default Shipping IDs from config:
+[1,3]
+
+Filtered using whereIn on Collection:
+Count: 2
+[
+    {
+        "id": 1,
+        "key": "shipping_inpost_locker",
+        "label": "tawsil",
+        "price": "35.00",
+        "logo_path": "shipping_logos\/yYbyczpXwktBSHGspx5V9nHQ4N9PhWcEEyZ3SzeX.png",
+        "description": "Prepaid label. Find your nearest drop-off point <a href=\"#\" class=\"underline\">here<\/a>.",
+        "icon_class": "bg-yellow-400",
+        "type": "drop_off",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:58:26.000000Z"
+    },
+    {
+        "id": 3,
+        "key": "shipping_evri_home",
+        "label": "Evri",
+        "price": "27.00",
+        "logo_path": null,
+        "description": "Home collection. <a href=\"#\" class=\"underline\">Learn more<\/a>",
+        "icon_class": "bg-blue-600",
+        "type": "home_pickup",
+        "is_active": 1,
+        "created_at": "2025-12-02T14:32:37.000000Z",
+        "updated_at": "2026-01-26T19:54:05.000000Z"
+    }
+]

@@ -7,7 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class NewProductNotification extends Notification
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class NewProductNotification extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -23,7 +26,7 @@ class NewProductNotification extends Notification
 
     public function via($notifiable)
     {
-        $channels = ['database'];
+        $channels = ['database', 'broadcast'];
 
         // Check if user wants notifications for new items
         if ($notifiable->getMeta('notify_new_items', '1') !== '1') {
@@ -38,6 +41,17 @@ class NewProductNotification extends Notification
         return $channels;
     }
 
+    public function toBroadcast($notifiable)
+    {
+        return new BroadcastMessage([
+            'type' => 'new_product',
+            'product_id' => $this->product->id,
+            'vendor_id' => $this->product->vendor_id,
+            'message' => "New product from {$this->product->vendor->full_name}: {$this->product->name}",
+            'url' => route('products.show', $this->product),
+        ]);
+    }
+
     public function toDatabase($notifiable)
     {
         return [
@@ -45,7 +59,16 @@ class NewProductNotification extends Notification
             'product_id' => $this->product->id,
             'vendor_id' => $this->product->vendor_id,
             'message' => "New product from {$this->product->vendor->full_name}: {$this->product->name}",
-            'url' => route('products.show', $this->product->slug), // Assuming route exists
+            'url' => route('products.show', $this->product),
         ];
+    }
+
+    public function toMail($notifiable)
+    {
+        return (new MailMessage)
+            ->subject("New Product from " . $this->product->vendor->full_name)
+            ->line("{$this->product->vendor->full_name} has just uploaded a new item: {$this->product->name}")
+            ->action('View Product', route('products.show', $this->product))
+            ->line('Check it out before it\'s gone!');
     }
 }

@@ -60,6 +60,23 @@
                 <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
             @enderror
         </div>
+        <!-- Price -->
+        <div>
+            <label for="price" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                {{ __('Price') }} <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+                <input type="number" step="0.01" min="0" name="price" id="price"
+                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                    placeholder="25.00" value="{{ old('price', $shippingOption->price ?? '0.00') }}" required>
+                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <span class="text-gray-500 sm:text-sm">MAD</span>
+                </div>
+            </div>
+            @error('price')
+                <p class="mt-2 text-sm text-red-600 dark:text-red-500">{{ $message }}</p>
+            @enderror
+        </div>
     </div>
 
     <!-- Right Column -->
@@ -129,11 +146,11 @@
 
 <script>
     // Simple preview script
-    document.getElementById('logo_input').addEventListener('change', function (event ) {
+    document.getElementById('logo_input').addEventListener('change', function (event) {
         const file = event.target.files[0];
         if (file) {
             const reader = new FileReader();
-            reader.onload = function (e) { 
+            reader.onload = function (e) {
                 // Find or create preview
                 let container = event.target.closest('label').querySelector('div');
                 container.innerHTML = `<img src="${e.target.result}" class="h-16 object-contain mb-2"><p class="mb-2 text-sm text-gray-500">Selected: ${file.name}</p>`;

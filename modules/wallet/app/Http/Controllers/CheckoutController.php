@@ -50,14 +50,44 @@ class CheckoutController extends Controller
         }
 
         // --- Fee Calculation ---
-        $shippingCost = 5.00; // Fixed for now, or calculate based on product/location
-        $buyerProtectionFee = ($amount * 0.05) + 0.70; // 5% + $0.70 fixed
+        $shippingCost = config('settings.delivery_fee_fixed', 5.00);
+
+        // If a valid shipping option is provided, use its price
+        if ($request->has('shipping_option_id')) {
+            $shippingOption = \App\Models\ShippingOption::find($request->shipping_option_id);
+            if ($shippingOption && $shippingOption->is_active) {
+                // Check if vendor has enabled this option
+                // Default to true ('1') if not set
+                $vendorPref = $vendor->getMeta($shippingOption->key, '1');
+
+                if ($vendorPref !== '0') {
+                    $shippingCost = $shippingOption->price;
+                } else {
+                    // Option disabled by vendor
+                    return back()->with('error', 'This shipping option is not supported by the seller.');
+                }
+            } else {
+                return back()->with('error', 'Invalid shipping option.');
+            }
+        }
+
+        $buyerProtectionPercentage = config('settings.buyer_protection_fee_percentage', 5);
+        $buyerProtectionFixed = config('settings.buyer_protection_fee_fixed', 0.70);
+        $platformCommissionPercentage = config('settings.platform_commission_percentage', 0);
+
+        $buyerProtectionFee = ($amount * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
+        $platformCommission = $amount * ($platformCommissionPercentage / 100);
+
         $totalAmount = $amount + $shippingCost + $buyerProtectionFee;
+
+        // Vendor Payout = Item Price - Commission
+        $vendorPayout = $amount - $platformCommission;
 
         if ($paymentMethod === 'wallet') {
             try {
                 // Use Escrow Payment
-                $this->walletService->payToEscrow($user, $vendor, $totalAmount, $amount, 'Order #' . time());
+                // Pay to Escrow: User pays Total, Vendor gets Pending Payout
+                $this->walletService->payToEscrow($user, $vendor, $totalAmount, $vendorPayout, 'Order #' . time());
             } catch (\Exception $e) {
                 return back()->with('error', $e->getMessage());
             }
@@ -67,7 +97,7 @@ class CheckoutController extends Controller
 
             // Credit Vendor Wallet Pending Balance
             $vendorWallet = $this->walletService->getWallet($vendor);
-            $vendorWallet->pending_balance += $amount;
+            $vendorWallet->pending_balance += $vendorPayout;
             $vendorWallet->save();
         } elseif ($paymentMethod === 'cod') {
             // Cash on Delivery
@@ -82,22 +112,26 @@ class CheckoutController extends Controller
             'amount' => $amount, // Item price
             'shipping_cost' => $shippingCost,
             'buyer_protection_fee' => $buyerProtectionFee,
+            'platform_commission' => $platformCommission,
             'total_amount' => $totalAmount,
             'status' => 'processing', // Paid via wallet, so processing
-            'delivery_receipt_path' => null, // or whatever
+            'delivery_receipt_path' => null,
+            'payment_method' => $paymentMethod,
+            'address_id' => $request->address_id,
+            'shipping_option_id' => $request->shipping_option_id ?? null,
         ]);
 
         if ($paymentMethod === 'cod') {
-            $order->status = 'pending_payment'; // Or whatever status for COD
+            $order->status = 'pending'; // COD orders start as pending
             $order->save();
         }
 
+
         // --- Vinted-like Flow Updates ---
 
-        // 1. Mark Product as Sold
-        $product->update(['status' => 'sold']);
+        // Product status is now automatically set to 'sold' by OrderObserver
 
-        // 2. Notify Vendor via Chat
+        // 1. Notify Vendor via Chat
         $chatService = app(\Modules\Chat\Services\ChatService::class);
 
         // Ensure conversation exists

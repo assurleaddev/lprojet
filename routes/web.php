@@ -61,6 +61,7 @@ Route::post('/users/{user}/block', [App\Http\Controllers\BlockUserController::cl
 Route::get('/users/{user}/followers', [HomeController::class, 'followers'])->name('users.followers');
 Route::get('/users/{user}/following', [HomeController::class, 'following'])->name('users.following');
 Route::get('/favorites', [HomeController::class, 'favorites'])->middleware('auth')->name('favorites.index');
+Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->middleware('auth')->name('orders.index');
 
 Route::get('/product/{product}', [HomeController::class, 'checkout'])
     ->middleware('auth')
@@ -99,8 +100,12 @@ Route::get('/notifications', [App\Http\Controllers\NotificationController::class
     ->middleware('auth')
     ->name('notifications.index');
 
+Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationController::class, 'read'])
+    ->middleware('auth')
+    ->name('notifications.read');
+
 Route::get('/search/suggestions', [App\Http\Controllers\SearchController::class, 'suggestions'])->name('search.suggestions');
-Route::get('/search', [App\Http\Controllers\SearchController::class, 'index'])->name('search');
+Route::get('/search', App\Livewire\SearchComponent::class)->name('search');
 
 Route::get('/settings/profile', [App\Http\Controllers\SettingsController::class, 'profile'])
     ->middleware('auth')
@@ -129,6 +134,12 @@ Route::post('/settings/postage', [App\Http\Controllers\SettingsController::class
 Route::post('/settings/address', [App\Http\Controllers\SettingsController::class, 'storeAddress'])
     ->middleware('auth')
     ->name('settings.address.store');
+Route::put('/settings/address/{address}', [App\Http\Controllers\SettingsController::class, 'updateAddress'])
+    ->middleware('auth')
+    ->name('settings.address.update');
+Route::delete('/settings/address/{address}', [App\Http\Controllers\SettingsController::class, 'deleteAddress'])
+    ->middleware('auth')
+    ->name('settings.address.delete');
 
 Route::get('/settings/notifications', [App\Http\Controllers\SettingsController::class, 'notifications'])
     ->middleware('auth')

@@ -9,15 +9,17 @@
                     src="{{ $product->getFeaturedImageUrl('preview') }}" class="lazy product-image"
                     alt="{{ $product->name }}">
             </a>
-            <button class="fav-badge" aria-label="Favourite" data-id="{{ $product->id }}"
-                data-url="{{ route('products.favorite', $product) }}">
-                <svg viewBox="0 0 24 24"
-                    class="{{ $product->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
-                    <path
-                        d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z" />
-                </svg>
-                <span>{{ $product->favoritedBy()->count() }}</span>
-            </button>
+            @if(auth()->id() !== $product->vendor_id)
+                <button class="fav-badge" aria-label="Favourite" data-id="{{ $product->id }}"
+                    data-url="{{ route('products.favorite', $product) }}">
+                    <svg viewBox="0 0 24 24"
+                        class="{{ $product->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                        <path
+                            d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z" />
+                    </svg>
+                    <span>{{ $product->favoritedBy()->count() }}</span>
+                </button>
+            @endif
         </div>
         <a href="{{ route('products.show', $product) }}" class="block cursor-pointer">
             <div class="pt-1.5">
