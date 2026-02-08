@@ -62,8 +62,6 @@ class ChatWindow extends Component
 
     // File Uploads
     use \Livewire\WithFileUploads;
-    // File Uploads
-    use \Livewire\WithFileUploads;
     public $attachments = []; // For the file input (multiple)
 
     public bool $showRejectionModal = false;
@@ -108,7 +106,6 @@ class ChatWindow extends Component
         if (!$user) {
             Log::error("ChatWindow: User not authenticated while trying to load conversation {$this->conversationId}");
             $this->messages = [];
-            $this->conversation = null; // Ensure conversation is null if user isn't auth'd
             return;
         }
 
@@ -292,7 +289,6 @@ class ChatWindow extends Component
 
         $this->reset(['messageBody', 'attachments']); // Reset attachments
         $this->dispatch('message-sent', conversationId: $this->conversationId);
-        $this->dispatch('refresh-dashboard');
     }
 
     public function removeAttachment($index)
