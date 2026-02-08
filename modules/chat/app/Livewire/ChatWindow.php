@@ -175,6 +175,9 @@ class ChatWindow extends Component
         Log::debug("ChatWindow: refreshMessages triggered for Conversation {$this->conversationId}");
         $this->loadConversation($chatService);
         $this->dispatch('message-received', conversationId: $this->conversationId);
+
+        // Notify Parent Dashboard to refresh sidebar (unread dots, last message preview)
+        $this->dispatch('refresh-dashboard');
     }
 
     public function refreshReadStatus(): void

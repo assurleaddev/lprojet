@@ -95,35 +95,18 @@ class ChatDashboard extends Component
         }
     }
 
-    #[\Livewire\Attributes\On('refresh-dashboard')]
+    #[On('refresh-dashboard')]
     public function refreshDashboard(): void
     {
-        // Re-renders the component to update conversation list (e.g. last message, unread status)
-        Log::debug("ChatDashboard: refreshDashboard triggered manually.");
+        // Re-renders sidebar to update conversation previews & unread dots
+        Log::debug("ChatDashboard: refreshDashboard triggered.");
     }
 
     public function getListeners()
     {
-        $authId = Auth::id();
         return [
-            "echo-private:App.Models.User.{$authId},.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated" => 'handleNotification',
+            'refresh-dashboard' => 'refreshDashboard',
         ];
-    }
-
-    public function handleNotification($data): void
-    {
-        Log::debug("ChatDashboard: Notification received via Echo", ['data' => $data]);
-
-        // If the notification has a conversation ID, we can check if it's the current one
-        $convoId = null;
-        if (isset($data['url']) && preg_match('/id=(\d+)/', $data['url'], $matches)) {
-            $convoId = (int) $matches[1];
-        }
-
-        // If it's for another conversation, refresh the dashboard to update list/counts
-        // If it's for the current one, the ChatWindow is already refreshing itself.
-        // We still refresh the Dashboard to update the sidebar preview, but we do it safely.
-        $this->refreshDashboard();
     }
 
     /**

@@ -334,7 +334,10 @@ $watch('sidebarToggle', value => localStorage.setItem('sidebarToggle', JSON.stri
 
 // Add loaded class for smooth fade-in
 $nextTick(() => {
-    document.querySelector('.app-container').classList.add('loaded');
+    const appContainer = document.querySelector('.app-container');
+    if (appContainer) {
+        appContainer.classList.add('loaded');
+    }
 });" :class="{ 'dark bg-gray-900': darkMode === true }">
 
 

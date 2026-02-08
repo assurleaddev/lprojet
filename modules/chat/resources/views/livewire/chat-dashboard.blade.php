@@ -64,11 +64,26 @@
             @endif
         </div>
 
-        <div class="w-2/3 flex flex-col bg-gray-50 dark:bg-gray-900">
-            @if($this->selectedConversation)
+        <div class="w-2/3 flex flex-col bg-gray-50 dark:bg-gray-900" 
+            x-data="{ lastRefresh: 0 }"
+            x-init="() => {
+                if (typeof Echo !== 'undefined') {
+                    Echo.private('App.Models.User.{{ auth()->id() }}')
+                        .notification((notification) => {
+                            // Debounce refresh to avoid collision with ChatWindow's own refresh
+                            const now = Date.now();
+                            if (now - lastRefresh > 2000) {
+                                console.log('[Alpine Dashboard] Notification received, refreshing sidebar (debounced)');
+                                $wire.dispatch('refresh-dashboard');
+                                lastRefresh = now;
+                            }
+                        });
+                }
+            }">
+            @if($selectedConversationId)
                 {{-- Load the ChatWindow component for the selected conversation --}}
                 {{-- Pass the conversation ID to the component --}}
-                <livewire:chat::chat-window :conversationId="$this->selectedConversation->id" :key="'chat-window-' . $this->selectedConversation->id" />
+                <livewire:chat::chat-window :conversationId="$selectedConversationId" :key="'chat-window-' . $selectedConversationId" />
             @else
                 <div class="flex items-center justify-center h-full">
                     <p class="text-gray-500">Select a conversation to start chatting.</p>
