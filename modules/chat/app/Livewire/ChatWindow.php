@@ -291,6 +291,7 @@ class ChatWindow extends Component
 
         $this->reset(['messageBody', 'attachments']); // Reset attachments
         $this->dispatch('message-sent', conversationId: $this->conversationId);
+        $this->dispatch('refresh-dashboard');
     }
 
     public function removeAttachment($index)

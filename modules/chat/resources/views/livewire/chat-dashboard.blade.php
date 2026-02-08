@@ -32,9 +32,14 @@
                                         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
                                             {{ $otherUser->full_name ?? 'Unknown User' }}
                                         </h3>
-                                        <span class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $conv->last_message_at ? \Carbon\Carbon::parse($conv->last_message_at)->diffForHumans(null, true, true) : '' }}
-                                        </span>
+                                        <div class="flex flex-col items-end">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                {{ $conv->last_message_at ? \Carbon\Carbon::parse($conv->last_message_at)->diffForHumans(null, true, true) : '' }}
+                                            </span>
+                                            @if($conv->has_unread)
+                                                <div class="mt-1 w-2.5 h-2.5 bg-red-500 rounded-full shadow-sm" title="Unread messages"></div>
+                                            @endif
+                                        </div>
                                     </div>
 
                                     <div class="flex justify-between items-center mt-1">

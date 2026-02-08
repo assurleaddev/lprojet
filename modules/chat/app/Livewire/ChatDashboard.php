@@ -15,6 +15,15 @@ use Livewire\Attributes\Layout; // Import Layout attribute
 class ChatDashboard extends Component
 {
     /**
+     * Listen for notifications to refresh the conversation list and unread dots.
+     */
+    #[\Livewire\Attributes\On('echo-private:App.Models.User.{auth.id},.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated')]
+    #[\Livewire\Attributes\On('refresh-dashboard')]
+    public function refreshDashboard(): void
+    {
+        // This will trigger a re-render and re-fetch of the conversations computed property
+    }
+    /**
      * The currently selected conversation ID, synced with the URL.
      * @var int|null
      */

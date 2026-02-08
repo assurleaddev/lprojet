@@ -16,11 +16,33 @@ class ChatService
 {
     public function getConversations(User $user)
     {
-        return Conversation::where('user_one_id', $user->id)
+        $conversations = Conversation::where('user_one_id', $user->id)
             ->orWhere('user_two_id', $user->id)
+            ->withCount([
+                'messages as unread_messages_count' => function ($query) use ($user) {
+                    $query->where('user_id', '!=', $user->id)
+                        ->whereNull('read_at');
+                }
+            ])
             ->orderByDesc('last_message_at')
             ->with(['product', 'userOne', 'userTwo'])
             ->get();
+
+        // Fetch unread chat notifications to check per conversation
+        $unreadNotifications = $user->unreadNotifications()
+            ->whereIn('data->type', User::getChatNotificationTypes())
+            ->get();
+
+        foreach ($conversations as $conversation) {
+            $hasUnreadNotification = $unreadNotifications->contains(function ($n) use ($conversation) {
+                $url = $n->data['url'] ?? '';
+                // Match by ID in query string like ?id=123 or &id=123
+                return str_contains($url, 'id=' . $conversation->id);
+            });
+            $conversation->has_unread = ($conversation->unread_messages_count > 0) || $hasUnreadNotification;
+        }
+
+        return $conversations;
     }
 
     public function getOrCreateConversation(User $userA, User $userB, Product $product): Conversation
@@ -81,10 +103,22 @@ class ChatService
 
     public function markAsRead(Conversation $conversation, User $user): void
     {
+        // Mark messages as read
         $conversation->messages()
             ->where('user_id', '!=', $user->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        // Mark related database notifications as read
+        $user->unreadNotifications()
+            ->whereIn('data->type', User::getChatNotificationTypes())
+            ->each(function ($notification) use ($conversation) {
+                /** @var \Illuminate\Notifications\DatabaseNotification $notification */
+                $url = $notification->data['url'] ?? '';
+                if (str_contains($url, 'id=' . $conversation->id)) {
+                    $notification->markAsRead();
+                }
+            });
 
         // Broadcast that messages were read
         MessageRead::dispatch($conversation->id, $user->id);
