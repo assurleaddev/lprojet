@@ -6,7 +6,7 @@
         {{-- 1. Conversation List (Sidebar) --}}
         <div class="w-1/3 border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800">
             <h2 class="text-lg font-bold p-4 border-b dark:border-gray-700 text-gray-900">Inbox</h2>
-            @if($conversations->isEmpty())
+            @if($this->conversations->isEmpty())
                 <p class="p-4 text-gray-500">No conversations yet.</p>
             @else
                 <ul>
