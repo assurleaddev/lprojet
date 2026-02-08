@@ -4,7 +4,7 @@ namespace Modules\Chat\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -25,7 +25,7 @@ class MessageRead implements ShouldBroadcast
 
     public function broadcastOn(): Channel
     {
-        return new PrivateChannel('conversations.' . $this->conversationId);
+        return new PresenceChannel('conversations.' . $this->conversationId);
     }
 
     public function broadcastAs(): string

@@ -215,7 +215,9 @@ class MakeOfferModal extends Component
         // Dispatch toast notification for success
         $this->dispatch('toast', ['message' => 'Offer sent successfully!', 'type' => 'success']);
 
-        // Redirect user to the chat
+        // Dispatch event locally for the sender if they stay on the same page
+        $this->dispatch('refresh-chat')->to(ChatWindow::class);
+
         // Redirect user to the chat
         $this->redirect(route('chat.dashboard', ['id' => $conversation->id]), navigate: true); // Use Livewire navigate
     }
