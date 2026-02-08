@@ -23,10 +23,30 @@ class ChatWindow extends Component
     public int $conversationId;
 
     /**
-     * The loaded Conversation model instance.
-     * @var Conversation|null
+     * Get the loaded Conversation model instance via computed property.
      */
-    public ?Conversation $conversation = null;
+    #[\Livewire\Attributes\Computed]
+    public function conversation()
+    {
+        $user = Auth::user();
+        if (!$user)
+            return null;
+
+        return Conversation::where('id', $this->conversationId)
+            ->where(function ($query) use ($user) {
+                $query->where('user_one_id', $user->id)
+                    ->orWhere('user_two_id', $user->id);
+            })
+            ->with([
+                'messages' => function ($query) {
+                    $query->with(['user', 'offer.product', 'attachments']);
+                },
+                'product',
+                'userOne',
+                'userTwo'
+            ])
+            ->first();
+    }
 
     /**
      * Array holding the messages for the current conversation.
@@ -64,7 +84,7 @@ class ChatWindow extends Component
     public function mount(int $conversationId, ChatService $chatService): void
     {
         $this->conversationId = $conversationId;
-        // Load conversation immediately
+        // The conversation property is computed, so we just need to load initial messages
         $this->loadConversation($chatService);
     }
 
@@ -92,27 +112,12 @@ class ChatWindow extends Component
             return;
         }
 
-        // Find the conversation, ensuring the user has access and eager load necessary relations
-        $this->conversation = Conversation::where('id', $this->conversationId)
-            ->where(function ($query) use ($user) {
-                $query->where('user_one_id', $user->id)
-                    ->orWhere('user_two_id', $user->id);
-            })
-            // Eager load messages, their sender, and any associated offer with its product
-            // Product model should handle loading its media automatically or define the accessor
-            ->with([
-                'messages' => function ($query) {
-                    $query->with(['user', 'offer.product', 'attachments']); // Eager load product on offer and attachments
-                },
-                'product', // Load conversation's primary product
-                'userOne', // Load user one
-                'userTwo'  // Load user two
-            ])
-            ->first(); // Use first() and check
+        // Access computed property
+        $conversation = $this->conversation;
 
-        if ($this->conversation) {
+        if ($conversation) {
             // Prepare messages array, ensuring offer/product data is structured correctly
-            $this->messages = $this->conversation->messages->map(function ($message) {
+            $this->messages = $conversation->messages->map(function ($message) {
                 $messageArray = $message->toArray(); // Convert message to array
 
                 // If there's an offer, ensure product and its featured image URL are included
@@ -147,7 +152,7 @@ class ChatWindow extends Component
             })->toArray();
 
             // Mark messages as read
-            $chatService->markAsRead($this->conversation, $user);
+            $chatService->markAsRead($conversation, $user);
             Log::debug("ChatWindow: Successfully loaded conversation {$this->conversationId} with " . count($this->messages) . " messages.");
         } else {
             // Handle case where conversation isn't found or user doesn't have access

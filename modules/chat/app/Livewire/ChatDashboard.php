@@ -15,16 +15,25 @@ use Livewire\Attributes\Layout; // Import Layout attribute
 class ChatDashboard extends Component
 {
     /**
-     * The collection of conversations for the authenticated user.
-     * @var Collection
-     */
-    public Collection $conversations;
-
-    /**
-     * The currently selected conversation ID.
+     * The currently selected conversation ID, synced with the URL.
      * @var int|null
      */
+    #[Url(as: 'id')]
     public ?int $selectedConversationId = null;
+
+    /**
+     * Get the collection of conversations for the authenticated user.
+     */
+    #[\Livewire\Attributes\Computed]
+    public function conversations()
+    {
+        $user = Auth::user();
+        if (!$user) {
+            return new Collection();
+        }
+
+        return app(ChatService::class)->getConversations($user);
+    }
 
     /**
      * Get the currently selected conversation model.
@@ -37,16 +46,13 @@ class ChatDashboard extends Component
         }
 
         return Conversation::with(['product', 'userOne', 'userTwo'])
+            ->where(function ($q) {
+                $q->where('user_one_id', Auth::id())
+                    ->orWhere('user_two_id', Auth::id());
+            })
             ->find($this->selectedConversationId);
     }
 
-    /**
-     * The conversation ID passed via the URL query string (for deep-linking).
-     * Set by Livewire automatically if present in the route parameters.
-     * @var int|null
-     */
-    #[Url(as: 'id')]
-    public ?int $queryConversationId = null; // Renamed to match the route parameter
 
     /**
      * Mount the component, fetch conversations, and select the initial one.
@@ -56,37 +62,17 @@ class ChatDashboard extends Component
      */
     public function mount(ChatService $chatService): void
     {
-        // Get the authenticated user
-        $user = Auth::user();
-        if (!$user) {
-            $this->conversations = new Collection();
-            return;
+        // If no ID in URL, default to the first one
+        if (!$this->selectedConversationId && $this->conversations->isNotEmpty()) {
+            $this->selectedConversationId = $this->conversations->first()->id;
         }
 
-        $this->conversations = $chatService->getConversations($user);
-        // $this->queryConversationId is automatically set by Livewire from query string
-        $this->initializeSelectedConversation();
-    }
-
-    /**
-     * Sets the initial selected conversation based on the URL parameter or the latest conversation.
-     *
-     * @return void
-     */
-    protected function initializeSelectedConversation(): void
-    {
-        if ($this->queryConversationId) {
-            $conversation = $this->conversations->firstWhere('id', $this->queryConversationId);
-            if ($conversation) {
-                $this->selectConversation($conversation->id);
-                return;
-            }
-        }
-
-        if ($this->selectedConversationId === null && $this->conversations->isNotEmpty()) {
-            $this->selectConversation($this->conversations->first()->id);
+        // Initial mark as read if selected
+        if ($this->selectedConversation) {
+            $chatService->markAsRead($this->selectedConversation, Auth::user());
         }
     }
+
 
     /**
      * Selects a conversation and updates the selectedConversation property.
@@ -97,11 +83,15 @@ class ChatDashboard extends Component
      */
     public function selectConversation(int $conversationId): void
     {
+        // If already selected, do nothing to avoid redundant state updates
+        if ($this->selectedConversationId === $conversationId) {
+            return;
+        }
+
         $this->selectedConversationId = $conversationId;
 
-        $current = $this->selectedConversation;
-        if ($current) {
-            app(ChatService::class)->markAsRead($current, Auth::user());
+        if ($this->selectedConversation) {
+            app(ChatService::class)->markAsRead($this->selectedConversation, Auth::user());
         }
     }
 

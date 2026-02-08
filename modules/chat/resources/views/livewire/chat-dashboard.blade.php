@@ -10,7 +10,7 @@
                 <p class="p-4 text-gray-500">No conversations yet.</p>
             @else
                 <ul>
-                    @foreach($conversations as $conv)
+                    @foreach($this->conversations as $conv)
                         @php $otherUser = $conv->getOtherUser(auth()->user()); @endphp
                         <li wire:click="selectConversation({{ $conv->id }})"
                             class="p-4 border-b dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 {{ $selectedConversationId === $conv->id ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
