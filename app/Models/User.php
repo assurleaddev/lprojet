@@ -252,18 +252,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Generate and save a new verification code.
-     */
-    public function generateVerificationCode()
-    {
-        $code = rand(1000, 9999);
-        $this->verification_code = $code;
-        $this->verification_code_expires_at = now()->addMinutes(15);
-        $this->save();
-
-        return $code;
-    }
-    /**
      * Get the count of unread messages for this user.
      */
     public function unreadMessagesCount()
@@ -275,5 +263,53 @@ class User extends Authenticatable
                     ->orWhere('user_two_id', $this->id);
             })
             ->count();
+    }
+
+    /**
+     * Get chat-related notification types.
+     */
+    public static function getChatNotificationTypes(): array
+    {
+        return [
+            'new_message',
+            'offer_received',
+            'offer_accepted',
+            'offer_rejected',
+            'item_sold',
+            'item_shipped',
+            'order_update',
+            'order_completed'
+        ];
+    }
+
+    /**
+     * Get the count of unread social notifications (likes, follows, etc.) for the bell icon.
+     */
+    public function unreadSocialNotificationsCount()
+    {
+        return $this->unreadNotifications()
+            ->whereNotIn('data->type', self::getChatNotificationTypes())
+            ->count();
+    }
+
+    /**
+     * Get the count of unread chat/offer notifications for the mail icon.
+     */
+    public function unreadChatNotificationsCount()
+    {
+        return $this->unreadNotifications()
+            ->whereIn('data->type', self::getChatNotificationTypes())
+            ->count();
+    }
+
+    /**
+     * Get recent social notifications for the bell icon dropdown.
+     */
+    public function socialNotifications($limit = 5)
+    {
+        return $this->notifications()
+            ->whereNotIn('data->type', self::getChatNotificationTypes())
+            ->take($limit)
+            ->get();
     }
 }
