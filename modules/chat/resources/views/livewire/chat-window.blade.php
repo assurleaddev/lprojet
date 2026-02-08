@@ -1,50 +1,54 @@
-<div class="flex flex-col h-full" x-data="chatWindow({{ $conversationId }})" {{-- Robust Alpine.js Pusher/Echo Listener
+<div class="flex flex-col h-full" x-data="{ typingUsers: [], isOtherUserOnline: @entangle('isOtherUserOnline') }" {{-- Robust Alpine.js Pusher/Echo Listener
     Bridge --}} x-init="() => {
         console.log('[Alpine x-init] Initializing for conversation {{ $conversationId }}');
 
         const setupEchoListener = () => {
-            // Check if Echo and necessary Pusher connection state exist
-            if (window.Echo && window.Echo.connector && window.Echo.connector.pusher && window.Echo.connector.pusher.connection) {
+             if (window.Echo && window.Echo.connector && window.Echo.connector.pusher && window.Echo.connector.pusher.connection) {
                 const connectionState = window.Echo.connector.pusher.connection.state;
-                console.log('[Alpine x-init] Echo exists. Pusher connection state:', connectionState);
 
                 if (connectionState === 'connected') {
-                    console.log('[Alpine x-init] Echo is connected. Attaching listener...');
-
-                    // Ensure we leave any potential old channel first (defensive programming)
                     window.Echo.leave('conversations.{{ $conversationId }}');
 
-                    // Attach the listener to the private channel
-                    window.Echo.private('conversations.{{ $conversationId }}')
-                        .listen('.new-message', (e) => { // Use the exact broadcastAs name 'new-message' with leading dot
-                            console.log('[Alpine Echo Listener] Received new-message event via Echo:', e);
-
-                            // Validate incoming event structure (basic)
-                            if (e && e.user && typeof e.user.id !== 'undefined') {
-                                // Check if the message is NOT from the currently authenticated user
-                                if (e.user.id !== {{ auth()->id() }}) {
-                                    console.log('[Alpine Echo Listener] Dispatching refresh-chat Livewire event.');
-                                    // Dispatch the standard Livewire event to trigger PHP refreshMessages method
-                                    $wire.dispatch('refresh-chat');
-                                } else {
-                                    console.log('[Alpine Echo Listener] Ignoring own message broadcast.');
-                                }
-                            } else {
-                                console.warn('[Alpine Echo Listener] Received invalid event data structure:', e);
+                    // Join Presence Channel
+                    window.Echo.join('conversations.{{ $conversationId }}')
+                        .here((users) => {
+                            const otherUser = users.find(u => u.id !== {{ auth()->id() }});
+                            $wire.set('isOtherUserOnline', !!otherUser);
+                        })
+                        .joining((user) => {
+                            if (user.id !== {{ auth()->id() }}) {
+                                $wire.set('isOtherUserOnline', true);
+                            }
+                        })
+                        .leaving((user) => {
+                            if (user.id !== {{ auth()->id() }}) {
+                                $wire.set('isOtherUserOnline', false);
+                            }
+                        })
+                        .listen('.new-message', (e) => {
+                            if (e.user.id !== {{ auth()->id() }}) {
+                                $wire.dispatch('refresh-chat');
+                            }
+                        })
+                        .listen('.messages-read', (e) => {
+                            if (e.userId !== {{ auth()->id() }}) {
+                                $wire.dispatch('refresh-read-status');
+                            }
+                        })
+                        .listenForWhisper('typing', (e) => {
+                            if (!this.typingUsers.includes(e.name)) {
+                                this.typingUsers.push(e.name);
+                                setTimeout(() => {
+                                    this.typingUsers = this.typingUsers.filter(u => u !== e.name);
+                                }, 3000);
                             }
                         });
 
-                    console.log('[Alpine x-init] Echo listener attached successfully for conversations.{{ $conversationId }}');
-
                 } else {
-                    // If Echo isn't connected yet, wait and try again
-                    console.warn(`[Alpine x-init] Echo not connected yet (State: ${connectionState}). Retrying listener setup in 1000ms...`);
-                    setTimeout(setupEchoListener, 1000); // Retry after 1 second
+                    setTimeout(setupEchoListener, 1000);
                 }
             } else {
-                 // If Echo or Pusher connector isn't fully initialized, wait and try again
-                console.error('[Alpine x-init] Laravel Echo or Pusher connector not fully initialized. Retrying in 1000ms...');
-                setTimeout(setupEchoListener, 1000); // Retry after 1 second
+                setTimeout(setupEchoListener, 1000);
             }
         };
 
@@ -62,11 +66,26 @@
             <div class="flex items-center justify-between">
                 {{-- Left: User Info --}}
                 <div class="flex items-center space-x-3">
-                    <h3 class="font-bold text-lg text-teal-600">
-                        <a href="{{ route('vendor.show', $otherUser) }}" class="hover:underline">
-                            {{ optional($otherUser)->full_name ?? 'User Not Found' }}
-                        </a>
-                    </h3>
+                    <div class="relative">
+                        <img src="{{ $otherUser->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($otherUser->full_name) }}"
+                            alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                        <div x-show="isOtherUserOnline"
+                            class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full">
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-teal-600 leading-tight">
+                            <a href="{{ route('vendor.show', $otherUser) }}" class="hover:underline">
+                                {{ optional($otherUser)->full_name ?? 'User Not Found' }}
+                            </a>
+                        </h3>
+                        <p x-show="typingUsers.length > 0" class="text-xs text-teal-500 animate-pulse">
+                            Typing...
+                        </p>
+                        <p x-show="typingUsers.length === 0" class="text-xs text-gray-500">
+                            {{ $isOtherUserOnline ? 'Online' : 'Offline' }}
+                        </p>
+                    </div>
                 </div>
 
                 {{-- Right: Info Icon --}}
@@ -98,6 +117,21 @@
                 </div>
 
                 <div class="flex space-x-2">
+                    {{-- Seller Actions: Reserve/Unreserve --}}
+                    @if(auth()->id() === $conversation->product->vendor_id)
+                        @if($conversation->product->status !== 'reserved' && $conversation->product->status !== 'sold')
+                            <button wire:click="reserveProduct"
+                                class="px-3 py-1 bg-white border border-yellow-600 text-yellow-600 text-sm font-medium rounded hover:bg-yellow-50">
+                                Reserve
+                            </button>
+                        @elseif($conversation->product->status === 'reserved')
+                            <button wire:click="unreserveProduct"
+                                class="px-3 py-1 bg-yellow-600 text-white text-sm font-medium rounded hover:bg-yellow-700">
+                                Unreserve
+                            </button>
+                        @endif
+                    @endif
+
                     @if(auth()->id() !== $conversation->product->vendor_id)
                         @if($conversation->product->status === 'approved')
                             <button
@@ -109,6 +143,11 @@
                                 @click="window.location.href='{{ route('product.checkout', $conversation->product) }}'"
                                 class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700">
                                 Buy Now
+                            </button>
+                        @elseif($conversation->product->status === 'reserved')
+                             <button disabled
+                                class="px-3 py-1 bg-yellow-100 border border-yellow-300 text-yellow-600 text-sm font-medium rounded cursor-not-allowed">
+                                Reserved
                             </button>
                         @else
                            <button disabled
@@ -210,8 +249,7 @@
                                         class="w-10 h-10 rounded object-cover border border-gray-100">
                                 </div>
 
-                                {{-- Footer: Actions --}}
-                                {{-- 1. Vendor receiving Pending Offer --}}
+                                    {{-- 1. Vendor receiving Pending Offer --}}
                                 @if($messageType === 'offer_made' && $offerStatus === \Modules\Chat\Enums\OfferStatus::Pending && !$isOwnMessage && $offerId)
                                     <div
                                         class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
@@ -230,7 +268,16 @@
                                         </button>
                                     </div>
 
-                                    {{-- 2. Buyer receiving Counter Offer --}}
+                                    {{-- 2. Buyer seeing their own Pending Offer (Can withdraw) --}}
+                                @elseif($messageType === 'offer_made' && $offerStatus === \Modules\Chat\Enums\OfferStatus::Pending && $isOwnMessage && $offerId)
+                                    <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+                                        <button wire:click="withdrawOffer({{ $offerId }})" wire:loading.attr="disabled"
+                                            class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
+                                            Withdraw Offer
+                                        </button>
+                                    </div>
+
+                                    {{-- 3. Buyer receiving Counter Offer --}}
                                 @elseif($messageType === 'offer_countered' && $offerStatus === \Modules\Chat\Enums\OfferStatus::AwaitingBuyer && !$isOwnMessage && $offerId)
                                     <div
                                         class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
@@ -401,11 +448,28 @@
                                 </div>
                             </div>
                         @else
-                            {{-- Show a simple confirmation for the seller --}}
+                            {{-- Professional Price Comparison for Seller --}}
                             <div class="flex justify-end">
-                                <div
-                                    class="max-w-xs px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs italic">
-                                    Checkout link sent to buyer.
+                                <div class="w-full max-w-xs bg-gray-50 dark:bg-gray-800 border border-teal-100 dark:border-teal-900 rounded-lg shadow-sm overflow-hidden">
+                                    <div class="p-4 flex items-center justify-between">
+                                         <div>
+                                            <p class="text-[10px] text-teal-600 dark:text-teal-400 font-medium uppercase mb-1">Offer Accepted</p>
+                                            <div class="flex items-baseline space-x-2">
+                                                <span class="text-xl font-bold text-gray-900 dark:text-white">
+                                                    {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
+                                                </span>
+                                                <span class="text-sm text-gray-400 line-through">
+                                                    {{ number_format($productData->price ?? 0, 2) }} MAD
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <img src="{{ $featuredImageUrl ?? asset('images/default.svg') }}" alt="Product"
+                                            class="w-10 h-10 rounded object-cover border border-gray-100">
+                                    </div>
+                                    <div class="px-4 py-2 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 text-right flex justify-between items-center">
+                                         <span class="text-[10px] text-gray-400 dark:text-gray-500 italic">Checkout link sent to buyer</span>
+                                         <span class="text-[10px] text-gray-400 dark:text-gray-500 italic">{{ $messageTime }}</span>
+                                    </div>
                                 </div>
                             </div>
                         @endif
@@ -470,10 +534,22 @@
                                     {!! function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody)) !!}
                                 </p>
                             @endif
-                            <span
-                                class="text-xs {{ $isOwnMessage ? 'text-teal-100' : 'text-gray-500 dark:text-gray-400' }} mt-1 block text-right">
-                                {{ $messageTime }}
-                            </span>
+                            <div class="flex items-center justify-end space-x-1 mt-1">
+                                <span class="text-[10px] {{ $isOwnMessage ? 'text-teal-100' : 'text-gray-500 dark:text-gray-400' }}">
+                                    {{ $messageTime }}
+                                </span>
+                                @if($isOwnMessage)
+                                    @if(isset($messageData->read_at) && $messageData->read_at)
+                                        <svg class="w-3 h-3 text-blue-300" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path>
+                                        </svg>
+                                    @else
+                                        <svg class="w-3 h-3 text-teal-200" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path>
+                                        </svg>
+                                    @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 @endif
@@ -562,6 +638,7 @@
 
 
                 <input type="text" wire:model="messageBody" placeholder="Write a message here"
+                    x-on:input="window.Echo.join('conversations.{{ $conversationId }}').whisper('typing', { name: '{{ auth()->user()->full_name }}' })"
                     class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                     autocomplete="off" @if(!$conversation) disabled @endif>
                 <button type="submit"

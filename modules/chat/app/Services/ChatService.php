@@ -10,6 +10,8 @@ use Modules\Chat\Models\Conversation;
 use Illuminate\Database\Eloquent\Builder;
 use Modules\Chat\Models\Offer;
 use App\Models\Order;
+use Modules\Chat\Events\MessageRead;
+use Modules\Chat\Enums\OfferStatus;
 class ChatService
 {
     public function getConversations(User $user)
@@ -83,6 +85,69 @@ class ChatService
             ->where('user_id', '!=', $user->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
+
+        // Broadcast that messages were read
+        MessageRead::dispatch($conversation->id, $user->id);
+    }
+
+    public function withdrawOffer(Offer $offer, User $user): void
+    {
+        if ($offer->buyer_id !== $user->id || $offer->status !== OfferStatus::Pending) {
+            throw new \Exception("Unauthorized or invalid offer status for withdrawal.");
+        }
+
+        $offer->update(['status' => OfferStatus::Withdrawn]);
+
+        $body = sprintf("%s withdrew their offer of $%s.", $user->name, number_format($offer->offer_price, 2));
+
+        $message = $offer->conversation->messages()->create([
+            'user_id' => $user->id,
+            'body' => $body,
+            'type' => 'offer_withdrawn',
+            'offer_id' => $offer->id,
+        ]);
+
+        MessageSent::dispatch($message->load('user'));
+    }
+
+    public function reserveProduct(Product $product, User $seller, User $buyer): void
+    {
+        if ($product->vendor_id !== $seller->id) {
+            throw new \Exception("Only the seller can reserve the product.");
+        }
+
+        $product->update([
+            'status' => 'reserved',
+            'buyer_id' => $buyer->id, // Assuming this column exists per migration
+        ]);
+
+        // Find or create conversation to notify
+        $conversation = $this->getOrCreateConversation($seller, $buyer, $product);
+
+        $body = sprintf("Item Reserved! %s has reserved this item for %s.", $seller->full_name, $buyer->full_name);
+
+        $message = $conversation->messages()->create([
+            'user_id' => $seller->id,
+            'body' => $body,
+            'type' => 'product_reserved',
+        ]);
+
+        MessageSent::dispatch($message->load('user'));
+    }
+
+    public function unreserveProduct(Product $product, User $seller): void
+    {
+        if ($product->vendor_id !== $seller->id) {
+            throw new \Exception("Only the seller can unreserve the product.");
+        }
+
+        $product->update([
+            'status' => 'approved', // Or whatever the active status is
+            'buyer_id' => null,
+        ]);
+
+        // Find the conversation with the buyer who it was reserved for (if possible)
+        // For simplicity, we just log/update. If we want a message, we need the buyer.
     }
     public function sendOfferMadeMessage(Conversation $conversation, User $sender, Offer $offer): Message
     {
@@ -93,6 +158,8 @@ class ChatService
             number_format($offer->offer_price, 2),
             $offer->product->name
         );
+
+        $offer->update(['expires_at' => now()->addHours(24)]);
 
         $message = $conversation->messages()->create([
             'user_id' => $sender->id, // The buyer who made the offer

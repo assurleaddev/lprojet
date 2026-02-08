@@ -21,6 +21,7 @@ class Offer extends Model
         'status',
         'rejection_reason',
         'responded_at',
+        'expires_at',
     ];
 
     // Cast status to the Enum and price to float/decimal
@@ -28,19 +29,24 @@ class Offer extends Model
         'status' => OfferStatus::class,
         'offer_price' => 'decimal:2',
         'responded_at' => 'datetime',
+        'expires_at' => 'datetime',
     ];
 
     // Relationships
-    public function conversation(): BelongsTo {
+    public function conversation(): BelongsTo
+    {
         return $this->belongsTo(Conversation::class);
     }
-    public function product(): BelongsTo {
+    public function product(): BelongsTo
+    {
         return $this->belongsTo(Product::class);
     }
-    public function buyer(): BelongsTo {
+    public function buyer(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'buyer_id');
     }
-    public function seller(): BelongsTo {
+    public function seller(): BelongsTo
+    {
         return $this->belongsTo(User::class, 'seller_id');
     }
 }

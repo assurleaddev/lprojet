@@ -8,4 +8,6 @@ enum OfferStatus: string
     case Accepted = 'accepted';
     case Rejected = 'rejected';
     case AwaitingBuyer = 'awaiting_buyer'; // Counter offer from seller
+    case Expired = 'expired';
+    case Withdrawn = 'withdrawn';
 }

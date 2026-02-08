@@ -46,10 +46,13 @@ class ChatWindow extends Component
     use \Livewire\WithFileUploads;
     public $attachments = []; // For the file input (multiple)
 
-    // Properties for Rejection Modal
     public bool $showRejectionModal = false;
     public ?int $offerToRejectId = null;
     public string $rejectionReason = '';
+
+    // Advanced Features Properties
+    public bool $isOtherUserOnline = false;
+    public array $typingUsers = [];
 
     /**
      * Mount the component, load the initial conversation and messages.
@@ -170,6 +173,57 @@ class ChatWindow extends Component
 
         // Dispatch event back to Alpine to trigger scroll down
         $this->dispatch('message-received', conversationId: $this->conversationId);
+    }
+
+    #[On('refresh-read-status')]
+    public function refreshReadStatus(): void
+    {
+        // Reload messages to update read_at status in the UI
+        $this->loadConversation(app(ChatService::class));
+    }
+
+    public function withdrawOffer(int $offerId, ChatService $chatService): void
+    {
+        $offer = Offer::find($offerId);
+        if (!$offer)
+            return;
+
+        try {
+            $chatService->withdrawOffer($offer, Auth::user());
+            $this->loadConversation($chatService);
+            $this->dispatch('toast', message: 'Offer withdrawn.', type: 'info');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function reserveProduct(ChatService $chatService): void
+    {
+        if (!$this->conversation || !$this->conversation->product)
+            return;
+
+        try {
+            $otherUser = $this->conversation->getOtherUser(Auth::user());
+            $chatService->reserveProduct($this->conversation->product, Auth::user(), $otherUser);
+            $this->loadConversation($chatService);
+            $this->dispatch('toast', message: 'Product reserved!', type: 'success');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
+    }
+
+    public function unreserveProduct(ChatService $chatService): void
+    {
+        if (!$this->conversation || !$this->conversation->product)
+            return;
+
+        try {
+            $chatService->unreserveProduct($this->conversation->product, Auth::user());
+            $this->loadConversation($chatService);
+            $this->dispatch('toast', message: 'Product is now available.', type: 'info');
+        } catch (\Exception $e) {
+            $this->dispatch('toast', message: $e->getMessage(), type: 'error');
+        }
     }
 
     /**
