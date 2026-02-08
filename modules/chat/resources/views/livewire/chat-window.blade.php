@@ -67,8 +67,14 @@
                 {{-- Left: User Info --}}
                 <div class="flex items-center space-x-3">
                     <div class="relative">
-                        <img src="{{ $otherUser->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($otherUser->full_name) }}"
-                            alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                        @if($otherUser->avatar_id)
+                            <img src="{{ $otherUser->avatar_url }}"
+                                alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                        @else
+                            <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                                {{ $otherUser->initials }}
+                            </div>
+                        @endif
                         <div x-show="isOtherUserOnline"
                             class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full">
                         </div>
@@ -175,8 +181,14 @@
             @php $otherUser = $conversation->getOtherUser(auth()->user()); @endphp
             <div class="flex justify-start mb-6">
                 <div class="flex items-start space-x-3 max-w-lg">
-                    <img src="{{ $otherUser->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($otherUser->full_name) }}"
-                        alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                    @if($otherUser->avatar_id)
+                        <img src="{{ $otherUser->avatar_url }}"
+                            alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                    @else
+                        <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                            {{ $otherUser->initials }}
+                        </div>
+                    @endif
                     <div
                         class="bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-tl-none p-4 text-sm text-gray-800 dark:text-gray-200">
                         <p>Hi, I'm {{ $otherUser->full_name }}</p>

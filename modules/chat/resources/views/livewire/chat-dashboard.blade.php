@@ -18,8 +18,14 @@
 
                             <div class="flex items-start space-x-3">
                                 {{-- User Avatar --}}
-                                <img src="{{ $otherUser->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($otherUser->full_name) }}"
-                                    alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                                @if($otherUser->avatar_id)
+                                    <img src="{{ $otherUser->avatar_url }}"
+                                        alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                                @else
+                                    <div class="w-10 h-10 rounded-full bg-teal-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
+                                        {{ $otherUser->initials }}
+                                    </div>
+                                @endif
 
                                 <div class="flex-1 min-w-0">
                                     <div class="flex justify-between items-baseline">

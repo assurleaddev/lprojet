@@ -84,6 +84,7 @@ class User extends Authenticatable
     protected $appends = [
         'avatar_url',
         'full_name',
+        'initials',
     ];
 
     /**
@@ -178,6 +179,19 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return trim($this->first_name . ' ' . $this->last_name);
+    }
+
+    /**
+     * Get the user's initials.
+     */
+    public function getInitialsAttribute(): string
+    {
+        $words = explode(' ', $this->full_name);
+        $initials = '';
+        foreach ($words as $word) {
+            $initials .= strtoupper(substr($word, 0, 1));
+        }
+        return substr($initials, 0, 2);
     }
 
     public function orders()
