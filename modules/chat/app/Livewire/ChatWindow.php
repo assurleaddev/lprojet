@@ -347,8 +347,15 @@ class ChatWindow extends Component
     public function promptRejectOffer(int $offerId): void
     {
         $offerExists = Offer::where('id', $offerId)
-            ->where('seller_id', Auth::id())
-            ->where('status', OfferStatus::Pending)
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->where('seller_id', Auth::id())
+                        ->where('status', OfferStatus::Pending);
+                })->orWhere(function ($q) {
+                    $q->where('buyer_id', Auth::id())
+                        ->where('status', OfferStatus::AwaitingBuyer);
+                });
+            })
             ->exists();
 
         if ($offerExists) {
@@ -372,8 +379,15 @@ class ChatWindow extends Component
         ]);
 
         $offer = Offer::where('id', $this->offerToRejectId)
-            ->where('seller_id', Auth::id())
-            ->where('status', OfferStatus::Pending)
+            ->where(function ($query) {
+                $query->where(function ($q) {
+                    $q->where('seller_id', Auth::id())
+                        ->where('status', OfferStatus::Pending);
+                })->orWhere(function ($q) {
+                    $q->where('buyer_id', Auth::id())
+                        ->where('status', OfferStatus::AwaitingBuyer);
+                });
+            })
             ->first();
 
         if (!$offer) {
