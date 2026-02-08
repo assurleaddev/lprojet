@@ -320,14 +320,21 @@
                                         </button>
                                     </div>
 
-                                    {{-- 4. Offer Declined (Seller can suggest new price) --}}
+                                    {{-- 4. Offer Declined (Only visible to the person who and on the message they declined) --}}
                                 @elseif($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected)
-                                    @if(auth()->id() === ($offerData->seller_id ?? $productData->vendor_id ?? null)) {{-- Seller side only --}}
+                                    @if($messageType === 'offer_rejected' && $isOwnMessage)
                                         <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
-                                            <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
-                                                class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
-                                                Offer your price
-                                            </button>
+                                            @if(auth()->id() === ($offerData->seller_id ?? $productData->vendor_id ?? null)) {{-- Seller side Counter --}}
+                                                <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
+                                                    class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                    Offer your price
+                                                </button>
+                                            @else {{-- Buyer side New Offer --}}
+                                                <button @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $productData->id }} })"
+                                                    class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                    Offer your price
+                                                </button>
+                                            @endif
                                         </div>
                                     @endif
                                 @endif
