@@ -121,7 +121,7 @@ class AdminMenuService
         ]);
 
         $this->addMenuItem([
-            'label' => __('Marketplace'),
+            'label' => __('USED'),
             'icon' => 'lucide:shopping-bag', // Changed icon to one available in the project
             'id' => 'marketplace-submenu',
             'active' => Route::is('admin.marketplace.*'),

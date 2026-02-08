@@ -29,15 +29,8 @@ return [
         /*
          * Description rendered on the home page of the API documentation (`/docs/api`).
          */
-        'description' => 'Lara Dashboard API - A comprehensive Laravel CMS API with User Management, Content Management, Role & Permission system, and more.
-            <br>
-            <h4>Steps to use the API</h4>
-            <ul>
-                <li>Login to the API using the http://localhost:8000/docs/api#/operations/auth.login endpoint to get your access token.</li>
-                <li>After getting the access token, put the access token in Token field of any api request.</li>
-                <li>Use the API endpoints to manage users, roles, permissions, posts, terms, and settings.</li>
-            </ul>
-        ',
+        'description' => 'USED API - A comprehensive API for the second-hand clothes marketplace.',
+        'title' => 'USED API Documentation',
     ],
 
     /*
@@ -47,7 +40,7 @@ return [
         /*
          * Define the title of the documentation's website. App name is used when this config is `null`.
          */
-        'title' => 'Lara Dashboard API Documentation',
+        'title' => config('app.name', 'USED') . ' API Documentation',
 
         /*
          * Define the theme of the documentation. Available options are `light` and `dark`.

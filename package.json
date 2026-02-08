@@ -1,5 +1,5 @@
 {
-  "name": "laradashboard",
+  "name": "used",
   "private": true,
   "version": "2.3.0",
   "type": "module",
@@ -58,5 +58,5 @@
       "path": "cz-conventional-changelog"
     }
   },
-  "packageManager": "npm@^10.2.4"
+  "packageManager": "npm@10.2.4"
 }

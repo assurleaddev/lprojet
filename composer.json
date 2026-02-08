@@ -1,7 +1,13 @@
 {
-    "name": "laradashboard/laradashboard",
+    "name": "benouijem/used",
     "type": "project",
-    "description": "Lara Dashboard - A Laravel CMS with Role, Permission, Module, Translation, Content Management",
+    "description": "USED - A modern second-hand clothes marketplace platform",
+    "authors": [
+        {
+            "name": "Mohammed benouijem",
+            "email": "benouijemmed@gmail.com"
+        }
+    ],
     "keywords": [
         "framework",
         "laravel",

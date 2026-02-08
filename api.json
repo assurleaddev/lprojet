@@ -1,9 +1,9 @@
 {
     "openapi": "3.1.0",
     "info": {
-        "title": "Lara Dashboard API Documentation",
+        "title": "USED API Documentation",
         "version": "1.0.0",
-        "description": "Lara Dashboard API - A comprehensive Laravel CMS API with User Management, Content Management, Role & Permission system, and more."
+        "description": "API Documentation for USED - A modern second-hand clothes marketplace platform."
     },
     "servers": [
         {

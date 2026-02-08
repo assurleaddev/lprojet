@@ -1,10 +1,10 @@
-# Contributing to Lara Dashboard
+# Contributing to USED
 
-First off, thank you for considering contributing to Lara Dashboard! It's people like you that make Lara Dashboard such a great tool. This document provides guidelines and steps for contributing.
+First off, thank you for considering contributing to USED! It's people like you that make USED such a great tool. This document provides guidelines and steps for contributing.
 
 ## Code of Conduct
 
-By participating in this project, you are expected to uphold our Code of Conduct. Please report unacceptable behavior to [manirujjamanakash@gmail.com](mailto:manirujjamanakash@gmail.com).
+By participating in this project, you are expected to uphold our Code of Conduct. Please report unacceptable behavior to [benouijemmed@gmail.com](mailto:benouijemmed@gmail.com).
 
 ## How Can I Contribute?
 
@@ -22,7 +22,7 @@ Pull requests are the best way to propose changes to the codebase. We actively w
 
 ## Development Guidelines
 
-When contributing code to Lara Dashboard, please follow these guidelines:
+When contributing code to USED, please follow these guidelines:
 
 ### Architectural Principles
 
@@ -147,6 +147,6 @@ By contributing, you agree that your contributions will be licensed under the pr
 
 ## Questions?
 
-Don't hesitate to reach out if you have any questions. You can contact the maintainers at [manirujjamanakash@gmail.com](mailto:manirujjamanakash@gmail.com).
+Don't hesitate to reach out if you have any questions. You can contact the developer at [benouijemmed@gmail.com](mailto:benouijemmed@gmail.com).
 
-Thank you for contributing to Lara Dashboard!
+Thank you for contributing to USED!
