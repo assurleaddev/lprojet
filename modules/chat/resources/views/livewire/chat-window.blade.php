@@ -1,16 +1,16 @@
 <div class="flex flex-col h-full" x-data="{ typingUsers: [], isOtherUserOnline: @entangle('isOtherUserOnline') }" {{-- Robust Alpine.js Pusher/Echo Listener
     Bridge --}} x-init="() => {
-        console.log('[Alpine x-init] Initializing for conversation {{ $conversationId }}');
+        console.log('[Alpine x-init] Initializing for conversation {{ $this->conversationId }}');
 
         const setupEchoListener = () => {
              if (window.Echo && window.Echo.connector && window.Echo.connector.pusher && window.Echo.connector.pusher.connection) {
                 const connectionState = window.Echo.connector.pusher.connection.state;
 
                 if (connectionState === 'connected') {
-                    window.Echo.leave('conversations.{{ $conversationId }}');
+                    window.Echo.leave('conversations.{{ $this->conversationId }}');
 
                     // Join Presence Channel
-                    window.Echo.join('conversations.{{ $conversationId }}')
+                    window.Echo.join('conversations.{{ $this->conversationId }}')
                         .here((users) => {
                             const otherUser = users.find(u => u.id !== {{ auth()->id() }});
                             $wire.set('isOtherUserOnline', !!otherUser);
@@ -56,14 +56,14 @@
         setupEchoListener();
 
      }" {{-- Add wire:key to help Livewire identify this component instance if multiple could exist --}}
-    wire:key="chat-window-{{ $conversationId }}">
+    wire:key="chat-window-{{ $this->conversationId }}">
 
     {{-- 1. Header --}}
     <div class="px-6 py-4 border-b dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm flex-shrink-0">
-        @if($conversation)
+        @if($this->conversation)
             @php 
-                $otherUser = $conversation->getOtherUser(auth()->user()); 
-                $product = $conversation->product;
+                $otherUser = $this->conversation->getOtherUser(auth()->user()); 
+                $product = $this->conversation->product;
                 $isSold = $product && $product->status === 'sold';
                 $isSeller = auth()->id() === ($product->vendor_id ?? null);
                 $isBuyerOfItem = auth()->id() === ($product->buyer_id ?? null);
@@ -113,15 +113,15 @@
             {{-- Product Info Bar --}}
             <div class="mt-4 flex items-start space-x-4 border-t pt-4">
                 <div class="flex-shrink-0">
-                    <img src="{{ $conversation->product->getFeaturedImageUrl('preview') }}"
-                        alt="{{ $conversation->product->name }}" class="w-12 h-16 object-cover rounded-md bg-gray-100">
+                    <img src="{{ $this->conversation->product->getFeaturedImageUrl('preview') }}"
+                        alt="{{ $this->conversation->product->name }}" class="w-12 h-16 object-cover rounded-md bg-gray-100">
                 </div>
 
                 <div class="flex-1">
-                    <h4 class="font-medium text-gray-900">{{ $conversation->product->name }}</h4>
-                    <p class="text-sm text-gray-500">{{ $conversation->product->price }} MAD</p>
+                    <h4 class="font-medium text-gray-900">{{ $this->conversation->product->name }}</h4>
+                    <p class="text-sm text-gray-500">{{ $this->conversation->product->price }} MAD</p>
                     <p class="text-xs text-teal-600 flex items-center mt-1">
-                        {{ number_format($conversation->product->price * 1.05 + 10, 2) }} MAD Includes Buyer Protection
+                        {{ number_format($this->conversation->product->price * 1.05 + 10, 2) }} MAD Includes Buyer Protection
                         <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -131,13 +131,13 @@
 
                 <div class="flex space-x-2">
                     {{-- Seller Actions: Reserve/Unreserve --}}
-                    @if(auth()->id() === $conversation->product->vendor_id)
-                        @if($conversation->product->status !== 'reserved' && $conversation->product->status !== 'sold')
+                    @if(auth()->id() === $this->conversation->product->vendor_id)
+                        @if($this->conversation->product->status !== 'reserved' && $this->conversation->product->status !== 'sold')
                             <button wire:click="reserveProduct"
                                 class="px-3 py-1 bg-white border border-yellow-600 text-yellow-600 text-sm font-medium rounded hover:bg-yellow-50">
                                 Reserve
                             </button>
-                        @elseif($conversation->product->status === 'reserved')
+                        @elseif($this->conversation->product->status === 'reserved')
                             <button wire:click="unreserveProduct"
                                 class="px-3 py-1 bg-yellow-600 text-white text-sm font-medium rounded hover:bg-yellow-700">
                                 Unreserve
@@ -145,21 +145,21 @@
                         @endif
                     @endif
 
-                    @if(auth()->id() !== $conversation->product->vendor_id)
-                        @if($conversation->product->status === 'approved')
+                    @if(auth()->id() !== $this->conversation->product->vendor_id)
+                        @if($this->conversation->product->status === 'approved')
                             <button
-                                @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $conversation->product->id }} })"
+                                @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $this->conversation->product->id }} })"
                                 @if($isUnavailable) disabled @endif
                                 class="px-3 py-1 bg-white border border-teal-600 text-teal-600 text-sm font-medium rounded hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 Make Offer
                             </button>
                             <button
-                                @click="window.location.href='{{ route('product.checkout', $conversation->product) }}'"
+                                @click="window.location.href='{{ route('product.checkout', $this->conversation->product) }}'"
                                 @if($isUnavailable) disabled @endif
                                 class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                 Buy Now
                             </button>
-                        @elseif($conversation->product->status === 'reserved')
+                        @elseif($this->conversation->product->status === 'reserved')
                              <button disabled
                                 class="px-3 py-1 bg-yellow-100 border border-yellow-300 text-yellow-600 text-sm font-medium rounded cursor-not-allowed">
                                 Reserved
@@ -171,7 +171,7 @@
                             </button>
                             <button disabled
                                 class="px-3 py-1 bg-gray-300 text-gray-500 text-sm font-medium rounded cursor-not-allowed">
-                                {{ ucfirst($conversation->product->status) }}
+                                {{ ucfirst($this->conversation->product->status) }}
                             </button>
                         @endif
                     @endif
@@ -185,9 +185,9 @@
 
     {{-- 2. Message Area (Scrollable) --}}
     <div class="flex-1 overflow-y-auto px-6 py-4 space-y-4 bg-white dark:bg-gray-900" x-ref="messageContainer">
-        @if($conversation)
+        @if($this->conversation)
             {{-- System Message --}}
-            @php $otherUser = $conversation->getOtherUser(auth()->user()); @endphp
+            @php $otherUser = $this->conversation->getOtherUser(auth()->user()); @endphp
             <div class="flex justify-start mb-6">
                 <div class="flex items-start space-x-3 max-w-lg">
                     @if($otherUser->avatar_id)
@@ -349,7 +349,7 @@
                         $downloadUrl = $matches[0] ?? '#';
                         $cleanBody = str_replace($downloadUrl, '', $messageBody);
                     @endphp
-                    @if(auth()->id() == $conversation->product->vendor_id)
+                    @if(auth()->id() == $this->conversation->product->vendor_id)
                         <div wire:key="item-sold-{{ $messageId }}" class="flex justify-center my-4">
                             <div
                                 class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
@@ -371,7 +371,7 @@
                                             class="block w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                             Download Shipping Label
                                         </a>
-                                        @if(auth()->id() == $conversation->product->vendor_id)
+                                        @if(auth()->id() == $this->conversation->product->vendor_id)
                                             <button wire:click="markAsShipped" wire:loading.attr="disabled"
                                                 class="block w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                                 Mark as Shipped
@@ -384,7 +384,7 @@
                     @endif
 
                 @elseif ($messageType === 'item_shipped')
-                    @if(auth()->id() != $conversation->product->vendor_id)
+                    @if(auth()->id() != $this->conversation->product->vendor_id)
                         <div wire:key="item-shipped-{{ $messageId }}" class="flex justify-center my-4">
                             <div
                                 class="w-full max-w-sm bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-sm overflow-hidden">
@@ -404,11 +404,11 @@
 
                                     @php
                                         // Check if the order is already completed to hide buttons
-                                        $buyerId = auth()->id() == $conversation->product->vendor_id
-                                            ? ($conversation->user_one_id == auth()->id() ? $conversation->user_two_id : $conversation->user_one_id)
+                                        $buyerId = auth()->id() == $this->conversation->product->vendor_id
+                                            ? ($this->conversation->user_one_id == auth()->id() ? $this->conversation->user_two_id : $this->conversation->user_one_id)
                                             : auth()->id();
 
-                                        $latestOrder = \App\Models\Order::where('product_id', $conversation->product_id)
+                                        $latestOrder = \App\Models\Order::where('product_id', $this->conversation->product_id)
                                             ->where('user_id', $buyerId)
                                             ->latest()
                                             ->first();
@@ -469,7 +469,7 @@
 
                                         @php 
                                             $checkoutRoute = route('checkout.offer', ['offer' => $offerId]);
-                                            $isSold = $conversation->product->status === 'sold';
+                                            $isSold = $this->conversation->product->status === 'sold';
                                             // Check specifically if this user bought it or just general sold status? 
                                             // Usually if sold, nobody can buy.
                                         @endphp
@@ -690,12 +690,12 @@
 
                 <div class="flex-1 relative">
                     <input type="text" wire:model="messageBody" placeholder="Write a message here"
-                        x-on:input="window.Echo.join('conversations.{{ $conversationId }}').whisper('typing', { name: '{{ auth()->user()->full_name }}' })"
+                        x-on:input="window.Echo.join('conversations.{{ $this->conversationId }}').whisper('typing', { name: '{{ auth()->user()->full_name }}' })"
                         class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                        autocomplete="off" @if(!$conversation || $isUnavailable) disabled @endif>
+                        autocomplete="off" @if(!$this->conversation || $isUnavailable) disabled @endif>
                     <button type="submit"
                         class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
-                        wire:loading.attr="disabled" @if(!$conversation || empty($messageBody) || $isUnavailable) disabled @endif>
+                        wire:loading.attr="disabled" @if(!$this->conversation || empty($messageBody) || $isUnavailable) disabled @endif>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
