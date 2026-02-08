@@ -113,50 +113,44 @@ class ChatWindow extends Component
         $conversation = $this->conversation;
 
         if ($conversation) {
+            // Mark messages as read and delivered BEFORE loading to ensure correct status in the array
+            $chatService->markAsRead($conversation, $user);
+            $chatService->markAsDelivered($conversation, $user);
+
+            // Re-fetch conversation to get updated timestamps in messages
+            $conversation->refresh();
+
             // Prepare messages array, ensuring offer/product data is structured correctly
             $this->messages = $conversation->messages->map(function ($message) {
                 $messageArray = $message->toArray(); // Convert message to array
 
-                // If there's an offer, ensure product and its featured image URL are included
                 if ($message->offer && $message->offer->product) {
-                    // Use the user's specific method here to get the image URL
-                    // Make sure the Product model instance is available via $message->offer->product
                     $messageArray['offer']['product']['featured_image_url'] = $message->offer->product->getFeaturedImageUrl('preview');
-
-                    // Manually add name/price if not included by default in toArray or relationships
                     if (!isset($messageArray['offer']['product']['name'])) {
                         $messageArray['offer']['product']['name'] = $message->offer->product->name;
                     }
                     if (!isset($messageArray['offer']['product']['price'])) {
                         $messageArray['offer']['product']['price'] = $message->offer->product->price;
                     }
-
                 } else {
-                    // Ensure nested structure exists even if there's no offer, avoids errors in Blade
                     if (!isset($messageArray['offer']))
                         $messageArray['offer'] = null;
-                    if ($messageArray['offer'] && !isset($messageArray['offer']['product']))
-                        $messageArray['offer']['product'] = null;
-                    if ($messageArray['offer'] && $messageArray['offer']['product'] && !isset($messageArray['offer']['product']['featured_image_url']))
-                        $messageArray['offer']['product']['featured_image_url'] = null;
                 }
+
+                // Ensure attachments are included if they exist
+                $messageArray['attachments'] = $message->attachments->toArray();
+
                 return $messageArray;
-            })->keyBy(function ($item) { // Key by offer or message ID after mapping
-                // Use unique keys: prefix with type and ensure message ID exists
+            })->keyBy(function ($item) {
                 $msgId = $item['id'] ?? uniqid('msg_', true);
                 $offerId = $item['offer_id'] ?? null;
                 return $offerId ? 'offer_' . $offerId : 'msg_' . $msgId;
             })->toArray();
 
-            // Mark messages as read and delivered
-            $chatService->markAsRead($conversation, $user);
-            $chatService->markAsDelivered($conversation, $user);
             Log::debug("ChatWindow: Successfully loaded conversation {$this->conversationId} with " . count($this->messages) . " messages.");
         } else {
-            // Handle case where conversation isn't found or user doesn't have access
             $this->messages = [];
             Log::warning("ChatWindow: Attempted to load invalid or inaccessible conversation ID {$this->conversationId} for User {$user->id}");
-            // Optionally redirect or show an error state in the view
         }
     }
 

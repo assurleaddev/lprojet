@@ -470,7 +470,9 @@
                                     <div class="p-4 bg-teal-50 dark:bg-teal-900/20">
                                         <div class="flex items-center mb-3">
                                             <div class="flex-shrink-0 bg-teal-100 dark:bg-teal-800 rounded-full p-2">
-                                                <i class="fas fa-shopping-bag text-teal-600 dark:text-teal-300"></i>
+                                                <svg class="h-5 w-5 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                                </svg>
                                             </div>
                                             <div class="ml-3">
                                                 <h3 class="text-sm font-medium text-teal-900 dark:text-teal-100">
@@ -559,7 +561,9 @@
                                             @else
                                                 <a href="{{ Storage::url($att->file_path) }}" target="_blank"
                                                     class="flex flex-col items-center justify-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-center {{ $isOwnMessage ? 'text-teal-50' : 'text-teal-600 dark:text-teal-200' }}">
-                                                    <i class="fas fa-file-alt fa-2x mb-1"></i>
+                                                    <svg class="h-8 w-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                    </svg>
                                                     <span class="text-[10px] truncate w-full">{{ $att->file_name ?? 'File' }}</span>
                                                 </a>
                                             @endif
@@ -577,7 +581,9 @@
                                     @else
                                         <a href="{{ Storage::url($messageData->attachment_path) }}" target="_blank"
                                             class="flex items-center space-x-2 {{ $isOwnMessage ? 'text-teal-100 hover:text-white' : 'text-teal-600 hover:text-teal-800' }}">
-                                            <i class="fas fa-download text-sm"></i>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                            </svg>
                                             <span class="underline text-sm font-medium">Download Attachment</span>
                                         </a>
                                     @endif
@@ -600,11 +606,32 @@
                             @if($isOwnMessage)
                                 <div class="flex items-center">
                                     @if(isset($messageData->read_at) && $messageData->read_at)
-                                        <i class="fas fa-check-double text-[11px] text-green-500" title="Read"></i>
+                                        {{-- Double Check Teal --}}
+                                        <div class="flex items-center -space-x-1" title="Read">
+                                            <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
                                     @elseif(isset($messageData->delivered_at) && $messageData->delivered_at)
-                                        <i class="fas fa-check-double text-[11px] text-gray-500 dark:text-gray-400" title="Delivered"></i>
+                                        {{-- Double Check Gray --}}
+                                        <div class="flex items-center -space-x-1" title="Delivered">
+                                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
                                     @else
-                                        <i class="fas fa-check text-[11px] text-gray-300 dark:text-gray-600" title="Sent"></i>
+                                        {{-- Single Check --}}
+                                        <div title="Sent">
+                                            <svg class="w-3.5 h-3.5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </div>
                                     @endif
                                 </div>
                             @endif
