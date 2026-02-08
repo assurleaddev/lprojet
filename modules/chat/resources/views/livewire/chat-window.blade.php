@@ -1,6 +1,19 @@
-<div class="flex flex-col h-full" x-data="{ typingUsers: [], isOtherUserOnline: @entangle('isOtherUserOnline') }" {{-- Robust Alpine.js Pusher/Echo Listener
-    Bridge --}} x-init="() => {
+<div class="flex flex-col h-full" 
+    x-data="{ 
+        typingUsers: [], 
+        isOtherUserOnline: @entangle('isOtherUserOnline'),
+        scrollToBottom() {
+            this.$nextTick(() => {
+                const container = this.$refs.messageContainer;
+                if (container) {
+                    container.scrollTop = container.scrollHeight + 100;
+                }
+            });
+        }
+    }" 
+    x-init="() => {
         console.log('[Alpine x-init] Initializing for conversation {{ $this->conversationId }}');
+        scrollToBottom();
 
         const setupEchoListener = () => {
              if (window.Echo && window.Echo.connector && window.Echo.connector.pusher && window.Echo.connector.pusher.connection) {
@@ -25,16 +38,6 @@
                                 $wire.set('isOtherUserOnline', false);
                             }
                         })
-                        .listen('.new-message', (e) => {
-                            if (e.user.id !== {{ auth()->id() }}) {
-                                $wire.dispatch('refresh-chat');
-                            }
-                        })
-                        .listen('.messages-read', (e) => {
-                            if (e.userId !== {{ auth()->id() }}) {
-                                $wire.dispatch('refresh-read-status');
-                            }
-                        })
                         .listenForWhisper('typing', (e) => {
                             if (!this.typingUsers.includes(e.name)) {
                                 this.typingUsers.push(e.name);
@@ -55,7 +58,14 @@
         // Initial call to set up the listener
         setupEchoListener();
 
-     }" {{-- Add wire:key to help Livewire identify this component instance if multiple could exist --}}
+        // Listen for Livewire events for scrolling
+        Livewire.on('message-sent', (e) => { 
+            const eventData = Array.isArray(e) ? e[0] : (e.detail || e);
+            if(eventData.conversationId == {{ $this->conversationId }}) scrollToBottom(); 
+        });
+        Livewire.on('refresh-chat', () => { scrollToBottom(); });
+     }" 
+{{-- Add wire:key to help Livewire identify this component instance if multiple could exist --}}
     wire:key="chat-window-{{ $this->conversationId }}">
 
     {{-- 1. Header --}}

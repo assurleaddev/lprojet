@@ -160,28 +160,25 @@ class ChatWindow extends Component
         }
     }
 
-    /**
-     * This method is triggered by the Alpine.js bridge when a 'new-message'
-     * event is received via Pusher/Echo for this conversation.
-     * It reloads the conversation messages.
-     *
-     * @param ChatService $chatService
-     * @return void
-     */
-    #[On('refresh-chat')]
+    public function getListeners()
+    {
+        return [
+            "echo-private:conversations.{$this->conversationId},.new-message" => 'refreshMessages',
+            "echo-private:conversations.{$this->conversationId},.messages-read" => 'refreshReadStatus',
+            'refresh-chat' => 'refreshMessages',
+            'refresh-read-status' => 'refreshReadStatus',
+        ];
+    }
+
     public function refreshMessages(ChatService $chatService): void
     {
-        Log::debug("ChatWindow: refreshMessages triggered for Conversation {$this->conversationId}"); // Debug log
-        $this->loadConversation($chatService); // Reloads all messages and marks as read
-
-        // Dispatch event back to Alpine to trigger scroll down
+        Log::debug("ChatWindow: refreshMessages triggered for Conversation {$this->conversationId}");
+        $this->loadConversation($chatService);
         $this->dispatch('message-received', conversationId: $this->conversationId);
     }
 
-    #[On('refresh-read-status')]
     public function refreshReadStatus(): void
     {
-        // Reload messages to update read_at status in the UI
         $this->loadConversation(app(ChatService::class));
     }
 

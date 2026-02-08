@@ -84,46 +84,6 @@
 
 @push('scripts')
     <script>
-        // Ensure this function is defined globally
-        if (typeof chatWindow !== 'function') {
-            window.chatWindow = function (conversationId) {
-                return {
-                    conversationId: conversationId,
-                    init() {
-                        console.log(`[Alpine Scroll] Initializing scroll behavior for conversation ${this.conversationId}`);
-                        // Wait briefly for initial messages to render before scrolling
-                        setTimeout(() => this.scrollToBottom(), 150);
-
-                        // Listen for Livewire events dispatched after message send/receive OR refresh
-                        Livewire.on('message-sent', (event) => {
-                            const eventData = Array.isArray(event) && event.length > 0 ? event[0] : (event.detail || event);
-                            if (eventData && eventData.conversationId === this.conversationId) {
-                                console.log('[Alpine Scroll] message-sent received, scrolling');
-                                this.scrollToBottom();
-                            }
-                        });
-                        Livewire.on('message-received', (event) => {
-                            const eventData = Array.isArray(event) && event.length > 0 ? event[0] : (event.detail || event);
-                            if (eventData && eventData.conversationId === this.conversationId) {
-                                console.log('[Alpine Scroll] message-received received, scrolling');
-                                this.scrollToBottom();
-                            }
-                        });
-
-                    },
-                    scrollToBottom() {
-                        this.$nextTick(() => {
-                            const container = this.$refs.messageContainer;
-                            if (container) {
-                                container.scrollTop = container.scrollHeight + 50;
-                                console.log(`[Alpine Scroll] Scrolled to bottom (scrollHeight: ${container.scrollHeight}) for conversation ${this.conversationId}`);
-                            } else {
-                                console.warn(`[Alpine Scroll] messageContainer ref not found for conversation ${this.conversationId}`);
-                            }
-                        });
-                    }
-                }
-            }
-        }
+        // Scripts removed: Scroll logic is now internalized in the ChatWindow component.
     </script>
 @endpush
