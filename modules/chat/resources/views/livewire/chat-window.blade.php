@@ -591,97 +591,94 @@
                 <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">Item is unavailable</h4>
                 <p class="text-xs text-gray-500 dark:text-gray-400">The item was sold or deleted</p>
             </div>
-            <div class="h-px bg-gray-100 dark:bg-gray-700 mb-4"></div>
-        @endif
-
-        {{-- Safety Banner --}}
-        <div class="mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex items-start space-x-3"
-            x-data="{ showSafety: true }" x-show="showSafety" x-transition.duration.300ms>
-            <svg class="w-5 h-5 text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                </path>
-            </svg>
-            <div class="text-xs text-gray-600 dark:text-gray-300">
-                <span class="font-semibold">Stay safe on Used.</span> Don't share personal data, click on external
-                links, or scan QR codes.
-                <a href="#" class="text-teal-600 hover:underline">More safety tips</a>
-            </div>
-            <button @click="showSafety = false" class="text-gray-400 hover:text-gray-600 ml-auto">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                    </path>
-                </svg>
-            </button>
-        </div>
-
-        {{-- Preview Block (Placed between Safety Banner and Input) --}}
-        @if ($attachments)
-            <div class="mb-3 px-2 flex items-center space-x-2 overflow-x-auto">
-                @foreach ($attachments as $index => $file)
-                    <div class="relative inline-block flex-shrink-0" wire:key="preview-{{ $index }}">
-                        @if (str_contains($file->getMimeType(), 'image'))
-                            <img src="{{ $file->temporaryUrl() }}"
-                                class="w-16 h-16 object-cover rounded-md border border-gray-200 dark:border-gray-600">
-                        @else
-                            <div
-                                class="w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-md text-gray-500 dark:text-gray-300 text-xs text-center p-1 break-all border border-gray-200 dark:border-gray-600">
-                                {{ $file->getClientOriginalName() }}
-                            </div>
-                        @endif
-                        <button type="button" wire:click="removeAttachment({{ $index }})"
-                            class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 shadow-sm border border-white dark:border-gray-800">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                                </path>
-                            </svg>
-                        </button>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-
-        <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
-            <!-- File Input -->
-            <input type="file" id="chat-attachment-input" wire:model="attachments" class="hidden" multiple>
-
-            <button type="button" 
-                @if($isUnavailable) disabled @else onclick="document.getElementById('chat-attachment-input').click()" @endif
-                class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md relative disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        @else
+            {{-- Safety Banner --}}
+            <div class="mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex items-start space-x-3"
+                x-data="{ showSafety: true }" x-show="showSafety" x-transition.duration.300ms>
+                <svg class="w-5 h-5 text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                        d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
                     </path>
                 </svg>
-
-                <!-- Loading indicator for upload -->
-                <div wire:loading wire:target="attachments" class="absolute -top-1 -right-1">
-                    <span class="flex h-3 w-3 relative">
-                        <span
-                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
-                    </span>
+                <div class="text-xs text-gray-600 dark:text-gray-300">
+                    <span class="font-semibold">Stay safe on Used.</span> Don't share personal data, click on external
+                    links, or scan QR codes.
+                    <a href="#" class="text-teal-600 hover:underline">More safety tips</a>
                 </div>
-            </button>
-
-            <div class="flex-1 relative">
-
-
-                <input type="text" wire:model="messageBody" placeholder="Write a message here"
-                    x-on:input="window.Echo.join('conversations.{{ $conversationId }}').whisper('typing', { name: '{{ auth()->user()->full_name }}' })"
-                    class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    autocomplete="off" @if(!$conversation || $isUnavailable) disabled @endif>
-                <button type="submit"
-                    class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
-                    wire:loading.attr="disabled" @if(!$conversation || empty($messageBody) || $isUnavailable) disabled @endif>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                <button @click="showSafety = false" class="text-gray-400 hover:text-gray-600 ml-auto">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
-        </form>
-        @error('messageBody') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+
+            {{-- Preview Block (Placed between Safety Banner and Input) --}}
+            @if ($attachments)
+                <div class="mb-3 px-2 flex items-center space-x-2 overflow-x-auto">
+                    @foreach ($attachments as $index => $file)
+                        <div class="relative inline-block flex-shrink-0" wire:key="preview-{{ $index }}">
+                            @if (str_contains($file->getMimeType(), 'image'))
+                                <img src="{{ $file->temporaryUrl() }}"
+                                    class="w-16 h-16 object-cover rounded-md border border-gray-200 dark:border-gray-600">
+                            @else
+                                <div
+                                    class="w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-md text-gray-500 dark:text-gray-300 text-xs text-center p-1 break-all border border-gray-200 dark:border-gray-600">
+                                    {{ $file->getClientOriginalName() }}
+                                </div>
+                            @endif
+                            <button type="button" wire:click="removeAttachment({{ $index }})"
+                                class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 shadow-sm border border-white dark:border-gray-800">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+
+            <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
+                <!-- File Input -->
+                <input type="file" id="chat-attachment-input" wire:model="attachments" class="hidden" multiple>
+
+                <button type="button" 
+                    @if($isUnavailable) disabled @else onclick="document.getElementById('chat-attachment-input').click()" @endif
+                    class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md relative disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
+                        </path>
+                    </svg>
+
+                    <!-- Loading indicator for upload -->
+                    <div wire:loading wire:target="attachments" class="absolute -top-1 -right-1">
+                        <span class="flex h-3 w-3 relative">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                        </span>
+                    </div>
+                </button>
+
+                <div class="flex-1 relative">
+                    <input type="text" wire:model="messageBody" placeholder="Write a message here"
+                        x-on:input="window.Echo.join('conversations.{{ $conversationId }}').whisper('typing', { name: '{{ auth()->user()->full_name }}' })"
+                        class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        autocomplete="off" @if(!$conversation || $isUnavailable) disabled @endif>
+                    <button type="submit"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
+                        wire:loading.attr="disabled" @if(!$conversation || empty($messageBody) || $isUnavailable) disabled @endif>
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                        </svg>
+                    </button>
+                </div>
+            </form>
+            @error('messageBody') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+        @endif
     </div>
 
     {{-- Rejection Reason Modal (controlled by Livewire showRejectionModal) --}}
