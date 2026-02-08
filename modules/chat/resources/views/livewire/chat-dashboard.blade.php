@@ -13,7 +13,7 @@
                     @foreach($conversations as $conv)
                         @php $otherUser = $conv->getOtherUser(auth()->user()); @endphp
                         <li wire:click="selectConversation({{ $conv->id }})"
-                            class="p-4 border-b dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 {{ $selectedConversation?->id === $conv->id ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
+                            class="p-4 border-b dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 {{ $selectedConversationId === $conv->id ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
                             wire:key="conversation-{{ $conv->id }}">
 
                             <div class="flex items-start space-x-3">
@@ -59,12 +59,11 @@
             @endif
         </div>
 
-        {{-- 2. Chat Window (Main Area) --}}
         <div class="w-2/3 flex flex-col bg-gray-50 dark:bg-gray-900">
-            @if($selectedConversation)
+            @if($this->selectedConversation)
                 {{-- Load the ChatWindow component for the selected conversation --}}
                 {{-- Pass the conversation ID to the component --}}
-                @livewire('chat::chat-window', ['conversationId' => $selectedConversation->id], key($selectedConversation->id))
+                @livewire('chat::chat-window', ['conversationId' => $this->selectedConversation->id], key: 'chat-window-' . $this->selectedConversation->id)
             @else
                 <div class="flex items-center justify-center h-full">
                     <p class="text-gray-500">Select a conversation to start chatting.</p>

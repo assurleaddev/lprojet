@@ -21,10 +21,24 @@ class ChatDashboard extends Component
     public Collection $conversations;
 
     /**
-     * The currently selected conversation model.
-     * @var Conversation|null
+     * The currently selected conversation ID.
+     * @var int|null
      */
-    public ?Conversation $selectedConversation = null;
+    public ?int $selectedConversationId = null;
+
+    /**
+     * Get the currently selected conversation model.
+     */
+    #[\Livewire\Attributes\Computed]
+    public function selectedConversation()
+    {
+        if (!$this->selectedConversationId) {
+            return null;
+        }
+
+        return Conversation::with(['product', 'userOne', 'userTwo'])
+            ->find($this->selectedConversationId);
+    }
 
     /**
      * The conversation ID passed via the URL query string (for deep-linking).
@@ -69,7 +83,7 @@ class ChatDashboard extends Component
             }
         }
 
-        if ($this->selectedConversation === null && $this->conversations->isNotEmpty()) {
+        if ($this->selectedConversationId === null && $this->conversations->isNotEmpty()) {
             $this->selectConversation($this->conversations->first()->id);
         }
     }
@@ -83,11 +97,11 @@ class ChatDashboard extends Component
      */
     public function selectConversation(int $conversationId): void
     {
-        $selected = $this->conversations->firstWhere('id', $conversationId);
+        $this->selectedConversationId = $conversationId;
 
-        if ($selected) {
-            $this->selectedConversation = $selected;
-            app(ChatService::class)->markAsRead($this->selectedConversation, Auth::user());
+        $current = $this->selectedConversation;
+        if ($current) {
+            app(ChatService::class)->markAsRead($current, Auth::user());
         }
     }
 
