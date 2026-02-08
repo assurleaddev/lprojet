@@ -151,8 +151,9 @@ class ChatWindow extends Component
                 return $offerId ? 'offer_' . $offerId : 'msg_' . $msgId;
             })->toArray();
 
-            // Mark messages as read
+            // Mark messages as read and delivered
             $chatService->markAsRead($conversation, $user);
+            $chatService->markAsDelivered($conversation, $user);
             Log::debug("ChatWindow: Successfully loaded conversation {$this->conversationId} with " . count($this->messages) . " messages.");
         } else {
             // Handle case where conversation isn't found or user doesn't have access

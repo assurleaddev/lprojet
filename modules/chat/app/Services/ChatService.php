@@ -103,11 +103,14 @@ class ChatService
 
     public function markAsRead(Conversation $conversation, User $user): void
     {
-        // Mark messages as read
+        // Mark messages as read and delivered
         $conversation->messages()
             ->where('user_id', '!=', $user->id)
             ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+            ->update([
+                'read_at' => now(),
+                'delivered_at' => \DB::raw('COALESCE(delivered_at, NOW())')
+            ]);
 
         // Mark related database notifications as read
         $user->unreadNotifications()
@@ -122,6 +125,18 @@ class ChatService
 
         // Broadcast that messages were read
         MessageRead::dispatch($conversation->id, $user->id);
+    }
+
+    public function markAsDelivered(Conversation $conversation, User $user): void
+    {
+        // Mark messages as delivered for the recipient
+        $conversation->messages()
+            ->where('user_id', '!=', $user->id)
+            ->whereNull('delivered_at')
+            ->update(['delivered_at' => now()]);
+
+        // Note: We don't necessarily need a "MessageDelivered" broadcast yet, 
+        // as simple read receipts are often enough, but it helps for multi-state.
     }
 
     public function withdrawOffer(Offer $offer, User $user): void

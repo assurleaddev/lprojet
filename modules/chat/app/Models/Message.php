@@ -18,9 +18,10 @@ class Message extends Model
      */
     protected $fillable = [
         'conversation_id',
-        'user_id',         // <-- Add this line
+        'user_id',
         'body',
         'read_at',
+        'delivered_at',
         'offer_id',
         'type',
         'attachment_path',

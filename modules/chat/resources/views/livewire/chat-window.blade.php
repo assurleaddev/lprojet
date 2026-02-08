@@ -527,9 +527,10 @@
                     <div class="flex flex-col {{ $isOwnMessage ? 'items-end' : 'items-start' }} space-y-1 mb-4" wire:key="msg-{{ $messageId }}">
                         {{-- Standard message bubble --}}
                         <div
-                            class="w-fit max-w-[85%] px-4 py-2 rounded-2xl shadow-sm {{ $isOwnMessage ? 'bg-teal-600 text-white rounded-tr-none' : 'bg-white dark:bg-gray-800 dark:text-gray-200 rounded-tl-none border border-gray-100 dark:border-gray-700' }}">
+                            class="w-fit max-w-[85%] px-4 py-2 rounded-2xl shadow-sm {{ $isOwnMessage ? 'bg-teal-600 text-white rounded-tr-none self-end text-left' : 'bg-white dark:bg-gray-800 dark:text-gray-200 rounded-tl-none self-start text-left border border-gray-100 dark:border-gray-700' }}">
 
                             @if(isset($messageData->attachments) && count($messageData->attachments) > 0)
+                                {{-- ... attachments ... (kept same for brevity in this tool call, but I will include them) --}}
                                 <div class="mb-2 grid grid-cols-2 gap-2">
                                     @foreach($messageData->attachments as $att)
                                         @php $att = (object) $att; @endphp
@@ -542,11 +543,7 @@
                                             @else
                                                 <a href="{{ Storage::url($att->file_path) }}" target="_blank"
                                                     class="flex flex-col items-center justify-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-center {{ $isOwnMessage ? 'text-teal-50' : 'text-teal-600 dark:text-teal-200' }}">
-                                                    <svg class="w-8 h-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                                        </path>
-                                                    </svg>
+                                                    <i class="fas fa-file-alt fa-2x mb-1"></i>
                                                     <span class="text-[10px] truncate w-full">{{ $att->file_name ?? 'File' }}</span>
                                                 </a>
                                             @endif
@@ -554,7 +551,7 @@
                                     @endforeach
                                 </div>
                             @elseif(isset($messageData->attachment_path) && $messageData->attachment_path)
-                                {{-- Legacy single file support --}}
+                                {{-- Legacy support --}}
                                 <div class="mb-2">
                                     @if(isset($messageData->attachment_type) && $messageData->attachment_type === 'image')
                                         <a href="{{ Storage::url($messageData->attachment_path) }}" target="_blank">
@@ -564,18 +561,14 @@
                                     @else
                                         <a href="{{ Storage::url($messageData->attachment_path) }}" target="_blank"
                                             class="flex items-center space-x-2 {{ $isOwnMessage ? 'text-teal-100 hover:text-white' : 'text-teal-600 hover:text-teal-800' }}">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                                </path>
-                                            </svg>
+                                            <i class="fas fa-download text-sm"></i>
                                             <span class="underline text-sm font-medium">Download Attachment</span>
                                         </a>
                                     @endif
                                 </div>
                             @endif
 
-                            {{-- Use linkify helper if you defined it, otherwise just display body --}}
+                            {{-- Message Body --}}
                             @if (!empty($messageBody))
                                 <p class="text-[14px] leading-relaxed break-words whitespace-pre-wrap">
                                     {!! function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody)) !!}
@@ -583,21 +576,21 @@
                             @endif
                         </div>
 
-                        {{-- Metadata below bubble --}}
-                        <div class="flex items-center space-x-1 mt-0.5 px-1">
+                        {{-- Metadata & Icons Below Bubble --}}
+                        <div class="flex items-center space-x-1.5 mt-0.5 px-1">
                             <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500">
                                 {{ $messageTime }}
                             </span>
                             @if($isOwnMessage)
-                                @if(isset($messageData->read_at) && $messageData->read_at)
-                                    <svg class="w-3 h-3 text-teal-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path>
-                                    </svg>
-                                @else
-                                    <svg class="w-3 h-3 text-gray-300 dark:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path>
-                                    </svg>
-                                @endif
+                                <div class="flex items-center">
+                                    @if(isset($messageData->read_at) && $messageData->read_at)
+                                        <i class="fas fa-check-double text-[11px] text-green-500" title="Read"></i>
+                                    @elseif(isset($messageData->delivered_at) && $messageData->delivered_at)
+                                        <i class="fas fa-check-double text-[11px] text-gray-500 dark:text-gray-400" title="Delivered"></i>
+                                    @else
+                                        <i class="fas fa-check text-[11px] text-gray-300 dark:text-gray-600" title="Sent"></i>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                     </div>
