@@ -10,23 +10,11 @@ use Illuminate\Support\Facades\Auth; // Import Auth facade
 
 use Livewire\Attributes\Url; // Import Url attribute
 use Livewire\Attributes\Layout; // Import Layout attribute
+use Illuminate\Support\Facades\Log; // Import Log facade
 
 #[Layout('layouts.app')]
 class ChatDashboard extends Component
 {
-    public function getListeners()
-    {
-        $authId = Auth::id();
-        return [
-            "echo-private:App.Models.User.{$authId},.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated" => 'refreshDashboard',
-            'refresh-dashboard' => 'refreshDashboard',
-        ];
-    }
-
-    public function refreshDashboard(): void
-    {
-        // This will trigger a re-render and re-fetch of the conversations computed property
-    }
     /**
      * The currently selected conversation ID, synced with the URL.
      * @var int|null
@@ -86,7 +74,6 @@ class ChatDashboard extends Component
         }
     }
 
-
     /**
      * Selects a conversation and updates the selectedConversation property.
      * Dispatches an event for the ChatWindow component.
@@ -106,6 +93,37 @@ class ChatDashboard extends Component
         if ($this->selectedConversation) {
             app(ChatService::class)->markAsRead($this->selectedConversation, Auth::user());
         }
+    }
+
+    #[\Livewire\Attributes\On('refresh-dashboard')]
+    public function refreshDashboard(): void
+    {
+        // Re-renders the component to update conversation list (e.g. last message, unread status)
+        Log::debug("ChatDashboard: refreshDashboard triggered manually.");
+    }
+
+    public function getListeners()
+    {
+        $authId = Auth::id();
+        return [
+            "echo-private:App.Models.User.{$authId},.Illuminate\\Notifications\\Events\\BroadcastNotificationCreated" => 'handleNotification',
+        ];
+    }
+
+    public function handleNotification($data): void
+    {
+        Log::debug("ChatDashboard: Notification received via Echo", ['data' => $data]);
+
+        // If the notification has a conversation ID, we can check if it's the current one
+        $convoId = null;
+        if (isset($data['url']) && preg_match('/id=(\d+)/', $data['url'], $matches)) {
+            $convoId = (int) $matches[1];
+        }
+
+        // If it's for another conversation, refresh the dashboard to update list/counts
+        // If it's for the current one, the ChatWindow is already refreshing itself.
+        // We still refresh the Dashboard to update the sidebar preview, but we do it safely.
+        $this->refreshDashboard();
     }
 
     /**

@@ -64,9 +64,7 @@
             if(eventData.conversationId == {{ $this->conversationId }}) scrollToBottom(); 
         });
         Livewire.on('refresh-chat', () => { scrollToBottom(); });
-     }" 
-{{-- Add wire:key to help Livewire identify this component instance if multiple could exist --}}
-    wire:key="chat-window-{{ $this->conversationId }}">
+     }">
 
     {{-- 1. Header --}}
     <div class="px-6 py-4 border-b dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm flex-shrink-0">
@@ -731,8 +729,7 @@
             {{-- Modal panel --}}
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span> {{--
             Vertical centering helper --}}
-            <div x-show="show" x-trap.inert.noscroll="show" {{-- Trap focus --}} @click.stop {{-- Stop click propagation
-                --}} x-transition:enter="ease-out duration-300"
+            <div x-show="show" x-on:click.stop x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave="ease-in duration-200"
@@ -791,7 +788,7 @@
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div x-show="show" x-trap.inert.noscroll="show" @click.stop x-transition:enter="ease-out duration-300"
+            <div x-show="show" @click.stop x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave="ease-in duration-200"
@@ -838,7 +835,7 @@
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <div x-show="show" x-trap.inert.noscroll="show" @click.stop x-transition:enter="ease-out duration-300"
+            <div x-show="show" @click.stop x-transition:enter="ease-out duration-300"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave="ease-in duration-200"
