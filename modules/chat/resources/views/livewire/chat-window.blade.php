@@ -263,7 +263,15 @@
                                                 {{ number_format($productData->price ?? 0, 2) }} MAD
                                             </span>
                                         </div>
-                                        <p class="text-xs text-gray-500 mt-1">{{ $offerStatus?->value }}</p>
+                                        <p class="text-xs font-medium text-gray-500 mt-1">
+                                            @if($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected)
+                                                Declined
+                                            @elseif($offerStatus === \Modules\Chat\Enums\OfferStatus::AwaitingBuyer)
+                                                Pending
+                                            @else
+                                                {{ ucfirst($offerStatus?->value) }}
+                                            @endif
+                                        </p>
                                     </div>
                                     {{-- Optional: Small Product Thumbnail --}}
                                     <img src="{{ $featuredImageUrl ?? asset('images/default.svg') }}" alt="Product"
@@ -304,12 +312,28 @@
                                         class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
                                         <button wire:click="acceptOffer({{ $offerId }})" wire:loading.attr="disabled"
                                             class="col-span-2 w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
-                                            Accept {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
+                                            Acheter {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
                                         </button>
                                         <button wire:click="promptRejectOffer({{ $offerId }})" wire:loading.attr="disabled"
                                             class="col-span-2 w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
                                             Decline
                                         </button>
+                                    </div>
+
+                                    {{-- 4. Offer Declined (Try again) --}}
+                                @elseif($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected)
+                                    <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
+                                        @if(auth()->id() !== $offerData->vendor_id) {{-- Buyer side --}}
+                                            <button @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $productData->id }} })"
+                                                class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                Offer your price
+                                            </button>
+                                        @else {{-- Seller side --}}
+                                            <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
+                                                class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                Offer your price
+                                            </button>
+                                        @endif
                                     </div>
                                 @endif
                             </div>
