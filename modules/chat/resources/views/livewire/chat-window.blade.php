@@ -323,7 +323,7 @@
                                     {{-- 4. Offer Declined (Try again) --}}
                                 @elseif($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected)
                                     <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
-                                        @if(auth()->id() !== $offerData->vendor_id) {{-- Buyer side --}}
+                                        @if(auth()->id() !== ($offerData->seller_id ?? $productData->vendor_id ?? null)) {{-- Buyer side --}}
                                             <button @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $productData->id }} })"
                                                 class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
                                                 Offer your price
