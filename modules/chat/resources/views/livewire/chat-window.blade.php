@@ -61,7 +61,14 @@
     {{-- 1. Header --}}
     <div class="px-6 py-4 border-b dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm flex-shrink-0">
         @if($conversation)
-            @php $otherUser = $conversation->getOtherUser(auth()->user()); @endphp
+            @php 
+                $otherUser = $conversation->getOtherUser(auth()->user()); 
+                $product = $conversation->product;
+                $isSold = $product && $product->status === 'sold';
+                $isSeller = auth()->id() === ($product->vendor_id ?? null);
+                $isBuyerOfItem = auth()->id() === ($product->buyer_id ?? null);
+                $isUnavailable = (!$product) || ($isSold && !$isSeller && !$isBuyerOfItem);
+            @endphp
 
             <div class="flex items-center justify-between">
                 {{-- Left: User Info --}}
@@ -142,12 +149,14 @@
                         @if($conversation->product->status === 'approved')
                             <button
                                 @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $conversation->product->id }} })"
-                                class="px-3 py-1 bg-white border border-teal-600 text-teal-600 text-sm font-medium rounded hover:bg-teal-50">
+                                @if($isUnavailable) disabled @endif
+                                class="px-3 py-1 bg-white border border-teal-600 text-teal-600 text-sm font-medium rounded hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 Make Offer
                             </button>
                             <button
                                 @click="window.location.href='{{ route('product.checkout', $conversation->product) }}'"
-                                class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700">
+                                @if($isUnavailable) disabled @endif
+                                class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">
                                 Buy Now
                             </button>
                         @elseif($conversation->product->status === 'reserved')
@@ -577,6 +586,14 @@
 
     {{-- 3. Message Input Form --}}
     <div class="px-6 py-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
+        @if($isUnavailable)
+            <div class="mb-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
+                <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">Item is unavailable</h4>
+                <p class="text-xs text-gray-500 dark:text-gray-400">The item was sold or deleted</p>
+            </div>
+            <div class="h-px bg-gray-100 dark:bg-gray-700 mb-4"></div>
+        @endif
+
         {{-- Safety Banner --}}
         <div class="mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex items-start space-x-3"
             x-data="{ showSafety: true }" x-show="showSafety" x-transition.duration.300ms>
@@ -628,8 +645,9 @@
             <!-- File Input -->
             <input type="file" id="chat-attachment-input" wire:model="attachments" class="hidden" multiple>
 
-            <button type="button" onclick="document.getElementById('chat-attachment-input').click()"
-                class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md relative">
+            <button type="button" 
+                @if($isUnavailable) disabled @else onclick="document.getElementById('chat-attachment-input').click()" @endif
+                class="p-2 text-gray-400 hover:text-gray-600 border border-gray-300 rounded-md relative disabled:opacity-50 disabled:cursor-not-allowed">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13">
@@ -652,10 +670,10 @@
                 <input type="text" wire:model="messageBody" placeholder="Write a message here"
                     x-on:input="window.Echo.join('conversations.{{ $conversationId }}').whisper('typing', { name: '{{ auth()->user()->full_name }}' })"
                     class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    autocomplete="off" @if(!$conversation) disabled @endif>
+                    autocomplete="off" @if(!$conversation || $isUnavailable) disabled @endif>
                 <button type="submit"
                     class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
-                    wire:loading.attr="disabled" @if(!$conversation || empty($messageBody)) disabled @endif>
+                    wire:loading.attr="disabled" @if(!$conversation || empty($messageBody) || $isUnavailable) disabled @endif>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
