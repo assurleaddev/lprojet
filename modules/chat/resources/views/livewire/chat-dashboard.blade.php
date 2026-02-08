@@ -63,7 +63,7 @@
             @if($this->selectedConversation)
                 {{-- Load the ChatWindow component for the selected conversation --}}
                 {{-- Pass the conversation ID to the component --}}
-                @livewire('chat::chat-window', ['conversationId' => $this->selectedConversation->id], key: 'chat-window-' . $this->selectedConversation->id)
+                <livewire:chat::chat-window :conversationId="$this->selectedConversation->id" :key="'chat-window-' . $this->selectedConversation->id" />
             @else
                 <div class="flex items-center justify-center h-full">
                     <p class="text-gray-500">Select a conversation to start chatting.</p>
