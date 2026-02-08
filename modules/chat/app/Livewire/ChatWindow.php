@@ -163,15 +163,15 @@ class ChatWindow extends Component
     public function getListeners()
     {
         return [
-            "echo-private:conversations.{$this->conversationId},.new-message" => 'refreshMessages',
-            "echo-private:conversations.{$this->conversationId},.messages-read" => 'refreshReadStatus',
+            // Echo listeners are handled in Blade (x-init) for better Presence stability
             'refresh-chat' => 'refreshMessages',
             'refresh-read-status' => 'refreshReadStatus',
         ];
     }
 
-    public function refreshMessages(ChatService $chatService): void
+    public function refreshMessages(?ChatService $chatService = null): void
     {
+        $chatService = $chatService ?? app(ChatService::class);
         Log::debug("ChatWindow: refreshMessages triggered for Conversation {$this->conversationId}");
         $this->loadConversation($chatService);
         $this->dispatch('message-received', conversationId: $this->conversationId);

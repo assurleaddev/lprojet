@@ -45,6 +45,14 @@
                                     this.typingUsers = this.typingUsers.filter(u => u !== e.name);
                                 }, 3000);
                             }
+                        })
+                        .listen('.new-message', (e) => {
+                            console.log('[Alpine ChatWindow] New message received via Echo, refreshing component');
+                            $wire.refreshMessages();
+                        })
+                        .listen('.messages-read', (e) => {
+                            console.log('[Alpine ChatWindow] Messages read received via Echo, refreshing status');
+                            $wire.refreshReadStatus();
                         });
 
                 } else {
