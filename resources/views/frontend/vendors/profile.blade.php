@@ -175,7 +175,18 @@
                 @forelse ($user->products as $item)
                     <a href="{{ route('products.show', $item) }}"
                         class="flex-shrink-0 w-full block hover:opacity-80 transition">
-                        <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover mb-2">
+                        <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover">
+                        @if($item->status === 'sold')
+                            <div class="bg-[#4fb286] text-white text-[11px] font-bold px-3 py-1.5 mb-2">
+                                Vendus
+                            </div>
+                        @elseif($item->status === 'reserved')
+                            <div class="bg-amber-500 text-white text-[11px] font-bold px-3 py-1.5 mb-2">
+                                Réservé
+                            </div>
+                        @else
+                            <div class="mb-2"></div>
+                        @endif
                         <p class="font-bold text-sm">{{ $item->price }} MAD</p>
                         <p class="text-xs text-vinted-gray-500">
                             {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}

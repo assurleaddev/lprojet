@@ -14,6 +14,19 @@
                                 {{-- For better performance, we'll lazy-load images --}}
                                 <img src="{{ $product->getFeaturedImageUrl('preview') }}" class="product-image"
                                     alt="{{ $product->name }}">
+
+                                @if($product->status === 'sold')
+                                    <div
+                                        class="absolute bottom-0 left-0 right-0 bg-[#4fb286] text-white text-[11px] font-bold px-3 py-1.5">
+                                        Vendus
+                                    </div>
+                                @elseif($product->status === 'reserved')
+                                    <div
+                                        class="absolute bottom-0 left-0 right-0 bg-amber-500 text-white text-[11px] font-bold px-3 py-1.5">
+                                        Réservé
+                                    </div>
+                                @endif
+
                                 <button class="fav-badge" aria-label="Favourite">
                                     <svg viewBox="0 0 24 24" class="text-red-500 fill-current">
                                         <path
