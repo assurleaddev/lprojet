@@ -178,15 +178,13 @@
                         <div class="relative">
                             <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover">
                             @if($item->status === 'sold')
-                                <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #4fb286 !important;">
+                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5" style="background-color: #4fb286 !important;">
                                     Vendus
                                 </div>
                             @elseif($item->status === 'reserved')
-                                <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #f59e0b !important;">
+                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5" style="background-color: #f59e0b !important;">
                                     Réservé
                                 </div>
-                            @else
-                                <div class="mb-2"></div>
                             @endif
 
                             @if(auth()->id() !== $item->vendor_id)
