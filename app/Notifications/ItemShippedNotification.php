@@ -7,7 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class ItemShippedNotification extends Notification
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class ItemShippedNotification extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -22,7 +25,7 @@ class ItemShippedNotification extends Notification
 
     public function via($notifiable)
     {
-        $channels = ['database'];
+        $channels = ['database', 'broadcast'];
 
         // Transactional notification - always send database
 
@@ -53,5 +56,15 @@ class ItemShippedNotification extends Notification
             'message' => "Item shipped! {$this->vendor->full_name} has shipped your item.",
             'url' => route('chat.dashboard'),
         ];
+    }
+
+    public function toBroadcast($notifiable)
+    {
+        return new BroadcastMessage([
+            'type' => 'item_shipped',
+            'order_id' => $this->order->id,
+            'message' => "Item shipped! {$this->vendor->full_name} has shipped your item.",
+            'url' => route('chat.dashboard'),
+        ]);
     }
 }

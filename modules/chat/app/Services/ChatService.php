@@ -226,12 +226,7 @@ class ChatService
 
         // Notify Seller (Recipient)
         $recipient = $conversation->user_one_id === $sender->id ? $conversation->userTwo : $conversation->userOne;
-        // OfferNotification is already handled in OfferService or wherever offer is created? 
-        // Wait, OfferNotification was existing. Let's check where it's used.
-        // It seems it's used in OfferService (not shown here) or maybe I should add it here if it's missing?
-        // The prompt asked for "New Message", "Item Sold", "Item Shipped", "Order Completed".
-        // "Offer Made" usually has its own notification. I'll assume it's handled elsewhere or add it if I see it's missing.
-        // But for "New Message" (sendMessage above), I added it.
+        $recipient->notify(new \App\Notifications\OfferNotification($offer, 'received'));
 
         return $message;
     }
@@ -241,7 +236,7 @@ class ChatService
     {
         $offerDetails = sprintf(
             "offer of $%s for %s",
-            number_format($offer->offer_price, 2),
+            $offer->offer_price,
             $offer->product->name
         );
 
@@ -336,14 +331,9 @@ class ChatService
 
         MessageSent::dispatch($message->load('user'));
 
-        // Notify Buyer (Counter offer recipient)
-        // Assuming OfferNotification handles 'received' type for counter offers too?
-        // The OfferNotification class I saw handled 'received', 'accepted', 'rejected'.
-        // Let's assume 'received' covers counter offers or I should add a type.
-        // For now, I'll leave it as is to avoid breaking existing flow if it's handled elsewhere.
-        // But wait, if I'm here, I should probably ensure it's notified.
-        // $offer->buyer->notify(new \App\Notifications\OfferNotification($offer, 'received')); 
-        // But sender is seller, so recipient is buyer.
+        // Notify Recipient (Buyer)
+        $recipient = $conversation->user_one_id === $sender->id ? $conversation->userTwo : $conversation->userOne;
+        $recipient->notify(new \App\Notifications\OfferNotification($offer, 'received'));
 
         return $message;
     }
@@ -400,6 +390,9 @@ class ChatService
 
         $conversation->update(['last_message_at' => now()]);
         MessageSent::dispatch($message->load('user'));
+
+        // Notify Buyer (Recipient) so their dashboard refreshes
+        $buyer->notify(new \App\Notifications\NewMessageNotification($message, $seller));
 
         return $message;
     }

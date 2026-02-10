@@ -7,7 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class OrderCompletedNotification extends Notification
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class OrderCompletedNotification extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -22,7 +25,7 @@ class OrderCompletedNotification extends Notification
 
     public function via($notifiable)
     {
-        $channels = ['database'];
+        $channels = ['database', 'broadcast'];
 
         // Transactional notification - always send database
 
@@ -53,5 +56,15 @@ class OrderCompletedNotification extends Notification
             'message' => "Order completed! Funds released for {$this->order->product->name}.",
             'url' => route('chat.dashboard'),
         ];
+    }
+
+    public function toBroadcast($notifiable)
+    {
+        return new BroadcastMessage([
+            'type' => 'order_completed',
+            'order_id' => $this->order->id,
+            'message' => "Order completed! Funds released for {$this->order->product->name}.",
+            'url' => route('chat.dashboard'),
+        ]);
     }
 }
