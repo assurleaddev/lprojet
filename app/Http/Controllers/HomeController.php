@@ -69,6 +69,10 @@ class HomeController extends Controller
 
     public function show(Product $product)
     {
+        if (in_array($product->status, ['sold', 'pending']) && auth()->id() !== $product->vendor_id) {
+            return response()->view('errors.product_unavailable', [], 404);
+        }
+
         $product->load([
             'vendor' => function ($query) {
                 $query->withCount('followers');
@@ -237,6 +241,10 @@ class HomeController extends Controller
 
     public function checkout(Product $product)
     {
+        if (in_array($product->status, ['sold', 'pending'])) {
+            return response()->view('errors.product_unavailable', [], 404);
+        }
+
         $addresses = Auth::user()->addresses;
         $allShippingOptions = \App\Models\ShippingOption::where('is_active', true)->get();
 
@@ -288,6 +296,11 @@ class HomeController extends Controller
 
         // --- Load Data ---
         $product = $offer->product;
+
+        if (in_array($product->status, ['sold', 'pending'])) {
+            return response()->view('errors.product_unavailable', [], 404);
+        }
+
         $priceToPay = $offer->offer_price;
         $addresses = Auth::user()->addresses;
         $allShippingOptions = \App\Models\ShippingOption::where('is_active', true)->get();

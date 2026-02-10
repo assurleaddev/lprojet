@@ -40,13 +40,16 @@ class CheckoutController extends Controller
             $offer = Offer::find($request->offer_id);
             $product = $offer->product;
             $amount = $offer->offer_price;
-            $vendor = $offer->product->vendor; // Or seller_id from offer?
-            // Offer has seller_id, let's use that to be safe
             $vendor = $offer->seller;
         } else {
             $product = Product::find($request->product_id);
-            $amount = $product->price; // Assuming product has price
+            $amount = $product->price;
             $vendor = $product->vendor;
+        }
+
+        // --- Safeguard: Ensure product is still available ---
+        if (in_array($product->status, ['sold', 'pending'])) {
+            return back()->with('error', 'Sorry, this item is no longer available for purchase.');
         }
 
         // --- Fee Calculation ---
