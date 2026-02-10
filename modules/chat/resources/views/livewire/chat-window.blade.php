@@ -746,7 +746,14 @@
         @else
             {{-- Safety Banner --}}
             <div class="mb-4 bg-gray-50 dark:bg-gray-700 p-3 rounded-md flex items-start space-x-3"
-                x-data="{ showSafety: true }" x-show="showSafety" x-transition.duration.300ms>
+                x-data="{ 
+                    showSafety: !localStorage.getItem('hideSafety_{{ $this->conversationId }}'),
+                    hideBanner() {
+                        this.showSafety = false;
+                        localStorage.setItem('hideSafety_{{ $this->conversationId }}', 'true');
+                    }
+                }" 
+                x-show="showSafety" x-transition.duration.300ms>
                 <svg class="w-5 h-5 text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
@@ -757,7 +764,7 @@
                     links, or scan QR codes.
                     <a href="#" class="text-teal-600 hover:underline">More safety tips</a>
                 </div>
-                <button @click="showSafety = false" class="text-gray-400 hover:text-gray-600 ml-auto">
+                <button @click="hideBanner()" class="text-gray-400 hover:text-gray-600 ml-auto">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
                         </path>
