@@ -586,11 +586,9 @@
                     <div class="flex flex-col {{ $isOwnMessage ? 'items-end' : 'items-start' }} space-y-1 mb-4" wire:key="msg-{{ $messageId }}">
                         {{-- Standard message bubble --}}
                         <div
-                            class="w-fit max-w-[85%] px-4 py-2 rounded-2xl shadow-sm {{ $isOwnMessage ? 'bg-teal-600 text-white rounded-tr-none self-end text-left' : 'bg-white dark:bg-gray-800 dark:text-gray-200 rounded-tl-none self-start text-left border border-gray-100 dark:border-gray-700' }}">
-
-                            @if(isset($messageData->attachments) && count($messageData->attachments) > 0)
+                            class="w-fit max-w-[85%] px-4 py-2.5 rounded-2xl shadow-sm {{ $isOwnMessage ? 'bg-teal-600 text-white rounded-tr-none self-end text-left' : 'bg-white dark:bg-gray-800 dark:text-gray-200 rounded-tl-none self-start text-left border border-gray-100 dark:border-gray-700' }}">@if(isset($messageData->attachments) && count($messageData->attachments) > 0)
                                 {{-- ... attachments ... (kept same for brevity in this tool call, but I will include them) --}}
-                                <div class="mb-2 grid grid-cols-2 gap-2">
+                                <div class="mb-2 grid {{ count($messageData->attachments) > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-2">
                                     @foreach($messageData->attachments as $att)
                                         @php $att = (object) $att; @endphp
                                         <div class="relative">
@@ -619,8 +617,7 @@
                                             @endif
                                         </div>
                                     @endforeach
-                                </div>
-                            @elseif(isset($messageData->attachment_path) && $messageData->attachment_path)
+                                </div>@elseif(isset($messageData->attachment_path) && $messageData->attachment_path)
                                 {{-- Legacy support --}}
                                 <div class="mb-2">
                                     @if(isset($messageData->attachment_type) && $messageData->attachment_type === 'image')
@@ -638,14 +635,7 @@
                                         </a>
                                     @endif
                                 </div>
-                            @endif
-
-                            {{-- Message Body --}}
-                            @if (!empty($messageBody))
-                                <p class="text-[14px] leading-relaxed break-words whitespace-pre-wrap">
-                                    {!! function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody)) !!}
-                                </p>
-                            @endif
+                            @endif @if (!empty($messageBody)) <p class="text-[14px] leading-relaxed break-words whitespace-pre-wrap">{!! function_exists('linkify') ? linkify($messageBody) : nl2br(e($messageBody)) !!}</p>@endif
                         </div>
 
                         {{-- Metadata & Icons Below Bubble --}}
