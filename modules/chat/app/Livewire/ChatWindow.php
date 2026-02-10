@@ -230,8 +230,12 @@ class ChatWindow extends Component
      * @param ChatService $chatService
      * @return void
      */
-    public function sendMessage(ChatService $chatService): void
+    public function sendMessage(ChatService $chatService, ?string $body = null): void
     {
+        if ($body) {
+            $this->messageBody = $body;
+        }
+
         $this->validate([
             'messageBody' => 'nullable|string|max:2000',
             'attachments.*' => 'file|max:10240', // Max 10MB per file

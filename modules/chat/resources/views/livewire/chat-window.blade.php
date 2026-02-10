@@ -2,12 +2,45 @@
     x-data="{ 
         typingUsers: [], 
         isOtherUserOnline: @entangle('isOtherUserOnline'),
+        optimisticMessages: [],
+        messageInput: '',
         scrollToBottom() {
             this.$nextTick(() => {
                 const container = this.$refs.messageContainer;
                 if (container) {
-                    container.scrollTop = container.scrollHeight + 100;
+                    container.scrollTop = container.scrollHeight + 500;
                 }
+            });
+        },
+        handleSendMessage() {
+            const body = this.messageInput.trim();
+            if (!body) return;
+
+            // Create Optimistic Message
+            const tempId = 'temp_' + Date.now();
+            const tempMsg = {
+                id: tempId,
+                body: body,
+                status: 'sending',
+                created_at: new Date().toISOString(),
+                is_optimistic: true
+            };
+
+            this.optimisticMessages.push(tempMsg);
+            this.messageInput = '';
+            this.scrollToBottom();
+
+            // Send to Livewire
+            $wire.sendMessage(body).then(() => {
+                // Success: The real message will arrive via Livewire refresh
+                // We'll remove it after a short delay to avoid flickering
+                setTimeout(() => {
+                    this.optimisticMessages = this.optimisticMessages.filter(m => m.id !== tempId);
+                }, 500);
+            }).catch(() => {
+                // Error: Mark as failed
+                const msg = this.optimisticMessages.find(m => m.id === tempId);
+                if (msg) msg.status = 'failed';
             });
         }
     }" 
@@ -80,7 +113,7 @@
     <div class="px-6 py-4 border-b dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm flex-shrink-0">
         @if($this->conversation)
             @php 
-                            $otherUser = $this->conversation->getOtherUser(auth()->user());
+                                        $otherUser = $this->conversation->getOtherUser(auth()->user());
                 $product = $this->conversation->product;
                 $isSold = $product && $product->status === 'sold';
                 $isSeller = auth()->id() === ($product->vendor_id ?? null);
@@ -488,7 +521,7 @@
                                         </div>
 
                                         @php 
-                                                                        $checkoutRoute = route('checkout.offer', ['offer' => $offerId]);
+                                                                                                    $checkoutRoute = route('checkout.offer', ['offer' => $offerId]);
                                             $isSold = $this->conversation->product->status === 'sold';
                                             // Check specifically if this user bought it or just general sold status? 
                                             // Usually if sold, nobody can buy.
@@ -644,6 +677,44 @@
             @empty
                 <p class="text-center text-gray-500 pt-10">No messages yet. Be the first!</p>
             @endforelse
+
+            {{-- 2.5 Optimistic Messages (Alpine.js) --}}
+            <template x-for="msg in optimisticMessages" :key="msg.id">
+                <div class="flex flex-col items-end mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div class="flex flex-col items-end max-w-[85%] px-1">
+                        {{-- Bubble --}}
+                        <div class="relative group px-4 py-2.5 rounded-2xl shadow-sm text-white bg-teal-600 rounded-tr-none">
+                            <p class="text-[14px] leading-relaxed break-words whitespace-pre-wrap" x-text="msg.body"></p>
+                        </div>
+
+                        {{-- Metadata & Status --}}
+                        <div class="flex items-center space-x-1.5 mt-1 px-1">
+                            <span class="text-[10px] font-medium text-gray-400 dark:text-gray-500" x-text="new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })"></span>
+
+                            {{-- Sending Status --}}
+                            <template x-if="msg.status === 'sending'">
+                                <div class="flex items-center space-x-1">
+                                    <span class="flex h-2 w-2 relative">
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                                    </span>
+                                    <span class="text-[10px] text-gray-400">Sending...</span>
+                                </div>
+                            </template>
+
+                            {{-- Failed Status --}}
+                            <template x-if="msg.status === 'failed'">
+                                <div class="flex items-center space-x-1 text-red-500">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    <span class="text-[10px]">Failed to send</span>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </div>
+            </template>
         @else
             {{-- Placeholder when no conversation is selected or loaded --}}
             <p class="text-center text-gray-500 pt-10">Select a conversation from the list.</p>
@@ -705,7 +776,7 @@
                 </div>
             @endif
 
-            <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
+            <form @submit.prevent="handleSendMessage" class="flex items-center space-x-2">
                 <!-- File Input -->
                 <input type="file" id="chat-attachment-input" wire:model="attachments" class="hidden" multiple>
 
@@ -729,13 +800,13 @@
                 </button>
 
                 <div class="flex-1 relative">
-                    <input type="text" wire:model="messageBody" placeholder="Write a message here"
+                    <input type="text" x-model="messageInput" placeholder="Write a message here"
                         x-on:input="window.Echo.join('conversations.{{ $this->conversationId }}').whisper('typing', { name: '{{ auth()->user()->full_name }}' })"
                         class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         autocomplete="off" @if(!$this->conversation || $isUnavailable) disabled @endif>
                     <button type="submit"
                         class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
-                        wire:loading.attr="disabled" @if(!$this->conversation || empty($messageBody) || $isUnavailable) disabled @endif>
+                        :disabled="!messageInput.trim() || {{ $isUnavailable ? 'true' : 'false' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
