@@ -43,6 +43,28 @@ class OfferNotification extends Notification implements ShouldBroadcast
         return $channels;
     }
 
+    public function toMail($notifiable)
+    {
+        $subject = match ($this->type) {
+            'received' => 'New Offer Received',
+            'accepted' => 'Offer Accepted!',
+            'rejected' => 'Offer Rejected',
+            default => 'Offer Update'
+        };
+
+        $line = match ($this->type) {
+            'received' => "You've received a new offer of $" . number_format($this->offer->offer_price, 2) . " on {$this->offer->product->name}.",
+            'accepted' => "Your offer for {$this->offer->product->name} was accepted!",
+            'rejected' => "Your offer for {$this->offer->product->name} was rejected.",
+            default => "There is an update on your offer for {$this->offer->product->name}."
+        };
+
+        return (new MailMessage)
+            ->subject($subject)
+            ->line($line)
+            ->action('View in Chat', route('chat.dashboard', ['id' => $this->offer->conversation_id]));
+    }
+
     public function toBroadcast($notifiable)
     {
         $message = match ($this->type) {
