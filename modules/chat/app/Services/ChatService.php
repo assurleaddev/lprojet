@@ -60,7 +60,7 @@ class ChatService
         ]);
     }
 
-    public function sendMessage(Conversation $conversation, User $sender, string $body, array $attachments = []): Message
+    public function sendMessage(Conversation $conversation, User $sender, ?string $body = null, array $attachments = []): Message
     {
         $data = [
             'user_id' => $sender->id,

@@ -238,7 +238,7 @@ class ChatWindow extends Component
 
         $this->validate([
             'messageBody' => 'nullable|string|max:2000',
-            'attachments.*' => 'file|max:10240', // Max 10MB per file
+            'attachments.*' => 'file|mimes:pdf,jpg,jpeg,png,webp|max:10240', // Support PDF and more images
         ]);
 
         if (empty($this->messageBody) && empty($this->attachments)) {

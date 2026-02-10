@@ -14,33 +14,39 @@
         },
         handleSendMessage() {
             const body = this.messageInput.trim();
-            if (!body) return;
+            const hasAttachments = $wire.attachments && $wire.attachments.length > 0;
+            
+            if (!body && !hasAttachments) return;
 
-            // Create Optimistic Message
-            const tempId = 'temp_' + Date.now();
-            const tempMsg = {
-                id: tempId,
-                body: body,
-                status: 'sending',
-                created_at: new Date().toISOString(),
-                is_optimistic: true
-            };
-
-            this.optimisticMessages.push(tempMsg);
+            // Create Optimistic Message (Only if body exists)
+            let tempId = null;
+            if (body) {
+                tempId = 'temp_' + Date.now();
+                const tempMsg = {
+                    id: tempId,
+                    body: body,
+                    status: 'sending',
+                    created_at: new Date().toISOString(),
+                    is_optimistic: true
+                };
+                this.optimisticMessages.push(tempMsg);
+            }
+            
             this.messageInput = '';
             this.scrollToBottom();
 
             // Send to Livewire
             $wire.sendMessage(body).then(() => {
-                // Success: The real message will arrive via Livewire refresh
-                // We'll remove it after a short delay to avoid flickering
-                setTimeout(() => {
-                    this.optimisticMessages = this.optimisticMessages.filter(m => m.id !== tempId);
-                }, 500);
+                if (tempId) {
+                    setTimeout(() => {
+                        this.optimisticMessages = this.optimisticMessages.filter(m => m.id !== tempId);
+                    }, 500);
+                }
             }).catch(() => {
-                // Error: Mark as failed
-                const msg = this.optimisticMessages.find(m => m.id === tempId);
-                if (msg) msg.status = 'failed';
+                if (tempId) {
+                    const msg = this.optimisticMessages.find(m => m.id === tempId);
+                    if (msg) msg.status = 'failed';
+                }
             });
         }
     }" 
@@ -593,6 +599,15 @@
                                                     <img src="{{ Storage::url($att->file_path) }}"
                                                         class="rounded-lg max-w-full h-auto max-h-32 object-cover w-full" alt="Attachment">
                                                 </a>
+                                            @elseif(isset($att->file_name) && str_ends_with(strtolower($att->file_name), '.pdf'))
+                                                <a href="{{ Storage::url($att->file_path) }}" target="_blank"
+                                                    class="flex flex-col items-center justify-center p-2 bg-red-50 dark:bg-red-900/20 rounded-lg text-center border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400">
+                                                    <svg class="h-8 w-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                                    </svg>
+                                                    <span class="text-[10px] font-bold truncate w-full uppercase">PDF</span>
+                                                    <span class="text-[8px] truncate w-full">{{ $att->file_name }}</span>
+                                                </a>
                                             @else
                                                 <a href="{{ Storage::url($att->file_path) }}" target="_blank"
                                                     class="flex flex-col items-center justify-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-center {{ $isOwnMessage ? 'text-teal-50' : 'text-teal-600 dark:text-teal-200' }}">
@@ -758,6 +773,13 @@
                             @if (str_contains($file->getMimeType(), 'image'))
                                 <img src="{{ $file->temporaryUrl() }}"
                                     class="w-16 h-16 object-cover rounded-md border border-gray-200 dark:border-gray-600">
+                            @elseif (str_contains($file->getMimeType(), 'pdf'))
+                                <div class="w-16 h-16 flex flex-col items-center justify-center bg-red-50 dark:bg-red-900/20 rounded-md border border-red-100 dark:border-red-800 text-red-600 dark:text-red-400">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                                    </svg>
+                                    <span class="text-[8px] font-bold mt-1 uppercase">PDF</span>
+                                </div>
                             @else
                                 <div
                                     class="w-16 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-md text-gray-500 dark:text-gray-300 text-xs text-center p-1 break-all border border-gray-200 dark:border-gray-600">
@@ -777,8 +799,8 @@
             @endif
 
             <form @submit.prevent="handleSendMessage" class="flex items-center space-x-2">
-                <!-- File Input -->
-                <input type="file" id="chat-attachment-input" wire:model="attachments" class="hidden" multiple>
+                <!-- File Input (Allows Images & PDFs) -->
+                <input type="file" id="chat-attachment-input" wire:model="attachments" class="hidden" multiple accept=".pdf,image/*">
 
                 <button type="button" 
                     @if($isUnavailable) disabled @else onclick="document.getElementById('chat-attachment-input').click()" @endif
@@ -806,7 +828,7 @@
                         autocomplete="off" @if(!$this->conversation || $isUnavailable) disabled @endif>
                     <button type="submit"
                         class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
-                        :disabled="!messageInput.trim() || {{ $isUnavailable ? 'true' : 'false' }}">
+                        :disabled="(!messageInput.trim() && !{{ count($attachments ?? []) > 0 ? 'true' : 'false' }}) || {{ $isUnavailable ? 'true' : 'false' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
