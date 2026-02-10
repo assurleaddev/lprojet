@@ -212,8 +212,8 @@ class MakeOfferModal extends Component
 
         $this->closeModal();
 
-        // Dispatch toast notification for success
-        $this->dispatch('toast', ['message' => 'Offer sent successfully!', 'type' => 'success']);
+        // Dispatch notification for success
+        $this->dispatch('notify', message: 'Offer sent successfully!', type: 'success');
 
         // Dispatch event locally for the sender if they stay on the same page
         $this->dispatch('refresh-chat')->to(ChatWindow::class);

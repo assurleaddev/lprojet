@@ -436,12 +436,12 @@ class ChatWindow extends Component
         // Assuming one active order per product/conversation context
         $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
             ->where('vendor_id', Auth::id())
-            ->where('status', 'processing') // Only look for processing orders
+            ->whereIn('status', ['processing', 'pending']) // Include pending for COD orders
             ->latest()
             ->first();
 
         if (!$order) {
-            $this->dispatch('toast', message: 'No processing order found to ship.', type: 'error');
+            $this->dispatch('notify', message: 'No processing or pending order found to ship.', type: 'error');
             return;
         }
 
@@ -450,7 +450,7 @@ class ChatWindow extends Component
         // Send structured message
         $chatService->sendItemShippedMessage($this->conversation, Auth::user(), $order);
 
-        $this->dispatch('toast', message: 'Order marked as shipped.', type: 'success');
+        $this->dispatch('notify', message: 'Order marked as shipped.', type: 'success');
         $this->loadConversation($chatService);
     }
 

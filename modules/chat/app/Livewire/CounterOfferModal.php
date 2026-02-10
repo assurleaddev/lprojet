@@ -156,7 +156,7 @@ class CounterOfferModal extends Component
 
         $this->dispatch('refresh-chat')->to(ChatWindow::class);
         $this->closeModal();
-        $this->dispatch('toast', ['message' => 'Counter offer sent successfully!', 'type' => 'success']);
+        $this->dispatch('notify', message: 'Counter offer sent successfully!', type: 'success');
     }
 
     public function render()
