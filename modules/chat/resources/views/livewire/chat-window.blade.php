@@ -119,11 +119,19 @@
     <div class="px-6 py-4 border-b dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm flex-shrink-0">
         @if($this->conversation)
             @php 
-                                        $otherUser = $this->conversation->getOtherUser(auth()->user());
+                $otherUser = $this->conversation->getOtherUser(auth()->user());
                 $product = $this->conversation->product;
-                $isSold = $product && $product->status === 'sold';
                 $isSeller = auth()->id() === ($product->vendor_id ?? null);
-                $isBuyerOfItem = auth()->id() === ($product->buyer_id ?? null);
+                $isSold = $product && $product->status === 'sold';
+                
+                // Detailed buyer detection: check product field or active order
+                $isBuyerOfItem = $product && auth()->id() === ($product->buyer_id ?? null);
+                if (!$isBuyerOfItem && $product) {
+                    $isBuyerOfItem = \App\Models\Order::where('product_id', $product->id)
+                        ->where('user_id', auth()->id())
+                        ->exists();
+                }
+
                 $isUnavailable = (!$product) || ($isSold && !$isSeller && !$isBuyerOfItem);
             @endphp
 
