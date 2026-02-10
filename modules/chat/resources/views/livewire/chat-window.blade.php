@@ -453,6 +453,31 @@
                         </div>
                     @endif
 
+                @elseif ($messageType === 'order_placed')
+                    @if(auth()->id() != $this->conversation->product->vendor_id)
+                        <div wire:key="order-placed-{{ $messageId }}" class="flex justify-center my-4">
+                            <div
+                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
+                                <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
+                                    <div
+                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
+                                        <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                        </svg>
+                                    </div>
+                                    <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Order Placed!</h3>
+                                    <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                                        {{ $messageBody }}
+                                    </p>
+                                    <div class="mt-4">
+                                        <p class="text-[10px] text-gray-500 italic">We will notify you of any updates.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
                 @elseif ($messageType === 'item_shipped')
                     @if(auth()->id() != $this->conversation->product->vendor_id)
                         <div wire:key="item-shipped-{{ $messageId }}" class="flex justify-center my-4">

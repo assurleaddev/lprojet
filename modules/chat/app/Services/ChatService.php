@@ -380,6 +380,30 @@ class ChatService
         return $message;
     }
 
+    public function sendOrderPlacedMessage(Conversation $conversation, User $buyer, Order $order): Message
+    {
+        $seller = $conversation->product->vendor;
+        $deadline = now()->addDays(7)->translatedFormat('d M');
+
+        $body = sprintf(
+            "%s must send the order content before %s. We will inform you with any updates of your order.",
+            $seller->full_name,
+            $deadline
+        );
+
+        $message = $conversation->messages()->create([
+            'user_id' => $seller->id, // Attributed to seller for buyer perspective
+            'body' => $body,
+            'type' => 'order_placed',
+            'offer_id' => null,
+        ]);
+
+        $conversation->update(['last_message_at' => now()]);
+        MessageSent::dispatch($message->load('user'));
+
+        return $message;
+    }
+
     public function sendItemShippedMessage(Conversation $conversation, User $seller, Order $order): Message
     {
         $body = sprintf(
