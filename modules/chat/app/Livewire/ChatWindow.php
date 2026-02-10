@@ -122,29 +122,39 @@ class ChatWindow extends Component
 
             // Prepare messages array, ensuring offer/product data is structured correctly
             $this->messages = $conversation->messages->map(function ($message) {
-                $messageArray = $message->toArray(); // Convert message to array
+                $messageArray = $message->toArray();
 
-                if ($message->offer && $message->offer->product) {
-                    $messageArray['offer']['product']['featured_image_url'] = $message->offer->product->getFeaturedImageUrl('preview');
-                    if (!isset($messageArray['offer']['product']['name'])) {
-                        $messageArray['offer']['product']['name'] = $message->offer->product->name;
-                    }
-                    if (!isset($messageArray['offer']['product']['price'])) {
-                        $messageArray['offer']['product']['price'] = $message->offer->product->price;
+                if ($message->offer) {
+                    // Explicitly map all offer fields to ensure they survive serialization
+                    $messageArray['offer'] = [
+                        'id' => $message->offer->id,
+                        'offer_price' => $message->offer->offer_price,
+                        'status' => $message->offer->status,
+                        'buyer_id' => $message->offer->buyer_id,
+                        'seller_id' => $message->offer->seller_id,
+                        'product_id' => $message->offer->product_id,
+                        'rejection_reason' => $message->offer->rejection_reason,
+                    ];
+
+                    if ($message->offer->product) {
+                        $messageArray['offer']['product'] = [
+                            'id' => $message->offer->product->id,
+                            'name' => $message->offer->product->name,
+                            'price' => $message->offer->product->price,
+                            'featured_image_url' => $message->offer->product->getFeaturedImageUrl('preview'),
+                        ];
                     }
                 } else {
-                    if (!isset($messageArray['offer']))
-                        $messageArray['offer'] = null;
+                    $messageArray['offer'] = null;
                 }
 
-                // Ensure attachments are included if they exist
+                // Ensure attachments are included
                 $messageArray['attachments'] = $message->attachments->toArray();
 
                 return $messageArray;
             })->keyBy(function ($item) {
-                $msgId = $item['id'] ?? uniqid('msg_', true);
-                $offerId = $item['offer_id'] ?? null;
-                return $offerId ? 'offer_' . $offerId : 'msg_' . $msgId;
+                // ALWAYS use msg_ prefix with real ID to prevent any collisions or grouping
+                return 'msg_' . ($item['id'] ?? uniqid());
             })->toArray();
 
             Log::debug("ChatWindow: Successfully loaded conversation {$this->conversationId} with " . count($this->messages) . " messages.");
