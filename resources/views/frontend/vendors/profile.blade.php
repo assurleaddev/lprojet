@@ -175,18 +175,32 @@
                 @forelse ($user->products as $item)
                     <a href="{{ route('products.show', $item) }}"
                         class="flex-shrink-0 w-full block hover:opacity-80 transition">
-                        <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover">
-                        @if($item->status === 'sold')
-                            <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #4fb286 !important;">
-                                Vendus
-                            </div>
-                        @elseif($item->status === 'reserved')
-                            <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #f59e0b !important;">
-                                Réservé
-                            </div>
-                        @else
-                            <div class="mb-2"></div>
-                        @endif
+                        <div class="relative">
+                            <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover">
+                            @if($item->status === 'sold')
+                                <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #4fb286 !important;">
+                                    Vendus
+                                </div>
+                            @elseif($item->status === 'reserved')
+                                <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #f59e0b !important;">
+                                    Réservé
+                                </div>
+                            @else
+                                <div class="mb-2"></div>
+                            @endif
+
+                            @if(auth()->id() !== $item->vendor_id)
+                                <button class="fav-badge" aria-label="Favourite" data-id="{{ $item->id }}"
+                                    data-url="{{ route('products.favorite', $item) }}">
+                                    <svg viewBox="0 0 24 24"
+                                        class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                        <path
+                                            d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z" />
+                                    </svg>
+                                    <span>{{ $item->favoritedBy()->count() }}</span>
+                                </button>
+                            @endif
+                        </div>
                         <p class="font-bold text-sm">{{ $item->price }} MAD</p>
                         <p class="text-xs text-vinted-gray-500">
                             {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
@@ -498,7 +512,87 @@
         setActive(location.hash === '#reviews' ? 'reviews' : 'listings', /*push*/ false);
     </script>
 
+    </script>
+
     <script>
+        // Handle Like|Favorite Button Click using Event Delegation
+        document.addEventListener('click', (e) => {
+            const button = e.target.closest('.fav-badge');
+            if (!button) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const url = button.dataset.url;
+            if (!url) return;
+
+            const svg = button.querySelector('svg');
+            const countSpan = button.querySelector('span');
+
+            // Optimistic UI update
+            const isLiked = svg.classList.contains('!text-red-500');
+            if (isLiked) {
+                svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                let count = parseInt(countSpan.textContent) || 0;
+                countSpan.textContent = Math.max(0, count - 1);
+            } else {
+                svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                let count = parseInt(countSpan.textContent) || 0;
+                countSpan.textContent = count + 1;
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.status === 401) {
+                    Livewire.dispatch('open-login-popup');
+                    // Revert optimistic update since action failed
+                    if (isLiked) {
+                        svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                        let count = parseInt(countSpan.textContent) || 0;
+                        countSpan.textContent = count + 1;
+                    } else {
+                        svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                        let count = parseInt(countSpan.textContent) || 0;
+                        countSpan.textContent = Math.max(0, count - 1);
+                    }
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data) {
+                    // Update with actual server state
+                    if (data.liked) {
+                        svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                    } else {
+                        svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                    }
+                    countSpan.textContent = data.count;
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling favorite:', error);
+                // Revert optimistic update on error
+                if (isLiked) {
+                    svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                    let count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = count + 1;
+                } else {
+                    svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                    let count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = Math.max(0, count - 1);
+                }
+            });
+        });
+
         (function () {
             const token = document.querySelector('meta[name="csrf-token"]').content;
             const modal = document.getElementById('authModal');
