@@ -177,11 +177,11 @@
                         class="flex-shrink-0 w-full block hover:opacity-80 transition">
                         <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover">
                         @if($item->status === 'sold')
-                            <div class="bg-[#4fb286] text-white text-[11px] font-bold px-3 py-1.5 mb-2">
+                            <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #4fb286 !important;">
                                 Vendus
                             </div>
                         @elseif($item->status === 'reserved')
-                            <div class="bg-amber-500 text-white text-[11px] font-bold px-3 py-1.5 mb-2">
+                            <div class="text-white text-[11px] font-bold px-3 py-1.5 mb-2" style="background-color: #f59e0b !important;">
                                 Réservé
                             </div>
                         @else
