@@ -287,8 +287,13 @@
                     $messageId = $messageData->id ?? ('rand_' . rand()); // Use real ID or random fallback for key
                     $offerData = isset($messageData->offer) ? (object) $messageData->offer : null;
                     $offerId = $offerData->id ?? null;
-                    // Correctly try to create Enum instance from status string
-                    $offerStatus = $offerData ? \Modules\Chat\Enums\OfferStatus::tryFrom($offerData->status ?? '') : null;
+                    // Correctly try to create Enum instance from status string or object
+                    $rawStatus = $offerData->status ?? '';
+                    if ($rawStatus instanceof \Modules\Chat\Enums\OfferStatus) {
+                        $offerStatus = $rawStatus;
+                    } else {
+                        $offerStatus = $offerData ? \Modules\Chat\Enums\OfferStatus::tryFrom($rawStatus) : null;
+                    }
                     $productData = $offerData ? (object) ($offerData->product ?? null) : null; // Access product through offer data
                     // Access the pre-calculated URL added in the PHP component's map function
                     $featuredImageUrl = $productData->featured_image_url ?? null;

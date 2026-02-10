@@ -129,7 +129,7 @@ class ChatWindow extends Component
                     $messageArray['offer'] = [
                         'id' => $message->offer->id,
                         'offer_price' => $message->offer->offer_price,
-                        'status' => $message->offer->status,
+                        'status' => $message->offer->status instanceof \BackedEnum ? $message->offer->status->value : $message->offer->status,
                         'buyer_id' => $message->offer->buyer_id,
                         'seller_id' => $message->offer->seller_id,
                         'product_id' => $message->offer->product_id,
