@@ -104,7 +104,7 @@ class ChatService
     public function markAsRead(Conversation $conversation, User $user): void
     {
         // Mark messages as read and delivered
-        $conversation->messages()
+        $updated = $conversation->messages()
             ->where('user_id', '!=', $user->id)
             ->whereNull('read_at')
             ->update([
@@ -123,8 +123,10 @@ class ChatService
                 }
             });
 
-        // Broadcast that messages were read
-        MessageRead::dispatch($conversation->id, $user->id);
+        // Broadcast that messages were read ONLY if something changed
+        if ($updated > 0) {
+            MessageRead::dispatch($conversation->id, $user->id);
+        }
     }
 
     public function markAsDelivered(Conversation $conversation, User $user): void

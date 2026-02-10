@@ -51,8 +51,10 @@
                             $wire.refreshMessages();
                         })
                         .listen('.messages-read', (e) => {
-                            console.log('[Alpine ChatWindow] Messages read received via Echo, refreshing status');
-                            $wire.refreshReadStatus();
+                            if (e.userId != {{ auth()->id() }}) {
+                                console.log('[Alpine ChatWindow] Messages read received via Echo from other user, refreshing status');
+                                $wire.refreshReadStatus();
+                            }
                         });
 
                 } else {
