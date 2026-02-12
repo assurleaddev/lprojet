@@ -15,10 +15,20 @@
         <h1 class="text-2xl font-semibold mb-6">{{ $user->username }} is following</h1>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @forelse($following as $followedUser)
+            @forelse($following as $followedPivot)
+                @php
+                    $followedUser = $followedPivot->followable;
+                @endphp
                 <a href="{{ route('vendor.show', $followedUser) }}"
                     class="flex items-center gap-4 p-4 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition">
-                    <img src="{{ $followedUser->avatar_url }}" class="w-12 h-12 rounded-full object-cover">
+                    @if($followedUser->avatar_url)
+                        <img src="{{ $followedUser->avatar_url }}" class="w-12 h-12 rounded-full object-cover">
+                    @else
+                        <div
+                            class="w-12 h-12 rounded-full bg-[var(--brand)] text-white flex items-center justify-center font-bold text-lg">
+                            {{ $followedUser->initials }}
+                        </div>
+                    @endif
                     <div>
                         <div class="font-semibold text-zinc-900">{{ $followedUser->username }}</div>
                         <!-- Rating (Placeholder or Real) -->

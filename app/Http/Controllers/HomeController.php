@@ -333,13 +333,13 @@ class HomeController extends Controller
 
     public function followers(User $user)
     {
-        $followers = $user->followers()->paginate(20);
+        $followers = $user->followers()->with('user')->paginate(20);
         return view('frontend.vendors.followers', compact('user', 'followers'));
     }
 
     public function following(User $user)
     {
-        $following = $user->followings()->paginate(20);
+        $following = $user->followings()->with('followable')->paginate(20);
         return view('frontend.vendors.following', compact('user', 'following'));
     }
 
