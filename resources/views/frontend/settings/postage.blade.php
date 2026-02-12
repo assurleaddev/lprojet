@@ -70,7 +70,7 @@
                                     <div class="flex gap-2">
                                         <!-- Edit -->
                                         <button type="button" @click="openModal('edit', {{ json_encode($address) }})"
-                                            class="text-gray-400 hover:text-vinted-teal p-1">
+                                            class="text-gray-400 hover:text-[var(--brand)] p-1">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
@@ -91,7 +91,7 @@
                                 </div>
                             @endforeach
                             <button type="button" @click="openModal('add')"
-                                class="text-vinted-teal font-medium text-sm hover:underline">
+                                class="text-[var(--brand)] font-medium text-sm hover:underline">
                                 + Add another address
                             </button>
                         @endif
@@ -155,7 +155,7 @@
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" name="{{ $option->key }}" value="1" class="sr-only peer" {{ $user->getMeta($option->key) ? 'checked' : '' }}>
                                             <div
-                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600">
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--brand)]">
                                             </div>
                                         </label>
                                     </div>
@@ -210,7 +210,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-teal-600 text-white px-6 py-2 rounded font-medium hover:bg-teal-700">Save</button>
+                            class="bg-[var(--brand)] text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
                     </div>
                 </form>
 
@@ -247,7 +247,7 @@
                                                 <input type="text" x-model="countrySearch"
                                                     @focus="openCountryDropdown = true"
                                                     @click.away="openCountryDropdown = false"
-                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50"
+                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50"
                                                     placeholder="Select a country">
                                                 <div x-show="openCountryDropdown"
                                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -265,19 +265,19 @@
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Full name</label>
                                             <input type="text" name="full_name" x-model="formData.full_name"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Address line
                                                 1</label>
                                             <input type="text" name="address_line_1" x-model="formData.address_line_1"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Address line 2
                                                 (optional)</label>
                                             <input type="text" name="address_line_2" x-model="formData.address_line_2"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
@@ -285,16 +285,18 @@
                                             <div class="relative">
                                                 <input type="text" x-model="citySearch" @focus="openCityDropdown = true"
                                                     @click.away="openCityDropdown = false" :disabled="!formData.country"
-                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50 disabled:bg-gray-100"
+                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50 disabled:bg-gray-100"
                                                     placeholder="Select a city">
                                                 <div x-show="openCityDropdown && formData.country"
                                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
                                                     <template x-for="city in filteredCitiesList" :key="city">
                                                         <div @click="selectCityOption(city)"
-                                                            class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm" x-text="city">
+                                                            class="px-4 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+                                                            x-text="city">
                                                         </div>
                                                     </template>
-                                                    <div x-show="isLoadingCities" class="px-4 py-2 text-gray-500 text-sm">Loading cities...</div>
+                                                    <div x-show="isLoadingCities" class="px-4 py-2 text-gray-500 text-sm">
+                                                        Loading cities...</div>
                                                     <div x-show="!isLoadingCities && filteredCitiesList.length === 0"
                                                         class="px-4 py-2 text-gray-500 text-sm">No cities found</div>
                                                 </div>
@@ -303,12 +305,12 @@
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
                                             <input type="text" name="postcode" x-model="formData.postcode"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                     </div>
                                     <div class="mt-5 sm:mt-6 flex gap-3">
                                         <button type="submit"
-                                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:text-sm">
+                                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[var(--brand)] text-base font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] sm:text-sm">
                                             Save address
                                         </button>
                                         <button type="button" @click="closeModal"
@@ -348,13 +350,13 @@
                         countriesList: [],
                         countrySearch: '',
                         openCountryDropdown: false,
-                        
+
                         // City dropdown
                         citiesList: [],
                         citySearch: '',
                         openCityDropdown: false,
                         isLoadingCities: false,
-                        
+
                         async init() {
                             // Fetch countries from API
                             try {
@@ -366,7 +368,7 @@
                             } catch (e) {
                                 console.error('Failed to load countries', e);
                             }
-                            
+
                             // Watch for country changes to fetch cities
                             this.$watch('formData.country', (newCountry, oldCountry) => {
                                 if (newCountry && newCountry !== oldCountry) {
@@ -379,29 +381,29 @@
                                 }
                             });
                         },
-                        
+
                         get filteredCountriesList() {
                             if (this.countrySearch === '') return this.countriesList;
                             return this.countriesList.filter(c => c.toLowerCase().includes(this.countrySearch.toLowerCase()));
                         },
-                        
+
                         get filteredCitiesList() {
                             if (this.citySearch === '') return this.citiesList;
                             return this.citiesList.filter(c => c.toLowerCase().includes(this.citySearch.toLowerCase()));
                         },
-                        
+
                         selectCountryOption(country) {
                             this.formData.country = country;
                             this.countrySearch = country;
                             this.openCountryDropdown = false;
                         },
-                        
+
                         selectCityOption(city) {
                             this.formData.city = city;
                             this.citySearch = city;
                             this.openCityDropdown = false;
                         },
-                        
+
                         async fetchCities(countryName) {
                             this.isLoadingCities = true;
                             this.citiesList = [];
@@ -424,11 +426,11 @@
                                 this.isLoadingCities = false;
                             }
                         },
-                        
+
                         openModal(mode, address = null) {
                             this.isEditMode = mode === 'edit';
                             this.showAddressModal = true;
-                            
+
                             if (this.isEditMode && address) {
                                 this.formData = { ...address };
                                 this.countrySearch = address.country || '';
@@ -462,7 +464,7 @@
                             this.openCityDropdown = false;
                         },
                         confirmDelete(url) {
-                            if(confirm('Are you sure you want to delete this address?')) {
+                            if (confirm('Are you sure you want to delete this address?')) {
                                 this.$refs.deleteForm.action = url;
                                 this.$refs.deleteForm.submit();
                             }

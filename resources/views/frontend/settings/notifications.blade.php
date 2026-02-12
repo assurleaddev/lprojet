@@ -55,7 +55,7 @@
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="enable_email_notifications" value="1" class="sr-only peer" {{ $user->getMeta('enable_email_notifications') ? 'checked' : '' }}>
                             <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600">
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--brand)]">
                             </div>
                         </label>
                     </div>
@@ -159,7 +159,7 @@
                     <div class="mb-8">
                         <label class="block text-sm text-gray-500 mb-2">Set a daily limit for each notification type</label>
                         <select name="notification_limit"
-                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-vinted-teal focus:ring focus:ring-vinted-teal focus:ring-opacity-50">
+                            class="w-full border-gray-300 rounded-md shadow-sm focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
                             <option value="1" {{ $user->getMeta('notification_limit') == '1' ? 'selected' : '' }}>Up to 1
                                 notification</option>
                             <option value="2" {{ $user->getMeta('notification_limit') == '2' ? 'selected' : '' }}>Up to 2
@@ -172,7 +172,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-teal-600 text-white px-6 py-2 rounded font-medium hover:bg-teal-700">Save</button>
+                            class="bg-[var(--brand)] text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
                     </div>
                 </form>
             </div>
