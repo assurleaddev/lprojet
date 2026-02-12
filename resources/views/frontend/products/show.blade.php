@@ -305,11 +305,13 @@
                                         class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Reserved</button>
                                 @else
                                     <a href="{{ route('product.checkout', $product) }}"
-                                        class="block w-full py-2.5 bg-vinted-teal text-center text-white font-medium rounded hover:bg-vinted-teal-dark transition-colors text-sm">
+                                        class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm"
+                                        style="background-color: var(--brand)">
                                         Buy now
                                     </a>
                                     <button type="button" @click="$dispatch('open-auth-modal')"
-                                        class="w-full py-2.5 bg-white border border-vinted-teal text-vinted-teal font-medium rounded hover:bg-teal-50 transition-colors text-sm">
+                                        class="w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm"
+                                        style="border-color: var(--brand); color: var(--brand)">
                                         Ask seller
                                     </button>
                                 @endif
@@ -528,41 +530,41 @@
                 </p>
 
                 <form action="{{ route('items.reserve', $product) }}" method="POST" x-data="{
-                                    search: '',
-                                    results: [],
-                                    selectedUser: null,
-                                    isOpen: false,
-                                    isSearching: false,
+                                        search: '',
+                                        results: [],
+                                        selectedUser: null,
+                                        isOpen: false,
+                                        isSearching: false,
 
-                                    fetchUsers() {
-                                        if (this.search.length < 2) {
-                                            this.results = [];
+                                        fetchUsers() {
+                                            if (this.search.length < 2) {
+                                                this.results = [];
+                                                this.isOpen = false;
+                                                return;
+                                            }
+                                            this.isSearching = true;
+                                            fetch(`/search/suggestions?type=user&query=${this.search}`)
+                                                .then(res => res.json())
+                                                .then(data => {
+                                                    this.results = data;
+                                                    this.isOpen = true;
+                                                })
+                                                .finally(() => {
+                                                    this.isSearching = false;
+                                                });
+                                        },
+
+                                        selectUser(user) {
+                                            this.selectedUser = user;
+                                            this.search = user.label; // Display name
                                             this.isOpen = false;
-                                            return;
+                                        },
+
+                                        clearSelection() {
+                                            this.selectedUser = null;
+                                            this.search = '';
                                         }
-                                        this.isSearching = true;
-                                        fetch(`/search/suggestions?type=user&query=${this.search}`)
-                                            .then(res => res.json())
-                                            .then(data => {
-                                                this.results = data;
-                                                this.isOpen = true;
-                                            })
-                                            .finally(() => {
-                                                this.isSearching = false;
-                                            });
-                                    },
-
-                                    selectUser(user) {
-                                        this.selectedUser = user;
-                                        this.search = user.label; // Display name
-                                        this.isOpen = false;
-                                    },
-
-                                    clearSelection() {
-                                        this.selectedUser = null;
-                                        this.search = '';
-                                    }
-                                }">
+                                    }">
                     @csrf
                     <div class="mb-4 relative">
                         <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Reserve for (username or

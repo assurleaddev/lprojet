@@ -49,14 +49,14 @@
                 class="absolute top-full left-0 mt-1 w-32 bg-white rounded-lg shadow-lg border border-gray-100 py-1 overflow-hidden"
                 style="display: none;">
                 <button type="button" @click="type = 'product'; openType = false; fetchSuggestions()"
-                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-teal-600 flex items-center gap-2">
-                    <span>Items</span>
-                    <span x-show="type === 'product'" class="text-teal-600 ml-auto">&check;</span>
+                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 group">
+                    <span class="group-hover:text-[var(--brand)]">Items</span>
+                    <span x-show="type === 'product'" class="ml-auto" style="color: var(--brand)">&check;</span>
                 </button>
                 <button type="button" @click="type = 'user'; openType = false; fetchSuggestions()"
-                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-teal-600 flex items-center gap-2">
-                    <span>Members</span>
-                    <span x-show="type === 'user'" class="text-teal-600 ml-auto">&check;</span>
+                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 group">
+                    <span class="group-hover:text-[var(--brand)]">Members</span>
+                    <span x-show="type === 'user'" class="ml-auto" style="color: var(--brand)">&check;</span>
                 </button>
             </div>
 
@@ -141,7 +141,8 @@
             </template>
         </ul>
         <div class="bg-gray-50 px-4 py-2 text-center border-t border-gray-100">
-            <button @click="$refs.searchForm.submit()" class="text-xs text-teal-600 font-semibold hover:underline">
+            <button @click="$refs.searchForm.submit()" class="text-xs font-semibold hover:underline"
+                style="color: var(--brand)">
                 View all results for "<span x-text="query"></span>"
             </button>
         </div>

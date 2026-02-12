@@ -16,9 +16,9 @@
                 <!-- First Name -->
                 <div>
                     <input id="first_name" type="text"
-                        class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2 @error('first_name') border-red-500 @enderror"
-                        name="first_name" value="{{ old('first_name') }}" required autocomplete="first_name" autofocus
-                        placeholder="{{ __('Prénom') }}">
+                        class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2 @error('first_name') border-red-500 @enderror"
+                        style="border-bottom-color: var(--brand)" name="first_name" value="{{ old('first_name') }}" required
+                        autocomplete="first_name" autofocus placeholder="{{ __('Prénom') }}">
 
                     @error('first_name')
                         <span class="text-xs text-red-500 mt-1 block">
@@ -90,12 +90,13 @@
 
                 <!-- Submit Button -->
                 <button type="submit"
-                    class="w-full py-3 mt-6 text-base font-bold text-white transition-colors bg-teal-700 rounded-md hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="w-full py-3 mt-6 text-base font-bold text-white transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    style="background-color: var(--brand)">
                     {{ __('S\'inscrire') }}
                 </button>
 
                 <div class="mt-4 text-center">
-                    <a class="text-sm text-teal-600 hover:underline" href="{{ route('login') }}">
+                    <a class="text-sm hover:underline" style="color: var(--brand)" href="{{ route('login') }}">
                         {{ __('Déjà un compte ? Se connecter') }}
                     </a>
                 </div>

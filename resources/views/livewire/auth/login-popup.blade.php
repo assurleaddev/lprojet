@@ -70,7 +70,8 @@
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Tu as déjà un compte ?') }} <button wire:click="setView('login_menu')"
-                            class="font-medium text-teal-600 hover:underline hover:text-teal-500">{{ __('Se connecter') }}</button>
+                            class="font-medium hover:underline"
+                            style="color: var(--brand)">{{ __('Se connecter') }}</button>
                     </p>
                 </div>
             @endif
@@ -113,12 +114,12 @@
                 <div class="mt-8 space-y-2">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Ou connecte-toi avec') }} <button wire:click="setView('login')"
-                            class="font-medium text-teal-600 hover:underline hover:text-teal-500">{{ __('ton e-mail') }}</button>
+                            class="font-medium hover:underline" style="color: var(--brand)">{{ __('ton e-mail') }}</button>
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Tu n\'as pas de compte ' . config('app.name') . ' ?') }} <button
-                            wire:click="setView('register')"
-                            class="font-medium text-teal-600 hover:underline hover:text-teal-500">{{ __('S\'inscrire') }}</button>
+                            wire:click="setView('register')" class="font-medium hover:underline"
+                            style="color: var(--brand)">{{ __('S\'inscrire') }}</button>
                     </p>
                 </div>
             @endif
@@ -155,8 +156,8 @@
                     <!-- Password -->
                     <div class="relative" x-data="{ show: false }">
                         <input :type="show ? 'text' : 'password'" wire:model.blur="password"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2 pr-10"
-                            placeholder="{{ __('Mot de passe') }}">
+                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2 pr-10"
+                            style="focus-border-color: var(--brand)" placeholder="{{ __('Mot de passe') }}">
                         <button type="button" @click="show = !show"
                             class="absolute right-0 text-gray-400 top-2 hover:text-gray-600">
                             <iconify-icon :icon="show ? 'heroicons:eye-slash' : 'heroicons:eye'"
@@ -194,7 +195,8 @@
                     </button>
 
                     <div class="mt-4 text-center">
-                        <a href="#" class="text-sm text-teal-600 hover:underline">{{ __('Besoin d\'aide ?') }}</a>
+                        <a href="#" class="text-sm hover:underline"
+                            style="color: var(--brand)">{{ __('Besoin d\'aide ?') }}</a>
                     </div>
                 </form>
             @endif
@@ -237,11 +239,12 @@
 
                     <div class="mt-6 space-y-2 text-center">
                         <div>
-                            <button type="button" wire:click="setView('forgot_password')"
-                                class="text-sm text-teal-600 hover:underline">{{ __('Mot de passe oublié ?') }}</button>
+                            <button type="button" wire:click="setView('forgot_password')" class="text-sm hover:underline"
+                                style="color: var(--brand)">{{ __('Mot de passe oublié ?') }}</button>
                         </div>
                         <div>
-                            <a href="#" class="text-sm text-teal-600 hover:underline">{{ __('Un problème ?') }}</a>
+                            <a href="#" class="text-sm hover:underline"
+                                style="color: var(--brand)">{{ __('Un problème ?') }}</a>
                         </div>
                     </div>
                 </form>

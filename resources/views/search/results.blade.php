@@ -31,7 +31,8 @@
                 @if($sizeAttributes->isNotEmpty())
                     <div x-data="{ open: false }" class="relative">
                         <button @click="open = !open"
-                            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 {{ isset($attributeFilters) && !empty(array_intersect(array_keys($attributeFilters), $sizeAttributes->pluck('id')->toArray())) ? 'border-teal-600 ring-1 ring-teal-600' : '' }}">
+                            class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 {{ isset($attributeFilters) && !empty(array_intersect(array_keys($attributeFilters), $sizeAttributes->pluck('id')->toArray())) ? 'ring-1' : '' }}"
+                            style="{{ isset($attributeFilters) && !empty(array_intersect(array_keys($attributeFilters), $sizeAttributes->pluck('id')->toArray())) ? 'border-color: var(--brand); --tw-ring-color: var(--brand)' : '' }}">
                             <span>{{ __('Taille') }}</span>
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -286,7 +287,7 @@
                     @endforeach
                     @if(!empty($categoryIds) || !empty($attributeFilters))
                         <a href="{{ route('search', ['query' => $query, 'type' => $type]) }}"
-                            class="text-sm text-teal-600 hover:underline ml-2">Clear filters</a>
+                            class="text-sm hover:underline ml-2" style="color: var(--brand)">Clear filters</a>
                     @endif
                 </div>
             @endif
@@ -295,8 +296,8 @@
             <div class="mb-6 pb-4 border-b">
                 <div class="flex flex-wrap gap-x-8 gap-y-2">
                     @foreach($categories->take(8) as $category)
-                        <a href="{{ route('search', ['query' => $query, 'type' => 'product', 'categories' => [$category->id]]) }}"
-                            class="text-teal-600 hover:underline">{{ $category->name }}</a>
+                        <a href="{{ route('search', ['query' => $query, 'type' => $type, 'categories' => [$category->id]]) }}"
+                            class="hover:underline" style="color: var(--brand)">{{ $category->name }}</a>
                     @endforeach
                 </div>
             </div>
@@ -317,7 +318,7 @@
         @if($results->isEmpty())
             <div class="text-center py-12">
                 <p class="text-gray-500 text-lg">No results found{{ $query ? ' for "' . $query . '"' : '' }}.</p>
-                <a href="{{ route('home') }}" class="text-teal-600 hover:underline mt-4 inline-block">Go back home</a>
+                <a href="{{ route('home') }}" class="hover:underline mt-4 inline-block" style="color: var(--brand)">Go back home</a>
             </div>
         @else
             @if($type === 'product')

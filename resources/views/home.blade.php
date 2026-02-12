@@ -14,7 +14,8 @@
                             your wardrobe?</h1>
                         <a href="#" class="block w-full mb-3 py-3 text-center text-white font-bold rounded"
                             style="background:var(--brand)">Sell now</a>
-                        <a href="#" class="block w-full text-center text-teal-600 hover:underline font-bold">Learn how it
+                        <a href="#" class="block w-full text-center hover:underline font-bold" style="color: var(--brand)">Learn
+                            how it
                             works</a>
                     </div>
                 </div>

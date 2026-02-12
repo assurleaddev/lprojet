@@ -2,11 +2,12 @@
     <!-- Trigger Button -->
     <button @click="open = !open"
         class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 transition-colors"
-        :class="{ 'border-teal-500 text-teal-600 ring-1 ring-teal-500': {{ !empty($categoryIds) ? 'true' : 'false' }} }">
+        :class="{ 'ring-1': {{ !empty($categoryIds) ? 'true' : 'false' }} }"
+        :style="{{ !empty($categoryIds) ? 'true' : 'false' }} ? 'border-color: var(--brand); --tw-ring-color: var(--brand); color: var(--brand)' : ''">
         <span>Category</span>
         @if(!empty($categoryIds))
-            <span
-                class="flex items-center justify-center bg-teal-600 text-white text-xs w-5 h-5 rounded-full">{{ count($categoryIds) }}</span>
+            <span class="flex items-center justify-center text-white text-xs w-5 h-5 rounded-full"
+                style="background-color: var(--brand)">{{ count($categoryIds) }}</span>
         @endif
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
@@ -46,8 +47,8 @@
                 <a href="{{ route('search', array_merge(request()->except(['categories', 'page']), ['categories' => [$currentViewCategory->id]])) }}"
                     class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 group">
                     <span class="text-gray-900 font-medium">All in {{ $currentViewCategory->name }}</span>
-                    <div
-                        class="w-5 h-5 rounded-full border border-gray-300 {{ in_array($currentViewCategory->id, $categoryIds) ? 'bg-teal-600 border-teal-600' : '' }}">
+                    <div class="w-5 h-5 rounded-full border border-gray-300 {{ in_array($currentViewCategory->id, $categoryIds) ? 'border-[var(--brand)]' : '' }}"
+                        style="{{ in_array($currentViewCategory->id, $categoryIds) ? 'background-color: var(--brand)' : '' }}">
                     </div>
                 </a>
             @else
@@ -63,8 +64,8 @@
                     @if($category->children->count() > 0) wire:click="drillDown({{ $category->id }})" @else
                         onclick="window.location='{{ route('search', array_merge(request()->except(['categories', 'page']), ['categories' => [$category->id]])) }}'"
                     @endif>
-                    <span
-                        class="text-gray-700 {{ in_array($category->id, $categoryIds) ? 'font-bold text-teal-700' : '' }}">
+                    <span class="text-gray-700 {{ in_array($category->id, $categoryIds) ? 'font-bold' : '' }}"
+                        style="{{ in_array($category->id, $categoryIds) ? 'color: var(--brand)' : '' }}">
                         {{ $category->name }}
                     </span>
 
@@ -74,8 +75,8 @@
                         </svg>
                     @else
                         <!-- Selection Radio -->
-                        <div
-                            class="w-5 h-5 rounded-full border border-gray-300 {{ in_array($category->id, $categoryIds) ? 'bg-teal-600 border-teal-600' : 'group-hover:border-teal-400' }}">
+                        <div class="w-5 h-5 rounded-full border border-gray-300 {{ in_array($category->id, $categoryIds) ? 'border-[var(--brand)]' : '' }}"
+                            style="{{ in_array($category->id, $categoryIds) ? 'background-color: var(--brand)' : '' }}">
                         </div>
                     @endif
                 </div>

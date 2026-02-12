@@ -249,7 +249,7 @@
 
         .incl-line {
             font-size: 11px;
-            color: #FC0E00;
+            color: var(--brand);
             display: flex;
             align-items: center;
             gap: 4px;

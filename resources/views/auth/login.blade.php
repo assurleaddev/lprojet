@@ -15,9 +15,9 @@
                 <!-- Email Address -->
                 <div>
                     <input id="email" type="email"
-                        class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2 @error('email') border-red-500 @enderror"
-                        name="email" value="{{ old('email') }}" required autocomplete="email" autofocus
-                        placeholder="{{ __('Identifiant ou adresse email') }}">
+                        class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2 @error('email') border-red-500 @enderror"
+                        style="border-bottom-color: var(--brand)" name="email" value="{{ old('email') }}" required
+                        autocomplete="email" autofocus placeholder="{{ __('Identifiant ou adresse email') }}">
 
                     @error('email')
                         <span class="text-xs text-red-500 mt-1 block">
@@ -58,14 +58,15 @@
 
                 <!-- Submit Button -->
                 <button type="submit"
-                    class="w-full py-3 text-base font-bold text-white transition-colors bg-teal-700 rounded-md hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="w-full py-3 text-base font-bold text-white transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    style="background-color: var(--brand)">
                     {{ __('Se connecter') }}
                 </button>
 
                 <!-- Forgot Password -->
                 @if (Route::has('password.request'))
                     <div class="text-center mt-4">
-                        <a class="text-sm text-teal-600 hover:underline" href="{{ route('password.request') }}">
+                        <a class="text-sm hover:underline" style="color: var(--brand)" href="{{ route('password.request') }}">
                             {{ __('Mot de passe oublié ?') }}
                         </a>
                     </div>

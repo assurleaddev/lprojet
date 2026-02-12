@@ -25,11 +25,11 @@
                     </div>
                     <p class="mt-6 text-sm text-gray-600">
                         Or register with
-                        <button wire:click="setView('signup-email')" class="font-semibold text-teal-600 hover:underline">email</button>
+                        <button wire:click="setView('signup-email')" class="font-semibold hover:underline" style="color: var(--brand)">email</button>
                     </p>
                     <p class="mt-2 text-sm text-gray-600">
                         Already have an account?
-                        <button wire:click="setView('login-social')" class="font-semibold text-teal-600 hover:underline">Log in</button>
+                        <button wire:click="setView('login-social')" class="font-semibold hover:underline" style="color: var(--brand)">Log in</button>
                     </p>
                 </div>
             @endif
@@ -57,16 +57,16 @@
                         </div>
                         <div class="pt-2 space-y-4">
                             <label class="flex items-start">
-                                <input type="checkbox" wire:model.defer="offersAccepted" class="w-5 h-5 mt-0.5 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
+                                <input type="checkbox" wire:model.defer="offersAccepted" class="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-0" style="color: var(--brand)">
                                 <span class="ml-2 text-sm text-gray-600">I'd like to receive personalised offers and be the first to know about the latest updates to Used via email.</span>
                             </label>
                             <label class="flex items-start">
-                                <input type="checkbox" wire:model.defer="termsAccepted" class="w-5 h-5 mt-0.5 text-teal-600 border-gray-300 rounded focus:ring-teal-500 @error('termsAccepted') border-red-500 @enderror">
-                                <span class="ml-2 text-sm text-gray-600">By registering, I confirm that I accept <a href="#" class="font-semibold text-teal-600 hover:underline">Used's Terms and Conditions</a>, have read the <a href="#" class="font-semibold text-teal-600 hover:underline">Privacy Policy</a>, and am at least 18 years old.</span>
+                                <input type="checkbox" wire:model.defer="termsAccepted" class="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-0 @error('termsAccepted') border-red-500 @enderror" style="color: var(--brand)">
+                                <span class="ml-2 text-sm text-gray-600">By registering, I confirm that I accept <a href="#" class="font-semibold hover:underline" style="color: var(--brand)">Used's Terms and Conditions</a>, have read the <a href="#" class="font-semibold hover:underline" style="color: var(--brand)">Privacy Policy</a>, and am at least 18 years old.</span>
                             </label>
                              @error('termsAccepted') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
-                        <button type="submit" class="w-full py-3 font-bold text-white bg-teal-600 rounded-md hover:bg-teal-700">Continue</button>
+                        <button type="submit" class="w-full py-3 font-bold text-white rounded-md transition-colors" style="background-color: var(--brand)">Continue</button>
                     </form>
                 </div>
             @endif
@@ -81,11 +81,11 @@
                     </div>
                     <p class="mt-6 text-sm text-gray-600">
                         Or log in with
-                        <button wire:click="setView('login-email')" class="font-semibold text-teal-600 hover:underline">email</button>
+                        <button wire:click="setView('login-email')" class="font-semibold hover:underline" style="color: var(--brand)">email</button>
                     </p>
                     <p class="mt-2 text-sm text-gray-600">
                         Don't have an account yet?
-                        <button wire:click="setView('signup-social')" class="font-semibold text-teal-600 hover:underline">Sign up</button>
+                        <button wire:click="setView('signup-social')" class="font-semibold hover:underline" style="color: var(--brand)">Sign up</button>
                     </p>
                 </div>
             @endif
@@ -106,7 +106,7 @@
                              @error('password') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div class="pt-2">
-                            <button type="submit" class="w-full py-3 font-bold text-white bg-teal-600 rounded-md hover:bg-teal-700">Continue</button>
+                            <button type="submit" class="w-full py-3 font-bold text-white rounded-md transition-colors" style="background-color: var(--brand)">Continue</button>
                         </div>
                     </form>
                 </div>

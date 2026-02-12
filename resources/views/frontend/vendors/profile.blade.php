@@ -60,7 +60,8 @@
                         </svg>
                     </div>
 
-                    <a href="#reviews" class="text-teal-700 hover:underline text-[15px]">{{ $stats['total'] }} reviews</a>
+                    <a href="#reviews" class="hover:underline text-[15px]" style="color: var(--brand)">{{ $stats['total'] }}
+                        reviews</a>
                 </div>
 
                 <!-- badges row -->
@@ -179,7 +180,7 @@
                                 <img src="{{ $item->getFeaturedImageUrl() }}" alt="{{ $item->name }}" class="product-image">
                                 @if($item->status === 'sold')
                                     <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5"
-                                        style="background-color: #4fb286 !important;">
+                                        style="background-color: var(--brand) !important;">
                                         Vendus
                                     </div>
                                 @elseif($item->status === 'reserved')
@@ -300,7 +301,7 @@
                                 </div>
                             </div>
                             <div class="ml-auto">
-                                <a href="#" class="text-teal-700 hover:underline">How reviews work</a>
+                                <a href="#" class="hover:underline" style="color: var(--brand)">How reviews work</a>
                             </div>
                         </div>
                     </div>
@@ -374,8 +375,8 @@
                                         {{ $review->review }}
                                     </p>
 
-                                    <button
-                                        class="mt-3 inline-flex items-center gap-2 text-teal-700 hover:underline text-[14px]">
+                                    <button class="mt-3 inline-flex items-center gap-2 hover:underline text-[14px]"
+                                        style="color: var(--brand)">
                                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
                                         </svg>
@@ -436,10 +437,10 @@
                 </div>
 
                 <div class="mt-6 text-center text-[15px] text-zinc-700">
-                    Or register with <a href="#" class="text-teal-700 underline">email</a>
+                    Or register with <a href="#" class="underline" style="color: var(--brand)">email</a>
                 </div>
                 <div class="mt-2 text-center text-[15px] text-zinc-700">
-                    Already have an account? <a href="#" class="text-teal-700 underline">Log in</a>
+                    Already have an account? <a href="#" class="underline" style="color: var(--brand)">Log in</a>
                 </div>
             </div>
         </div>
@@ -560,10 +561,37 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-            .then(response => {
-                if (response.status === 401) {
-                    Livewire.dispatch('open-login-popup');
-                    // Revert optimistic update since action failed
+                .then(response => {
+                    if (response.status === 401) {
+                        Livewire.dispatch('open-login-popup');
+                        // Revert optimistic update since action failed
+                        if (isLiked) {
+                            svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                            let count = parseInt(countSpan.textContent) || 0;
+                            countSpan.textContent = count + 1;
+                        } else {
+                            svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                            let count = parseInt(countSpan.textContent) || 0;
+                            countSpan.textContent = Math.max(0, count - 1);
+                        }
+                        return;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data) {
+                        // Update with actual server state
+                        if (data.liked) {
+                            svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                        } else {
+                            svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                        }
+                        countSpan.textContent = data.count;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error toggling favorite:', error);
+                    // Revert optimistic update on error
                     if (isLiked) {
                         svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
                         let count = parseInt(countSpan.textContent) || 0;
@@ -573,34 +601,7 @@
                         let count = parseInt(countSpan.textContent) || 0;
                         countSpan.textContent = Math.max(0, count - 1);
                     }
-                    return;
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data) {
-                    // Update with actual server state
-                    if (data.liked) {
-                        svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
-                    } else {
-                        svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
-                    }
-                    countSpan.textContent = data.count;
-                }
-            })
-            .catch(error => {
-                console.error('Error toggling favorite:', error);
-                // Revert optimistic update on error
-                if (isLiked) {
-                    svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
-                    let count = parseInt(countSpan.textContent) || 0;
-                    countSpan.textContent = count + 1;
-                } else {
-                    svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
-                    let count = parseInt(countSpan.textContent) || 0;
-                    countSpan.textContent = Math.max(0, count - 1);
-                }
-            });
+                });
         });
 
         (function () {
