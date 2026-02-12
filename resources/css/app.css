@@ -33,9 +33,9 @@
 
 @theme {
   /* Colors */
-  --color-vinted-teal: #09b1ba;
-  --color-vinted-teal-dark: #0899a1;
-  --color-vinted-blue-link: #007782;
+  --color-vinted-teal: #FC0E00;
+  --color-vinted-teal-dark: #cc0b00;
+  --color-vinted-blue-link: #FC0E00;
 
   /* Shades */
   --color-vinted-gray-100: #f5f6f7;

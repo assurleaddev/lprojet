@@ -20,7 +20,7 @@
     @yield('before_head')
     <style>
         :root {
-            --brand: rgb(0, 119, 130);
+            --brand: #FC0E00;
             --ink: #1a1a1a;
             --muted: #666;
             --line: #e6e6e6;
@@ -249,7 +249,7 @@
 
         .incl-line {
             font-size: 11px;
-            color: rgb(0, 119, 130);
+            color: #FC0E00;
             display: flex;
             align-items: center;
             gap: 4px;
