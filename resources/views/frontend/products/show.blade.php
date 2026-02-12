@@ -50,7 +50,7 @@
                         class="hover:underline">{{ $category->name }}</a>
                     <span>›</span>
                 @endforeach
-                <a href="#" class="text-vinted-blue-link font-semibold hover:underline">
+                <a href="#" class="font-semibold hover:underline" style="color: var(--brand)">
                     {{ $product->brand ? $product->brand->name . ', ' : '' }}{{ $product->name }}
                 </a>
             </nav>
@@ -109,8 +109,8 @@
                             @endif
                             @if($product->condition) <span>{{ ucwords(str_replace('_', ' ', $product->condition)) }}</span>
                             <span class="text-gray-300">•</span> @endif
-                            @if($product->brand) <a href="#"
-                            class="text-vinted-teal hover:underline">{{ $product->brand->name }}</a> @endif
+                            @if($product->brand) <a href="#" class="hover:underline"
+                            style="color: var(--brand)">{{ $product->brand->name }}</a> @endif
                         </div>
 
                         <!-- Price Block -->
@@ -122,12 +122,14 @@
                                 $buyerProtectionFee = 0.70 + ($product->price * 0.05);
                                 $totalPrice = $product->price + $buyerProtectionFee;
                             @endphp
-                            <div class="text-teal-600 text-xl font-bold">{{ number_format($totalPrice, 2) }} MAD</div>
+                            <div class="text-xl font-bold" style="color: var(--brand)">{{ number_format($totalPrice, 2) }}
+                                MAD</div>
 
                             <!-- Buyer Protection Label -->
                             <div class="flex items-center gap-1.5 mt-1">
-                                <span class="text-sm text-vinted-teal">Includes Buyer Protection</span>
-                                <svg class="w-4 h-4 text-vinted-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span class="text-sm" style="color: var(--brand)">Includes Buyer Protection</span>
+                                <svg class="w-4 h-4" style="color: var(--brand)" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
@@ -159,7 +161,8 @@
                             @if($product->brand)
                                 <div class="grid grid-cols-2">
                                     <span class="text-gray-500">Brand</span>
-                                    <a href="#" class="text-vinted-teal hover:underline">{{ $product->brand->name }}</a>
+                                    <a href="#" class="hover:underline"
+                                        style="color: var(--brand)">{{ $product->brand->name }}</a>
                                 </div>
                             @endif
                             @if($product->size)
@@ -193,7 +196,7 @@
                             <div class="text-sm text-gray-700 leading-relaxed mb-2 prose prose-sm max-w-none">
                                 {!! $product->description !!}
                             </div>
-                            <button class="text-vinted-teal text-sm hover:underline flex items-center gap-1">
+                            <button class="text-sm hover:underline flex items-center gap-1" style="color: var(--brand)">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -220,7 +223,8 @@
                                         <div class="space-y-2">
                                             <!-- Bump Button -->
                                             <button type="button" @click="$dispatch('open-bump-modal')"
-                                                class="w-full py-2 bg-vinted-teal text-white rounded text-sm font-bold hover:bg-vinted-teal-dark border border-transparent">
+                                                class="w-full py-2 text-white rounded text-sm font-bold border border-transparent"
+                                                style="background-color: var(--brand)">
                                                 Bump
                                             </button>
 
@@ -287,10 +291,11 @@
                                             class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Reserved</button>
                                     @else
                                         <a href="{{ route('product.checkout', $product) }}"
-                                            class="block w-full py-2.5 bg-vinted-teal text-center text-white font-medium rounded hover:bg-vinted-teal-dark transition-colors text-sm">
+                                            class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm"
+                                            style="background-color: var(--brand)">
                                             Buy now
                                         </a>
-                                        @livewire('product-messaging-button', ['product' => $product, 'class' => 'w-full py-2.5 bg-white border border-vinted-teal text-vinted-teal font-medium rounded hover:bg-teal-50 transition-colors text-sm', 'text' => 'Ask seller'])
+                                        @livewire('product-messaging-button', ['product' => $product, 'class' => 'w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm', 'style' => 'border-color: var(--brand); color: var(--brand)', 'text' => 'Ask seller'])
                                     @endif
                                 @endif
                             @else
@@ -314,7 +319,8 @@
                         <!-- Buyer Protection Fee Box -->
                         <div class="mt-6 flex gap-3 p-4 border border-gray-200 rounded">
                             <div class="flex-shrink-0">
-                                <svg class="w-6 h-6 text-vinted-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6" style="color: var(--brand)" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                                 </svg>
@@ -322,9 +328,10 @@
                             <div>
                                 <h4 class="text-sm font-semibold text-gray-900">Buyer Protection fee</h4>
                                 <p class="text-xs text-gray-600 mt-1 leading-relaxed">
-                                    Our <a href="#" class="text-vinted-teal hover:underline">Buyer Protection</a> is added
+                                    Our <a href="#" class="hover:underline" style="color: var(--brand)">Buyer Protection</a>
+                                    is added
                                     for a fee to every purchase made with the "Buy now" button.
-                                    <a href="#" class="text-vinted-teal hover:underline">Refund Policy</a>.
+                                    <a href="#" class="hover:underline" style="color: var(--brand)">Refund Policy</a>.
                                 </p>
                             </div>
                         </div>
@@ -392,13 +399,15 @@
                         @endphp
                         @if(auth()->check() && auth()->id() !== $product->vendor->id)
                             <button type="button"
-                                class="follow-btn w-full py-2 border {{ $isFollowing ? 'border-gray-300 text-gray-700 bg-gray-50' : 'border-vinted-teal text-vinted-teal' }} font-medium rounded hover:opacity-80 transition-colors text-sm"
+                                class="follow-btn w-full py-2 border font-medium rounded hover:opacity-80 transition-colors text-sm"
+                                style="{{ $isFollowing ? 'border-color: #d1d5db; color: #374151; background-color: #f9fafb;' : 'border-color: var(--brand); color: var(--brand);' }}"
                                 data-user-id="{{ $product->vendor->id }}">
                                 {{ $isFollowing ? 'Following' : 'Follow' }}
                             </button>
                         @elseif(!auth()->check())
                             <button type="button" @click="$dispatch('open-auth-modal')"
-                                class="w-full py-2 border border-vinted-teal text-vinted-teal font-medium rounded hover:bg-teal-50 transition-colors text-sm">
+                                class="w-full py-2 border font-medium rounded hover:opacity-80 transition-colors text-sm"
+                                style="border-color: var(--brand); color: var(--brand)">
                                 Follow
                             </button>
                         @endif
@@ -411,7 +420,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Member's items</h2>
                     <a href="{{ route('search', ['vendor_id' => $product->vendor->id]) }}"
-                        class="text-sm font-semibold text-vinted-blue-link hover:underline">Voir tout</a>
+                        class="text-sm font-semibold hover:underline" style="color: var(--brand)">Voir tout</a>
                 </div>
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
@@ -459,7 +468,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Similar products</h2>
                     <a href="{{ route('search', ['categories' => [$product->category_id]]) }}"
-                        class="text-sm font-semibold text-vinted-blue-link hover:underline">Voir tout</a>
+                        class="text-sm font-semibold hover:underline" style="color: var(--brand)">Voir tout</a>
                 </div>
                 <div class="relative w-2/3">
                     <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
@@ -519,41 +528,41 @@
                 </p>
 
                 <form action="{{ route('items.reserve', $product) }}" method="POST" x-data="{
-                                search: '',
-                                results: [],
-                                selectedUser: null,
-                                isOpen: false,
-                                isSearching: false,
+                                    search: '',
+                                    results: [],
+                                    selectedUser: null,
+                                    isOpen: false,
+                                    isSearching: false,
 
-                                fetchUsers() {
-                                    if (this.search.length < 2) {
-                                        this.results = [];
+                                    fetchUsers() {
+                                        if (this.search.length < 2) {
+                                            this.results = [];
+                                            this.isOpen = false;
+                                            return;
+                                        }
+                                        this.isSearching = true;
+                                        fetch(`/search/suggestions?type=user&query=${this.search}`)
+                                            .then(res => res.json())
+                                            .then(data => {
+                                                this.results = data;
+                                                this.isOpen = true;
+                                            })
+                                            .finally(() => {
+                                                this.isSearching = false;
+                                            });
+                                    },
+
+                                    selectUser(user) {
+                                        this.selectedUser = user;
+                                        this.search = user.label; // Display name
                                         this.isOpen = false;
-                                        return;
+                                    },
+
+                                    clearSelection() {
+                                        this.selectedUser = null;
+                                        this.search = '';
                                     }
-                                    this.isSearching = true;
-                                    fetch(`/search/suggestions?type=user&query=${this.search}`)
-                                        .then(res => res.json())
-                                        .then(data => {
-                                            this.results = data;
-                                            this.isOpen = true;
-                                        })
-                                        .finally(() => {
-                                            this.isSearching = false;
-                                        });
-                                },
-
-                                selectUser(user) {
-                                    this.selectedUser = user;
-                                    this.search = user.label; // Display name
-                                    this.isOpen = false;
-                                },
-
-                                clearSelection() {
-                                    this.selectedUser = null;
-                                    this.search = '';
-                                }
-                            }">
+                                }">
                     @csrf
                     <div class="mb-4 relative">
                         <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Reserve for (username or
@@ -608,8 +617,8 @@
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                             Cancel
                         </button>
-                        <button type="submit"
-                            class="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors">
+                        <button type="submit" class="px-4 py-2 text-white rounded-md transition-colors"
+                            style="background-color: var(--brand)">
                             Reserve
                         </button>
                     </div>
@@ -638,7 +647,8 @@
                     boost your product's visibility to reach more buyers. Stay tuned!
                 </p>
                 <button @click="showBumpModal = false"
-                    class="w-full px-4 py-2 bg-teal-600 text-white font-bold rounded-md hover:bg-teal-700 transition-colors">
+                    class="w-full px-4 py-2 text-white font-bold rounded-md transition-colors"
+                    style="background-color: var(--brand)">
                     Got it!
                 </button>
             </div>

@@ -17,7 +17,7 @@
 
                                 @if($product->status === 'sold')
                                     <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5"
-                                        style="background-color: #4fb286 !important;">
+                                        style="background-color: var(--brand) !important;">
                                         Vendus
                                     </div>
                                 @elseif($product->status === 'reserved')
@@ -58,8 +58,8 @@
         @else
             <div class="text-center py-20">
                 <h2 class="text-xl text-gray-600">No favourited items yet.</h2>
-                <a href="{{ route('home') }}"
-                    class="mt-4 inline-block px-6 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700">Start exploring</a>
+                <a href="{{ route('home') }}" class="mt-4 inline-block px-6 py-2 text-white rounded-md transition-colors"
+                    style="background-color: var(--brand)">Start exploring</a>
             </div>
         @endif
     </div>

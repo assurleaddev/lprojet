@@ -62,7 +62,7 @@
                                     <div class="mt-1">
                                         <input type="radio" name="address_id" value="{{ $address->id }}" 
                                                {{ $loop->first ? 'checked' : '' }}
-                                               class="w-5 h-5 text-vinted-teal border-gray-300 focus:ring-vinted-teal">
+                                               class="w-5 h-5 border-gray-300" style="color: var(--brand); focus-ring-color: var(--brand)">
                                     </div>
                                     <div class="flex-1">
                                         <p class="font-medium text-gray-900">{{ $address->full_name }}</p>
@@ -76,7 +76,7 @@
                         @endif
                         <a href="{{ route('settings.postage') }}" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors group">
                             <span class="text-gray-600 font-medium">Add a new address</span>
-                            <span class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 group-hover:border-vinted-teal group-hover:text-vinted-teal pb-0.5">+</span>
+                            <span class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 group-hover:border-brand group-hover:text-brand pb-0.5" style="border-color: var(--brand); color: var(--brand)">+</span>
                         </a>
                     </div>
                 </div>
@@ -96,7 +96,7 @@
                                     <div class="flex items-center gap-3">
                                         <input type="radio" name="delivery_category" value="pickup"
                                             {{ $pickupOptions->isNotEmpty() ? ($pickupOptions->first()->id == ($initialShippingOption->id ?? 0) ? 'checked' : '') : 'disabled' }}
-                                            class="w-5 h-5 text-vinted-teal border-gray-300 focus:ring-vinted-teal category-radio">
+                                            class="w-5 h-5 border-gray-300" style="color: var(--brand); focus-ring-color: var(--brand)">
                                         <div>
                                             <span class="block font-medium text-gray-900 {{ $pickupOptions->isEmpty() ? 'text-gray-400' : '' }}">Ship to pick-up point</span>
                                             <span class="block text-xs text-gray-500 {{ $pickupOptions->isEmpty() ? 'text-gray-300' : '' }}">Mondial Relay, Chronopost, etc.</span>
@@ -117,7 +117,7 @@
                                                 <input type="radio" name="shipping_option_id" value="{{ $option->id }}" 
                                                     data-price="{{ $option->price }}"
                                                     data-category="pickup"
-                                                    class="w-4 h-4 text-vinted-teal border-gray-300 focus:ring-vinted-teal shipping-option-radio">
+                                                    class="w-4 h-4 border-gray-300" style="color: var(--brand); focus-ring-color: var(--brand)">
                                                 <div class="flex items-center gap-2">
                                                     @if($option->icon_class)<div class="w-2 h-2 rounded-full {{ $option->icon_class }}"></div>@endif
                                                     <span class="text-sm text-gray-700">{{ $option->label }}</span>
@@ -135,7 +135,7 @@
                                     <div class="flex items-center gap-3">
                                         <input type="radio" name="delivery_category" value="home"
                                             {{ $homeOptions->isNotEmpty() ? ($homeOptions->first()->id == ($initialShippingOption->id ?? 0) ? 'checked' : '') : 'disabled' }}
-                                            class="w-5 h-5 text-vinted-teal border-gray-300 focus:ring-vinted-teal category-radio">
+                                            class="w-5 h-5 border-gray-300" style="color: var(--brand); focus-ring-color: var(--brand)">
                                         <div>
                                             <span class="block font-medium text-gray-900 {{ $homeOptions->isEmpty() ? 'text-gray-400' : '' }}">Ship to home</span>
                                             <span class="block text-xs text-gray-500 {{ $homeOptions->isEmpty() ? 'text-gray-300' : '' }}">La Poste / Amana</span>
@@ -156,7 +156,7 @@
                                                 <input type="radio" name="shipping_option_id" value="{{ $option->id }}" 
                                                     data-price="{{ $option->price }}"
                                                     data-category="home"
-                                                    class="w-4 h-4 text-vinted-teal border-gray-300 focus:ring-vinted-teal shipping-option-radio">
+                                                    class="w-4 h-4 border-gray-300" style="color: var(--brand); focus-ring-color: var(--brand)">
                                                 <div class="flex items-center gap-2">
                                                     @if($option->icon_class)<div class="w-2 h-2 rounded-full {{ $option->icon_class }}"></div>@endif
                                                     <span class="text-sm text-gray-700">{{ $option->label }}</span>
@@ -180,7 +180,7 @@
                         <!-- Wallet -->
                         <label class="flex items-center gap-3 p-4 hover:bg-gray-50 cursor-pointer" id="wallet-option-label">
                             <input type="radio" name="payment_method" value="wallet" id="payment_wallet"
-                                class="w-5 h-5 text-vinted-teal border-gray-300 focus:ring-vinted-teal">
+                                class="w-5 h-5 border-gray-300" style="color: var(--brand); focus-ring-color: var(--brand)">
                             <div class="flex-1">
                                 <p class="font-medium text-gray-900 flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" /></svg>
@@ -192,7 +192,7 @@
                         <!-- COD -->
                         <label class="flex items-center gap-3 p-4 cursor-pointer hover:bg-gray-50">
                             <input type="radio" name="payment_method" value="cod" checked
-                                class="w-5 h-5 text-vinted-teal border-gray-300 focus:ring-vinted-teal">
+                                class="w-5 h-5 border-gray-300" style="color: var(--brand); focus-ring-color: var(--brand)">
                             <div class="flex-1">
                                 <p class="font-medium text-gray-900 flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" /></svg>
@@ -228,7 +228,8 @@
                         <span class="font-bold text-lg text-gray-900" id="summary-total">-- MAD</span>
                     </div>
                     <button type="submit" id="submit-btn"
-                        class="w-full bg-vinted-teal text-white font-bold py-3 rounded-md hover:bg-vinted-teal-dark transition-colors mb-3">
+                        class="w-full text-white font-bold py-3 rounded-md transition-colors mb-3"
+                        style="background-color: var(--brand)">
                         Place order
                     </button>
                     <p class="text-xs text-center text-gray-400 flex items-center justify-center gap-1">
