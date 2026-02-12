@@ -33,6 +33,7 @@
 
 @theme {
   /* Colors */
+  --color-brand: #FC0E00;
   --color-vinted-teal: #FC0E00;
   --color-vinted-teal-dark: #cc0b00;
   --color-vinted-blue-link: #FC0E00;

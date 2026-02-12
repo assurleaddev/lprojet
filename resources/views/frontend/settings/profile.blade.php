@@ -66,7 +66,7 @@
                             <img :src="avatarPreview || '{{ $user->avatar_url }}'" alt="{{ $user->username }}"
                                 class="w-12 h-12 rounded-full object-cover">
                             <label
-                                class="cursor-pointer bg-white border border-[var(--brand)] text-[var(--brand)] px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
+                                class="cursor-pointer bg-white border border-brand text-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
                                 Choose photo
                                 <input type="file" name="avatar" class="hidden" accept="image/*"
                                     @change="handleAvatarChange">
@@ -81,7 +81,7 @@
                         </div>
                         <div class="flex items-center gap-4 w-1/2">
                             <input type="text" name="username" value="{{ old('username', $user->username) }}"
-                                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-[var(--brand)] focus:border-[var(--brand)]">
+                                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
                         </div>
                     </div>
 
@@ -92,7 +92,7 @@
                         </div>
                         <div class="w-full md:w-1/2">
                             <textarea name="about" rows="4"
-                                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-[var(--brand)] focus:border-[var(--brand)]"
+                                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand"
                                 placeholder="Tell us more about yourself and your style">{{ old('about', $user->getMeta('about')) }}</textarea>
                         </div>
                     </div>
@@ -108,7 +108,7 @@
                                 <div class="relative">
                                     <input type="text" x-model="searchCountry" @focus="openCountry = true"
                                         @click.away="openCountry = false"
-                                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-[var(--brand)] focus:border-[var(--brand)]"
+                                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand"
                                         placeholder="Select a country">
                                     <div x-show="openCountry"
                                         class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -131,7 +131,7 @@
                                 <div class="relative">
                                     <input type="text" x-model="searchCity" @focus="openCity = true"
                                         @click.away="openCity = false" :disabled="!selectedCountry"
-                                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-[var(--brand)] focus:border-[var(--brand)] disabled:bg-gray-100"
+                                        class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand disabled:bg-gray-100"
                                         placeholder="Select a city">
                                     <div x-show="openCity && selectedCountry"
                                         class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -154,7 +154,7 @@
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="show_city" value="1" class="sr-only peer" {{ old('show_city', $user->getMeta('show_city')) ? 'checked' : '' }}>
                                 <div
-                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--brand)]">
+                                    class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand">
                                 </div>
                             </label>
                         </div>
@@ -167,7 +167,7 @@
                         </div>
                         <div class="w-1/2">
                             <select name="language"
-                                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-[var(--brand)] focus:border-[var(--brand)]">
+                                class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
                                 <option value="en" {{ old('language', $user->getMeta('language')) == 'en' ? 'selected' : '' }}>English, UK (English)</option>
                                 <option value="fr" {{ old('language', $user->getMeta('language')) == 'fr' ? 'selected' : '' }}>French (Français)</option>
                             </select>
@@ -176,7 +176,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-[var(--brand)] text-white px-6 py-2 rounded font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                             :disabled="isLoading" x-text="isLoading ? 'Updating...' : 'Update profile'">
                         </button>
                     </div>
@@ -199,7 +199,7 @@
                                     Cancel
                                 </button>
                                 <button type="button" @click="cropAndClose"
-                                    class="px-4 py-2 text-white bg-[var(--brand)] rounded hover:opacity-90">
+                                    class="px-4 py-2 text-white bg-brand rounded hover:opacity-90">
                                     Crop & Save
                                 </button>
                             </div>

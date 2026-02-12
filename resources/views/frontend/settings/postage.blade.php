@@ -70,7 +70,7 @@
                                     <div class="flex gap-2">
                                         <!-- Edit -->
                                         <button type="button" @click="openModal('edit', {{ json_encode($address) }})"
-                                            class="text-gray-400 hover:text-[var(--brand)] p-1">
+                                            class="text-gray-400 hover:text-brand p-1">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
@@ -91,7 +91,7 @@
                                 </div>
                             @endforeach
                             <button type="button" @click="openModal('add')"
-                                class="text-[var(--brand)] font-medium text-sm hover:underline">
+                                class="text-brand font-medium text-sm hover:underline">
                                 + Add another address
                             </button>
                         @endif
@@ -155,7 +155,7 @@
                                         <label class="relative inline-flex items-center cursor-pointer">
                                             <input type="checkbox" name="{{ $option->key }}" value="1" class="sr-only peer" {{ $user->getMeta($option->key) ? 'checked' : '' }}>
                                             <div
-                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--brand)]">
+                                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand">
                                             </div>
                                         </label>
                                     </div>
@@ -210,7 +210,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-[var(--brand)] text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
+                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
                     </div>
                 </form>
 
@@ -247,7 +247,7 @@
                                                 <input type="text" x-model="countrySearch"
                                                     @focus="openCountryDropdown = true"
                                                     @click.away="openCountryDropdown = false"
-                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50"
+                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50"
                                                     placeholder="Select a country">
                                                 <div x-show="openCountryDropdown"
                                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -265,19 +265,19 @@
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Full name</label>
                                             <input type="text" name="full_name" x-model="formData.full_name"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Address line
                                                 1</label>
                                             <input type="text" name="address_line_1" x-model="formData.address_line_1"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Address line 2
                                                 (optional)</label>
                                             <input type="text" name="address_line_2" x-model="formData.address_line_2"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
@@ -285,7 +285,7 @@
                                             <div class="relative">
                                                 <input type="text" x-model="citySearch" @focus="openCityDropdown = true"
                                                     @click.away="openCityDropdown = false" :disabled="!formData.country"
-                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50 disabled:bg-gray-100"
+                                                    class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50 disabled:bg-gray-100"
                                                     placeholder="Select a city">
                                                 <div x-show="openCityDropdown && formData.country"
                                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -305,12 +305,12 @@
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
                                             <input type="text" name="postcode" x-model="formData.postcode"
-                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-[var(--brand)] focus:ring focus:ring-red-100 focus:ring-opacity-50">
+                                                class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                     </div>
                                     <div class="mt-5 sm:mt-6 flex gap-3">
                                         <button type="submit"
-                                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-[var(--brand)] text-base font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--brand)] sm:text-sm">
+                                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand text-base font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand sm:text-sm">
                                             Save address
                                         </button>
                                         <button type="button" @click="closeModal"

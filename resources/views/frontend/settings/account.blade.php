@@ -62,7 +62,7 @@
                                 </svg></span>
                         </div>
                         <button type="button"
-                            class="text-[var(--brand)] border border-[var(--brand)] px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
+                            class="text-brand border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
                     </div>
 
                     <!-- Phone number -->
@@ -89,7 +89,7 @@
                             </div>
 
                             <a href="{{ route('auth.verify_phone') }}"
-                                class="text-[var(--brand)] border border-[var(--brand)] px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
+                                class="text-brand border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
                                 {{ $user->phone_verified_at ? 'Change' : 'Verify' }}
                             </a>
                         </div>
@@ -110,7 +110,7 @@
                             <label class="text-base font-medium text-gray-900 w-1/3">Gender</label>
                             <div class="w-2/3">
                                 <select name="gender"
-                                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-[var(--brand)] focus:border-[var(--brand)]">
+                                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
                                     <option value="" disabled {{ !$user->getMeta('gender') ? 'selected' : '' }}>Select
                                         gender</option>
                                     <option value="Male" {{ $user->getMeta('gender') == 'Male' ? 'selected' : '' }}>Male
@@ -127,7 +127,7 @@
                             <label class="text-base font-medium text-gray-900 w-1/3">Birthday</label>
                             <div class="w-2/3">
                                 <input type="date" name="birthday" value="{{ $user->getMeta('birthday') }}"
-                                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-[var(--brand)] focus:border-[var(--brand)]">
+                                    class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
                             </div>
                         </div>
                     </div>
@@ -143,7 +143,7 @@
                             <input type="checkbox" name="holiday_mode" value="1" class="sr-only peer" x-model="holidayMode"
                                 @click.prevent="toggleHolidayMode()">
                             <div
-                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[var(--brand)]">
+                                class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-100 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand">
                             </div>
                         </label>
 
@@ -183,7 +183,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-[var(--brand)] text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
+                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
                     </div>
 
                     <!-- Warning Modal (Moved to end of form) -->
@@ -196,7 +196,7 @@
                             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100">
 
                             <div class="flex items-center gap-3 mb-4"
-                                :class="pendingState ? 'text-amber-600' : 'text-[var(--brand)]'">
+                                :class="pendingState ? 'text-amber-600' : 'text-brand'">
                                 <template x-if="pendingState">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -232,7 +232,7 @@
                                 </button>
                                 <button type="button" @click="confirmHolidayMode()"
                                     class="px-4 py-2 text-white font-medium rounded-lg shadow-sm transition-colors"
-                                    :class="pendingState ? 'bg-amber-600 hover:bg-amber-700' : 'bg-[var(--brand)] hover:opacity-90'">
+                                    :class="pendingState ? 'bg-amber-600 hover:bg-amber-700' : 'bg-brand hover:opacity-90'">
                                     Confirm
                                 </button>
                             </div>
