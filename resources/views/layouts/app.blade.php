@@ -21,10 +21,29 @@
     <style>
         :root {
             --brand: #FC0E00;
+            --color-brand: #FC0E00;
             --ink: #1a1a1a;
             --muted: #666;
             --line: #e6e6e6;
             --bg-soft: #f6f6f6;
+        }
+
+        /* Brand Colors */
+        .bg-brand {
+            background-color: var(--brand) !important;
+        }
+
+        .text-brand {
+            color: var(--brand) !important;
+        }
+
+        .border-brand {
+            border-color: var(--brand) !important;
+        }
+
+        .focus-ring-brand:focus {
+            --tw-ring-color: var(--brand) !important;
+            border-color: var(--brand) !important;
         }
 
         /* Base */

@@ -170,7 +170,7 @@
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <h3 class="text-base font-medium text-gray-900">Change password</h3>
                         <button type="button"
-                            class="text-[var(--brand)] border border-[var(--brand)] px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
+                            class="text-brand border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
                     </div>
 
                     <!-- Delete account -->
