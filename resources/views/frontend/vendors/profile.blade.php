@@ -229,9 +229,10 @@
         <section id="panel-reviews" role="tabpanel" aria-labelledby="tab-reviews" class="pt-6 hidden">
 
             @if(isset($pendingReviewOrder) && $pendingReviewOrder)
-                <div class="mb-8 bg-teal-50 border border-teal-200 rounded-lg p-6">
-                    <h3 class="text-lg font-semibold text-teal-900 mb-2">Leave a review for your recent purchase</h3>
-                    <p class="text-sm text-teal-700 mb-4">
+                <div class="mb-8 rounded-lg p-6" style="background-color: #fff5f5; border: 1px solid var(--brand)">
+                    <h3 class="text-lg font-semibold mb-2" style="color: var(--brand)">Leave a review for your recent purchase
+                    </h3>
+                    <p class="text-sm mb-4" style="color: var(--brand)">
                         You recently received an item from {{ $user->username }}. Please let us know how it went!
                     </p>
 
@@ -258,12 +259,13 @@
                         <div class="mb-4">
                             <label for="review" class="block text-sm font-medium text-gray-700 mb-1">Review (Required)</label>
                             <textarea name="review" id="review" rows="3" required minlength="5"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
-                                placeholder="Write your review here..."></textarea>
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:ring-0"
+                                style="focus-border-color: var(--brand)" placeholder="Write your review here..."></textarea>
                         </div>
 
                         <button type="submit"
-                            class="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-md hover:bg-teal-700 shadow-sm">
+                            class="px-4 py-2 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
+                            style="background-color: var(--brand)">
                             Submit Review
                         </button>
                     </form>
