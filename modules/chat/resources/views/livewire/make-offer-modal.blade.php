@@ -68,19 +68,22 @@
                 <form wire:submit.prevent="submitOffer">
                     <div class="grid grid-cols-3 gap-3 mb-4">
                         <button type="button" @click="setDiscount(10)"
-                            :class="{'border-teal-600 text-teal-600 bg-teal-50': offerType == 10, 'border-gray-200 text-gray-700 hover:border-gray-300': offerType != 10}"
+                            :style="offerType == 10 ? 'border-color: var(--brand); color: var(--brand); background-color: rgba(252, 14, 0, 0.05)' : ''"
+                            :class="{'border-gray-200 text-gray-700 hover:border-gray-300': offerType != 10}"
                             class="border rounded-md py-2 px-3 text-center transition-colors">
                             <div class="text-sm font-bold" x-text="(originalPrice * 0.9).toFixed(2)"></div>
                             <div class="text-xs">10% off</div>
                         </button>
                         <button type="button" @click="setDiscount(20)"
-                            :class="{'border-teal-600 text-teal-600 bg-teal-50': offerType == 20, 'border-gray-200 text-gray-700 hover:border-gray-300': offerType != 20}"
+                            :style="offerType == 20 ? 'border-color: var(--brand); color: var(--brand); background-color: rgba(252, 14, 0, 0.05)' : ''"
+                            :class="{'border-gray-200 text-gray-700 hover:border-gray-300': offerType != 20}"
                             class="border rounded-md py-2 px-3 text-center transition-colors">
                             <div class="text-sm font-bold" x-text="(originalPrice * 0.8).toFixed(2)"></div>
                             <div class="text-xs">20% off</div>
                         </button>
                         <button type="button" @click="setCustom()"
-                            :class="{'border-teal-600 text-teal-600 bg-teal-50': offerType == 'custom', 'border-gray-200 text-gray-700 hover:border-gray-300': offerType != 'custom'}"
+                            :style="offerType == 'custom' ? 'border-color: var(--brand); color: var(--brand); background-color: rgba(252, 14, 0, 0.05)' : ''"
+                            :class="{'border-gray-200 text-gray-700 hover:border-gray-300': offerType != 'custom'}"
                             class="border rounded-md py-2 px-3 text-center transition-colors">
                             <div class="text-sm font-bold">Custom</div>
                             <div class="text-xs">Set a price</div>
@@ -93,8 +96,8 @@
                                 <span class="text-gray-500 sm:text-sm">MAD</span>
                             </div>
                             <input type="number" step="0.01" min="0.01" max="{{ $product->price }}" wire:model="offerPrice"
-                                class="block w-full rounded-md border-0 py-1.5 pl-12 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-teal-600 sm:text-sm sm:leading-6"
-                                placeholder="0.00">
+                                class="block w-full rounded-md border-0 py-1.5 pl-12 pr-12 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6"
+                                style="focus-ring-color: var(--brand)" placeholder="0.00">
                         </div>
                         @error('offerPrice') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
 
@@ -109,7 +112,8 @@
                     </p>
 
                     <button type="submit" wire:loading.attr="disabled" wire:target="submitOffer"
-                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#007782] hover:bg-[#006670] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50">
+                        class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white transition-colors disabled:opacity-50"
+                        style="background-color: var(--brand)">
                         <span wire:loading wire:target="submitOffer" class="animate-pulse">Sending...</span>
                         <span wire:loading.remove wire:target="submitOffer">Offer</span>
                     </button>
