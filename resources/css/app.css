@@ -37,6 +37,19 @@
   --color-vinted-teal-dark: #cc0b00;
   --color-vinted-blue-link: #FC0E00;
 
+  /* Overload default teal and green scales to brand red */
+  --color-teal-50: #fff5f5;
+  --color-teal-100: #ffe3e3;
+  --color-teal-200: #ffc9c9;
+  --color-teal-300: #ffa8a8;
+  --color-teal-400: #ff8787;
+  --color-teal-500: #ff6b6b;
+  --color-teal-600: #FC0E00;
+  --color-teal-700: #e00c00;
+  --color-teal-800: #cc0b00;
+  --color-teal-900: #b30a00;
+  --color-teal-950: #8c0800;
+
   /* Shades */
   --color-vinted-gray-100: #f5f6f7;
   /* backgrounds */

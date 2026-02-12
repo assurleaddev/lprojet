@@ -65,7 +65,8 @@
                 <div class="mt-8 space-y-2">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Ou inscris-toi avec') }} <button wire:click="setView('register')"
-                            class="font-medium text-teal-600 hover:underline hover:text-teal-500">{{ __('ton adresse e-mail') }}</button>
+                            class="font-medium hover:underline"
+                            style="color: var(--brand)">{{ __('ton adresse e-mail') }}</button>
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Tu as déjà un compte ?') }} <button wire:click="setView('login_menu')"
@@ -132,8 +133,8 @@
                     <!-- Username -->
                     <div>
                         <input type="text" wire:model.blur="username"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2"
-                            placeholder="{{ __('Nom d\'utilisateur') }}">
+                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2"
+                            style="focus-border-color: var(--brand)" placeholder="{{ __('Nom d\'utilisateur') }}">
                         @error('username') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         <p class="mt-1 text-xs text-gray-500">
                             {{ __('Utilise des lettres, des chiffres ou les deux. Les autres membres verront ce nom sur ton compte.') }}
@@ -143,8 +144,8 @@
                     <!-- Email -->
                     <div>
                         <input type="email" wire:model.blur="email"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2"
-                            placeholder="{{ __('Email') }}">
+                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2"
+                            style="focus-border-color: var(--brand)" placeholder="{{ __('Email') }}">
                         @error('email') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         <p class="mt-1 text-xs text-gray-500">
                             {{ __('Saisis l\'adresse e-mail que tu souhaites utiliser.') }}
@@ -168,17 +169,17 @@
                     <!-- Checkboxes -->
                     <div class="pt-4 space-y-4">
                         <label class="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" wire:model="newsletter"
-                                class="mt-1 text-teal-600 border-gray-300 rounded focus:ring-teal-500 w-5 h-5">
+                            <input type="checkbox" wire:model="newsletter" class="mt-1 border-gray-300 rounded w-5 h-5"
+                                style="color: var(--brand); focus-ring-color: var(--brand)">
                             <span
                                 class="text-sm text-gray-500">{{ __('Je souhaite recevoir par e-mail des offres personnalisées et les dernières mises à jour.') }}</span>
                         </label>
 
                         <label class="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" wire:model="terms"
-                                class="mt-1 text-teal-600 border-gray-300 rounded focus:ring-teal-500 w-5 h-5">
+                            <input type="checkbox" wire:model="terms" class="mt-1 border-gray-300 rounded w-5 h-5"
+                                style="color: var(--brand); focus-ring-color: var(--brand)">
                             <span class="text-sm text-gray-500">
-                                {!! __('En t\'inscrivant, tu confirmes que tu acceptes les <a href="#" class="text-teal-600 underline">Termes & Conditions</a>, avoir lu la <a href="#" class="text-teal-600 underline">Politique de confidentialité</a> et avoir au moins 18 ans.') !!}
+                                {!! __('En t\'inscrivant, tu confirmes que tu acceptes les <a href="#" class="underline" style="color: var(--brand)">Termes & Conditions</a>, avoir lu la <a href="#" class="underline" style="color: var(--brand)">Politique de confidentialité</a> et avoir au moins 18 ans.') !!}
                             </span>
                         </label>
                         @error('terms') <span class="block text-xs text-red-500">{{ $message }}</span> @enderror
@@ -186,7 +187,8 @@
 
                     <!-- Submit -->
                     <button type="submit"
-                        class="w-full py-3 mt-6 text-base font-bold text-white transition-colors bg-teal-700 rounded-md hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="w-full py-3 mt-6 text-base font-bold text-white transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        style="background: var(--brand)">
                         <span wire:loading.remove>{{ __('Continuer') }}</span>
                         <span wire:loading>{{ __('Traitement...') }}</span>
                     </button>
@@ -227,7 +229,8 @@
 
                     <!-- Submit -->
                     <button type="submit"
-                        class="w-full py-3 mt-6 text-base font-bold text-white transition-colors bg-teal-700 rounded-md hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="w-full py-3 mt-6 text-base font-bold text-white transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        style="background: var(--brand)">
                         <span wire:loading.remove>{{ __('Continuer') }}</span>
                         <span wire:loading>{{ __('Traitement...') }}</span>
                     </button>
@@ -269,14 +272,15 @@
 
                     <!-- Submit -->
                     <button type="submit"
-                        class="w-full py-3 mt-6 text-base font-bold text-white transition-colors bg-teal-700 rounded-md hover:bg-teal-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                        class="w-full py-3 mt-6 text-base font-bold text-white transition-colors rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        style="background: var(--brand)">
                         <span wire:loading.remove>{{ __('Envoyer le lien de réinitialisation') }}</span>
                         <span wire:loading>{{ __('Envoi...') }}</span>
                     </button>
 
                     <div class="mt-4 text-center">
-                        <button type="button" wire:click="setView('login')"
-                            class="text-sm text-teal-600 hover:underline font-medium">{{ __('Retour à la connexion') }}</button>
+                        <button type="button" wire:click="setView('login')" class="text-sm hover:underline font-medium"
+                            style="color: var(--brand)">{{ __('Retour à la connexion') }}</button>
                     </div>
                 </form>
             @endif

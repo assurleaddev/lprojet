@@ -23,19 +23,19 @@
                 @if (Auth::check())
                                 <a href="{{ route('chat.dashboard') }}" class="text-gray-600 hover:text-black relative"
                                     aria-label="Messages" x-data="{
-                                                                                            msgCount: {{ auth()->user()->unreadMessagesCount() + auth()->user()->unreadChatNotificationsCount() }},
-                                                                                            chatTypes: {{ \Illuminate\Support\Js::from(\App\Models\User::getChatNotificationTypes()) }},
-                                                                                            init() {
-                                                                                                if (typeof Echo !== 'undefined') {
-                                                                                                    Echo.private('App.Models.User.{{ auth()->id() }}')
-                                                                                                        .notification((notification) => {
-                                                                                                            if (this.chatTypes.includes(notification.type) || (notification.type && notification.type.startsWith('offer_'))) {
-                                                                                                                this.msgCount++;
+                                                                                                            msgCount: {{ auth()->user()->unreadMessagesCount() + auth()->user()->unreadChatNotificationsCount() }},
+                                                                                                            chatTypes: {{ \Illuminate\Support\Js::from(\App\Models\User::getChatNotificationTypes()) }},
+                                                                                                            init() {
+                                                                                                                if (typeof Echo !== 'undefined') {
+                                                                                                                    Echo.private('App.Models.User.{{ auth()->id() }}')
+                                                                                                                        .notification((notification) => {
+                                                                                                                            if (this.chatTypes.includes(notification.type) || (notification.type && notification.type.startsWith('offer_'))) {
+                                                                                                                                this.msgCount++;
+                                                                                                                            }
+                                                                                                                        });
+                                                                                                                }
                                                                                                             }
-                                                                                                        });
-                                                                                                }
-                                                                                            }
-                                                                                        }">
+                                                                                                        }">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                             d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15A2.25 2.25 0 012.25 17.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75">
@@ -47,10 +47,10 @@
                                 </a>
 
                                 <div class="relative" x-data="{
-                                                                                                                        open: false,
-                                                                                                                        count: {{ auth()->user()->unreadSocialNotificationsCount() }},
-                                                                                                                        chatTypes: {{ \Illuminate\Support\Js::from(\App\Models\User::getChatNotificationTypes()) }},
-                                                                                                                        notifications: {{ \Illuminate\Support\Js::from(auth()->user()->socialNotifications(5)->map(function ($n) {
+                                                                                                                                        open: false,
+                                                                                                                                        count: {{ auth()->user()->unreadSocialNotificationsCount() }},
+                                                                                                                                        chatTypes: {{ \Illuminate\Support\Js::from(\App\Models\User::getChatNotificationTypes()) }},
+                                                                                                                                        notifications: {{ \Illuminate\Support\Js::from(auth()->user()->socialNotifications(5)->map(function ($n) {
                         return [
                             'id' => $n->id,
                             'message' => $n->data['message'] ?? 'New Notification',
@@ -59,27 +59,27 @@
                             'read_at' => $n->read_at
                         ];
                     })) }},
-                                                                                                                        init() {
-                                                                                                                            if (typeof Echo !== 'undefined') {
-                                                                                                                                Echo.private('App.Models.User.{{ auth()->id() }}')
-                                                                                                                                    .notification((notification) => {
-                                                                                                                                        if (!this.chatTypes.includes(notification.type) && !(notification.type && notification.type.startsWith('offer_'))) {
-                                                                                                                                            this.count++;
-                                                                                                                                            this.notifications.unshift({
-                                                                                                                                                id: notification.id,
-                                                                                                                                                message: notification.message,
-                                                                                                                                                url: '/notifications/' + notification.id + '/read',
-                                                                                                                                                created_at: 'Just now',
-                                                                                                                                                read_at: null
-                                                                                                                                            });
-                                                                                                                                            if (this.notifications.length > 5) {
-                                                                                                                                                this.notifications.pop();
+                                                                                                                                        init() {
+                                                                                                                                            if (typeof Echo !== 'undefined') {
+                                                                                                                                                Echo.private('App.Models.User.{{ auth()->id() }}')
+                                                                                                                                                    .notification((notification) => {
+                                                                                                                                                        if (!this.chatTypes.includes(notification.type) && !(notification.type && notification.type.startsWith('offer_'))) {
+                                                                                                                                                            this.count++;
+                                                                                                                                                            this.notifications.unshift({
+                                                                                                                                                                id: notification.id,
+                                                                                                                                                                message: notification.message,
+                                                                                                                                                                url: '/notifications/' + notification.id + '/read',
+                                                                                                                                                                created_at: 'Just now',
+                                                                                                                                                                read_at: null
+                                                                                                                                                            });
+                                                                                                                                                            if (this.notifications.length > 5) {
+                                                                                                                                                                this.notifications.pop();
+                                                                                                                                                            }
+                                                                                                                                                        }
+                                                                                                                                                    });
                                                                                                                                             }
                                                                                                                                         }
-                                                                                                                                    });
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    }">
+                                                                                                                                    }">
                                     <button @click="open = !open" class="text-gray-600 hover:text-black relative"
                                         aria-label="Notifications">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +115,8 @@
 
                                             <div class="bg-gray-50 px-4 py-2 text-center">
                                                 <a href="{{ route('notifications.index') }}"
-                                                    class="text-xs text-teal-600 font-semibold hover:underline">View all</a>
+                                                    class="text-xs font-semibold hover:underline" style="color: var(--brand)">View
+                                                    all</a>
                                             </div>
                                         </div>
                                     </div>
@@ -168,7 +169,8 @@
                                 </div>
                 @else
                     <button @click="$dispatch('open-login-popup')"
-                        class="px-4 border border-vinted-teal text-vinted-teal font-bold py-2 rounded-md hover:bg-vinted-teal/10 transition-colors text-sm">
+                        class="px-4 font-bold py-2 rounded-md transition-colors text-sm"
+                        style="border: 1px solid var(--brand); color: var(--brand);">
                         Login / register
                     </button>
                 @endif
@@ -208,7 +210,8 @@
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
                             <span class="font-medium">English</span>
                             @if(app()->getLocale() == 'en')
-                                <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    style="color: var(--brand)">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
                                 </svg>
@@ -218,7 +221,8 @@
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
                             <span class="font-medium">Français</span>
                             @if(app()->getLocale() == 'fr')
-                                <svg class="w-4 h-4 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                    style="color: var(--brand)">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
                                 </svg>
