@@ -183,15 +183,21 @@ class ItemController extends Controller
         DB::beginTransaction();
 
         try {
-            $product->update([
-                'name' => $request->title,
-                'description' => $request->description,
-                'price' => $request->price,
-                'category_id' => $request->category_id,
-                'brand_id' => $request->brand_id,
-                'condition' => $request->condition,
-                'status' => 'pending',
-            ]);
+            $product->name = $request->title;
+            $product->description = $request->description;
+            $product->price = $request->price;
+            $product->category_id = $request->category_id;
+            $product->brand_id = $request->brand_id;
+            $product->condition = $request->condition;
+
+            // Only set to pending if new images are uploaded
+            $statusChanged = false;
+            if ($request->hasFile('images')) {
+                $product->status = 'pending';
+                $statusChanged = true;
+            }
+
+            $product->save();
 
             // Flatten nested options array structure from frontend
             $optionIds = [];
@@ -221,17 +227,22 @@ class ItemController extends Controller
 
             DB::commit();
 
+            $successMessage = $statusChanged
+                ? 'Item updated successfully! It is now pending review due to new images.'
+                : 'Item updated successfully!';
+
             if ($request->wantsJson()) {
                 return response()->json([
-                    'message' => 'Item updated successfully!',
+                    'message' => $successMessage,
                     'redirect_url' => route('products.show', $product)
                 ]);
             }
 
-            return redirect()->route('home')->with('success', 'Item updated successfully! It is now pending review.');
+            return redirect()->route('products.show', $product)->with('success', $successMessage);
 
         } catch (\Exception $e) {
             DB::rollBack();
+            \Log::error('Error updating product: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Error updating item: ' . $e->getMessage());
         }
     }

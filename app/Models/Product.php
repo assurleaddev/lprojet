@@ -33,8 +33,7 @@ class Product extends Model implements HasMedia
             // Price Change Notification
             if ($product->isDirty('price') && $product->price < $product->getOriginal('price')) {
                 // Notify users who liked/favorited this product
-                // Assuming 'favoriters' relationship from Favoriteable trait
-                foreach ($product->favoriters as $user) {
+                foreach ($product->favoritedBy() as $user) {
                     $user->notify(new \App\Notifications\PriceChangeNotification($product, $product->getOriginal('price'), $product->price));
                 }
             }
@@ -113,23 +112,25 @@ class Product extends Model implements HasMedia
     public function registerMediaConversions(?PMedia $media = null): void
     {
         $this->addMediaConversion('preview')
-            ->fit(Fit::Contain, 300, 300)
+            ->fit(Fit::Max, 800, 800)
+            ->quality(90)
             ->nonQueued();
-        // Thumbnail for featured images
+
+        // Thumbnail for featured images - usually for small lists
         $this->addMediaConversion('thumb')
-            ->width(200)
-            ->height(200)
+            ->fit(Fit::Crop, 400, 400)
+            ->quality(90)
             ->sharpen(10);
 
         // Medium size for content display
         $this->addMediaConversion('medium')
-            ->width(500)
-            ->height(500);
+            ->fit(Fit::Max, 1200, 1200)
+            ->quality(90);
 
         // Large size for detailed view
         $this->addMediaConversion('large')
-            ->width(1000)
-            ->height(1000);
+            ->fit(Fit::Max, 2000, 2000)
+            ->quality(95);
     }
 
     public function getFeaturedImageUrl(string $conversion = ''): ?string

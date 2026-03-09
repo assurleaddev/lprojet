@@ -141,6 +141,16 @@ Route::delete('/settings/address/{address}', [App\Http\Controllers\SettingsContr
     ->middleware('auth')
     ->name('settings.address.delete');
 
+Route::get('/settings/payments', [App\Http\Controllers\SettingsController::class, 'payments'])
+    ->middleware('auth')
+    ->name('settings.payments');
+Route::post('/settings/payout-account', [App\Http\Controllers\SettingsController::class, 'storePayoutAccount'])
+    ->middleware('auth')
+    ->name('settings.payout-account.store');
+Route::delete('/settings/payout-account/{payoutAccount}', [App\Http\Controllers\SettingsController::class, 'deletePayoutAccount'])
+    ->middleware('auth')
+    ->name('settings.payout-account.delete');
+
 Route::get('/settings/notifications', [App\Http\Controllers\SettingsController::class, 'notifications'])
     ->middleware('auth')
     ->name('settings.notifications');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Wallet\Services\WalletService;
 use Modules\Wallet\Models\WithdrawalRequest;
+use Modules\Wallet\Models\PayoutAccount;
 use Illuminate\Support\Facades\Auth;
 
 class WalletController extends Controller
@@ -21,20 +22,25 @@ class WalletController extends Controller
     {
         $user = Auth::user();
         $wallet = $this->walletService->getWallet($user);
-        $transactions = $wallet->transactions()->latest()->paginate(10);
-        $withdrawalRequests = $wallet->withdrawalRequests()->latest()->get();
+        $transactions = $wallet->transactions()->latest()->paginate(6, ['*'], 'page');
+        $withdrawalRequests = $wallet->withdrawalRequests()->latest()->paginate(6, ['*'], 'withdraw_page');
+        $payoutAccounts = PayoutAccount::where('user_id', $user->id)->get();
 
-        return view('wallet::index', compact('wallet', 'transactions', 'withdrawalRequests'));
+        return view('wallet::index', compact('wallet', 'transactions', 'withdrawalRequests', 'payoutAccounts'));
     }
 
     public function requestWithdrawal(Request $request)
     {
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'bank_details' => 'required|string',
+            'payout_account_id' => 'required|exists:payout_accounts,id',
         ]);
 
         $user = Auth::user();
+        $payoutAccount = PayoutAccount::where('user_id', $user->id)
+            ->where('id', $request->payout_account_id)
+            ->firstOrFail();
+
         $wallet = $this->walletService->getWallet($user);
 
         if ($wallet->balance < $request->amount) {
@@ -44,9 +50,10 @@ class WalletController extends Controller
         // Create withdrawal request
         WithdrawalRequest::create([
             'wallet_id' => $wallet->id,
+            'payout_account_id' => $payoutAccount->id,
             'amount' => $request->amount,
             'status' => 'pending',
-            'bank_details' => $request->bank_details,
+            'bank_details' => "Bank: {$payoutAccount->bank_name}\nHolder: {$payoutAccount->account_holder}\nRIB: {$payoutAccount->rib}",
         ]);
 
         // Optionally hold the funds? 

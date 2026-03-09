@@ -177,7 +177,8 @@
                     <div class="grid-item">
                         <a href="{{ route('products.show', $item) }}" class="block cursor-pointer">
                             <div class="relative">
-                                <img src="{{ $item->getFeaturedImageUrl() }}" alt="{{ $item->name }}" class="product-image">
+                                <img src="{{ $item->getFeaturedImageUrl('preview') }}" alt="{{ $item->name }}"
+                                    class="product-image">
                                 @if($item->status === 'sold')
                                     <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5"
                                         style="background-color: var(--brand) !important;">

@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
     {
         \Digikraaft\ReviewRating\Models\Review::observe(\App\Observers\ReviewObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
-        \Illuminate\Pagination\Paginator::useBootstrap();
+        \Illuminate\Pagination\Paginator::useTailwind();
 
         // Handle "/" route redirection.
         // if (

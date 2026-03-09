@@ -168,6 +168,16 @@ class AdminMenuService
             'priority' => 37, // Set priority to appear after the Marketplace menu
             'permissions' => ['order.view'], // User must have one of these to see the link
         ], __('Order Management'));
+
+        $this->addMenuItem([
+            'label' => __('Withdrawals'),
+            'icon' => 'lucide:wallet',
+            'id' => 'withdrawals-menu',
+            'route' => route('admin.withdrawals.index'),
+            'active' => Route::is('admin.withdrawals.*'),
+            'priority' => 38,
+            'permissions' => ['products.approve', 'order.view.all'], // Fixed permission names
+        ], __('Order Management'));
         // END: ADD YOUR NEW MENU BLOCK HERE
         $this->addMenuItem([
             'label' => __('Modules'),

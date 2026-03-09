@@ -17,7 +17,7 @@
                         settings</a>
                     <a href="{{ route('settings.postage') }}"
                         class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Postage</a>
-                    <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Payments</a>
+                    <a href="{{ route('settings.payments') }}" class="block px-3 py-2 text-sm font-medium {{ request()->routeIs('settings.payments') ? 'bg-gray-100 text-gray-900 rounded-md' : 'text-gray-600 hover:bg-gray-50' }}">Payments</a>
                     <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Bundle
                         discounts</a>
                     <a href="{{ route('settings.notifications') }}"

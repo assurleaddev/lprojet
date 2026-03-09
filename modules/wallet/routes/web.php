@@ -15,5 +15,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/shipping-label/{order}', [ShippingLabelController::class, 'download'])->name('shipping-label.download');
 
     Route::post('/order/{order}/shipped', [Modules\Wallet\Http\Controllers\OrderLifecycleController::class, 'markAsShipped'])->name('order.shipped');
-    Route::post('/order/{order}/received', [Modules\Wallet\Http\Controllers\OrderLifecycleController::class, 'markAsReceived'])->name('order.received');
+    Route::post('/order/{order}/received', [Modules\Wallet\Http\Controllers\OrderLifecycleController::class, 'received'])->name('order.received');
+
+    // Admin Routes
+    Route::group(['prefix' => 'admin', 'as' => 'admin.'], function () {
+        Route::get('withdrawals', [Modules\Wallet\Http\Controllers\AdminWithdrawalController::class, 'index'])->name('withdrawals.index');
+        Route::post('withdrawals/{withdrawal}/approve', [Modules\Wallet\Http\Controllers\AdminWithdrawalController::class, 'approve'])->name('withdrawals.approve');
+        Route::post('withdrawals/{withdrawal}/reject', [Modules\Wallet\Http\Controllers\AdminWithdrawalController::class, 'reject'])->name('withdrawals.reject');
+    });
 });

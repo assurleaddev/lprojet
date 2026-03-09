@@ -322,9 +322,9 @@
                                             const labelEl = document.createElement('label');
                                             labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-teal-50 transition cursor-pointer';
                                             labelEl.innerHTML = `
-                                                                                <input type="radio" name="options[${attr.id}]" value="${option.id}" ${isSelected ? 'checked' : ''} class="form-radio text-teal-600 focus:ring-teal-500">
-                                                                                <span class="text-sm">${option.value}</span>
-                                                                            `;
+                                                                                        <input type="radio" name="options[${attr.id}]" value="${option.id}" ${isSelected ? 'checked' : ''} class="form-radio text-teal-600 focus:ring-teal-500">
+                                                                                        <span class="text-sm">${option.value}</span>
+                                                                                    `;
                                             radioContainer.appendChild(labelEl);
                                         });
                                         div.appendChild(radioContainer);
@@ -417,11 +417,11 @@
                             div.dataset.index = file.tempId;
 
                             div.innerHTML = `
-                                                                                                                                                                        <img src="${e.target.result}" class="w-full h-full object-cover">
-                                                                                                                                                                        <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
-                                                                                                                                                                            <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                                                                                                                                                        </button>
-                                                                                                                                                                    `;
+                                                                                                                                                                                <img src="${e.target.result}" class="w-full h-full object-cover">
+                                                                                                                                                                                <button type="button" class="absolute top-1 right-1 bg-white rounded-full p-1 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity remove-btn">
+                                                                                                                                                                                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                                                                                                                                </button>
+                                                                                                                                                                            `;
 
                             // Insert before the upload button
                             document.getElementById('drop-zone').insertBefore(div, document.getElementById('upload-btn-container'));
@@ -460,7 +460,7 @@
                     // Submit via fetch or XHR
                     const submitBtn = form.querySelector('button[type="submit"]');
                     submitBtn.disabled = true;
-                    submitBtn.innerText = 'Uploading...';
+                    submitBtn.innerText = 'Updating...';
 
                     fetch(form.action, {
                         method: 'POST',
@@ -472,20 +472,15 @@
                         .then(response => {
                             if (response.redirected) {
                                 window.location.href = response.url;
-                            } else {
+                            } else if (response.ok) {
                                 return response.json().then(data => {
-                                    if (data.errors) {
-                                        let errorMsg = 'Validation Error:\n';
-                                        for (const [key, messages] of Object.entries(data.errors)) {
-                                            errorMsg += messages.join('\n') + '\n';
-                                        }
-                                        alert(errorMsg);
-                                    } else if (data.message) {
-                                        alert(data.message);
-                                    } else {
-                                        // Fallback if no redirect
-                                        window.location.reload();
-                                    }
+                                    if (data.message) alert(data.message);
+                                    if (data.redirect_url) window.location.href = data.redirect_url;
+                                });
+                            } else {
+                                return response.text().then(text => {
+                                    console.error('Server Error:', text);
+                                    alert('Server error occurred. Please check console.');
                                 });
                             }
                         })
@@ -495,7 +490,7 @@
                         })
                         .finally(() => {
                             submitBtn.disabled = false;
-                            submitBtn.innerText = 'Upload';
+                            submitBtn.innerText = 'Update Product';
                         });
                 });
             });

@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\Address;
 use App\Models\ShippingOption;
 use App\Services\MediaLibraryService;
+use Modules\Wallet\Models\PayoutAccount;
 
 class SettingsController extends Controller
 {
@@ -205,6 +206,42 @@ class SettingsController extends Controller
         $address->delete();
 
         return back()->with('success', 'Address deleted successfully.');
+    }
+
+    public function payments()
+    {
+        $user = Auth::user();
+        $payoutAccounts = PayoutAccount::where('user_id', $user->id)->get();
+        return view('frontend.settings.payments', compact('user', 'payoutAccounts'));
+    }
+
+    public function storePayoutAccount(Request $request)
+    {
+        $request->validate([
+            'bank_name' => 'required|string|max:255',
+            'account_holder' => 'required|string|max:255',
+            'rib' => 'required|string|max:255',
+        ]);
+
+        PayoutAccount::create([
+            'user_id' => Auth::id(),
+            'bank_name' => $request->bank_name,
+            'account_holder' => $request->account_holder,
+            'rib' => $request->rib,
+        ]);
+
+        return back()->with('success', 'Payout account added successfully.');
+    }
+
+    public function deletePayoutAccount(PayoutAccount $payoutAccount)
+    {
+        if ($payoutAccount->user_id !== Auth::id()) {
+            abort(403);
+        }
+
+        $payoutAccount->delete();
+
+        return back()->with('success', 'Payout account deleted successfully.');
     }
 
     public function notifications()
