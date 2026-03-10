@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('before_head')
     <style>
@@ -25,13 +25,13 @@
 
         <!-- Header row -->
         <div class="grid grid-cols-12 items-start gap-x-8">
-            <!-- “Logo” block (left) -->
+            <!-- ÔÇ£LogoÔÇØ block (left) -->
             <div class="col-span-2 flex items-center justify-center">
                 <img class="h-40 w-40 rounded-full object-cover" src="{{ $user->avatar_url }}" alt="avatar">
             </div>
 
             <!-- Profile summary -->
-            <div class="col-span-7">
+            <div class="col-span-8">
                 <div class="flex items-center gap-4">
                     <h1 class="tight text-[28px] font-semibold">{{ $user->username }}</h1>
 
@@ -88,7 +88,7 @@
                         </div>
                         <div class="-mt-0.5">
                             <div class="font-semibold">Speedy Shipping</div>
-                            <div class="text-[13px] text-zinc-600">Sends items promptly — usually within the next 24 hours.
+                            <div class="text-[13px] text-zinc-600">Sends items promptly ÔÇö usually within the next 24 hours.
                             </div>
                         </div>
                     </div>
@@ -127,18 +127,9 @@
             </div>
 
             <!-- Follow button (right) -->
-            <div class="col-span-3 flex justify-end">
+            <div class="col-span-2 flex justify-end">
                 <div class="relative flex items-center gap-3">
                     <livewire:follow-button :user="$user" />
-
-                    @if(auth()->id() !== $user->id)
-                        <button onclick="Livewire.dispatch('open-bundle-builder')"
-                            class="h-10 px-4 font-bold text-sm text-white rounded-md shadow-sm hover:opacity-90 transition whitespace-nowrap"
-                            style="background-color: var(--brand)">
-                            Shop bundles
-                        </button>
-                        <livewire:chat::bundle-builder :vendor="$user" />
-                    @endif
 
                     <!-- Report dropdown trigger -->
                     <button id="reportBtn"
@@ -181,72 +172,41 @@
         <!-- Listings panel -->
         <section id="panel-listings" role="tabpanel" aria-labelledby="tab-listings" class="pt-6">
             <div class="text-sm text-zinc-700 mb-3">3 items</div>
-            @php
-                $vendorDiscounts = $user->bundleDiscounts()->orderBy('min_items')->get();
-                $maxDiscount = $vendorDiscounts->max('discount_percentage');
-            @endphp
-
-            @if($vendorDiscounts->count() > 0 && auth()->id() !== $user->id)
-                <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4" style="background: #fff5f5; border: 1px solid #ffe0e0;">
-                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color: var(--brand)"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    <p class="text-sm text-gray-700">
-                        <span class="font-bold" style="color: var(--brand)">Bundle discounts!</span>
-                        Buy
-                        @foreach($vendorDiscounts as $d)
-                            {{ $d->min_items }}+ items ({{ $d->discount_percentage }}% off){{ !$loop->last ? ', ' : '' }}
-                        @endforeach
-                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline" style="color: var(--brand)">Shop bundles</button>
-                    </p>
-                </div>
-            @endif
-
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+            <div class="grid-container">
                 @forelse ($user->products as $item)
                     <div class="grid-item">
-                        <div class="used-image-wrapper">
-                            <a href="{{ route('products.show', $item) }}"
-                                class="absolute inset-0 z-10 cursor-pointer block"></a>
-                            <img src="{{ $item->getFeaturedImageUrl('preview') }}" alt="{{ $item->name }}"
-                                class="used-image-content">
-
-                            {{-- Bundle badge --}}
-                            @if($vendorDiscounts->count() > 0)
-                                <div class="absolute top-1.5 left-1.5 z-20 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm" style="color: var(--brand)">
-                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                                    Bundle
-                                </div>
-                            @endif
-
-                            @if($item->status === 'sold')
-                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
-                                    style="background-color: #4fb286 !important;">
-                                    Vendus
-                                </div>
-                            @elseif($item->status === 'reserved')
-                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
-                                    style="background-color: #f59e0b !important;">
-                                    Réservé
-                                </div>
-                            @endif
-
-                            @if(auth()->id() !== $item->vendor_id)
-                                <button class="fav-badge z-30" aria-label="Favourite" data-id="{{ $item->id }}"
-                                    data-url="{{ route('products.favorite', $item) }}">
-                                    <svg viewBox="0 0 24 24"
-                                        class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
-                                        <path
-                                            d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z" />
-                                    </svg>
-                                    <span>{{ $item->favoritedBy()->count() }}</span>
-                                </button>
-                            @endif
-                        </div>
-
                         <a href="{{ route('products.show', $item) }}" class="block cursor-pointer">
+                            <div class="relative">
+                                <img src="{{ $item->getFeaturedImageUrl('preview') }}" alt="{{ $item->name }}"
+                                    class="product-image">
+                                @if($item->status === 'sold')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5"
+                                        style="background-color: var(--brand) !important;">
+                                        Vendus
+                                    </div>
+                                @elseif($item->status === 'reserved')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5"
+                                        style="background-color: #f59e0b !important;">
+                                        R├®serv├®
+                                    </div>
+                                @endif
+
+                                @if(auth()->id() !== $item->vendor_id)
+                                    <button class="fav-badge" aria-label="Favourite" data-id="{{ $item->id }}"
+                                        data-url="{{ route('products.favorite', $item) }}">
+                                        <svg viewBox="0 0 24 24"
+                                            class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                            <path
+                                                d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z" />
+                                        </svg>
+                                        <span>{{ $item->favoritedBy()->count() }}</span>
+                                    </button>
+                                @endif
+                            </div>
                             <div class="pt-1.5">
                                 <p class="brand-line">{{ $item->name }}</p>
                                 <p class="meta-line">
-                                    {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
+                                    {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' ┬À ') }}
                                 </p>
                                 <p class="price-line">{{ $item->price }} MAD</p>
                                 <div class="incl-line">
@@ -335,12 +295,12 @@
                             <div>
                                 <div class="text-[15px] font-semibold">Member reviews ({{ $stats['member_count'] }})</div>
                                 <div class="mt-1 flex items-center gap-2 text-[15px]">
-                                    {{ number_format($stats['member_avg'], 1) }} <span class="text-amber-400">★</span>
+                                    {{ number_format($stats['member_avg'], 1) }} <span class="text-amber-400">Ôÿà</span>
                                 </div>
                                 <div class="mt-4 text-[15px] font-semibold">Automatic reviews ({{ $stats['auto_count'] }})
                                 </div>
                                 <div class="mt-1 flex items-center gap-2 text-[15px]">
-                                    {{ number_format($stats['auto_avg'], 1) }} <span class="text-amber-400">★</span>
+                                    {{ number_format($stats['auto_avg'], 1) }} <span class="text-amber-400">Ôÿà</span>
                                 </div>
                             </div>
                             <div class="ml-auto">
@@ -449,7 +409,7 @@
         <div class="w-[520px] max-w-full rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-auto">
             <div class="flex justify-end p-4">
                 <button id="authClose" class="h-8 w-8 grid place-items-center rounded-full hover:bg-zinc-100"
-                    aria-label="Close">✕</button>
+                    aria-label="Close">Ô£ò</button>
             </div>
             <div class="px-8 pb-8 -mt-4">
                 <h2 id="authTitle" class="text-center text-[26px] font-semibold leading-tight">
@@ -465,7 +425,7 @@
 
                     <a href="#"
                         class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
-                        <span class="text-2xl"></span>
+                        <span class="text-2xl">´ú┐</span>
                         <span class="font-medium">Continue with Apple</span>
                     </a>
 
@@ -564,6 +524,8 @@
 
         // Initial tab from hash
         setActive(location.hash === '#reviews' ? 'reviews' : 'listings', /*push*/ false);
+    </script>
+
     </script>
 
     <script>
@@ -675,7 +637,7 @@
                 const url = btn.dataset.url || `/users/${btn.dataset.userId}/follow`;
                 const label = btn.querySelector('.label');
 
-                // Not logged in → open modal and stop
+                // Not logged in ÔåÆ open modal and stop
                 if (!isAuth) {
                     openAuth();
                     return;

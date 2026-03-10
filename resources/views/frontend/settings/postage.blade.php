@@ -8,25 +8,7 @@
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
-            <aside class="w-full md:w-64 flex-shrink-0">
-                <nav class="space-y-1">
-                    <a href="{{ route('settings.profile') }}"
-                        class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Profile details</a>
-                    <a href="{{ route('settings.account') }}"
-                        class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Account settings</a>
-                    <a href="{{ route('settings.postage') }}"
-                        class="block px-3 py-2 text-sm font-medium rounded-md bg-gray-100 text-gray-900">Postage</a>
-                    <a href="{{ route('settings.payments') }}" class="block px-3 py-2 text-sm font-medium {{ request()->routeIs('settings.payments') ? 'bg-gray-100 text-gray-900 rounded-md' : 'text-gray-600 hover:bg-gray-50' }}">Payments</a>
-                    <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Bundle
-                        discounts</a>
-                    <a href="{{ route('settings.notifications') }}"
-                        class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Notifications</a>
-                    <a href="#" class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Privacy
-                        settings</a>
-                    <a href="{{ route('settings.security') }}"
-                        class="block px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">Security</a>
-                </nav>
-            </aside>
+            @include('frontend.settings.partials._sidebar')
 
             <!-- Content -->
             <div class="flex-1 bg-white border border-gray-200 rounded-lg p-6" x-data="addressManager()">

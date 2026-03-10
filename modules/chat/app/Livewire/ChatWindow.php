@@ -71,6 +71,9 @@ class ChatWindow extends Component
     // Advanced Features Properties
     public bool $isOtherUserOnline = false;
     public array $typingUsers = [];
+    public bool $showParcelModal = false;
+    public string $parcelSize = 'm'; // Default to medium for bundles
+    public ?int $offerToConfirmId = null;
 
     /**
      * Mount the component, load the initial conversation and messages.
@@ -144,6 +147,17 @@ class ChatWindow extends Component
                             'featured_image_url' => $message->offer->product->getFeaturedImageUrl('preview'),
                         ];
                     }
+                    // Load bundle items
+                    $messageArray['offer']['items'] = $message->offer->items->map(function ($item) {
+                        return [
+                            'product' => [
+                                'id' => $item->product->id,
+                                'name' => $item->product->name,
+                                'price' => $item->product->price,
+                                'featured_image_url' => $item->product->getFeaturedImageUrl('preview'),
+                            ]
+                        ];
+                    })->toArray();
                 } else {
                     $messageArray['offer'] = null;
                 }
@@ -311,12 +325,43 @@ class ChatWindow extends Component
     public function acceptOffer(int $offerId, ChatService $chatService): void
     {
         $user = Auth::user();
-        $offer = Offer::find($offerId);
+        $offer = Offer::with('items')->find($offerId);
 
         if (!$offer) {
             $this->dispatch('toast', message: 'Offer not found.', type: 'error');
             return;
         }
+
+        // If it's a bundle offer and parcel size is not set, we need to prompt for it
+        if ($offer->items->count() > 0 && empty($offer->parcel_size)) {
+            $this->offerToConfirmId = $offerId;
+            $this->showParcelModal = true;
+            return;
+        }
+
+        $this->processOfferAcceptance($offer, $chatService);
+    }
+
+    public function confirmParcelSize(ChatService $chatService): void
+    {
+        if (!$this->offerToConfirmId)
+            return;
+
+        $offer = Offer::find($this->offerToConfirmId);
+        if (!$offer || $offer->seller_id !== Auth::id())
+            return;
+
+        $offer->parcel_size = $this->parcelSize;
+        $offer->save();
+
+        $this->processOfferAcceptance($offer, $chatService);
+        $this->showParcelModal = false;
+        $this->offerToConfirmId = null;
+    }
+
+    protected function processOfferAcceptance(Offer $offer, ChatService $chatService): void
+    {
+        $user = Auth::user();
 
         // Case 1: Seller accepting a Pending offer (Standard flow)
         if ($offer->status === OfferStatus::Pending && $offer->seller_id === $user->id) {
@@ -324,7 +369,7 @@ class ChatWindow extends Component
             $offer->responded_at = now();
             $offer->save();
 
-            Log::info("ChatWindow: Offer {$offerId} accepted by Seller " . $user->id);
+            Log::info("ChatWindow: Offer {$offer->id} accepted by Seller " . $user->id);
 
             $chatService->sendOfferResponseMessage($offer->conversation, $user, $offer, true);
 
@@ -339,7 +384,7 @@ class ChatWindow extends Component
             $offer->responded_at = now();
             $offer->save();
 
-            Log::info("ChatWindow: Counter Offer {$offerId} accepted by Buyer " . $user->id);
+            Log::info("ChatWindow: Counter Offer {$offer->id} accepted by Buyer " . $user->id);
 
             // Send message confirming acceptance
             $chatService->sendOfferResponseMessage($offer->conversation, $user, $offer, true, 'Counter offer accepted');
@@ -350,7 +395,7 @@ class ChatWindow extends Component
         }
 
         // If neither case matched
-        Log::warning("ChatWindow: Invalid accept attempt for offer {$offerId} by User " . $user->id);
+        Log::warning("ChatWindow: Invalid accept attempt for offer {$offer->id} by User " . $user->id);
         $this->dispatch('toast', message: 'Unauthorized action or invalid offer status.', type: 'error');
     }
 

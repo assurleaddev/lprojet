@@ -38,7 +38,8 @@ class ChatServiceProvider extends ServiceProvider
         if (class_exists(\Livewire\Livewire::class)) {
             \Livewire\Livewire::component('chat::make-offer-modal', \Modules\Chat\Livewire\MakeOfferModal::class);
             \Livewire\Livewire::component('chat::counter-offer-modal', \Modules\Chat\Livewire\CounterOfferModal::class);
-            \Livewire\Livewire::component('chat::chat-window', \Modules\Chat\Livewire\ChatWindow::class); // Ensure this is also registered if not already
+            \Livewire\Livewire::component('chat::chat-window', \Modules\Chat\Livewire\ChatWindow::class);
+            \Livewire\Livewire::component('chat::bundle-builder', \Modules\Chat\Livewire\BundleBuilder::class);
         }
     }
 

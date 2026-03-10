@@ -87,6 +87,16 @@ class Product extends Model implements HasMedia
         return $this->belongsTo(Brand::class);
     }
 
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
+    }
+
+    public function offerItems()
+    {
+        return $this->hasMany(\Modules\Chat\Models\OfferItem::class);
+    }
+
     public function hasFeaturedImage(): bool
     {
         return $this->hasMedia('featured');

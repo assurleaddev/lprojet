@@ -210,6 +210,11 @@ class User extends Authenticatable
         return $this->hasOne(Wallet::class);
     }
 
+    public function bundleDiscounts()
+    {
+        return $this->hasMany(UserBundleDiscount::class);
+    }
+
     public function receivedReviews()
     {
         return $this->morphMany(\App\Models\Review::class, 'model');

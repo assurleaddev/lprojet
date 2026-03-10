@@ -16,12 +16,17 @@ class OrderObserver
 
     /**
      * Handle the Order "created" event.
-     * Mark the product as sold when an order is created.
+     * Mark the products as sold when an order is created.
      */
     public function created(Order $order): void
     {
-        // Mark the product as sold
-        if ($order->product) {
+        // Mark the products as sold
+        if ($order->items()->exists()) {
+            foreach ($order->items as $item) {
+                $item->product->update(['status' => 'sold']);
+            }
+        } elseif ($order->product) {
+            // Backward compatibility for single product orders
             $order->product->update(['status' => 'sold']);
         }
     }
@@ -56,8 +61,7 @@ class OrderObserver
                         'order_' . $order->id
                     );
                 } catch (\Exception $e) {
-                    // Handle error if pending balance is insufficient (should not happen if flow is correct)
-                    // Fallback to credit? No, better to log error.
+                    // Handle error if pending balance is insufficient
                 }
             }
         }
@@ -88,8 +92,12 @@ class OrderObserver
                     );
                 }
 
-                // Set product back to available
-                if ($order->product) {
+                // Set products back to available
+                if ($order->items()->exists()) {
+                    foreach ($order->items as $item) {
+                        $item->product->update(['status' => 'approved']);
+                    }
+                } elseif ($order->product) {
                     $order->product->update(['status' => 'approved']);
                 }
             }

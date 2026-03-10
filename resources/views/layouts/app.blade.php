@@ -170,53 +170,38 @@
             background: #f3f7f7;
         }
 
-        /* Grid */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
 
-        @media (min-width:768px) {
-            .grid-container {
-                grid-template-columns: repeat(3, 1fr);
-                gap: 18px;
-            }
-        }
-
-        @media (min-width:1024px) {
-            .grid-container {
-                grid-template-columns: repeat(5, 1fr);
-                gap: 18px;
-            }
-        }
-
-        @media (min-width:1280px) {
-            .grid-container {
-                grid-template-columns: repeat(5, 1fr);
-                gap: 20px;
-            }
-        }
-
-        .product-image {
+        /* Bulletproof Aspect Ratio for Product Cards */
+        .used-image-wrapper {
+            position: relative;
             width: 100%;
             aspect-ratio: 3 / 4;
-            /* mobile */
-            object-fit: cover;
             border-radius: 10px;
-            /* a hair rounder, like screenshot */
             background: #eee;
-            display: block;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .used-image-wrapper {
+                aspect-ratio: 2 / 3;
+            }
+        }
+
+        .used-image-wrapper a.absolute,
+        .used-image-wrapper img.used-image-content {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
             transition: transform .2s ease;
         }
 
-        @media (min-width:768px) {
-            .product-image {
-                aspect-ratio: 2 / 3;
-            }
-
-            /* taller on desktop/tablet */
+        .grid-item:hover .used-image-content {
+            transform: scale(1.01);
         }
+
 
         .fav-badge {
             position: absolute;
@@ -242,9 +227,6 @@
             stroke-width: 1.75;
         }
 
-        .grid-item:hover .product-image {
-            transform: scale(1.01);
-        }
 
         /* Card texts tighter to match Used */
         .brand-line {

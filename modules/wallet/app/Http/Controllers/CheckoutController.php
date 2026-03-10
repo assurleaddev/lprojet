@@ -31,25 +31,36 @@ class CheckoutController extends Controller
         $user = Auth::user();
         $paymentMethod = $request->payment_method;
 
-        $product = null;
+        $products = collect();
         $amount = 0;
         $vendor = null;
         $offer = null;
+        $parcelSize = null;
 
         if ($request->offer_id) {
-            $offer = Offer::find($request->offer_id);
-            $product = $offer->product;
+            $offer = Offer::with(['items.product', 'product', 'seller'])->find($request->offer_id);
             $amount = $offer->offer_price;
             $vendor = $offer->seller;
+            $parcelSize = $offer->parcel_size;
+
+            $offerItems = collect($offer->items);
+            if ($offerItems->isNotEmpty()) {
+                $products = $offerItems->pluck('product');
+            } elseif ($offer->product) {
+                $products->push($offer->product);
+            }
         } else {
-            $product = Product::find($request->product_id);
+            $product = Product::with('vendor')->find($request->product_id);
+            $products->push($product);
             $amount = $product->price;
             $vendor = $product->vendor;
         }
 
-        // --- Safeguard: Ensure product is still available ---
-        if (in_array($product->status, ['sold', 'pending'])) {
-            return back()->with('error', 'Sorry, this item is no longer available for purchase.');
+        // --- Safeguard: Ensure all products are still available ---
+        foreach ($products as $p) {
+            if (!$p || in_array($p->status, ['sold', 'pending'])) {
+                return back()->with('error', "Sorry, one or more items are no longer available.");
+            }
         }
 
         // --- Fee Calculation ---
@@ -60,13 +71,11 @@ class CheckoutController extends Controller
             $shippingOption = \App\Models\ShippingOption::find($request->shipping_option_id);
             if ($shippingOption && $shippingOption->is_active) {
                 // Check if vendor has enabled this option
-                // Default to true ('1') if not set
                 $vendorPref = $vendor->getMeta($shippingOption->key, '1');
 
                 if ($vendorPref !== '0') {
                     $shippingCost = $shippingOption->price;
                 } else {
-                    // Option disabled by vendor
                     return back()->with('error', 'This shipping option is not supported by the seller.');
                 }
             } else {
@@ -88,36 +97,28 @@ class CheckoutController extends Controller
 
         if ($paymentMethod === 'wallet') {
             try {
-                // Use Escrow Payment
-                // Pay to Escrow: User pays Total, Vendor gets Pending Payout
                 $this->walletService->payToEscrow($user, $vendor, $totalAmount, $vendorPayout, 'Order #' . time());
             } catch (\Exception $e) {
                 return back()->with('error', $e->getMessage());
             }
         } elseif ($paymentMethod === 'card') {
-            // Mock Card Payment
-            // Charge user card $totalAmount... success
-
-            // Credit Vendor Wallet Pending Balance
             $vendorWallet = $this->walletService->getWallet($vendor);
             $vendorWallet->pending_balance += $vendorPayout;
             $vendorWallet->save();
-        } elseif ($paymentMethod === 'cod') {
-            // Cash on Delivery
-            // No wallet changes yet
         }
 
         // Create Order
         $order = Order::create([
             'user_id' => $user->id,
-            'product_id' => $product->id,
+            'product_id' => $products->count() === 1 ? $products->first()->id : null,
             'vendor_id' => $vendor->id,
             'amount' => $amount, // Item price
             'shipping_cost' => $shippingCost,
             'buyer_protection_fee' => $buyerProtectionFee,
             'platform_commission' => $platformCommission,
             'total_amount' => $totalAmount,
-            'status' => 'processing', // Paid via wallet, so processing
+            'status' => 'processing',
+            'parcel_size' => $parcelSize,
             'delivery_receipt_path' => null,
             'payment_method' => $paymentMethod,
             'address_id' => $request->address_id,
@@ -125,25 +126,29 @@ class CheckoutController extends Controller
         ]);
 
         if ($paymentMethod === 'cod') {
-            $order->status = 'pending'; // COD orders start as pending
+            $order->status = 'pending';
             $order->save();
         }
 
-
-        // --- Vinted-like Flow Updates ---
-
-        // Product status is now automatically set to 'sold' by OrderObserver
+        // Create Order Items
+        foreach ($products as $p) {
+            $order->items()->create([
+                'product_id' => $p->id,
+                'price' => $products->count() === 1 ? $amount : $p->price, // For bundles, we use product price (total maps to offer)
+            ]);
+        }
 
         // 1. Notify Vendor via Chat
         $chatService = app(\Modules\Chat\Services\ChatService::class);
 
-        // Ensure conversation exists
-        $conversation = $chatService->getOrCreateConversation($user, $vendor, $product);
+        // Ensure conversation exists (use the first product for conversation context if bundle)
+        $mainProduct = $products->first();
+        $conversation = $chatService->getOrCreateConversation($user, $vendor, $mainProduct);
 
-        // Send "Item Sold" message with shipping label link (to Seller)
+        // Send "Item Sold" message
         $chatService->sendItemSoldMessage($conversation, $user, $order);
 
-        // Send "Order Placed" message with deadline (to Buyer)
+        // Send "Order Placed" message
         $chatService->sendOrderPlacedMessage($conversation, $user, $order);
 
         // 3. Redirect to Thank You Page

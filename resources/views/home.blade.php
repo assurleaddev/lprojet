@@ -25,7 +25,7 @@
         {{-- Product Grid Section with Infinite Scroll --}}
         <section class="shell px-4 md:px-6 py-6 md:py-8">
             {{-- Add an ID to the grid container for our JavaScript to target --}}
-            <div class="grid-container" id="product-grid">
+            <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="product-grid">
                 {{-- Include the partial view with the initial set of products --}}
                 @include('layouts.partials._product_grid_items', ['products' => $products])
             </div>

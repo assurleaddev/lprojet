@@ -19,6 +19,7 @@ class Order extends Model
         'platform_commission',
         'total_amount',
         'status',
+        'parcel_size',
         'delivery_receipt_path',
         'payment_method',
         'address_id',
@@ -56,5 +57,10 @@ class Order extends Model
     public function shippingOption()
     {
         return $this->belongsTo(ShippingOption::class);
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }

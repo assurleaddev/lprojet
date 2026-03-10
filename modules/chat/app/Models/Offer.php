@@ -19,6 +19,7 @@ class Offer extends Model
         'seller_id',
         'offer_price',
         'status',
+        'parcel_size',
         'rejection_reason',
         'responded_at',
         'expires_at',
@@ -48,5 +49,10 @@ class Offer extends Model
     public function seller(): BelongsTo
     {
         return $this->belongsTo(User::class, 'seller_id');
+    }
+
+    public function items()
+    {
+        return $this->hasMany(OfferItem::class);
     }
 }

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('before_head')
     <style>
@@ -25,13 +25,13 @@
 
         <!-- Header row -->
         <div class="grid grid-cols-12 items-start gap-x-8">
-            <!-- “Logo” block (left) -->
+            <!-- ÔÇ£LogoÔÇØ block (left) -->
             <div class="col-span-2 flex items-center justify-center">
                 <img class="h-40 w-40 rounded-full object-cover" src="{{ $user->avatar_url }}" alt="avatar">
             </div>
 
             <!-- Profile summary -->
-            <div class="col-span-7">
+            <div class="col-span-8">
                 <div class="flex items-center gap-4">
                     <h1 class="tight text-[28px] font-semibold">{{ $user->username }}</h1>
 
@@ -60,8 +60,7 @@
                         </svg>
                     </div>
 
-                    <a href="#reviews" class="hover:underline text-[15px]" style="color: var(--brand)">{{ $stats['total'] }}
-                        reviews</a>
+                    <a href="#reviews" class="text-teal-700 hover:underline text-[15px]">{{ $stats['total'] }} reviews</a>
                 </div>
 
                 <!-- badges row -->
@@ -88,7 +87,7 @@
                         </div>
                         <div class="-mt-0.5">
                             <div class="font-semibold">Speedy Shipping</div>
-                            <div class="text-[13px] text-zinc-600">Sends items promptly — usually within the next 24 hours.
+                            <div class="text-[13px] text-zinc-600">Sends items promptly ÔÇö usually within the next 24 hours.
                             </div>
                         </div>
                     </div>
@@ -127,18 +126,9 @@
             </div>
 
             <!-- Follow button (right) -->
-            <div class="col-span-3 flex justify-end">
+            <div class="col-span-2 flex justify-end">
                 <div class="relative flex items-center gap-3">
                     <livewire:follow-button :user="$user" />
-
-                    @if(auth()->id() !== $user->id)
-                        <button onclick="Livewire.dispatch('open-bundle-builder')"
-                            class="h-10 px-4 font-bold text-sm text-white rounded-md shadow-sm hover:opacity-90 transition whitespace-nowrap"
-                            style="background-color: var(--brand)">
-                            Shop bundles
-                        </button>
-                        <livewire:chat::bundle-builder :vendor="$user" />
-                    @endif
 
                     <!-- Report dropdown trigger -->
                     <button id="reportBtn"
@@ -181,56 +171,24 @@
         <!-- Listings panel -->
         <section id="panel-listings" role="tabpanel" aria-labelledby="tab-listings" class="pt-6">
             <div class="text-sm text-zinc-700 mb-3">3 items</div>
-            @php
-                $vendorDiscounts = $user->bundleDiscounts()->orderBy('min_items')->get();
-                $maxDiscount = $vendorDiscounts->max('discount_percentage');
-            @endphp
-
-            @if($vendorDiscounts->count() > 0 && auth()->id() !== $user->id)
-                <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4" style="background: #fff5f5; border: 1px solid #ffe0e0;">
-                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color: var(--brand)"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                    <p class="text-sm text-gray-700">
-                        <span class="font-bold" style="color: var(--brand)">Bundle discounts!</span>
-                        Buy
-                        @foreach($vendorDiscounts as $d)
-                            {{ $d->min_items }}+ items ({{ $d->discount_percentage }}% off){{ !$loop->last ? ', ' : '' }}
-                        @endforeach
-                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline" style="color: var(--brand)">Shop bundles</button>
-                    </p>
-                </div>
-            @endif
-
-            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
+            <div class="grid grid-cols-5 gap-6">
                 @forelse ($user->products as $item)
-                    <div class="grid-item">
-                        <div class="used-image-wrapper">
-                            <a href="{{ route('products.show', $item) }}"
-                                class="absolute inset-0 z-10 cursor-pointer block"></a>
-                            <img src="{{ $item->getFeaturedImageUrl('preview') }}" alt="{{ $item->name }}"
-                                class="used-image-content">
-
-                            {{-- Bundle badge --}}
-                            @if($vendorDiscounts->count() > 0)
-                                <div class="absolute top-1.5 left-1.5 z-20 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm" style="color: var(--brand)">
-                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                                    Bundle
-                                </div>
-                            @endif
-
+                    <a href="{{ route('products.show', $item) }}"
+                        class="flex-shrink-0 w-full block hover:opacity-80 transition">
+                        <div class="relative">
+                            <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product" class="w-full h-56 object-cover">
                             @if($item->status === 'sold')
-                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
-                                    style="background-color: #4fb286 !important;">
+                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5" style="background-color: #4fb286 !important;">
                                     Vendus
                                 </div>
                             @elseif($item->status === 'reserved')
-                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
-                                    style="background-color: #f59e0b !important;">
-                                    Réservé
+                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5" style="background-color: #f59e0b !important;">
+                                    R├®serv├®
                                 </div>
                             @endif
 
                             @if(auth()->id() !== $item->vendor_id)
-                                <button class="fav-badge z-30" aria-label="Favourite" data-id="{{ $item->id }}"
+                                <button class="fav-badge" aria-label="Favourite" data-id="{{ $item->id }}"
                                     data-url="{{ route('products.favorite', $item) }}">
                                     <svg viewBox="0 0 24 24"
                                         class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
@@ -241,26 +199,14 @@
                                 </button>
                             @endif
                         </div>
-
-                        <a href="{{ route('products.show', $item) }}" class="block cursor-pointer">
-                            <div class="pt-1.5">
-                                <p class="brand-line">{{ $item->name }}</p>
-                                <p class="meta-line">
-                                    {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
-                                </p>
-                                <p class="price-line">{{ $item->price }} MAD</p>
-                                <div class="incl-line">
-                                    <span>{{ number_format($item->price + 5, 2) }} MAD incl.</span>
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                        <p class="font-bold text-sm">{{ $item->price }} MAD</p>
+                        <p class="text-xs text-vinted-gray-500">
+                            {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' ┬À ') }}
+                        </p>
+                        <p class="text-xs text-vinted-gray-500">{{ $user->username }}</p>
+                    </a>
                 @empty
-                    <div class="col-span-full text-center text-gray-500 py-10">no products yet</div>
+                    <div class="col-span-5 text-center text-gray-500">no products yet</div>
                 @endforelse
             </div>
             <div class="h-16"></div>
@@ -270,10 +216,9 @@
         <section id="panel-reviews" role="tabpanel" aria-labelledby="tab-reviews" class="pt-6 hidden">
 
             @if(isset($pendingReviewOrder) && $pendingReviewOrder)
-                <div class="mb-8 rounded-lg p-6" style="background-color: #fff5f5; border: 1px solid var(--brand)">
-                    <h3 class="text-lg font-semibold mb-2" style="color: var(--brand)">Leave a review for your recent purchase
-                    </h3>
-                    <p class="text-sm mb-4" style="color: var(--brand)">
+                <div class="mb-8 bg-teal-50 border border-teal-200 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-teal-900 mb-2">Leave a review for your recent purchase</h3>
+                    <p class="text-sm text-teal-700 mb-4">
                         You recently received an item from {{ $user->username }}. Please let us know how it went!
                     </p>
 
@@ -300,13 +245,12 @@
                         <div class="mb-4">
                             <label for="review" class="block text-sm font-medium text-gray-700 mb-1">Review (Required)</label>
                             <textarea name="review" id="review" rows="3" required minlength="5"
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:ring-0"
-                                style="focus-border-color: var(--brand)" placeholder="Write your review here..."></textarea>
+                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500"
+                                placeholder="Write your review here..."></textarea>
                         </div>
 
                         <button type="submit"
-                            class="px-4 py-2 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
-                            style="background-color: var(--brand)">
+                            class="px-4 py-2 bg-teal-600 text-white text-sm font-medium rounded-md hover:bg-teal-700 shadow-sm">
                             Submit Review
                         </button>
                     </form>
@@ -335,16 +279,16 @@
                             <div>
                                 <div class="text-[15px] font-semibold">Member reviews ({{ $stats['member_count'] }})</div>
                                 <div class="mt-1 flex items-center gap-2 text-[15px]">
-                                    {{ number_format($stats['member_avg'], 1) }} <span class="text-amber-400">★</span>
+                                    {{ number_format($stats['member_avg'], 1) }} <span class="text-amber-400">Ôÿà</span>
                                 </div>
                                 <div class="mt-4 text-[15px] font-semibold">Automatic reviews ({{ $stats['auto_count'] }})
                                 </div>
                                 <div class="mt-1 flex items-center gap-2 text-[15px]">
-                                    {{ number_format($stats['auto_avg'], 1) }} <span class="text-amber-400">★</span>
+                                    {{ number_format($stats['auto_avg'], 1) }} <span class="text-amber-400">Ôÿà</span>
                                 </div>
                             </div>
                             <div class="ml-auto">
-                                <a href="#" class="hover:underline" style="color: var(--brand)">How reviews work</a>
+                                <a href="#" class="text-teal-700 hover:underline">How reviews work</a>
                             </div>
                         </div>
                     </div>
@@ -418,8 +362,8 @@
                                         {{ $review->review }}
                                     </p>
 
-                                    <button class="mt-3 inline-flex items-center gap-2 hover:underline text-[14px]"
-                                        style="color: var(--brand)">
+                                    <button
+                                        class="mt-3 inline-flex items-center gap-2 text-teal-700 hover:underline text-[14px]">
                                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
                                         </svg>
@@ -449,7 +393,7 @@
         <div class="w-[520px] max-w-full rounded-2xl bg-white shadow-xl max-h-[90vh] overflow-auto">
             <div class="flex justify-end p-4">
                 <button id="authClose" class="h-8 w-8 grid place-items-center rounded-full hover:bg-zinc-100"
-                    aria-label="Close">✕</button>
+                    aria-label="Close">Ô£ò</button>
             </div>
             <div class="px-8 pb-8 -mt-4">
                 <h2 id="authTitle" class="text-center text-[26px] font-semibold leading-tight">
@@ -465,7 +409,7 @@
 
                     <a href="#"
                         class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
-                        <span class="text-2xl"></span>
+                        <span class="text-2xl">´ú┐</span>
                         <span class="font-medium">Continue with Apple</span>
                     </a>
 
@@ -480,10 +424,10 @@
                 </div>
 
                 <div class="mt-6 text-center text-[15px] text-zinc-700">
-                    Or register with <a href="#" class="underline" style="color: var(--brand)">email</a>
+                    Or register with <a href="#" class="text-teal-700 underline">email</a>
                 </div>
                 <div class="mt-2 text-center text-[15px] text-zinc-700">
-                    Already have an account? <a href="#" class="underline" style="color: var(--brand)">Log in</a>
+                    Already have an account? <a href="#" class="text-teal-700 underline">Log in</a>
                 </div>
             </div>
         </div>
@@ -566,6 +510,8 @@
         setActive(location.hash === '#reviews' ? 'reviews' : 'listings', /*push*/ false);
     </script>
 
+    </script>
+
     <script>
         // Handle Like|Favorite Button Click using Event Delegation
         document.addEventListener('click', (e) => {
@@ -602,37 +548,10 @@
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             })
-                .then(response => {
-                    if (response.status === 401) {
-                        Livewire.dispatch('open-login-popup');
-                        // Revert optimistic update since action failed
-                        if (isLiked) {
-                            svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
-                            let count = parseInt(countSpan.textContent) || 0;
-                            countSpan.textContent = count + 1;
-                        } else {
-                            svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
-                            let count = parseInt(countSpan.textContent) || 0;
-                            countSpan.textContent = Math.max(0, count - 1);
-                        }
-                        return;
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data) {
-                        // Update with actual server state
-                        if (data.liked) {
-                            svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
-                        } else {
-                            svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
-                        }
-                        countSpan.textContent = data.count;
-                    }
-                })
-                .catch(error => {
-                    console.error('Error toggling favorite:', error);
-                    // Revert optimistic update on error
+            .then(response => {
+                if (response.status === 401) {
+                    Livewire.dispatch('open-login-popup');
+                    // Revert optimistic update since action failed
                     if (isLiked) {
                         svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
                         let count = parseInt(countSpan.textContent) || 0;
@@ -642,7 +561,34 @@
                         let count = parseInt(countSpan.textContent) || 0;
                         countSpan.textContent = Math.max(0, count - 1);
                     }
-                });
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data) {
+                    // Update with actual server state
+                    if (data.liked) {
+                        svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                    } else {
+                        svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                    }
+                    countSpan.textContent = data.count;
+                }
+            })
+            .catch(error => {
+                console.error('Error toggling favorite:', error);
+                // Revert optimistic update on error
+                if (isLiked) {
+                    svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                    let count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = count + 1;
+                } else {
+                    svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                    let count = parseInt(countSpan.textContent) || 0;
+                    countSpan.textContent = Math.max(0, count - 1);
+                }
+            });
         });
 
         (function () {
@@ -675,7 +621,7 @@
                 const url = btn.dataset.url || `/users/${btn.dataset.userId}/follow`;
                 const label = btn.querySelector('.label');
 
-                // Not logged in → open modal and stop
+                // Not logged in ÔåÆ open modal and stop
                 if (!isAuth) {
                     openAuth();
                     return;

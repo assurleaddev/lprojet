@@ -277,6 +277,7 @@ class HomeController extends Controller
 
         return view('frontend.products.checkout', [
             'product' => $product,
+            'isBundle' => false,
             'addresses' => $addresses,
             'shippingOptions' => $shippingOptions,
             'protectionFee' => $protectionFee,
@@ -296,8 +297,16 @@ class HomeController extends Controller
 
         // --- Load Data ---
         $product = $offer->product;
+        $items = $offer->items;
 
-        if (in_array($product->status, ['sold', 'pending'])) {
+        if (!$product && $items->isNotEmpty()) {
+            $product = $items->first()->product;
+            $isBundle = true;
+        } else {
+            $isBundle = false;
+        }
+
+        if (!$product || in_array($product->status, ['sold', 'pending'])) {
             return response()->view('errors.product_unavailable', [], 404);
         }
 
@@ -322,8 +331,9 @@ class HomeController extends Controller
         // Ensure 'frontend.products.checkout' view exists
         return view('frontend.products.checkout', [
             'product' => $product,
-            'checkoutPrice' => $priceToPay, // Use this variable in the view
+            'isBundle' => $isBundle,
             'offer' => $offer,
+            'checkoutPrice' => $priceToPay, // Use this variable in the view
             'addresses' => $addresses,
             'shippingOptions' => $shippingOptions,
             'protectionFee' => $protectionFee,

@@ -314,7 +314,7 @@
                 @endphp
 
                 {{-- Differentiate rendering based on message type --}}
-                @if((str_starts_with($messageType, 'offer_') && $messageType !== 'offer_checkout_prompt') && $offerData && $productData)
+                @if((str_starts_with($messageType, 'offer_') && $messageType !== 'offer_checkout_prompt') && $offerData && ($productData || !empty($offerData->items)))
                     {{-- OFFER MESSAGE BLOCK --}}
                     <div wire:key="offer-msg-{{ $messageId }}-{{ $offerStatus?->value ?? 'unknown' }}">
                         <div class="flex {{ $isOwnMessage ? 'justify-end' : 'justify-start' }}">
@@ -329,9 +329,11 @@
                                             <span class="text-xl font-bold text-gray-900 dark:text-white">
                                                 {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
                                             </span>
-                                            <span class="text-sm text-gray-400 line-through">
-                                                {{ number_format($productData->price ?? 0, 2) }} MAD
-                                            </span>
+                                            @if($productData && $productData->price)
+                                                <span class="text-sm text-gray-400 line-through">
+                                                    {{ number_format($productData->price ?? 0, 2) }} MAD
+                                                </span>
+                                            @endif
                                         </div>
                                         <p class="text-xs font-medium text-gray-500 mt-1">
                                             @if($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected)
@@ -341,11 +343,30 @@
                                             @else
                                                 {{ ucfirst($offerStatus?->value) }}
                                             @endif
+                                            @if(!empty($offerData->items))
+                                                • Bundle ({{ count($offerData->items) }} items)
+                                            @endif
                                         </p>
                                     </div>
-                                    {{-- Optional: Small Product Thumbnail --}}
-                                    <img src="{{ $featuredImageUrl ?? asset('images/default.svg') }}" alt="Product"
-                                        class="w-10 h-10 rounded object-cover border border-gray-100">
+                                    
+                                    {{-- Multi-image preview for bundles or single image --}}
+                                    <div class="flex -space-x-4 overflow-hidden">
+                                        @if(!empty($offerData->items))
+                                            @foreach(collect($offerData->items)->take(3) as $item)
+                                                <img src="{{ $item['product']['featured_image_url'] ?? asset('images/default.svg') }}" 
+                                                     alt="Product"
+                                                     class="inline-block h-10 w-10 rounded-full ring-2 ring-white dark:ring-gray-800 object-cover">
+                                            @endforeach
+                                            @if(count($offerData->items) > 3)
+                                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700 ring-2 ring-white dark:ring-gray-800 text-[10px] font-bold text-gray-500">
+                                                    +{{ count($offerData->items) - 3 }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <img src="{{ $featuredImageUrl ?? asset('images/default.svg') }}" alt="Product"
+                                                class="w-10 h-10 rounded object-cover border border-gray-100">
+                                        @endif
+                                    </div>
                                 </div>
 
                                     {{-- 1. Vendor receiving Pending Offer --}}

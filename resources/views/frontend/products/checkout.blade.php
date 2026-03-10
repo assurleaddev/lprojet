@@ -17,7 +17,9 @@
         <form action="{{ route('checkout.process') }}" method="POST"
             class="max-w-5xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8" id="checkout-form">
             @csrf
-            <input type="hidden" name="product_id" value="{{ $product->id }}">
+            @if(!$isBundle)
+                <input type="hidden" name="product_id" value="{{ $product->id }}">
+            @endif
             @if(isset($offer))
                 <input type="hidden" name="offer_id" value="{{ $offer->id }}">
             @endif
@@ -32,24 +34,39 @@
 
                 <!-- 1. Product Summary -->
                 <div class="bg-white rounded-lg border border-gray-200 p-4">
-                    <div class="flex gap-4">
-                        <img src="{{ $product->getFeaturedImageUrl('preview') }}" alt="{{ $product->name }}"
-                            class="w-20 h-20 object-cover rounded-md border border-gray-100 bg-gray-50">
-                        <div class="flex-1">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <h2 class="text-base font-semibold text-gray-900 line-clamp-1">{{ $product->name }}</h2>
-                                    <p class="text-xs text-gray-500 mt-1 uppercase">
-                                        {{ $product->brand ? $product->brand->name : '' }}</p>
+                    @if($isBundle)
+                        <div class="space-y-4">
+                            <h3 class="font-bold text-gray-900 border-b pb-2">Bundle Items ({{ count($offer->items) }})</h3>
+                            @foreach($offer->items as $item)
+                                <div class="flex gap-4 items-center">
+                                    <img src="{{ $item->product->getFeaturedImageUrl('preview') }}" alt="{{ $item->product->name }}"
+                                        class="w-12 h-12 object-cover rounded-md border border-gray-100 bg-gray-50">
+                                    <div class="flex-1">
+                                        <h2 class="text-sm font-semibold text-gray-900 line-clamp-1">{{ $item->product->name }}</h2>
+                                        <p class="text-xs text-teal-600 font-bold">{{ number_format($item->product->price, 2) }} MAD</p>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="flex gap-4">
+                            <img src="{{ $product->getFeaturedImageUrl('preview') }}" alt="{{ $product->name }}"
+                                class="w-20 h-20 object-cover rounded-md border border-gray-100 bg-gray-50">
+                            <div class="flex-1">
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <h2 class="text-base font-semibold text-gray-900 line-clamp-1">{{ $product->name }}</h2>
+                                        <p class="text-xs text-gray-500 mt-1 uppercase">
+                                            {{ $product->brand ? $product->brand->name : '' }}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-3 space-y-1">
+                                    @if($product->size) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">Size</span> {{ $product->size }}</div> @endif
+                                    @if($product->condition) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">Condition</span> {{ ucwords(str_replace('_', ' ', $product->condition)) }}</div> @endif
                                 </div>
                             </div>
-                            <div class="mt-3 space-y-1">
-                                <!-- Size, Condition, Color can be here -->
-                                @if($product->size) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">Size</span> {{ $product->size }}</div> @endif
-                                @if($product->condition) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">Condition</span> {{ ucwords(str_replace('_', ' ', $product->condition)) }}</div> @endif
-                            </div>
                         </div>
-                    </div>
+                    @endif
                 </div>
 
                 <!-- 2. Address Section -->

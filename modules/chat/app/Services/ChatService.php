@@ -12,6 +12,7 @@ use Modules\Chat\Models\Offer;
 use App\Models\Order;
 use Modules\Chat\Events\MessageRead;
 use Modules\Chat\Enums\OfferStatus;
+
 class ChatService
 {
     public function getConversations(User $user)
@@ -45,7 +46,7 @@ class ChatService
         return $conversations;
     }
 
-    public function getOrCreateConversation(User $userA, User $userB, Product $product): Conversation
+    public function getOrCreateConversation(User $userA, User $userB, ?Product $product = null): Conversation
     {
         // To ensure consistency, sort users IDs before querying/creating
         $ids = [$userA->id, $userB->id];
@@ -53,11 +54,40 @@ class ChatService
         $userOneId = $ids[0];
         $userTwoId = $ids[1];
 
-        return Conversation::firstOrCreate([
-            'product_id' => $product->id,
+        $criteria = [
             'user_one_id' => $userOneId,
             'user_two_id' => $userTwoId,
+        ];
+
+        if ($product) {
+            $criteria['product_id'] = $product->id;
+        }
+
+        return Conversation::firstOrCreate($criteria);
+    }
+
+    public function createOffer(Conversation $conversation, User $buyer, float $offerPrice, $products = null): Offer
+    {
+        $seller = $conversation->user_one_id === $buyer->id ? $conversation->userTwo : $conversation->userOne;
+
+        $offer = Offer::create([
+            'conversation_id' => $conversation->id,
+            'product_id' => ($products instanceof Product) ? $products->id : null,
+            'buyer_id' => $buyer->id,
+            'seller_id' => $seller->id,
+            'offer_price' => $offerPrice,
+            'status' => OfferStatus::Pending,
         ]);
+
+        if ($products instanceof \Illuminate\Support\Collection || is_array($products)) {
+            foreach ($products as $product) {
+                $offer->items()->create(['product_id' => $product->id]);
+            }
+        } elseif ($products instanceof Product) {
+            $offer->items()->create(['product_id' => $products->id]);
+        }
+
+        return $offer;
     }
 
     public function sendMessage(Conversation $conversation, User $sender, ?string $body = null, array $attachments = []): Message
@@ -203,11 +233,12 @@ class ChatService
     public function sendOfferMadeMessage(Conversation $conversation, User $sender, Offer $offer): Message
     {
         // You might store more structured data if needed, e.g., in a JSON column
+        $productName = $offer->product ? $offer->product->name : 'a bundle';
         $body = sprintf(
             "%s made an offer of $%s for %s.",
             $sender->name,
             number_format($offer->offer_price, 2),
-            $offer->product->name
+            $productName
         );
 
         $offer->update(['expires_at' => now()->addHours(24)]);
@@ -234,10 +265,11 @@ class ChatService
     // Add methods for sending accepted/rejected messages later
     public function sendOfferResponseMessage(Conversation $conversation, User $responder, Offer $offer, bool $accepted, ?string $reason = null): void // Return void or array of messages
     {
+        $productName = $offer->product ? $offer->product->name : 'a bundle';
         $offerDetails = sprintf(
             "offer of $%s for %s",
             $offer->offer_price,
-            $offer->product->name
+            $productName
         );
 
         if ($accepted) {
@@ -266,7 +298,7 @@ class ChatService
             $checkoutUrl = route('checkout.offer', ['offer' => $offer->id]);
             $checkoutBody = sprintf(
                 "Offer accepted! Proceed to checkout for %s at $%s:\n%s",
-                $offer->product->name,
+                $productName,
                 number_format($offer->offer_price, 2),
                 $checkoutUrl
             );
@@ -313,11 +345,12 @@ class ChatService
 
     public function sendOfferCounteredMessage(Conversation $conversation, User $sender, Offer $offer): Message
     {
+        $productName = $offer->product ? $offer->product->name : 'a bundle';
         $body = sprintf(
             "%s made a counter offer of $%s for %s.",
             $sender->name,
             number_format($offer->offer_price, 2),
-            $offer->product->name
+            $productName
         );
 
         $message = $conversation->messages()->create([
@@ -341,11 +374,12 @@ class ChatService
     public function sendItemSoldMessage(Conversation $conversation, User $buyer, Order $order): Message
     {
         $downloadUrl = route('shipping-label.download', ['order' => $order->id]);
+        $productName = $order->product ? $order->product->name : 'your bundle';
 
         $body = sprintf(
             "Item Sold! %s has purchased %s. Please download the shipping label and prepare the package.\n%s",
             $buyer->full_name,
-            $order->product->name,
+            $productName,
             $downloadUrl
         );
 
@@ -372,7 +406,7 @@ class ChatService
 
     public function sendOrderPlacedMessage(Conversation $conversation, User $buyer, Order $order): Message
     {
-        $seller = $conversation->product->vendor;
+        $seller = $order->vendor;
         $deadline = now()->addDays(7)->translatedFormat('d M');
 
         $body = sprintf(
@@ -399,10 +433,11 @@ class ChatService
 
     public function sendItemShippedMessage(Conversation $conversation, User $seller, Order $order): Message
     {
+        $productName = $order->product ? $order->product->name : 'your bundle';
         $body = sprintf(
             "Item Shipped! %s has shipped %s. The package is on its way.",
             $seller->full_name,
-            $order->product->name
+            $productName
         );
 
         $message = $conversation->messages()->create([
@@ -442,5 +477,39 @@ class ChatService
         $order->vendor->notify(new \App\Notifications\OrderCompletedNotification($order, $buyer));
 
         return $message;
+    }
+
+    /**
+     * Calculate the total price for a bundle of products, applying seller discounts.
+     */
+    public function calculateBundlePrice(User $seller, array $products): array
+    {
+        $totalPrice = 0;
+        $itemCount = count($products);
+
+        foreach ($products as $product) {
+            $totalPrice += $product->price;
+        }
+
+        // Apply discount if applicable
+        $discount = $seller->bundleDiscounts()
+            ->where('min_items', '<=', $itemCount)
+            ->orderByDesc('min_items')
+            ->first();
+
+        $discountedPrice = $totalPrice;
+        $discountAmount = 0;
+
+        if ($discount) {
+            $discountAmount = ($totalPrice * $discount->discount_percentage) / 100;
+            $discountedPrice = $totalPrice - $discountAmount;
+        }
+
+        return [
+            'original_total' => $totalPrice,
+            'discount_percentage' => $discount ? $discount->discount_percentage : 0,
+            'discount_amount' => $discountAmount,
+            'final_total' => $discountedPrice,
+        ];
     }
 }
