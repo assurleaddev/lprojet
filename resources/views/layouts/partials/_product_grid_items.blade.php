@@ -1,7 +1,7 @@
 {{-- resources/views/partials/_product_grid_items.blade.php --}}
 
 @forelse ($products as $product)
-    <div class="grid-item">
+    <div class="grid-item relative">
         <div class="used-image-wrapper">
             <a href="{{ route('products.show', $product) }}" class="absolute inset-0 z-10 cursor-pointer block"></a>
             {{-- For better performance, we'll lazy-load images --}}
@@ -20,20 +20,32 @@
                     Bundle
                 </div>
             @endif
-        </div>
 
-        @if(auth()->id() !== $product->vendor_id)
-            <button class="fav-badge z-20" aria-label="Favourite" data-id="{{ $product->id }}"
-                data-url="{{ route('products.favorite', $product) }}">
-                <svg viewBox="0 0 24 24"
-                    class="{{ $product->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
-                    <path
-                        d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z" />
-                </svg>
-                <span>{{ $product->favoritedBy()->count() }}</span>
-            </button>
-        @endif
-    </div>
+            @if($product->status === 'sold')
+                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
+                    style="background-color: #4fb286 !important;">
+                    Sold
+                </div>
+            @elseif($product->status === 'reserved')
+                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
+                    style="background-color: #f59e0b !important;">
+                    Reserved
+                </div>
+            @endif
+
+            @if(auth()->id() !== $product->vendor_id)
+                <button class="fav-badge z-30" aria-label="Favourite" data-id="{{ $product->id }}"
+                    data-url="{{ route('products.favorite', $product) }}">
+                    <svg viewBox="0 0 24 24"
+                        class="{{ $product->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                        <path
+                            d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z" />
+                    </svg>
+                    <span>{{ $product->favoritedBy()->count() }}</span>
+                </button>
+            @endif
+        </div>
+        
     <a href="{{ route('products.show', $product) }}" class="block cursor-pointer">
         <div class="pt-1.5">
             <p class="brand-line">{{ $product->name }}</p>

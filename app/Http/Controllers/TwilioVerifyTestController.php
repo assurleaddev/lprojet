@@ -9,10 +9,18 @@ class TwilioVerifyTestController extends Controller
 {
     protected function getTwilioClient(): Client
     {
-        return new Client(
+        $client = new Client(
             config('services.twilio.sid'),
             config('services.twilio.auth_token')
         );
+
+        // Fix for local SSL certificate issues
+        $client->setHttpClient(new \Twilio\Http\CurlClient([
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+        ]));
+
+        return $client;
     }
 
     public function index()

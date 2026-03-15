@@ -202,7 +202,7 @@
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
                 @forelse ($user->products as $item)
-                    <div class="grid-item">
+                    <div class="grid-item relative">
                         <div class="used-image-wrapper">
                             <a href="{{ route('products.show', $item) }}"
                                 class="absolute inset-0 z-10 cursor-pointer block"></a>
@@ -220,12 +220,12 @@
                             @if($item->status === 'sold')
                                 <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
                                     style="background-color: #4fb286 !important;">
-                                    Vendus
+                                    Sold
                                 </div>
                             @elseif($item->status === 'reserved')
                                 <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
                                     style="background-color: #f59e0b !important;">
-                                    Réservé
+                                    Reserved
                                 </div>
                             @endif
 
