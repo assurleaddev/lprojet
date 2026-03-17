@@ -66,7 +66,7 @@ class ChatService
         return Conversation::firstOrCreate($criteria);
     }
 
-    public function createOffer(Conversation $conversation, User $buyer, float $offerPrice, $products = null): Offer
+    public function createOffer(Conversation $conversation, User $buyer, float $offerPrice, $products = null, ?OfferStatus $status = null): Offer
     {
         $seller = $conversation->user_one_id === $buyer->id ? $conversation->userTwo : $conversation->userOne;
 
@@ -76,7 +76,7 @@ class ChatService
             'buyer_id' => $buyer->id,
             'seller_id' => $seller->id,
             'offer_price' => $offerPrice,
-            'status' => OfferStatus::Pending,
+            'status' => $status ?? OfferStatus::Pending,
         ]);
 
         if ($products instanceof \Illuminate\Support\Collection || is_array($products)) {

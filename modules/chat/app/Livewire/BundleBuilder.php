@@ -52,18 +52,15 @@ class BundleBuilder extends Component
         // Create conversation
         $conversation = $chatService->getOrCreateConversation($buyer, $this->vendor);
 
-        // Create offer
-        $offer = $chatService->createOffer($conversation, $buyer, $priceData['final_total'], $products);
-
-        // Send message
-        $chatService->sendOfferMadeMessage($conversation, $buyer, $offer);
+        // Create offer with Accepted status
+        $offer = $chatService->createOffer($conversation, $buyer, $priceData['final_total'], $products, \Modules\Chat\Enums\OfferStatus::Accepted);
 
         $this->isOpen = false;
         $this->selectedProducts = [];
 
         $this->dispatch('toast', message: 'Bundle request sent!', type: 'success');
 
-        return redirect()->route('chat.show', ['chat' => $conversation->id]);
+        return redirect()->route('checkout.offer', ['offer' => $offer->id]);
     }
 
     public function render()
