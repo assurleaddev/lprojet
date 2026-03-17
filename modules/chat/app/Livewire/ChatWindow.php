@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth; // Import Auth facade
 use Illuminate\Support\Facades\Log; // Import Log facade
 use Livewire\Attributes\Layout; // Import Layout attribute if needed (usually handled by parent)
 use Livewire\Attributes\On; // Import the On attribute for Livewire events
+use App\Models\Review; // Import Review model for auto-feedback
 
 class ChatWindow extends Component
 {
@@ -74,6 +75,17 @@ class ChatWindow extends Component
     public bool $showParcelModal = false;
     public string $parcelSize = 'm'; // Default to medium for bundles
     public ?int $offerToConfirmId = null;
+    
+    // Cancellation Features
+    public bool $showDetailsSidebar = false;
+    public bool $showCancellationModal = false;
+    public ?string $cancellationReason = null;
+    public array $cancellationReasons = [
+        'item_unavailable' => 'Item is unavailable',
+        'changed_mind' => 'Changed my mind',
+        'shipping_issue' => 'Shipping issues',
+        'other' => 'Other'
+    ];
 
     /**
      * Mount the component, load the initial conversation and messages.
@@ -473,6 +485,90 @@ class ChatWindow extends Component
         $this->offerToRejectId = null;
         $this->reset('rejectionReason');
         $this->resetValidation('rejectionReason');
+    }
+
+    public function toggleDetailsSidebar(): void
+    {
+        $this->showDetailsSidebar = !$this->showDetailsSidebar;
+    }
+
+    public function openCancellationModal(): void
+    {
+        $this->showCancellationModal = true;
+        $this->showDetailsSidebar = false;
+    }
+
+    public function closeCancellationModal(): void
+    {
+        $this->showCancellationModal = false;
+        $this->reset(['cancellationReason']);
+    }
+
+    public function cancelOrder(ChatService $chatService): void
+    {
+        $this->validate([
+            'cancellationReason' => 'required|string|in:' . implode(',', array_keys($this->cancellationReasons)),
+        ]);
+
+        $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
+            ->where(function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->orWhere('vendor_id', Auth::id());
+            })
+            ->whereNotIn('status', ['delivered', 'completed', 'cancelled'])
+            ->latest()
+            ->first();
+
+        if (!$order) {
+            $this->dispatch('toast', message: 'No cancellable order found.', type: 'error');
+            return;
+        }
+
+        try {
+            $isSeller = Auth::id() === $order->vendor_id;
+            
+            // 1. Update Order Status
+            $order->update(['status' => 'cancelled']);
+
+            // 2. Update Product Status (make it available again if needed, or handle differently)
+            // For now, mirroring Vinted "Re-upload" manual step might be better, but we can set it to approved.
+            if ($order->product) {
+                $order->product->update(['status' => 'approved', 'buyer_id' => null]);
+            }
+
+            // 3. Handle Negative Feedback for Seller (if seller cancels)
+            if ($isSeller) {
+                \App\Models\Review::create([
+                    'rating' => 1,
+                    'review' => 'Negative auto-feedback: Seller cancelled order.',
+                    'model_id' => $order->vendor_id,
+                    'model_type' => \App\Models\User::class,
+                    'author_id' => Auth::id(), // System or Buyer? Vinted shows it as system/auto.
+                    'author_type' => \App\Models\User::class,
+                ]);
+            }
+
+            // 4. Send System Message
+            $reasonText = $this->cancellationReasons[$this->cancellationReason];
+            $chatService->sendOrderCancelledMessage($this->conversation, Auth::user(), $order, $reasonText);
+
+            $this->closeCancellationModal();
+            $this->loadConversation($chatService);
+            $this->dispatch('toast', message: 'Order cancelled successfully.', type: 'info');
+
+        } catch (\Exception $e) {
+            Log::error("ChatWindow: Error cancelling order {$order->id}: " . $e->getMessage());
+            $this->dispatch('toast', message: 'Error cancelling order.', type: 'error');
+        }
+    }
+
+    public function reuploadItem(): void
+    {
+        if (!$this->conversation || !$this->conversation->product) return;
+
+        $this->conversation->product->update(['status' => 'approved']);
+        $this->dispatch('toast', message: 'Item is now available for sale.', type: 'success');
+        $this->loadConversation(app(ChatService::class));
     }
 
     public function markAsShipped(ChatService $chatService)

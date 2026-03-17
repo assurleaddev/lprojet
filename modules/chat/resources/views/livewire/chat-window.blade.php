@@ -167,7 +167,7 @@
                 </div>
 
                 {{-- Right: Info Icon --}}
-                <button class="text-gray-400 hover:text-gray-600">
+                <button wire:click="toggleDetailsSidebar" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -736,6 +736,31 @@
                             @endif
                         </div>
                     </div>
+                @elseif ($messageType === 'order_cancelled')
+                    <div wire:key="order-cancelled-{{ $messageId }}" class="flex justify-center my-4">
+                        <div class="w-full max-w-sm bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg shadow-sm overflow-hidden">
+                            <div class="p-4 bg-red-50 dark:bg-red-900/20 text-center">
+                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-800 mb-3">
+                                    <svg class="h-6 w-6 text-red-600 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-medium text-red-900 dark:text-red-100">Cancelled transaction</h3>
+                                <p class="text-xs text-red-700 dark:text-red-300 whitespace-pre-line mt-1">
+                                    {{ $messageBody }}
+                                </p>
+                                
+                                @if($isSeller && $this->conversation?->product?->status !== 'approved')
+                                    <div class="mt-4">
+                                        <button wire:click="reuploadItem" wire:loading.attr="disabled"
+                                            class="block w-full bg-white border border-red-600 text-red-600 hover:bg-red-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            Re-upload item
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
                 @endif
 
             @empty
@@ -1076,6 +1101,131 @@
                         </button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+    {{-- Details Sidebar Overlay --}}
+    <div x-data="{ show: @entangle('showDetailsSidebar') }"
+         x-show="show"
+         @keydown.escape.window="show = false"
+         class="fixed inset-0 z-[150] overflow-hidden"
+         style="display: none;">
+        <div class="absolute inset-0 overflow-hidden">
+            <div x-show="show" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="show = false" class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+
+            <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+                <div x-show="show" x-transition:enter="transform transition ease-in-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform transition ease-in-out duration-300" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="pointer-events-auto relative w-screen max-w-md">
+                    <div class="flex h-full flex-col overflow-y-auto bg-white py-6 shadow-xl dark:bg-gray-800">
+                        <div class="px-4 sm:px-6 flex items-center justify-between border-b pb-4 dark:border-gray-700">
+                            <h2 class="text-lg font-medium text-gray-900 dark:text-white">Details</h2>
+                            <button @click="show = false" class="text-gray-400 hover:text-gray-500">
+                                <span class="sr-only">Close panel</span>
+                                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                        <div class="relative mt-6 flex-1 px-4 sm:px-6">
+                            @if($this->conversation && $this->conversation->product)
+                                <div class="space-y-6">
+                                    <div class="flex items-center space-x-4">
+                                        <img src="{{ $this->conversation->product->getFeaturedImageUrl('preview') }}" class="h-20 w-16 object-cover rounded-md">
+                                        <div>
+                                            <h4 class="font-bold text-gray-900 dark:text-white">{{ $this->conversation->product->name }}</h4>
+                                            <p class="text-sm text-gray-500">{{ $this->conversation->product->price }} MAD</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="border-t pt-6 dark:border-gray-700">
+                                        <h5 class="text-sm font-bold text-gray-900 uppercase tracking-wider dark:text-gray-400 mb-4">How we support sellers</h5>
+                                        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+                                            <li class="flex items-start">
+                                                <svg class="h-5 w-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                You'll be compensated if we confirm the order is lost or damaged in transit
+                                            </li>
+                                            <li class="flex items-start">
+                                                <svg class="h-5 w-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                The sale is final unless the order is significantly not as described
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="border-t pt-6 dark:border-gray-700 space-y-4">
+                                        <button class="w-full flex items-center space-x-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Extend shipping deadline</span>
+                                        </button>
+                                        <button class="w-full flex items-center space-x-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <span>Help</span>
+                                        </button>
+                                        
+                                        @php
+                                            $activeOrder = \App\Models\Order::where('product_id', $this->conversation?->product_id)
+                                                ->whereNotIn('status', ['delivered', 'completed', 'cancelled', 'shipped'])
+                                                ->exists();
+                                        @endphp
+
+                                        @if($activeOrder)
+                                            <button wire:click="openCancellationModal" class="w-full flex items-center space-x-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-md transition-colors border border-transparent hover:border-red-100">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                <span>Cancel order</span>
+                                            </button>
+                                        @endif
+
+                                        <button class="w-full flex items-center space-x-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors">
+                                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                                            <span>Block</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Cancellation Reason Modal --}}
+    <div x-data="{ show: @entangle('showCancellationModal') }" x-show="show" x-on:keydown.escape.window="show = false"
+        style="display: none;" class="fixed inset-0 z-[200] overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" @click="show = false" class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-80 transition-opacity"></div>
+            
+            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+                <div class="flex items-center justify-between border-b pb-3 dark:border-gray-700">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Cancel order</h3>
+                    <button @click="show = false" class="text-gray-400 hover:text-gray-500">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                
+                <div class="mt-4">
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                        Changed your mind? You can cancel the order before it's shipped. Just select a reason below. Cancelled orders may result in negative feedback.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">What's your reason?</label>
+                            <select wire:model="cancellationReason" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                                <option value="">Choose a reason</option>
+                                @foreach($cancellationReasons as $value => $label)
+                                    <option value="{{ $value }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            @error('cancellationReason') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex flex-col space-y-3">
+                    <button wire:click="cancelOrder" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-md transition-colors shadow-sm">
+                        Cancel this order
+                    </button>
+                    <button @click="show = false" class="w-full bg-transparent text-red-600 hover:underline py-2 font-medium">
+                        Go back
+                    </button>
+                </div>
             </div>
         </div>
     </div>

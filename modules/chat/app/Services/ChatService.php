@@ -479,6 +479,26 @@ class ChatService
         return $message;
     }
 
+    public function sendOrderCancelledMessage(Conversation $conversation, User $sender, Order $order, string $reason): Message
+    {
+        $body = sprintf(
+            "Cancelled transaction\nThis order has been cancelled. The buyer will receive a refund.\nReason: %s",
+            $reason
+        );
+
+        $message = $conversation->messages()->create([
+            'user_id' => $sender->id,
+            'body' => $body,
+            'type' => 'order_cancelled',
+        ]);
+
+        $conversation->update(['last_message_at' => now()]);
+
+        MessageSent::dispatch($message->load('user'));
+
+        return $message;
+    }
+
     /**
      * Calculate the total price for a bundle of products, applying seller discounts.
      */
