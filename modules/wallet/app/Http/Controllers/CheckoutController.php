@@ -136,6 +136,9 @@ class CheckoutController extends Controller
                 'product_id' => $p->id,
                 'price' => $products->count() === 1 ? $amount : $p->price, // For bundles, we use product price (total maps to offer)
             ]);
+
+            // Mark product as sold
+            $p->update(['status' => 'sold']);
         }
 
         // 1. Notify Vendor via Chat
