@@ -302,7 +302,7 @@
                     } else {
                         $offerStatus = $offerData ? \Modules\Chat\Enums\OfferStatus::tryFrom($rawStatus) : null;
                     }
-                    $productData = $offerData ? (object) ($offerData->product ?? null) : null; // Access product through offer data
+                    $productData = ($offerData && isset($offerData->product)) ? (object) $offerData->product : null; // Access product through offer data
                     // Access the pre-calculated URL added in the PHP component's map function
                     $featuredImageUrl = $productData->featured_image_url ?? null;
 
@@ -329,7 +329,7 @@
                                             <span class="text-xl font-bold text-gray-900 dark:text-white">
                                                 {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
                                             </span>
-                                            @if($productData && $productData->price)
+                                            @if($productData && isset($productData->price))
                                                 <span class="text-sm text-gray-400 line-through">
                                                     {{ number_format($productData->price ?? 0, 2) }} MAD
                                                 </span>
