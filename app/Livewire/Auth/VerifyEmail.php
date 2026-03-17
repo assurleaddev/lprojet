@@ -30,7 +30,11 @@ class VerifyEmail extends Component
             $user->verification_code_expires_at = null;
             $user->save();
 
-            return redirect()->intended(route('auth.secure_account'));
+            if (config('services.twilio.phone_verification_enabled')) {
+                return redirect()->intended(route('auth.secure_account'));
+            }
+
+            return redirect()->intended(route('home'));
         }
 
         $this->addError('code', __('Le code de vérification est invalide ou a expiré.'));

@@ -47,7 +47,7 @@ class SocialAuthController extends Controller
             Auth::login($user);
 
             // Redirect to secure account if phone is missing
-            if (empty($user->phone_number)) {
+            if (config('services.twilio.phone_verification_enabled') && empty($user->phone_number)) {
                 return redirect()->route('auth.secure_account');
             }
 
@@ -89,7 +89,12 @@ class SocialAuthController extends Controller
                 // Leaving this purely as user creation for now to solve the crash.
 
                 Auth::login($user);
-                return redirect()->route('auth.secure_account');
+
+                if (config('services.twilio.phone_verification_enabled')) {
+                    return redirect()->route('auth.secure_account');
+                }
+
+                return redirect()->route('home');
             } catch (\Exception $e) {
                 dd($e->getMessage());
                 // \Log::error('Social Login Error: ' . $e->getMessage());
