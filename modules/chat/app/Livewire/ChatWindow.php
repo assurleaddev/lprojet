@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log; // Import Log facade
 use Livewire\Attributes\Layout; // Import Layout attribute if needed (usually handled by parent)
 use Livewire\Attributes\On; // Import the On attribute for Livewire events
 use App\Models\Review; // Import Review model for auto-feedback
+use App\Models\Order; // Import Order model
 
 class ChatWindow extends Component
 {
@@ -46,6 +47,36 @@ class ChatWindow extends Component
                 'userOne',
                 'userTwo'
             ])
+            ->first();
+    }
+
+    /**
+     * Check if there is an active (cancellable) order for this conversation.
+     */
+    #[\Livewire\Attributes\Computed]
+    public function isActiveOrder()
+    {
+        return $this->order !== null;
+    }
+
+    /**
+     * Get the active order for this conversation.
+     */
+    #[\Livewire\Attributes\Computed]
+    public function order()
+    {
+        $conversation = $this->conversation;
+        if (!$conversation || !$conversation->product_id) {
+            return null;
+        }
+
+        return Order::where('product_id', $conversation->product_id)
+            ->where(function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->orWhere('vendor_id', Auth::id());
+            })
+            ->whereNotIn('status', ['delivered', 'completed', 'cancelled'])
+            ->latest()
             ->first();
     }
 
@@ -510,14 +541,7 @@ class ChatWindow extends Component
             'cancellationReason' => 'required|string|in:' . implode(',', array_keys($this->cancellationReasons)),
         ]);
 
-        $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
-            ->where(function ($query) {
-                $query->where('user_id', Auth::id())
-                    ->orWhere('vendor_id', Auth::id());
-            })
-            ->whereNotIn('status', ['delivered', 'completed', 'cancelled'])
-            ->latest()
-            ->first();
+        $order = $this->order;
 
         if (!$order) {
             $this->dispatch('toast', message: 'No cancellable order found.', type: 'error');

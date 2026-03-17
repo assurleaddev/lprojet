@@ -1159,13 +1159,7 @@
                                             <span>Help</span>
                                         </button>
                                         
-                                        @php
-                                            $activeOrder = \App\Models\Order::where('product_id', $this->conversation?->product_id)
-                                                ->whereNotIn('status', ['delivered', 'completed', 'cancelled', 'shipped'])
-                                                ->exists();
-                                        @endphp
-
-                                        @if($activeOrder)
+                                        @if($this->isActiveOrder)
                                             <button wire:click="openCancellationModal" class="w-full flex items-center space-x-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-md transition-colors border border-transparent hover:border-red-100">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                 <span>Cancel order</span>
