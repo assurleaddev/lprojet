@@ -371,10 +371,11 @@ class ChatService
         return $message;
     }
 
-    public function sendItemSoldMessage(Conversation $conversation, User $buyer, Order $order): Message
+    public function sendItemSoldMessage(Conversation $conversation, User $buyer, Order $order, ?int $offerId = null): Message
     {
         $downloadUrl = route('shipping-label.download', ['order' => $order->id]);
-        $productName = $order->product ? $order->product->name : 'your bundle';
+        $productCount = $order->items->count();
+        $productName = $order->product ? $order->product->name : "a bundle of {$productCount} items";
 
         $body = sprintf(
             "Item Sold! %s has purchased %s. Please download the shipping label and prepare the package.\n%s",
@@ -390,8 +391,7 @@ class ChatService
             'user_id' => $buyer->id,
             'body' => $body,
             'type' => 'item_sold',
-            'offer_id' => null, // Not directly linked to an offer object here, but could be if needed
-            // We might want to store order_id if we add a column, but for now we'll parse or just use the type.
+            'offer_id' => $offerId,
         ]);
 
         $conversation->update(['last_message_at' => now()]);
@@ -404,7 +404,7 @@ class ChatService
         return $message;
     }
 
-    public function sendOrderPlacedMessage(Conversation $conversation, User $buyer, Order $order): Message
+    public function sendOrderPlacedMessage(Conversation $conversation, User $buyer, Order $order, ?int $offerId = null): Message
     {
         $seller = $order->vendor;
         $deadline = now()->addDays(7)->translatedFormat('d M');
@@ -419,7 +419,7 @@ class ChatService
             'user_id' => $seller->id, // Attributed to seller for buyer perspective
             'body' => $body,
             'type' => 'order_placed',
-            'offer_id' => null,
+            'offer_id' => $offerId,
         ]);
 
         $conversation->update(['last_message_at' => now()]);

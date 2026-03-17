@@ -146,10 +146,10 @@ class CheckoutController extends Controller
         $conversation = $chatService->getOrCreateConversation($user, $vendor, $mainProduct);
 
         // Send "Item Sold" message
-        $chatService->sendItemSoldMessage($conversation, $user, $order);
+        $chatService->sendItemSoldMessage($conversation, $user, $order, $offer?->id);
 
         // Send "Order Placed" message
-        $chatService->sendOrderPlacedMessage($conversation, $user, $order);
+        $chatService->sendOrderPlacedMessage($conversation, $user, $order, $offer?->id);
 
         // 3. Redirect to Thank You Page
         return redirect()->route('checkout.thank-you');

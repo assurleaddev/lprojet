@@ -445,65 +445,94 @@
                         preg_match('/(https?:\/\/[^\s]+)/', $messageBody, $matches);
                         $downloadUrl = $matches[0] ?? '#';
                         $cleanBody = str_replace($downloadUrl, '', $messageBody);
+                        $offer = $message['offer'] ?? null;
                     @endphp
-                    @if(auth()->id() == $this->conversation->product->vendor_id)
-                        <div wire:key="item-sold-{{ $messageId }}" class="flex justify-center my-4">
-                            <div
-                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
-                                <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
-                                    <div
-                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
-                                        <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                                            </path>
-                                        </svg>
+                    <div wire:key="item-sold-{{ $messageId }}" class="flex justify-center my-4 px-4">
+                        <div
+                            class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
+                            <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
+                                <div
+                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
+                                    <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Item Sold!</h3>
+                                <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                                    {{ trim($cleanBody) }}
+                                </p>
+
+                                @if ($offer && !empty($offer['items']))
+                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+                                        @foreach ($offer['items'] as $item)
+                                            <div class="relative group">
+                                                <img src="{{ $item['product']['featured_image_url'] }}"
+                                                    alt="{{ $item['product']['name'] }}"
+                                                    class="h-12 w-12 object-cover rounded border border-gray-200 dark:border-gray-700 shadow-sm"
+                                                    title="{{ $item['product']['name'] }}">
+                                            </div>
+                                        @endforeach
                                     </div>
-                                    <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Item Sold!</h3>
-                                    <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
-                                        {{ trim($cleanBody) }}
-                                    </p>
-                                    <div class="mt-4 space-y-2">
+                                @endif
+
+                                <div class="mt-4 space-y-2">
+                                    @if(auth()->id() == ($this->conversation->product->vendor_id ?? $this->conversation->user_one_id)) {{-- Broad vendor check --}}
                                         <a href="{{ $downloadUrl }}" target="_blank"
                                             class="block w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                             Download Shipping Label
                                         </a>
-                                        @if(auth()->id() == $this->conversation->product->vendor_id)
-                                            <button wire:click="markAsShipped" wire:loading.attr="disabled"
-                                                class="block w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                                Mark as Shipped
-                                            </button>
-                                        @endif
-                                    </div>
+                                        <button wire:click="markAsShipped" wire:loading.attr="disabled"
+                                            class="block w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            Mark as Shipped
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    </div>
 
                 @elseif ($messageType === 'order_placed')
-                    @if(auth()->id() != $this->conversation->product->vendor_id)
-                        <div wire:key="order-placed-{{ $messageId }}" class="flex justify-center my-4">
-                            <div
-                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
-                                <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
-                                    <div
-                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
-                                        <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                                        </svg>
+                    @php
+                        $offer = $message['offer'] ?? null;
+                    @endphp
+                    <div wire:key="order-placed-{{ $messageId }}" class="flex justify-center my-4 px-4">
+                        <div
+                            class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
+                            <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
+                                <div
+                                    class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
+                                    <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Order Placed!</h3>
+                                <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                                    {{ $messageBody }}
+                                </p>
+
+                                @if ($offer && !empty($offer['items']))
+                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+                                        @foreach ($offer['items'] as $item)
+                                            <div class="relative group">
+                                                <img src="{{ $item['product']['featured_image_url'] }}"
+                                                    alt="{{ $item['product']['name'] }}"
+                                                    class="h-12 w-12 object-cover rounded border border-gray-200 dark:border-gray-700 shadow-sm"
+                                                    title="{{ $item['product']['name'] }}">
+                                            </div>
+                                        @endforeach
                                     </div>
-                                    <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Order Placed!</h3>
-                                    <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
-                                        {{ $messageBody }}
-                                    </p>
-                                    <div class="mt-4">
-                                        <p class="text-[10px] text-gray-500 italic">We will notify you of any updates.</p>
-                                    </div>
+                                @endif
+
+                                <div class="mt-4">
+                                    <p class="text-[10px] text-gray-500 italic">We will notify you of any updates.</p>
                                 </div>
                             </div>
                         </div>
-                    @endif
+                    </div>
 
                 @elseif ($messageType === 'item_shipped')
                     @if(auth()->id() != $this->conversation->product->vendor_id)
