@@ -65,7 +65,7 @@
                                 @foreach($existingMedia as $media)
                                     {{-- @dd($media) --}}
                                     <div class="relative group">
-                                        <img src="{{ $media['url'] ?? $media }}"
+                                        <img src="{{ (isset($media['url']) && (str_starts_with($media['url'], 'http') || str_starts_with($media['url'], '/'))) ? $media['url'] : (isset($media['url']) ? '/' . $media['url'] : (is_string($media) && (str_starts_with($media, 'http') || str_starts_with($media, '/')) ? $media : '/' . $media)) }}"
                                              alt="{{ $media['alt'] ?? '' }}"
                                              class="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
                                              onerror="console.error('Failed to load image:', this.src); this.style.display='none';">
@@ -80,7 +80,13 @@
                         @else
                             <div class="flex flex-col items-center justify-center">
                                 <div class="relative group w-full" style="height: {{ $height }}">
-                                    <img src="{{ $existingMedia[0]['url'] ?? $existingMedia[0] }}"
+                                    @php
+                                        $singleUrl = $existingMedia[0]['url'] ?? $existingMedia[0];
+                                        if (!str_starts_with($singleUrl, 'http') && !str_starts_with($singleUrl, '/')) {
+                                            $singleUrl = '/' . $singleUrl;
+                                        }
+                                    @endphp
+                                    <img src="{{ $singleUrl }}"
                                          alt="{{ $existingMedia[0]['alt'] ?? '' }}"
                                          class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
                                          onerror="console.error('Failed to load image:', this.src); this.style.display='none';">
@@ -95,10 +101,16 @@
                     @else
                         <div class="flex flex-col items-center justify-center">
                             <div class="relative group w-full" style="height: {{ $height }}">
-                                <img src="{{ $existingMedia }}"
+                                @php
+                                    $simpleUrl = $existingMedia;
+                                    if (is_string($simpleUrl) && !str_starts_with($simpleUrl, 'http') && !str_starts_with($simpleUrl, '/')) {
+                                        $simpleUrl = '/' . $simpleUrl;
+                                    }
+                                @endphp
+                                <img src="{{ $simpleUrl }}"
                                      alt="{{ $existingAltText }}"
                                      class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
-                                     onerror="console.error('Failed to load existing image:', '{{ $existingMedia }}'); this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                     onerror="console.error('Failed to load existing image:', '{{ $simpleUrl }}'); this.style.display='none'; this.nextElementSibling.style.display='block';">
                                 <div style="display: none;" class="w-full h-full bg-gray-100 dark:bg-gray-800 {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} border-4 border-gray-200 dark:border-gray-700 flex items-center justify-center">
                                     <span class="text-gray-500 text-sm">Image not found</span>
                                 </div>
