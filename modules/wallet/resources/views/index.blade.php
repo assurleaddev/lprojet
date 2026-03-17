@@ -8,8 +8,18 @@
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
                     <h2 class="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">My Wallet</h2>
-                    <div class="flex items-baseline gap-2 mb-6">
-                        <span class="text-3xl font-bold text-gray-900">{{ number_format($wallet->balance, 2) }} MAD</span>
+                    <div class="mb-6">
+                        <div class="flex items-baseline gap-2">
+                            <span class="text-3xl font-bold text-gray-900">{{ number_format($wallet->balance, 2) }} MAD</span>
+                        </div>
+                        @if($wallet->pending_balance > 0)
+                            <div class="flex items-center gap-1.5 mt-1 text-xs font-semibold text-amber-600 bg-amber-50 w-fit px-2 py-1 rounded-lg">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                {{ number_format($wallet->pending_balance, 2) }} MAD Pending
+                            </div>
+                        @endif
                     </div>
 
                     <button onclick="document.getElementById('withdrawModal').classList.remove('hidden')"

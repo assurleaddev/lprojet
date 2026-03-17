@@ -378,9 +378,10 @@ class ChatService
         $productName = $order->product ? $order->product->name : "a bundle of {$productCount} items";
 
         $body = sprintf(
-            "Item Sold! %s has purchased %s. Please download the shipping label and prepare the package.\n%s",
+            "Item Sold! %s has purchased %s.\n\nYou will earn: $%s\n\nFunds will be released to your wallet as soon as the buyer confirms reception. Please download the shipping label and prepare the package.\n%s",
             $buyer->full_name,
             $productName,
+            number_format($order->payout_amount, 2),
             $downloadUrl
         );
 

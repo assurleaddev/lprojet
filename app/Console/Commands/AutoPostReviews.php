@@ -75,8 +75,7 @@ class AutoPostReviews extends Command
                     'is_auto' => true,
                 ]);
 
-                // 3. Complete Order & Release Funds
-                $walletService->releasePendingFunds($order->vendor, $order->amount, 'Order #' . $order->id . ' (Auto-completed)');
+                // 3. Complete Order (Observer handles funds)
                 $order->update(['status' => 'completed']);
 
                 // 4. Notify via Chat? Or just silent?

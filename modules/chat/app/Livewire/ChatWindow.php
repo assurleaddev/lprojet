@@ -597,28 +597,8 @@ class ChatWindow extends Component
 
     public function markAsShipped(ChatService $chatService)
     {
-        // Find the order associated with this conversation's product or offer
-        $order = \App\Models\Order::where(function($query) {
-            $query->where('product_id', $this->conversation->product_id)
-                  ->whereNotNull('product_id');
-        })
-        ->orWhereHas('items', function($query) {
-             // For bundles, we might need to match any item if product_id is null on order
-             $query->where('product_id', $this->conversation->product_id);
-        })
-        ->orWhere('offer_id', function($query) {
-             // If we have an offer in the conversation that matches
-             if ($this->conversation->messages()->whereNotNull('offer_id')->exists()) {
-                 return $this->conversation->messages()->whereNotNull('offer_id')->latest()->first()->offer_id;
-             }
-        })
-        ->where('vendor_id', Auth::id())
-        ->whereIn('status', ['processing', 'pending'])
-        ->latest()
-        ->first();
+        // Attempt to find the specific order using the offer ID or product ID
 
-        // Better approach: Since we just added offer_id to orders, let's use it if available
-        // But for existing orders, we need fallback.
         
         $activeOfferId = $this->conversation->messages()
             ->whereNotNull('offer_id')

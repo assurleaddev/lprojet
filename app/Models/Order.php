@@ -25,11 +25,28 @@ class Order extends Model
         'address_id',
         'shipping_option_id',
         'offer_id',
+        'received_at',
     ];
 
     protected $casts = [
         'received_at' => 'datetime',
     ];
+
+    /**
+     * The net amount the vendor will actually receive.
+     */
+    public function getPayoutAmountAttribute()
+    {
+        return $this->amount - ($this->platform_commission ?? 0);
+    }
+
+    /**
+     * Total fees collected by the platform for this order.
+     */
+    public function getPlatformFeesAttribute()
+    {
+        return ($this->total_amount - $this->amount) + ($this->platform_commission ?? 0);
+    }
 
     // The customer who placed the order
     public function user()

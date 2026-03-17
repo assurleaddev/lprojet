@@ -38,16 +38,14 @@ class OrderObserver
      */
     public function updated(Order $order): void
     {
-        // Check if status was changed to 'delivered'
-        if ($order->isDirty('status') && $order->status === 'delivered') {
+        // Check if status was changed to 'delivered' or 'completed'
+        if ($order->isDirty('status') && in_array($order->status, ['delivered', 'completed'])) {
             $originalStatus = $order->getOriginal('status');
 
-            if ($originalStatus !== 'delivered') {
-                $commissionAmount = $order->platform_commission ?? 0;
-                $payoutAmount = $order->amount - $commissionAmount;
-
+            // Only release if moving FROM a non-final status
+            if (!in_array($originalStatus, ['delivered', 'completed'])) {
                 try {
-                    $this->walletService->releasePendingFunds($order->vendor, $payoutAmount, 'Order #' . $order->id);
+                    $this->walletService->releasePendingFunds($order->vendor, $order->payout_amount, 'Order #' . $order->id);
                 } catch (\Exception $e) {
                     \Log::error("OrderObserver: Error releasing funds for Order #{$order->id}: " . $e->getMessage());
                 }
