@@ -20,5 +20,5 @@
         @csrf
         @include('backend.marketplace.products._form')
     </form>
-
+    @include('backend.marketplace.products.partials.admin-image-modal')
 </x-layouts.backend-layout>

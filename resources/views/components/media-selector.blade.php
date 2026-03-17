@@ -67,7 +67,7 @@
                                     <div class="relative group">
                                         <img src="{{ (isset($media['url']) && (str_starts_with($media['url'], 'http') || str_starts_with($media['url'], '/'))) ? $media['url'] : (isset($media['url']) ? '/' . $media['url'] : (is_string($media) && (str_starts_with($media, 'http') || str_starts_with($media, '/')) ? $media : '/' . $media)) }}"
                                              alt="{{ $media['alt'] ?? '' }}"
-                                             class="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700"
+                                             class="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700 media-preview-image cursor-pointer"
                                              onerror="console.error('Failed to load image:', this.src); this.style.display='none';">
                                         <button type="button"
                                                 @click="clearSelectedMedia()"
@@ -88,7 +88,7 @@
                                     @endphp
                                     <img src="{{ $singleUrl }}"
                                          alt="{{ $existingMedia[0]['alt'] ?? '' }}"
-                                         class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
+                                         class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} media-preview-image cursor-pointer"
                                          onerror="console.error('Failed to load image:', this.src); this.style.display='none';">
                                     <button type="button"
                                             @click="clearSelectedMedia()"
@@ -109,7 +109,7 @@
                                 @endphp
                                 <img src="{{ $simpleUrl }}"
                                      alt="{{ $existingAltText }}"
-                                     class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
+                                     class="w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} media-preview-image cursor-pointer"
                                      onerror="console.error('Failed to load existing image:', '{{ $simpleUrl }}'); this.style.display='none'; this.nextElementSibling.style.display='block';">
                                 <div style="display: none;" class="w-full h-full bg-gray-100 dark:bg-gray-800 {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} border-4 border-gray-200 dark:border-gray-700 flex items-center justify-center">
                                     <span class="text-gray-500 text-sm">Image not found</span>
@@ -133,7 +133,7 @@
                             <div class="relative group">
                                 <img :src="media.thumbnail_url || media.url"
                                      :alt="media.name"
-                                     class="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700">
+                                     class="w-full h-32 object-cover rounded-lg border border-gray-200 dark:border-gray-700 media-preview-image cursor-pointer">
                                 <button type="button"
                                         @click="removeSelectedMedia(media.id)"
                                         class="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity w-8 h-8">
@@ -149,7 +149,7 @@
                             <div class="relative group w-full" style="height: {{ $height }}">
                                 <img :src="media.thumbnail_url || media.url"
                                      :alt="media.name"
-                                     class="'w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }}"
+                                     class="'w-full h-full object-cover border border-gray-200 dark:border-gray-700 shadow-sm {{ $showPreviewCircular ? 'rounded-full' : 'rounded-md' }} media-preview-image cursor-pointer"
                                 >
                                 <button type="button"
                                         @click="removeSelectedMedia(media.id)"

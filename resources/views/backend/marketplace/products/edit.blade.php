@@ -11,4 +11,5 @@
         </form>
     </x-card>
 
+    @include('backend.marketplace.products.partials.admin-image-modal')
 </x-layouts.backend-layout>
