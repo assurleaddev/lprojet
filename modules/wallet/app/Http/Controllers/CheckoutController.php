@@ -123,6 +123,7 @@ class CheckoutController extends Controller
             'payment_method' => $paymentMethod,
             'address_id' => $request->address_id,
             'shipping_option_id' => $request->shipping_option_id ?? null,
+            'offer_id' => $offer?->id,
         ]);
 
         if ($paymentMethod === 'cod') {

@@ -24,6 +24,7 @@ class Order extends Model
         'payment_method',
         'address_id',
         'shipping_option_id',
+        'offer_id',
     ];
 
     protected $casts = [
@@ -62,5 +63,10 @@ class Order extends Model
     public function items()
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    public function offer()
+    {
+        return $this->belongsTo(\Modules\Chat\Models\Offer::class);
     }
 }

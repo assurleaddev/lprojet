@@ -10,13 +10,25 @@
         <div class="md:col-span-2">
             <x-card>
                 <div class="p-6">
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Product in this Order</h3>
-                    <div class="flex justify-between items-center py-2">
-                        <div>
-                            <p class="font-semibold">{{ $order->product->name ?? 'Product not found' }}</p>
-                            <p class="text-sm text-gray-500">Vendor : {{ $order->vendor->fullname ?? 'N/A' }}</p>
-                            <p class="text-sm text-gray-500">Customer: {{ $order->user->fullname ?? 'N/A' }}</p>
+                    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Products in this Order</h3>
+                    <div class="space-y-4">
+                        @foreach($order->items as $item)
+                        <div class="flex justify-between items-center py-2 border-b border-gray-50 last:border-0">
+                            <div class="flex items-center gap-4">
+                                @if($item->product)
+                                    <img src="{{ $item->product->getFeaturedImageUrl('preview') }}" alt="" class="h-12 w-12 object-cover rounded shadow-sm">
+                                @endif
+                                <div>
+                                    <p class="font-semibold">{{ $item->product->name ?? 'Product deleted' }}</p>
+                                    <p class="text-sm text-gray-500">Price : {{ number_format($item->price, 2) }} MAD</p>
+                                </div>
+                            </div>
                         </div>
+                        @endforeach
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-sm text-gray-500">Customer: {{ $order->user->fullname ?? 'N/A' }}</p>
+                        <p class="text-sm text-gray-500">Main Vendor : {{ $order->vendor->fullname ?? 'N/A' }}</p>
                     </div>
                 </div>
 

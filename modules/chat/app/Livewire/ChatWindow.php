@@ -597,11 +597,44 @@ class ChatWindow extends Component
 
     public function markAsShipped(ChatService $chatService)
     {
-        // Find the order associated with this conversation's product
-        // Assuming one active order per product/conversation context
-        $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
+        // Find the order associated with this conversation's product or offer
+        $order = \App\Models\Order::where(function($query) {
+            $query->where('product_id', $this->conversation->product_id)
+                  ->whereNotNull('product_id');
+        })
+        ->orWhereHas('items', function($query) {
+             // For bundles, we might need to match any item if product_id is null on order
+             $query->where('product_id', $this->conversation->product_id);
+        })
+        ->orWhere('offer_id', function($query) {
+             // If we have an offer in the conversation that matches
+             if ($this->conversation->messages()->whereNotNull('offer_id')->exists()) {
+                 return $this->conversation->messages()->whereNotNull('offer_id')->latest()->first()->offer_id;
+             }
+        })
+        ->where('vendor_id', Auth::id())
+        ->whereIn('status', ['processing', 'pending'])
+        ->latest()
+        ->first();
+
+        // Better approach: Since we just added offer_id to orders, let's use it if available
+        // But for existing orders, we need fallback.
+        
+        $activeOfferId = $this->conversation->messages()
+            ->whereNotNull('offer_id')
+            ->whereHas('offer', function($q) {
+                $q->whereIn('status', [\Modules\Chat\Enums\OfferStatus::Accepted->value, 'accepted']);
+            })
+            ->latest()
+            ->first()?->offer_id;
+
+        $order = \App\Models\Order::when($activeOfferId, function($q) use ($activeOfferId) {
+                $q->where('offer_id', $activeOfferId);
+            }, function($q) {
+                $q->where('product_id', $this->conversation->product_id);
+            })
             ->where('vendor_id', Auth::id())
-            ->whereIn('status', ['processing', 'pending']) // Include pending for COD orders
+            ->whereIn('status', ['processing', 'pending'])
             ->latest()
             ->first();
 

@@ -181,7 +181,12 @@ class OrderDatatable extends Datatable
 
     public function renderProductColumn($item): string
     {
-        return $item->product->name ?? 'N/A';
+        if ($item->product_id) {
+            return $item->product->name ?? 'N/A';
+        }
+
+        $count = $item->items->count();
+        return "Bundle ({$count} items)";
     }
 
     public function renderAmountColumn($item): string
