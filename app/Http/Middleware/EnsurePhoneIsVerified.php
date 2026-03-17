@@ -15,6 +15,10 @@ class EnsurePhoneIsVerified
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!config('services.twilio.phone_verification_enabled')) {
+            return $next($request);
+        }
+
         $user = $request->user();
 
         // 1. If user is NOT logged in, let them proceed (it's likely a login page or public page)

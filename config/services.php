@@ -58,6 +58,7 @@ return [
         'token' => env('TWILIO_TOKEN'),
         'from' => env('TWILIO_FROM'),
         'verify_sid' => env('TWILIO_VERIFY_SID'),
+        'phone_verification_enabled' => env('PHONE_VERIFICATION_ENABLED', true),
     ],
 
 ];
