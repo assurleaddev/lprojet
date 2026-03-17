@@ -39,8 +39,9 @@ class OrderCompletedNotification extends Notification implements ShouldBroadcast
 
     public function toMail($notifiable)
     {
+        $productName = $this->order->product ? $this->order->product->name : 'multiple items';
         return (new MailMessage)
-            ->subject('Order Completed: ' . $this->order->product->name)
+            ->subject('Order Completed: ' . $productName)
             ->line('Success! ' . $this->buyer->full_name . ' has received the item and the order is complete.')
             ->line('The funds have been released to your wallet.')
             ->action('View Wallet', route('settings.profile')); // Or wallet page if exists
@@ -48,22 +49,24 @@ class OrderCompletedNotification extends Notification implements ShouldBroadcast
 
     public function toDatabase($notifiable)
     {
+        $productName = $this->order->product ? $this->order->product->name : 'multiple items';
         return [
             'type' => 'order_completed',
             'order_id' => $this->order->id,
             'product_id' => $this->order->product_id,
             'buyer_id' => $this->buyer->id,
-            'message' => "Order completed! Funds released for {$this->order->product->name}.",
+            'message' => "Order completed! Funds released for {$productName}.",
             'url' => route('chat.dashboard'),
         ];
     }
 
     public function toBroadcast($notifiable)
     {
+        $productName = $this->order->product ? $this->order->product->name : 'multiple items';
         return new BroadcastMessage([
             'type' => 'order_completed',
             'order_id' => $this->order->id,
-            'message' => "Order completed! Funds released for {$this->order->product->name}.",
+            'message' => "Order completed! Funds released for {$productName}.",
             'url' => route('chat.dashboard'),
         ]);
     }

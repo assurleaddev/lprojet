@@ -39,9 +39,10 @@ class ItemShippedNotification extends Notification implements ShouldBroadcast
 
     public function toMail($notifiable)
     {
+        $productName = $this->order->product ? $this->order->product->name : 'your bundle';
         return (new MailMessage)
-            ->subject('Item Shipped: ' . $this->order->product->name)
-            ->line('Good news! ' . $this->vendor->full_name . ' has shipped your item: ' . $this->order->product->name)
+            ->subject('Item Shipped: ' . $productName)
+            ->line('Good news! ' . $this->vendor->full_name . ' has shipped your item: ' . $productName)
             ->line('You can track the status in the chat.')
             ->action('View Order', route('chat.dashboard'));
     }

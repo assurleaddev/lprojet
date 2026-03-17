@@ -39,9 +39,10 @@ class ItemSoldNotification extends Notification implements ShouldBroadcast
 
     public function toMail($notifiable)
     {
+        $productName = $this->order->product ? $this->order->product->name : 'multiple items';
         return (new MailMessage)
-            ->subject('Item Sold: ' . $this->order->product->name)
-            ->line('Great news! ' . $this->buyer->full_name . ' has bought your item: ' . $this->order->product->name)
+            ->subject('Item Sold: ' . $productName)
+            ->line('Great news! ' . $this->buyer->full_name . ' has bought your item: ' . $productName)
             ->line('Please download the shipping label and ship the item.')
             ->action('View Order', route('chat.dashboard'));
         // Note: Linking to chat is tricky if conversation ID isn't handy. 
@@ -54,22 +55,24 @@ class ItemSoldNotification extends Notification implements ShouldBroadcast
 
     public function toDatabase($notifiable)
     {
+        $productName = $this->order->product ? $this->order->product->name : 'multiple items';
         return [
             'type' => 'item_sold',
             'order_id' => $this->order->id,
             'product_id' => $this->order->product_id,
             'buyer_id' => $this->buyer->id,
-            'message' => "Item sold! {$this->buyer->full_name} bought {$this->order->product->name}.",
+            'message' => "Item sold! {$this->buyer->full_name} bought {$productName}.",
             'url' => route('chat.dashboard'), // Ideally deep link
         ];
     }
 
     public function toBroadcast($notifiable)
     {
+        $productName = $this->order->product ? $this->order->product->name : 'multiple items';
         return new BroadcastMessage([
             'type' => 'item_sold',
             'order_id' => $this->order->id,
-            'message' => "Item sold! {$this->buyer->full_name} bought {$this->order->product->name}.",
+            'message' => "Item sold! {$this->buyer->full_name} bought {$productName}.",
             'url' => route('chat.dashboard'),
         ]);
     }
