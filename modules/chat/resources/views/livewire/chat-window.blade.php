@@ -1112,7 +1112,16 @@
          class="fixed inset-0 z-[150] overflow-hidden"
          style="display: none;">
         <div class="absolute inset-0 overflow-hidden">
-            <div x-show="show" x-transition:enter="ease-in-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in-out duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" @click="show = false" class="absolute inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"></div>
+            <div x-show="show" 
+                 x-transition:enter="ease-in-out duration-300" 
+                 x-transition:enter-start="opacity-0" 
+                 x-transition:enter-end="opacity-100" 
+                 x-transition:leave="ease-in-out duration-300" 
+                 x-transition:leave-start="opacity-100" 
+                 x-transition:leave-end="opacity-0" 
+                 @click="show = false" 
+                 class="absolute inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity" 
+                 aria-hidden="true"></div>
 
             <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
                 <div x-show="show" x-transition:enter="transform transition ease-in-out duration-300" x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0" x-transition:leave="transform transition ease-in-out duration-300" x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full" class="pointer-events-auto relative w-screen max-w-md">
@@ -1184,7 +1193,12 @@
     <div x-data="{ show: @entangle('showCancellationModal') }" x-show="show" x-on:keydown.escape.window="show = false"
         style="display: none;" class="fixed inset-0 z-[200] overflow-y-auto" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4">
-            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" @click="show = false" class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-80 transition-opacity"></div>
+            <div x-show="show" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0" 
+                 x-transition:enter-end="opacity-100" 
+                 @click="show = false" 
+                 class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm transition-opacity"></div>
             
             <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100" class="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
                 <div class="flex items-center justify-between border-b pb-3 dark:border-gray-700">
