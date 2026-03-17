@@ -640,6 +640,32 @@
                         @endif
                     </div>
 
+                @elseif ($messageType === 'order_cancelled')
+                    <div wire:key="order-cancelled-{{ $messageId }}" class="flex justify-center my-4">
+                        <div class="w-full max-w-sm bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg shadow-sm overflow-hidden">
+                            <div class="p-4 bg-red-50 dark:bg-red-900/20 text-center">
+                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-800 mb-3">
+                                    <svg class="h-6 w-6 text-red-600 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </div>
+                                <h3 class="text-lg font-medium text-red-900 dark:text-red-100">Cancelled transaction</h3>
+                                <p class="text-xs text-red-700 dark:text-red-300 whitespace-pre-line mt-1">
+                                    {{ $messageBody }}
+                                </p>
+                                
+                                @if($isSeller && $this->conversation?->product?->status !== 'approved')
+                                    <div class="mt-4">
+                                        <button wire:click="reuploadItem" wire:loading.attr="disabled"
+                                            class="block w-full bg-white border border-red-600 text-red-600 hover:bg-red-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            Re-upload item
+                                        </button>
+                                    </div>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
                 @else
                     {{-- STANDARD TEXT MESSAGE BLOCK --}}
                     <div class="flex flex-col {{ $isOwnMessage ? 'items-end' : 'items-start' }} space-y-1 mb-4" wire:key="msg-{{ $messageId }}">
@@ -734,31 +760,6 @@
                                     @endif
                                 </div>
                             @endif
-                        </div>
-                    </div>
-                @elseif ($messageType === 'order_cancelled')
-                    <div wire:key="order-cancelled-{{ $messageId }}" class="flex justify-center my-4">
-                        <div class="w-full max-w-sm bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 rounded-lg shadow-sm overflow-hidden">
-                            <div class="p-4 bg-red-50 dark:bg-red-900/20 text-center">
-                                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-800 mb-3">
-                                    <svg class="h-6 w-6 text-red-600 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                </div>
-                                <h3 class="text-lg font-medium text-red-900 dark:text-red-100">Cancelled transaction</h3>
-                                <p class="text-xs text-red-700 dark:text-red-300 whitespace-pre-line mt-1">
-                                    {{ $messageBody }}
-                                </p>
-                                
-                                @if($isSeller && $this->conversation?->product?->status !== 'approved')
-                                    <div class="mt-4">
-                                        <button wire:click="reuploadItem" wire:loading.attr="disabled"
-                                            class="block w-full bg-white border border-red-600 text-red-600 hover:bg-red-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                            Re-upload item
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
                         </div>
                     </div>
                 @endif
