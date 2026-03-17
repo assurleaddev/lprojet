@@ -377,11 +377,13 @@
                                             class="col-span-2 w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
                                             Accept
                                         </button>
-                                        <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
-                                            wire:loading.attr="disabled" type="button"
-                                            class="w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 rounded-md transition-colors">
-                                            Counter
-                                        </button>
+                                        @if($productData && isset($productData->id))
+                                            <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
+                                                wire:loading.attr="disabled" type="button"
+                                                class="w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 rounded-md transition-colors">
+                                                Counter
+                                            </button>
+                                        @endif
                                         <button wire:click="promptRejectOffer({{ $offerId }})" wire:loading.attr="disabled"
                                             class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
                                             Decline
@@ -415,16 +417,20 @@
                                 @elseif($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected)
                                     @if($messageType === 'offer_rejected' && $isOwnMessage)
                                         <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
-                                            @if(auth()->id() === ($offerData->seller_id ?? $productData->vendor_id ?? null)) {{-- Seller side Counter --}}
-                                                <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
-                                                    class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
-                                                    Offer your price
-                                                </button>
+                                            @if(auth()->id() === ($offerData->seller_id ?? ($productData->vendor_id ?? null))) {{-- Seller side Counter --}}
+                                                @if($productData && isset($productData->id))
+                                                    <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
+                                                        class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                        Offer your price
+                                                    </button>
+                                                @endif
                                             @else {{-- Buyer side New Offer --}}
-                                                <button @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $productData->id }} })"
-                                                    class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
-                                                    Offer your price
-                                                </button>
+                                                @if($productData && isset($productData->id))
+                                                    <button @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $productData->id }} })"
+                                                        class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                        Offer your price
+                                                    </button>
+                                                @endif
                                             @endif
                                         </div>
                                     @endif
