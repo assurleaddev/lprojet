@@ -40,28 +40,16 @@ class OrderObserver
     {
         // Check if status was changed to 'delivered'
         if ($order->isDirty('status') && $order->status === 'delivered') {
-            // Get the original status before the change
             $originalStatus = $order->getOriginal('status');
 
-            // Only process if this is the first time changing to delivered
             if ($originalStatus !== 'delivered') {
-                // Credit the vendor's balance using the WalletService
-                $vendor = $order->vendor;
-
-                // Calculate Payout Amount (Net)
-                // Use stored commission if available, otherwise recalculate (legacy support)
-                $commissionAmount = $order->platform_commission ?? ($order->amount * (config('settings.platform_commission_percentage', 0) / 100));
+                $commissionAmount = $order->platform_commission ?? 0;
                 $payoutAmount = $order->amount - $commissionAmount;
 
-                // Release the pending funds to available balance
                 try {
-                    $this->walletService->releasePendingFunds(
-                        $vendor,
-                        $payoutAmount,
-                        'order_' . $order->id
-                    );
+                    $this->walletService->releasePendingFunds($order->vendor, $payoutAmount, 'Order #' . $order->id);
                 } catch (\Exception $e) {
-                    // Handle error if pending balance is insufficient
+                    \Log::error("OrderObserver: Error releasing funds for Order #{$order->id}: " . $e->getMessage());
                 }
             }
         }
@@ -70,35 +58,23 @@ class OrderObserver
         if ($order->isDirty('status') && $order->status === 'cancelled') {
             $originalStatus = $order->getOriginal('status');
 
-            // Only process if this is the first time changing to cancelled
             if ($originalStatus !== 'cancelled') {
-                // If payment was made with wallet, refund the buyer
+                // Handle refunds via WalletService
                 if ($order->payment_method === 'wallet') {
-                    $buyer = $order->user;
-                    $refundBaseAmount = $order->total_amount ?? $order->amount;
-
-                    // Calculate Refund Commission (if any)
-                    $refundCommissionPercentage = config('settings.refund_commission_percentage', 0);
-                    $refundDeduction = $refundBaseAmount * ($refundCommissionPercentage / 100);
-                    $refundAmount = $refundBaseAmount - $refundDeduction;
-
-                    // Refund the total amount to the buyer
-                    $this->walletService->credit(
-                        $buyer,
-                        $refundAmount,
-                        'refund',
-                        'Order #' . $order->id . ' cancelled - Refund',
-                        'order_refund_' . $order->id
-                    );
+                    try {
+                        $this->walletService->refundOrder($order);
+                    } catch (\Exception $e) {
+                        \Log::error("OrderObserver: Error refunding Order #{$order->id}: " . $e->getMessage());
+                    }
                 }
 
                 // Set products back to available
                 if ($order->items()->exists()) {
                     foreach ($order->items as $item) {
-                        $item->product->update(['status' => 'approved']);
+                        $item->product->update(['status' => 'approved', 'buyer_id' => null]);
                     }
                 } elseif ($order->product) {
-                    $order->product->update(['status' => 'approved']);
+                    $order->product->update(['status' => 'approved', 'buyer_id' => null]);
                 }
             }
         }

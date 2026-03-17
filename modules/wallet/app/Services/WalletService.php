@@ -21,8 +21,17 @@ class WalletService
 
     public function credit(User $user, float $amount, string $type, ?string $description = null, ?string $referenceId = null): Transaction
     {
-        return DB::transaction(function () use ($user, $amount, $type, $description, $referenceId) {
-            $wallet = $this->getWallet($user);
+        return $this->creditWallet($this->getWallet($user), $amount, $type, $description, $referenceId);
+    }
+
+    public function debit(User $user, float $amount, string $type, ?string $description = null, ?string $referenceId = null): Transaction
+    {
+        return $this->debitWallet($this->getWallet($user), $amount, $type, $description, $referenceId);
+    }
+
+    public function creditWallet(Wallet $wallet, float $amount, string $type, ?string $description = null, ?string $referenceId = null): Transaction
+    {
+        return DB::transaction(function () use ($wallet, $amount, $type, $description, $referenceId) {
             $wallet->balance += $amount;
             $wallet->save();
 
@@ -35,11 +44,9 @@ class WalletService
         });
     }
 
-    public function debit(User $user, float $amount, string $type, ?string $description = null, ?string $referenceId = null): Transaction
+    public function debitWallet(Wallet $wallet, float $amount, string $type, ?string $description = null, ?string $referenceId = null): Transaction
     {
-        return DB::transaction(function () use ($user, $amount, $type, $description, $referenceId) {
-            $wallet = $this->getWallet($user);
-
+        return DB::transaction(function () use ($wallet, $amount, $type, $description, $referenceId) {
             if ($wallet->balance < $amount) {
                 throw new \Exception("Insufficient balance.");
             }
@@ -72,21 +79,68 @@ class WalletService
         });
     }
 
-    public function payToEscrow(User $buyer, User $vendor, float $totalAmount, float $itemPrice, string $referenceId)
+    public function getPlatformWallet(): Wallet
     {
-        return DB::transaction(function () use ($buyer, $vendor, $totalAmount, $itemPrice, $referenceId) {
+        return Wallet::firstOrCreate(
+            ['name' => 'platform'],
+            ['user_id' => null, 'balance' => 0, 'pending_balance' => 0]
+        );
+    }
+
+    public function payToEscrow(User $buyer, User $vendor, float $totalAmount, float $vendorNetPayout, string $referenceId, float $platformRevenue = 0)
+    {
+        return DB::transaction(function () use ($buyer, $vendor, $totalAmount, $vendorNetPayout, $referenceId, $platformRevenue) {
             // Debit the buyer for the FULL amount (Item + Shipping + Fees)
             $this->debit($buyer, $totalAmount, 'purchase', "Purchase from {$vendor->name} (Escrow)", $referenceId);
 
-            // Credit the vendor's PENDING balance with the Item Price only
-            // Fees and shipping might go to platform or be held elsewhere, but for now we focus on vendor payout.
+            // Credit the vendor's PENDING balance with the Net Payout only
             $vendorWallet = $this->getWallet($vendor);
-            $vendorWallet->pending_balance += $itemPrice;
+            $vendorWallet->pending_balance += $vendorNetPayout;
             $vendorWallet->save();
 
-            // Log the pending transaction? Or just rely on the wallet state?
-            // Let's create a transaction record for visibility, but maybe with a specific status if we had one.
-            // For now, we just update the pending balance column.
+            // Credit the platform wallet with Fees + Commission
+            if ($platformRevenue > 0) {
+                $platformWallet = $this->getPlatformWallet();
+                $this->creditWallet($platformWallet, $platformRevenue, 'platform_fee', "Fees from $referenceId", $referenceId);
+            }
+        });
+    }
+
+    public function refundOrder(\App\Models\Order $order)
+    {
+        return DB::transaction(function () use ($order) {
+            $buyer = $order->user;
+            $vendor = $order->vendor;
+
+            // 1. Calculate Refund Amount
+            $refundBaseAmount = $order->total_amount;
+            $refundCommissionPercentage = config('settings.refund_commission_percentage', 0);
+            $refundDeduction = $refundBaseAmount * ($refundCommissionPercentage / 100);
+            $refundAmount = $refundBaseAmount - $refundDeduction;
+
+            // 2. Reclaim funds from Vendor's PENDING balance
+            $commissionAmount = $order->platform_commission ?? 0;
+            $vendorNetPayout = $order->amount - $commissionAmount;
+
+            $vendorWallet = $this->getWallet($vendor);
+            if ($vendorWallet->pending_balance >= $vendorNetPayout) {
+                $vendorWallet->pending_balance -= $vendorNetPayout;
+                $vendorWallet->save();
+            }
+
+            // 3. Reclaim funds from Platform Account (Buyer Protection + Commission + Shipping if held)
+            $platformRevenue = ($order->total_amount - $order->amount) + ($order->platform_commission ?? 0);
+            if ($platformRevenue > 0) {
+                $platformWallet = $this->getPlatformWallet();
+                
+                // We debit the platform the amount they collected
+                if ($platformWallet->balance >= $platformRevenue) {
+                     $this->debitWallet($platformWallet, $platformRevenue, 'refund_debit', "Refund reversal for Order #{$order->id}", "order_refund_rev_{$order->id}");
+                }
+            }
+
+            // 4. Credit Buyer
+            $this->credit($buyer, $refundAmount, 'refund', "Order #{$order->id} cancelled - Refund", "order_refund_{$order->id}");
         });
     }
 

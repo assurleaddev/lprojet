@@ -51,14 +51,12 @@ class OrderLifecycleController extends Controller
             return back()->with('error', 'Order cannot be marked as received yet.');
         }
 
-        // 1. Release Funds to Vendor
+        // --- Simplified: Just update status, Observer handles the money ---
         try {
-            $this->walletService->releasePendingFunds($order->vendor, $order->amount, 'Order #' . $order->id);
+            // Update Order Status to delivered (or completed)
+            $order->update(['status' => 'delivered']); 
 
-            // 2. Update Order Status
-            $order->update(['status' => 'delivered']); // or 'completed'
-
-            // 3. Notify Vendor via Chat
+            // Notify Vendor via Chat
             $conversation = $this->chatService->getOrCreateConversation($order->user, $order->vendor, $order->product);
             $this->chatService->sendMessage($conversation, auth()->user(), "I have received the item! Everything is great. Funds have been released.");
 
@@ -68,7 +66,8 @@ class OrderLifecycleController extends Controller
             return back()->with('success', 'Order completed and funds released!');
 
         } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
+            \Log::error("OrderLifecycleController: Error marking as received: " . $e->getMessage());
+            return back()->with('error', "Something went wrong. Please try again.");
         }
     }
 }

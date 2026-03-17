@@ -91,13 +91,14 @@ class CheckoutController extends Controller
         $platformCommission = $amount * ($platformCommissionPercentage / 100);
 
         $totalAmount = $amount + $shippingCost + $buyerProtectionFee;
+        $platformRevenue = $buyerProtectionFee + $platformCommission + $shippingCost;
 
         // Vendor Payout = Item Price - Commission
         $vendorPayout = $amount - $platformCommission;
 
         if ($paymentMethod === 'wallet') {
             try {
-                $this->walletService->payToEscrow($user, $vendor, $totalAmount, $vendorPayout, 'Order #' . time());
+                $this->walletService->payToEscrow($user, $vendor, $totalAmount, $vendorPayout, 'Order #' . time(), $platformRevenue);
             } catch (\Exception $e) {
                 return back()->with('error', $e->getMessage());
             }
