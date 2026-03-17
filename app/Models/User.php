@@ -53,6 +53,8 @@ class User extends Authenticatable
         'phone_verified_at',
         'phone_verification_code',
         'phone_verification_code_expires_at',
+        'verification_code',
+        'verification_code_expires_at',
     ];
 
     /**
@@ -76,6 +78,7 @@ class User extends Authenticatable
         'banned_at' => 'datetime',
         'phone_verified_at' => 'datetime',
         'phone_verification_code_expires_at' => 'datetime',
+        'verification_code_expires_at' => 'datetime',
     ];
 
     /**
@@ -317,5 +320,21 @@ class User extends Authenticatable
             ->whereNotIn('data->type', self::getChatNotificationTypes())
             ->take($limit)
             ->get();
+    }
+
+    /**
+     * Generate a new verification code for the user.
+     *
+     * @return string
+     */
+    public function generateVerificationCode(): string
+    {
+        $code = (string) rand(1000, 9999);
+        $this->update([
+            'verification_code' => $code,
+            'verification_code_expires_at' => now()->addMinutes(60),
+        ]);
+
+        return $code;
     }
 }
