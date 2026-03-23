@@ -31,9 +31,9 @@
 
     <form x-ref="searchForm" action="{{ route('search') }}" method="GET"
         class="w-full flex items-center {{ $attributes->get('class') }}">
-        <div <div class="relative z-[60]" x-data="{ openType: false }">
+        <div class="relative z-[60]" x-data="{ openType: false }">
             <button type="button" @click="openType = !openType" @click.away="openType = false"
-                class="flex items-center gap-2 bg-gray-50 border-r border-gray-200 rounded-l-lg hover:bg-gray-100 transition-colors py-2.5 pl-4 pr-3 cursor-pointer h-full">
+                class="flex items-center gap-2 bg-gray-50 border-r border-gray-200 rounded-l-lg hover:bg-gray-100 transition-colors py-1.5 pl-3 pr-2 md:py-2.5 md:pl-4 md:pr-3 cursor-pointer h-full">
                 <span class="text-sm font-medium text-gray-700"
                     x-text="type === 'product' ? 'Items' : 'Members'"></span>
                 <svg class="h-4 w-4 text-gray-500 transition-transform duration-200" :class="{'rotate-180': openType}"
@@ -64,14 +64,14 @@
             <input type="hidden" name="type" x-model="type">
         </div>
 
-        <div class="flex-1 relative">
+        <div class="flex-1 relative bg-gray-50 rounded-r-lg border border-transparent focus-within:bg-white focus-within:border-gray-300 transition-colors">
             <svg class="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" viewBox="0 0 24 24" fill="none"
                 stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 10-14 0 7 7 0 0014 0z">
                 </path>
             </svg>
             <input type="text" name="query" x-model="query" @input.debounce.300ms="fetchSuggestions()"
-                class="search-input pl-10 w-full focus:outline-none" placeholder="Search for items or members"
+                class="search-input w-full bg-transparent focus:outline-none text-sm py-1.5 md:py-2.5 pl-10 pr-3 rounded-r-lg" placeholder="Search for items or members"
                 autocomplete="off">
 
             <!-- Loading Indicator -->

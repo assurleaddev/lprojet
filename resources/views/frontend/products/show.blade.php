@@ -42,9 +42,9 @@
 @endsection
 @section('content')
     {{-- {{ dd($product->media[0]) }} --}}
-    <main class="bg-vinted-gray-100">
-        <div class="container mx-auto px-6 py-6">
-            <nav class="text-xs text-vinted-gray-500 mb-4 space-x-1.5 flex flex-wrap items-center">
+    <main class="bg-vinted-gray-100 pb-20 md:pb-0">
+        <div class="container mx-auto px-0 md:px-6 py-0 md:py-6">
+            <nav class="px-4 md:px-0 text-xs text-vinted-gray-500 mb-4 mt-4 md:mt-0 space-x-1.5 flex flex-wrap items-center">
                 @foreach($breadcrumbs as $category)
                     <a href="{{ route('search', ['categories' => [$category->id]]) }}"
                         class="hover:underline">{{ $category->name }}</a>
@@ -57,22 +57,71 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 <div class="lg:col-span-8 relative ">
-                    <div class="grid grid-cols-2 gap-1.5 ">
-                        <img src="{{ $product->getFeaturedImageUrl() }}" alt="Main product image of brown flare jeans"
-                            class="w-full h-[800px] object-cover col cursor-pointer product-gallery-image">
-                        <div class="h-[800px] grid grid-rows-2 gap-1.5 grid-cols-2">
-                            @forelse ($product->getMedia('products') as $media)
-                                @if ($loop->index < 4)
-                                    <img src="{{ $media->getUrl() }}" alt="Close up of jeans fabric"
-                                        class="w-full h-[397px] object-cover cursor-pointer product-gallery-image">
-                                @endif
-                            @empty
-                                no other images
-                            @endforelse
+                    @php
+                        $mediaItems = $product->getMedia('products');
+                        $mediaCount = $mediaItems->count();
+                        $featuredUrl = $mediaCount > 0 ? $mediaItems[0]->getUrl() : $product->getFeaturedImageUrl();
+                    @endphp
 
-                        </div>
-
-                    </div>
+                        @if($mediaCount <= 1)
+                            <div class="w-full">
+                                <img src="{{ $featuredUrl }}" alt="{{ $product->name }}"
+                                    class="w-full h-[400px] md:h-[600px] lg:h-[800px] object-cover cursor-pointer product-gallery-image rounded">
+                            </div>
+                        @elseif($mediaCount == 2)
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <img src="{{ $featuredUrl }}" alt="{{ $product->name }}"
+                                    class="w-full h-[400px] md:h-[600px] lg:h-[800px] object-cover cursor-pointer product-gallery-image rounded-l">
+                                <img src="{{ $mediaItems[1]->getUrl() }}" alt="{{ $product->name }}"
+                                    class="w-full h-[400px] md:h-[600px] lg:h-[800px] object-cover cursor-pointer product-gallery-image rounded-r">
+                            </div>
+                        @elseif($mediaCount == 3)
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <img src="{{ $featuredUrl }}" alt="{{ $product->name }}"
+                                    class="w-full h-[400px] md:h-[600px] lg:h-[800px] object-cover cursor-pointer product-gallery-image rounded-l">
+                                <div class="grid grid-rows-2 gap-1.5 h-[400px] md:h-[600px] lg:h-[800px]">
+                                    <img src="{{ $mediaItems[1]->getUrl() }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover cursor-pointer product-gallery-image rounded-tr">
+                                    <img src="{{ $mediaItems[2]->getUrl() }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover cursor-pointer product-gallery-image rounded-br">
+                                </div>
+                            </div>
+                        @elseif($mediaCount == 4)
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <img src="{{ $featuredUrl }}" alt="{{ $product->name }}"
+                                    class="w-full h-[400px] md:h-[600px] lg:h-[800px] object-cover cursor-pointer product-gallery-image rounded-l">
+                                <div class="grid grid-rows-2 gap-1.5 h-[400px] md:h-[600px] lg:h-[800px]">
+                                    <img src="{{ $mediaItems[1]->getUrl() }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover cursor-pointer product-gallery-image rounded-tr">
+                                    <div class="grid grid-cols-2 gap-1.5 h-full">
+                                        <img src="{{ $mediaItems[2]->getUrl() }}" alt="{{ $product->name }}"
+                                            class="w-full h-full object-cover cursor-pointer product-gallery-image">
+                                        <img src="{{ $mediaItems[3]->getUrl() }}" alt="{{ $product->name }}"
+                                            class="w-full h-full object-cover cursor-pointer product-gallery-image rounded-br">
+                                    </div>
+                                </div>
+                            </div>
+                        @else
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <img src="{{ $featuredUrl }}" alt="{{ $product->name }}"
+                                    class="w-full h-[400px] md:h-[600px] lg:h-[800px] object-cover cursor-pointer product-gallery-image rounded-l">
+                                <div class="grid grid-rows-2 grid-cols-2 gap-1.5 h-[400px] md:h-[600px] lg:h-[800px]">
+                                    <img src="{{ $mediaItems[1]->getUrl() }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover cursor-pointer product-gallery-image">
+                                    <img src="{{ $mediaItems[2]->getUrl() }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover cursor-pointer product-gallery-image rounded-tr">                                    <img src="{{ $mediaItems[3]->getUrl() }}" alt="{{ $product->name }}"
+                                        class="w-full h-full object-cover cursor-pointer product-gallery-image">
+                                    <div class="relative w-full h-full cursor-pointer group overflow-hidden rounded-br" onclick="this.querySelector('img').click()">
+                                        <img src="{{ $mediaItems[4]->getUrl() }}" alt="{{ $product->name }}" class="w-full h-full object-cover product-gallery-image group-hover:scale-105 transition-transform duration-500">
+                                        @if($mediaCount > 5)
+                                            <div class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-3xl font-bold group-hover:bg-black/50 transition duration-300">
+                                                +{{ $mediaCount - 5 }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @php
                         $liked = auth()->check() && $product->isFavorited();
                         $count = $product->favoritedBy()->count();
@@ -286,7 +335,24 @@
                                     </div>
                                 @else
                                     {{-- Buyer Actions --}}
-                                    @if($product->status === 'reserved' && $product->buyer_id !== auth()->id())
+                                    <div class="hidden md:block md:space-y-3">
+                                        @if($product->status === 'reserved' && $product->buyer_id !== auth()->id())
+                                            <button disabled
+                                                class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Reserved</button>
+                                        @else
+                                            <a href="{{ route('product.checkout', $product) }}"
+                                                class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm"
+                                                style="background-color: var(--brand)">
+                                                Buy now
+                                            </a>
+                                            @livewire('product-messaging-button', ['product' => $product, 'class' => 'w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm', 'style' => 'border-color: var(--brand); color: var(--brand)', 'text' => 'Ask seller'])
+                                        @endif
+                                    </div>
+                                @endif
+                            @else
+                                {{-- Guest Actions --}}
+                                <div class="hidden md:block md:space-y-3">
+                                    @if($product->status === 'reserved')
                                         <button disabled
                                             class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Reserved</button>
                                     @else
@@ -295,26 +361,13 @@
                                             style="background-color: var(--brand)">
                                             Buy now
                                         </a>
-                                        @livewire('product-messaging-button', ['product' => $product, 'class' => 'w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm', 'style' => 'border-color: var(--brand); color: var(--brand)', 'text' => 'Ask seller'])
+                                        <button type="button" @click="$dispatch('open-auth-modal')"
+                                            class="w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm"
+                                            style="border-color: var(--brand); color: var(--brand)">
+                                            Ask seller
+                                        </button>
                                     @endif
-                                @endif
-                            @else
-                                {{-- Guest Actions --}}
-                                @if($product->status === 'reserved')
-                                    <button disabled
-                                        class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Reserved</button>
-                                @else
-                                    <a href="{{ route('product.checkout', $product) }}"
-                                        class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm"
-                                        style="background-color: var(--brand)">
-                                        Buy now
-                                    </a>
-                                    <button type="button" @click="$dispatch('open-auth-modal')"
-                                        class="w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm"
-                                        style="border-color: var(--brand); color: var(--brand)">
-                                        Ask seller
-                                    </button>
-                                @endif
+                                </div>
                             @endauth
                         </div>
 
@@ -418,16 +471,16 @@
             </div>
 
 
-            <section class="mt-8 p-6">
-                <div class="flex justify-between items-center mb-4">
+            <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6 md:p-6 bg-white md:bg-transparent">
+                <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Member's items</h2>
                     <a href="{{ route('search', ['vendor_id' => $product->vendor->id]) }}"
                         class="text-sm font-semibold hover:underline" style="color: var(--brand)">Voir tout</a>
                 </div>
-                <div class="relative w-2/3">
-                    <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
+                <div class="relative w-full md:w-2/3">
+                    <div class="grid grid-cols-2 gap-3 md:flex md:gap-0 md:space-x-4 md:flex-wrap md:overflow-x-auto pb-4 custom-scrollbar">
                         @forelse ($product->vendor->products as $item)
-                            <div class="flex-shrink-0 w-40 block relative group">
+                            <div class="w-full md:flex-shrink-0 md:w-40 block relative group">
                                 <a href="{{ route('products.show', $item) }}"
                                     class="block hover:opacity-80 transition relative">
                                     <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
@@ -466,16 +519,16 @@
                     </div>
                 </div>
             </section>
-            <section class="mt-8 p-6">
-                <div class="flex justify-between items-center mb-4">
+            <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6 md:p-6 bg-white md:bg-transparent">
+                <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Similar products</h2>
                     <a href="{{ route('search', ['categories' => [$product->category_id]]) }}"
                         class="text-sm font-semibold hover:underline" style="color: var(--brand)">Voir tout</a>
                 </div>
-                <div class="relative w-2/3">
-                    <div class="flex space-x-4 flex-wrap overflow-x-auto pb-4 custom-scrollbar">
+                <div class="relative w-full md:w-2/3">
+                    <div class="grid grid-cols-2 gap-3 md:flex md:gap-0 md:space-x-4 md:flex-wrap md:overflow-x-auto pb-4 custom-scrollbar">
                         @forelse ($similarProducts as $item)
-                            <div class="flex-shrink-0 w-40 block relative group">
+                            <div class="w-full md:flex-shrink-0 md:w-40 block relative group">
                                 <a href="{{ route('products.show', $item) }}"
                                     class="block hover:opacity-80 transition relative">
                                     <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
@@ -711,6 +764,26 @@
             </div>
         </div>
 
+        @if(!auth()->check() || auth()->id() !== $product->vendor_id)
+            {{-- Floating Bottom Action Bar for Mobile --}}
+            <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] flex gap-3 md:hidden z-50">
+                @auth
+                    @if($product->status === 'reserved' && $product->buyer_id !== auth()->id())
+                        <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Reserved</button>
+                    @else
+                        <button type="button" @click="$dispatch('open-make-offer-modal', { productId: {{ $product->id }} })" class="flex-1 py-2.5 bg-white border font-bold rounded transition-colors text-sm text-center" style="border-color: var(--brand); color: var(--brand)">Make an offer</button>
+                        <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base" style="background-color: var(--brand)">Buy now</a>
+                    @endif
+                @else
+                    @if($product->status === 'reserved')
+                        <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Reserved</button>
+                    @else
+                        <button type="button" @click="$dispatch('open-auth-modal')" class="flex-1 py-2.5 bg-white border font-bold rounded transition-colors text-sm text-center" style="border-color: var(--brand); color: var(--brand)">Make an offer</button>
+                        <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base" style="background-color: var(--brand)">Buy now</a>
+                    @endif
+                @endauth
+            </div>
+        @endif
     </main>
 @endsection
 
