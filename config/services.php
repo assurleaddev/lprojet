@@ -57,6 +57,7 @@ return [
         'auth_token' => env('TWILIO_AUTH_TOKEN', env('TWILIO_TOKEN')),
         'token' => env('TWILIO_TOKEN'),
         'from' => env('TWILIO_FROM'),
+        'whatsapp_from' => env('TWILIO_WHATSAPP_FROM'),
         'verify_sid' => env('TWILIO_VERIFY_SID'),
         'phone_verification_enabled' => env('PHONE_VERIFICATION_ENABLED', true),
     ],

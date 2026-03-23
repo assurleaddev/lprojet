@@ -29,31 +29,48 @@ class TwilioVerifyTestController extends Controller
     }
 
     /**
-     * Send a verification code to the given phone number.
+     * Generate and send a custom OTP via WhatsApp.
      */
     public function sendCode(Request $request)
     {
         $request->validate([
             'phone' => 'required|string',
-            'channel' => 'required|in:sms,call,whatsapp',
         ]);
 
         try {
             $client = $this->getTwilioClient();
+            
+            // Generate a random 6-digit OTP
+            $otp = (string) random_int(100000, 999999);
+            
+            // Store it in the cache for 10 minutes
+            \Illuminate\Support\Facades\Cache::put('whatsapp_otp_' . $request->phone, $otp, now()->addMinutes(10));
+            
+            // Formatting numbers for WhatsApp
+            $to = str_starts_with($request->phone, 'whatsapp:') ? $request->phone : 'whatsapp:' . $request->phone;
+            $from = config('services.twilio.whatsapp_from'); // e.g. whatsapp:+14155238886
+            
+            if (!$from) {
+                return back()->with('error', 'TWILIO_WHATSAPP_FROM is not configured.');
+            }
 
-            $verification = $client->verify->v2
-                ->services(config('services.twilio.verify_sid'))
-                ->verifications
-                ->create($request->phone, $request->channel);
+            // Send via Programmable Messaging API
+            $message = $client->messages->create(
+                $to,
+                [
+                    'from' => $from,
+                    'body' => "Your verification code is {$otp}. It will expire in 10 minutes."
+                ]
+            );
 
-            return back()->with('success', "Verification code sent via {$request->channel} to {$request->phone}. Status: {$verification->status}");
+            return back()->with('success', "WhatsApp OTP sent to {$request->phone}. Message SID: {$message->sid}");
         } catch (\Exception $e) {
             return back()->with('error', "Failed to send code: {$e->getMessage()}")->withInput();
         }
     }
 
     /**
-     * Check a verification code.
+     * Check a custom WhatsApp OTP.
      */
     public function checkCode(Request $request)
     {
@@ -63,20 +80,19 @@ class TwilioVerifyTestController extends Controller
         ]);
 
         try {
-            $client = $this->getTwilioClient();
+            $cachedCode = \Illuminate\Support\Facades\Cache::get('whatsapp_otp_' . $request->phone);
 
-            $verificationCheck = $client->verify->v2
-                ->services(config('services.twilio.verify_sid'))
-                ->verificationChecks
-                ->create([
-                    'to' => $request->phone,
-                    'code' => $request->code,
-                ]);
+            if (!$cachedCode) {
+                return back()->with('error', "❌ Verification failed. Code has expired or was not found for this number.")->withInput();
+            }
 
-            if ($verificationCheck->status === 'approved') {
-                return back()->with('success', "✅ Phone verified successfully! Status: {$verificationCheck->status}");
+            if ((string)$cachedCode === (string)$request->code) {
+                // Clear the cache after successful verification
+                \Illuminate\Support\Facades\Cache::forget('whatsapp_otp_' . $request->phone);
+                
+                return back()->with('success', "✅ Phone verified successfully via WhatsApp!");
             } else {
-                return back()->with('error', "❌ Verification failed. Status: {$verificationCheck->status}")->withInput();
+                return back()->with('error', "❌ Verification failed. Incorrect code.")->withInput();
             }
         } catch (\Exception $e) {
             return back()->with('error', "Verification check failed: {$e->getMessage()}")->withInput();

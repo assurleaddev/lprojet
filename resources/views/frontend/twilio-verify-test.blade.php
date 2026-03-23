@@ -86,38 +86,12 @@
                             @error('phone') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-medium text-gray-600 mb-1">Channel</label>
-                            <div class="flex gap-2">
-                                <label class="flex-1 cursor-pointer">
-                                    <input type="radio" name="channel" value="sms" class="sr-only peer" checked>
-                                    <div class="text-center text-sm font-medium py-2 rounded-lg border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 transition-colors"
-                                        style="peer-checked:color: var(--brand)">
-                                        📱 SMS
-                                    </div>
-                                </label>
-                                <label class="flex-1 cursor-pointer">
-                                    <input type="radio" name="channel" value="call" class="sr-only peer">
-                                    <div
-                                        class="text-center text-sm font-medium py-2 rounded-lg border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 transition-colors">
-                                        📞 Call
-                                    </div>
-                                </label>
-                                <label class="flex-1 cursor-pointer">
-                                    <input type="radio" name="channel" value="whatsapp" class="sr-only peer">
-                                    <div
-                                        class="text-center text-sm font-medium py-2 rounded-lg border-2 border-gray-200 peer-checked:border-red-500 peer-checked:bg-red-50 transition-colors">
-                                        💬 WhatsApp
-                                    </div>
-                                </label>
-                            </div>
-                            @error('channel') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
-                        </div>
+                        <!-- Channel choice removed as we force WhatsApp in backend -->
 
                         <button type="submit"
-                            class="w-full py-2.5 text-white text-sm font-bold rounded-lg hover:opacity-90 transition"
+                            class="w-full py-2.5 text-white text-sm font-bold rounded-lg hover:opacity-90 transition mt-4"
                             style="background-color: var(--brand)">
-                            Send Code
+                            Send WhatsApp Code
                         </button>
                     </form>
                 </div>
@@ -150,7 +124,7 @@
                         <button type="submit"
                             class="w-full py-2.5 text-white text-sm font-bold rounded-lg hover:opacity-90 transition"
                             style="background-color: var(--brand)">
-                            Verify Code
+                            Verify WhatsApp Code
                         </button>
                     </form>
                 </div>
@@ -164,13 +138,12 @@
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="text-xs text-blue-800 space-y-1">
-                    <p class="font-bold">Required .env variables:</p>
+                    <p class="font-bold">Required .env variables for Custom WhatsApp OTP:</p>
                     <pre class="bg-blue-100 p-2 rounded text-[11px] font-mono">TWILIO_SID=your_account_sid
-    TWILIO_AUTH_TOKEN=your_auth_token
-    TWILIO_VERIFY_SID=your_verify_service_sid</pre>
+TWILIO_AUTH_TOKEN=your_auth_token
+TWILIO_WHATSAPP_FROM=whatsapp:+14155238886</pre>
                     <p class="mt-2">Get these from your <a href="https://console.twilio.com" target="_blank"
-                            class="underline font-bold">Twilio Console</a>. The Verify Service SID starts with
-                        <code>VA</code>.</p>
+                            class="underline font-bold">Twilio Console</a>.</p>
                 </div>
             </div>
         </section>

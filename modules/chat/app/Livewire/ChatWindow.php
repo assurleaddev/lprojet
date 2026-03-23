@@ -597,24 +597,23 @@ class ChatWindow extends Component
 
     public function markAsShipped(ChatService $chatService)
     {
-        // Attempt to find the specific order using the offer ID or product ID
-
-        
-        $activeOfferId = $this->conversation->messages()
+        $offerIds = $this->conversation->messages()
             ->whereNotNull('offer_id')
-            ->whereHas('offer', function($q) {
-                $q->whereIn('status', [\Modules\Chat\Enums\OfferStatus::Accepted->value, 'accepted']);
-            })
-            ->latest()
-            ->first()?->offer_id;
+            ->pluck('offer_id')
+            ->unique()
+            ->toArray();
 
-        $order = \App\Models\Order::when($activeOfferId, function($q) use ($activeOfferId) {
-                $q->where('offer_id', $activeOfferId);
-            }, function($q) {
-                $q->where('product_id', $this->conversation->product_id);
-            })
-            ->where('vendor_id', Auth::id())
+        $order = \App\Models\Order::where('vendor_id', Auth::id())
             ->whereIn('status', ['processing', 'pending'])
+            ->where(function ($query) use ($offerIds) {
+                if ($this->conversation->product_id) {
+                    $query->where('product_id', $this->conversation->product_id);
+                }
+                
+                if (!empty($offerIds)) {
+                    $query->orWhereIn('offer_id', $offerIds);
+                }
+            })
             ->latest()
             ->first();
 

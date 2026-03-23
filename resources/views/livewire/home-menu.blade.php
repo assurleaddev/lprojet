@@ -109,4 +109,38 @@
         @endforeach
         
     </div>
+
+    <!-- Mobile Categories via Teleport -->
+    <template x-teleport="#mobile-categories-teleport">
+        <div class="flex flex-col w-full md:hidden">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">Categories</h3>
+            @foreach($categories as $category)
+                <div x-data="{ open: false }" class="border-b border-gray-50 last:border-0">
+                    <button @click="open = !open" class="flex items-center justify-between w-full py-3 px-2 text-left text-gray-700 hover:text-teal-600 font-medium transition-colors">
+                        {{ $category->name }}
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <!-- Subcategories -->
+                    <div x-show="open" class="bg-gray-50 px-4 py-2 rounded-md mb-2" style="display: none;"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="opacity-0 -translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="opacity-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 -translate-y-2">
+                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-teal-600 font-medium hover:underline">See all {{ $category->name }}</a>
+                        @foreach($category->children as $child)
+                            <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="block py-2 text-sm text-gray-600 hover:text-teal-600">
+                                {{ $child->name }}
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endforeach
+            <div class="mt-4 border-t border-gray-100 pt-4 px-2">
+                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">About</a>
+                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">Our Platform</a>
+            </div>
+        </div>
+    </template>
 </div>
