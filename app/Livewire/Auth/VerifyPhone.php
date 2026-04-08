@@ -36,27 +36,28 @@ class VerifyPhone extends Component
         $user->phone_verification_code_expires_at = now()->addMinutes(10);
         $user->save();
 
-        // Send SMS via Twilio
+        // Send verification code via SMS (Alphanumeric Sender ID)
         try {
             $sid = config('services.twilio.sid');
             $token = config('services.twilio.token');
-            $from = config('services.twilio.from');
+            $from = config('services.twilio.from'); // Set TWILIO_FROM=Malabiss in .env
 
-            \Illuminate\Support\Facades\Log::info("Attempting to send SMS. SID: " . substr($sid, 0, 5) . "..., From: $from, To: " . $this->country_code . $this->phone_number);
+            $to = $this->country_code . $this->phone_number;
+
+            \Illuminate\Support\Facades\Log::info("Attempting to send SMS. SID: " . substr($sid, 0, 5) . "..., From: $from, To: $to");
 
             if ($sid && $token && $from) {
                 $client = new \Twilio\Rest\Client($sid, $token);
-                // Fix for local SSL certificate issues
                 $client->setHttpClient(new \Twilio\Http\CurlClient([
                     CURLOPT_SSL_VERIFYHOST => 0,
                     CURLOPT_SSL_VERIFYPEER => 0,
                 ]));
 
                 $message = $client->messages->create(
-                    $this->country_code . $this->phone_number,
+                    $to,
                     [
                         'from' => $from,
-                        'body' => "Votre code de vérification est : {$code}"
+                        'body' => "Votre code de vérification est : {$code}",
                     ]
                 );
                 \Illuminate\Support\Facades\Log::info("SMS Sent Successfully. SID: " . $message->sid);
@@ -65,8 +66,6 @@ class VerifyPhone extends Component
             }
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\Log::error("Twilio SMS Error: " . $e->getMessage());
-            // Log error or handle it. For now, we proceed to let user enter code (maybe they got it, or we assume dev env)
-            // session()->flash('error', 'Erreur d\'envoi SMS: ' . $e->getMessage());
         }
 
         return redirect()->route('auth.verify_phone_code');
