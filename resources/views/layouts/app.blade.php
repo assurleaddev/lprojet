@@ -354,6 +354,13 @@ $nextTick(() => {
     @stack('scripts')
 
     <script>
+        function itemListedModal(initialProduct) {
+            return {
+                show: initialProduct !== null,
+                product: initialProduct,
+            };
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('login_required')) {

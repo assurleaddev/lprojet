@@ -390,14 +390,7 @@
                                         </button>
                                     </div>
 
-                                    {{-- 2. Buyer seeing their own Pending Offer (Can withdraw) --}}
-                                @elseif($messageType === 'offer_made' && $offerStatus === \Modules\Chat\Enums\OfferStatus::Pending && $isOwnMessage && $offerId)
-                                    <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
-                                        <button wire:click="withdrawOffer({{ $offerId }})" wire:loading.attr="disabled"
-                                            class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
-                                            Withdraw Offer
-                                        </button>
-                                    </div>
+                                    {{-- 2. Buyer seeing their own Pending Offer --}}
 
                                     {{-- 3. Buyer receiving Counter Offer --}}
                                 @elseif($messageType === 'offer_countered' && $offerStatus === \Modules\Chat\Enums\OfferStatus::AwaitingBuyer && !$isOwnMessage && $offerId)

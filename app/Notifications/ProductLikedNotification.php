@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -53,8 +52,9 @@ class ProductLikedNotification extends Notification implements ShouldBroadcast
             'type' => 'product_liked',
             'liker_id' => $this->liker->id,
             'product_id' => $this->product->id,
+            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
             'message' => "{$this->liker->full_name} liked your product {$this->product->name}.",
-            'url' => route('products.show', $this->product),
+            'url' => route('chat.start-with-user', ['user_id' => $this->liker->id, 'product_id' => $this->product->id]),
         ]);
     }
 
@@ -64,8 +64,9 @@ class ProductLikedNotification extends Notification implements ShouldBroadcast
             'type' => 'product_liked',
             'liker_id' => $this->liker->id,
             'product_id' => $this->product->id,
+            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
             'message' => "{$this->liker->full_name} liked your product {$this->product->name}.",
-            'url' => route('products.show', $this->product),
+            'url' => route('chat.start-with-user', ['user_id' => $this->liker->id, 'product_id' => $this->product->id]),
         ];
     }
 
@@ -74,7 +75,7 @@ class ProductLikedNotification extends Notification implements ShouldBroadcast
      */
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('New Like on your product')
             ->greeting("Hello {$notifiable->first_name},")
             ->line("{$this->liker->full_name} liked your product: {$this->product->name}.")

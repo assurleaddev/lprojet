@@ -91,7 +91,7 @@
                         @else
                             <div class="p-4 text-center text-gray-500 text-sm">No addresses found.</div>
                         @endif
-                        <a href="{{ route('settings.postage') }}" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors group">
+                        <a href="{{ route('settings.postage', ['redirect_to' => url()->current()]) }}" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors group">
                             <span class="text-gray-600 font-medium">Add a new address</span>
                             <span class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 group-hover:border-brand group-hover:text-brand pb-0.5" style="border-color: var(--brand); color: var(--brand)">+</span>
                         </a>

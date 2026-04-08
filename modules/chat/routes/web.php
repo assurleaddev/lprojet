@@ -3,7 +3,6 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Chat\Http\Controllers\ChatController;
 use Modules\Chat\Livewire\ChatDashboard; // You would create a parent component called ChatDashboard
-use Modules\Chat\Livewire\ChatWindow;
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('chats', ChatController::class)->names('chat');
@@ -16,4 +15,8 @@ Route::middleware(['web', 'auth'])->prefix('chat')->group(function () {
     // Main chat dashboard
     Route::get('/', ChatDashboard::class)
         ->name('chat.dashboard');
+
+    // Start / open a conversation with a specific user (used by notifications)
+    Route::get('/start', [ChatController::class, 'startWithUser'])
+        ->name('chat.start-with-user');
 });

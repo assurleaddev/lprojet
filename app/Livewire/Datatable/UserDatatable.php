@@ -51,6 +51,7 @@ class UserDatatable extends Datatable
         return [
             [
                 'id' => 'role',
+                'type' => 'searchable',
                 'label' => __('Role'),
                 'filterLabel' => __('Filter by Role'),
                 'icon' => 'lucide:sliders',

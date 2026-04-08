@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use Spatie\Image\Enums\Fit;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
@@ -23,9 +24,8 @@ class Product extends Model implements HasMedia
         'status',
         'brand_id',
         'condition',
-        'size'
+        'size',
     ];
-
 
     protected static function booted()
     {
@@ -70,7 +70,6 @@ class Product extends Model implements HasMedia
     {
         return $this->hasMany(ProductImage::class);
     }
-
 
     public function vendor()
     {
@@ -121,8 +120,9 @@ class Product extends Model implements HasMedia
      */
     public function registerMediaConversions(?PMedia $media = null): void
     {
+        // Card grid conversion: crop to portrait (3:4) so object-fit:cover needs no browser zoom
         $this->addMediaConversion('preview')
-            ->fit(Fit::Max, 800, 800)
+            ->fit(Fit::Crop, 600, 800)
             ->quality(90)
             ->nonQueued();
 
@@ -147,7 +147,7 @@ class Product extends Model implements HasMedia
     {
         $media = $this->getFirstMedia('featured');
 
-        if (!$media) {
+        if (! $media) {
             return null;
         }
 
@@ -156,8 +156,9 @@ class Product extends Model implements HasMedia
 
     public function getColorAttribute($value): ?string
     {
-        if ($value)
+        if ($value) {
             return $value;
+        }
         // Check for 'Couleurs' or 'Colors' or 'Color'
         $colorOptions = $this->options->filter(function ($option) {
             return in_array(optional($option->attribute)->name, ['Couleurs', 'Colors', 'Color', 'Couleur']);
@@ -168,8 +169,9 @@ class Product extends Model implements HasMedia
 
     public function getSizeAttribute($value): ?string
     {
-        if ($value)
+        if ($value) {
             return $value;
+        }
         // Check for 'Tailles' or 'Size' or 'Sizes'
         $sizeOption = $this->options->first(function ($option) {
             return in_array(optional($option->attribute)->name, ['Tailles', 'Size', 'Sizes', 'Taille']);
@@ -188,11 +190,11 @@ class Product extends Model implements HasMedia
         $this->options->loadMissing('attribute');
 
         $bySlug = $this->options
-            ->groupBy(fn($o) => optional($o->attribute)->slug ?? (string) $o->attribute_id)
-            ->map(fn($grp) => $grp->pluck('value')->implode(' / '));
+            ->groupBy(fn ($o) => optional($o->attribute)->slug ?? (string) $o->attribute_id)
+            ->map(fn ($grp) => $grp->pluck('value')->implode(' / '));
 
         $parts = collect($orderedSlugs)
-            ->map(fn($slug) => $bySlug[$slug] ?? null)
+            ->map(fn ($slug) => $bySlug[$slug] ?? null)
             ->filter()
             ->values();
 

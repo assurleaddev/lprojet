@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -47,6 +46,7 @@ class NewProductNotification extends Notification implements ShouldBroadcast
             'type' => 'new_product',
             'product_id' => $this->product->id,
             'vendor_id' => $this->product->vendor_id,
+            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
             'message' => "New product from {$this->product->vendor->full_name}: {$this->product->name}",
             'url' => route('products.show', $this->product),
         ]);
@@ -58,6 +58,7 @@ class NewProductNotification extends Notification implements ShouldBroadcast
             'type' => 'new_product',
             'product_id' => $this->product->id,
             'vendor_id' => $this->product->vendor_id,
+            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
             'message' => "New product from {$this->product->vendor->full_name}: {$this->product->name}",
             'url' => route('products.show', $this->product),
         ];
@@ -65,7 +66,7 @@ class NewProductNotification extends Notification implements ShouldBroadcast
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject("New Product from " . $this->product->vendor->full_name)
             ->line("{$this->product->vendor->full_name} has just uploaded a new item: {$this->product->name}")
             ->action('View Product', route('products.show', $this->product))

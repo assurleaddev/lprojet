@@ -259,7 +259,7 @@
                         <!-- Shipping Estimates -->
                         <div class="flex justify-between items-center text-sm mb-6">
                             <span class="text-gray-500">Shipping</span>
-                            <span class="text-gray-700">from 25.00 MAD</span>
+                            <span class="text-gray-700">from {{ number_format($deliveryFeeFixed, 2) }} MAD</span>
                         </div>
 
                         <!-- Action Buttons -->

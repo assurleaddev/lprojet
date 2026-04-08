@@ -450,14 +450,7 @@
                                         }
                                         alert(errorMsg);
                                     } else if (data.message) {
-                                        if (data.product) {
-                                            // Dispatch event to show client-side modal
-                                            window.dispatchEvent(new CustomEvent('item-listed', {
-                                                detail: {
-                                                    product: data.product
-                                                }
-                                            }));
-                                        } else if (data.redirect_url) {
+                                        if (data.redirect_url) {
                                             window.location.href = data.redirect_url;
                                         } else {
                                             alert(data.message);

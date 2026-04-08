@@ -3,12 +3,14 @@
 declare(strict_types=1);
 
 namespace App\Http\Controllers;
+
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\User;
 use Modules\Chat\Models\Offer;
 use Modules\Chat\Enums\OfferStatus;
 use Illuminate\Support\Facades\Auth;
+
 class HomeController extends Controller
 {
     /**
@@ -62,7 +64,7 @@ class HomeController extends Controller
                 ->paginate($initialLoadSize);
 
             return view('home', [
-                'products' => $products
+                'products' => $products,
             ]);
         }
     }
@@ -91,7 +93,7 @@ class HomeController extends Controller
             'category',
             'options',
             'options.attribute',
-            'images'
+            'images',
         ]);
 
         $similarProducts = Product::where('category_id', $product->category_id)
@@ -105,7 +107,7 @@ class HomeController extends Controller
                 'vendor.products.images',
                 'category',
                 'options',
-                'images'
+                'images',
             ])
             ->take(20)
             ->take(20)
@@ -121,10 +123,13 @@ class HomeController extends Controller
         }
         $breadcrumbs = array_reverse($breadcrumbs);
 
+        $deliveryFeeFixed = config('settings.delivery_fee_fixed', 25.00);
+
         return view('frontend.products.show', [
             'product' => $product,
             'similarProducts' => $similarProducts,
-            'breadcrumbs' => $breadcrumbs
+            'breadcrumbs' => $breadcrumbs,
+            'deliveryFeeFixed' => $deliveryFeeFixed,
         ]);
     }
 
@@ -191,7 +196,7 @@ class HomeController extends Controller
                 'member_avg' => $memberAvg,
                 'auto_count' => $autoCount,
                 'auto_avg' => $autoAvg,
-            ]
+            ],
         ]);
     }
 
@@ -257,12 +262,12 @@ class HomeController extends Controller
         // If seller has no shipping options, use admin's default shipping options
         if ($shippingOptions->isEmpty()) {
             $defaultShippingIds = json_decode(config('settings.default_shipping_options', '[]'), true) ?? [];
-            if (!empty($defaultShippingIds)) {
+            if (! empty($defaultShippingIds)) {
                 $shippingOptions = $allShippingOptions->whereIn('id', $defaultShippingIds)->values();
                 \Log::info('Using default shipping options', [
                     'default_ids' => $defaultShippingIds,
                     'filtered_count' => $shippingOptions->count(),
-                    'options' => $shippingOptions->pluck('id', 'label')->toArray()
+                    'options' => $shippingOptions->pluck('id', 'label')->toArray(),
                 ]);
             }
         }
@@ -270,7 +275,7 @@ class HomeController extends Controller
         // Fee Settings
         $buyerProtectionPercentage = config('settings.buyer_protection_fee_percentage', 5);
         $buyerProtectionFixed = config('settings.buyer_protection_fee_fixed', 0.70);
-        $deliveryFeeFixed = config('settings.delivery_fee_fixed', 5.00);
+        $deliveryFeeFixed = config('settings.delivery_fee_fixed', 25.00);
 
         // Calculate default protection fee
         $protectionFee = ($product->price * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
@@ -299,14 +304,14 @@ class HomeController extends Controller
         $product = $offer->product;
         $items = $offer->items;
 
-        if (!$product && $items->isNotEmpty()) {
+        if (! $product && $items->isNotEmpty()) {
             $product = $items->first()->product;
             $isBundle = true;
         } else {
             $isBundle = false;
         }
 
-        if (!$product || in_array($product->status, ['sold', 'pending'])) {
+        if (! $product || in_array($product->status, ['sold', 'pending'])) {
             return response()->view('errors.product_unavailable', [], 404);
         }
 
@@ -322,7 +327,7 @@ class HomeController extends Controller
         // Fee Settings
         $buyerProtectionPercentage = config('settings.buyer_protection_fee_percentage', 5);
         $buyerProtectionFixed = config('settings.buyer_protection_fee_fixed', 0.70);
-        $deliveryFeeFixed = config('settings.delivery_fee_fixed', 5.00);
+        $deliveryFeeFixed = config('settings.delivery_fee_fixed', 25.00);
 
         // Calculate default protection fee
         $protectionFee = ($priceToPay * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;

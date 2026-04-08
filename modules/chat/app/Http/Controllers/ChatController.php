@@ -3,10 +3,33 @@
 namespace Modules\Chat\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Modules\Chat\Services\ChatService;
 
 class ChatController extends Controller
 {
+    /**
+     * Get or create a conversation with a user (e.g. from a liked-product notification)
+     * and redirect to the chat dashboard with that conversation selected.
+     */
+    public function startWithUser(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'product_id' => 'nullable|exists:products,id',
+        ]);
+
+        $otherUser = User::findOrFail($request->user_id);
+        $product = $request->product_id ? Product::find($request->product_id) : null;
+
+        $chatService = app(ChatService::class);
+        $conversation = $chatService->getOrCreateConversation(Auth::user(), $otherUser, $product);
+
+        return redirect()->route('chat.dashboard', ['id' => $conversation->id]);
+    }
     /**
      * Display a listing of the resource.
      */
@@ -26,7 +49,9 @@ class ChatController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) {}
+    public function store(Request $request)
+    {
+    }
 
     /**
      * Show the specified resource.
@@ -47,10 +72,14 @@ class ChatController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id) {}
+    public function update(Request $request, $id)
+    {
+    }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id) {}
+    public function destroy($id)
+    {
+    }
 }

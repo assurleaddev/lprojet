@@ -49,7 +49,7 @@ class SettingsController extends Controller
         // Handle Avatar
         if ($request->hasFile('avatar')) {
             $uploadedFiles = $this->mediaLibraryService->uploadMedia([$request->file('avatar')]);
-            if (!empty($uploadedFiles)) {
+            if (! empty($uploadedFiles)) {
                 $media = $uploadedFiles[0];
                 $user->update(['avatar_id' => $media->id]);
             }
@@ -120,17 +120,18 @@ class SettingsController extends Controller
             'message' => $enable
                 ? 'Holiday mode activated. Your items are now hidden.'
                 : 'Holiday mode disabled. Your items are visible again.',
-            'status' => $enable
+            'status' => $enable,
         ]);
     }
 
-    public function postage()
+    public function postage(Request $request)
     {
         $user = Auth::user();
         $addresses = Address::where('user_id', $user->id)->get();
         $shippingOptions = ShippingOption::where('is_active', true)->get();
+        $redirectTo = $request->query('redirect_to');
 
-        return view('frontend.settings.postage', compact('user', 'addresses', 'shippingOptions'));
+        return view('frontend.settings.postage', compact('user', 'addresses', 'shippingOptions', 'redirectTo'));
     }
 
     public function updatePostage(Request $request)
@@ -165,6 +166,14 @@ class SettingsController extends Controller
             'city' => $request->city,
             'postcode' => $request->postcode,
         ]);
+
+        if ($request->filled('redirect_to')) {
+            $redirectTo = $request->input('redirect_to');
+            // Only redirect to internal URLs for security
+            if (str_starts_with($redirectTo, url('/'))) {
+                return redirect($redirectTo)->with('success', 'Address added successfully.');
+            }
+        }
 
         return back()->with('success', 'Address added successfully.');
     }
@@ -349,7 +358,7 @@ class SettingsController extends Controller
             ->where('expires_at', '>', now())
             ->first();
 
-        if (!$verification) {
+        if (! $verification) {
             return back()->with('email_verification_sent', true)->with('error', 'Invalid or expired code.');
         }
 
@@ -401,7 +410,7 @@ class SettingsController extends Controller
             ->where('expires_at', '>', now())
             ->first();
 
-        if (!$verification) {
+        if (! $verification) {
             return back()->with('2fa_verification_needed', true)->with('error', 'Invalid or expired code.');
         }
 

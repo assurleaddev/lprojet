@@ -116,25 +116,18 @@ class ItemController extends Controller
 
             DB::commit();
 
-            session()->flash('success', 'Item listed successfully!');
             session()->flash('listed_product_id', $product->id);
 
+            $profileUrl = route('vendor.show', Auth::user());
+
             if ($request->wantsJson()) {
-                // Prepare data for client-side modal
                 return response()->json([
                     'message' => 'Item listed successfully!',
-                    'product' => [
-                        'image_url' => $product->getFirstMediaUrl('featured') ?: $product->getFirstMediaUrl('products'),
-                        'name' => $product->name,
-                        'brand_name' => $product->brand ? $product->brand->name : 'No Brand',
-                        'condition_label' => $product->condition ? ucwords(str_replace('_', ' ', $product->condition)) : 'Pre-owned',
-                        'price_formatted' => number_format($product->price, 2),
-                    ],
-                    'redirect_url' => route('items.create') // Used for "List another" reload
+                    'redirect_url' => $profileUrl,
                 ]);
             }
 
-            return redirect()->route('items.create');
+            return redirect($profileUrl);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -234,7 +227,7 @@ class ItemController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'message' => $successMessage,
-                    'redirect_url' => route('products.show', $product)
+                    'redirect_url' => route('products.show', $product),
                 ]);
             }
 
@@ -243,6 +236,11 @@ class ItemController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error updating product: ' . $e->getMessage());
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Error updating item: ' . $e->getMessage()], 500);
+            }
+
             return back()->withInput()->with('error', 'Error updating item: ' . $e->getMessage());
         }
     }
@@ -295,7 +293,7 @@ class ItemController extends Controller
                 ->orWhere('email', $request->username)
                 ->first();
 
-            if (!$user) {
+            if (! $user) {
                 return back()->with('error', 'User not found with that name or email.');
             }
             $buyerId = $user->id;
@@ -304,7 +302,7 @@ class ItemController extends Controller
         // Update product status to reserved
         $product->update([
             'status' => 'reserved',
-            'buyer_id' => $buyerId
+            'buyer_id' => $buyerId,
         ]);
 
         return redirect()->route('products.show', $product)->with('success', 'Product marked as reserved!');
@@ -325,7 +323,7 @@ class ItemController extends Controller
         // Update product status back to approved and clear buyer_id
         $product->update([
             'status' => 'approved',
-            'buyer_id' => null
+            'buyer_id' => null,
         ]);
 
         return redirect()->route('products.show', $product)->with('success', 'Reservation removed!');

@@ -28,15 +28,15 @@
                     </div>
                 @endif
 
-                <div x-show="successMessage" x-transition
-                    class="mb-4 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded"
-                    style="display: none;">
-                    <span x-text="successMessage"></span>
-                </div>
-
                 <form @submit.prevent="submitForm" enctype="multipart/form-data"
                     x-data="profileForm('{{ old('country', $user->getMeta('country')) }}', '{{ old('city', $user->getMeta('city')) }}')">
                     @csrf
+
+                    <div x-show="successMessage" x-transition
+                        class="mb-4 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded"
+                        style="display: none;">
+                        <span x-text="successMessage"></span>
+                    </div>
 
                     <!-- Your photo -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">

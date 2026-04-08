@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Models\Product;
 use App\Models\User;
 use App\Services\Charts\PostChartService;
 use App\Services\Charts\UserChartService;
@@ -25,10 +26,20 @@ class DashboardController extends Controller
     {
         $this->authorize('viewDashboard', User::class);
 
+        $listingCounts = Product::selectRaw("
+            COUNT(*) as total,
+            SUM(status = 'approved') as active,
+            SUM(status = 'sold') as sold,
+            SUM(status = 'rejected') as rejected
+        ")->first();
+
         return view(
             'backend.pages.dashboard.index',
             [
                 'total_users' => number_format(User::count()),
+                'active_listings' => number_format((int) $listingCounts->active),
+                'sold_listings' => number_format((int) $listingCounts->sold),
+                'rejected_listings' => number_format((int) $listingCounts->rejected),
                 'total_roles' => number_format(Role::count()),
                 'total_permissions' => number_format(Permission::count()),
                 'languages' => [

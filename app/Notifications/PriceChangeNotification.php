@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
@@ -52,7 +51,7 @@ class PriceChangeNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->line('The introduction to the notification.')
             ->action('Notification Action', url('/'))
             ->line('Thank you for using our application!');
@@ -63,6 +62,7 @@ class PriceChangeNotification extends Notification
         return [
             'type' => 'price_change',
             'product_id' => $this->product->id,
+            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
             'old_price' => $this->oldPrice,
             'new_price' => $this->newPrice,
             'message' => "Price drop! {$this->product->name} is now $" . number_format($this->newPrice, 2),

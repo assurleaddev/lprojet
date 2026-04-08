@@ -27,7 +27,14 @@
         <div class="grid grid-cols-12 items-start gap-x-8">
             <!-- “Logo” block (left) -->
             <div class="col-span-2 flex items-center justify-center">
-                <img class="h-40 w-40 rounded-full object-cover" src="{{ $user->avatar_url }}" alt="avatar">
+                @php
+                    $nameParts = explode(' ', trim($user->full_name));
+                    $initials = strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($nameParts[1], 0, 1) : ''));
+                @endphp
+                <div class="h-40 w-40 rounded-full flex items-center justify-center text-white text-4xl font-bold select-none"
+                    style="background-color: var(--brand)">
+                    {{ $initials }}
+                </div>
             </div>
 
             <!-- Profile summary -->
@@ -64,35 +71,6 @@
                         reviews</a>
                 </div>
 
-                <!-- badges row -->
-                <div class="mt-5 grid grid-cols-2 gap-6 max-w-3xl">
-                    <!-- Frequent Uploads -->
-                    <div class="flex items-start gap-3">
-                        <div class="mt-0.5 h-9 w-9 shrink-0 rounded-full bg-cyan-100 grid place-items-center text-cyan-700">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h10v2H4v-2Z" />
-                            </svg>
-                        </div>
-                        <div class="-mt-0.5">
-                            <div class="font-semibold">Frequent Uploads</div>
-                            <div class="text-[13px] text-zinc-600">Regularly lists 5 or more items.</div>
-                        </div>
-                    </div>
-
-                    <!-- Speedy Shipping -->
-                    <div class="flex items-start gap-3">
-                        <div class="mt-0.5 h-9 w-9 shrink-0 rounded-full bg-cyan-100 grid place-items-center text-cyan-700">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M3 13h11a4 4 0 0 1 4 4v1H9a4 4 0 0 1-4-4v-1Zm0-6h12v2H3V7Zm16 2h2l2 3v6h-4V9Z" />
-                            </svg>
-                        </div>
-                        <div class="-mt-0.5">
-                            <div class="font-semibold">Speedy Shipping</div>
-                            <div class="text-[13px] text-zinc-600">Sends items promptly — usually within the next 24 hours.
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- About / Verified info -->
                 <div class="mt-6 grid grid-cols-2 gap-10 max-w-3xl">
@@ -722,3 +700,12 @@
         })();
     </script>
 @endsection
+
+@if(session()->has('listed_product_id'))
+    @php
+        $listedProduct = \App\Models\Product::find(session('listed_product_id'));
+    @endphp
+    @if($listedProduct)
+        <x-modals.item-listed :product="$listedProduct" />
+    @endif
+@endif

@@ -466,23 +466,21 @@
                         method: 'POST',
                         body: formData,
                         headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
                         }
                     })
                         .then(response => {
-                            if (response.redirected) {
-                                window.location.href = response.url;
-                            } else if (response.ok) {
-                                return response.json().then(data => {
-                                    if (data.message) alert(data.message);
+                            return response.json().then(data => {
+                                if (response.ok) {
                                     if (data.redirect_url) window.location.href = data.redirect_url;
-                                });
-                            } else {
-                                return response.text().then(text => {
-                                    console.error('Server Error:', text);
-                                    alert('Server error occurred. Please check console.');
-                                });
-                            }
+                                } else if (response.status === 422 && data.errors) {
+                                    const messages = Object.values(data.errors).flat().join('\n');
+                                    alert('Please fix the following errors:\n\n' + messages);
+                                } else {
+                                    alert(data.message || 'An error occurred. Please try again.');
+                                }
+                            });
                         })
                         .catch(error => {
                             console.error('Error:', error);

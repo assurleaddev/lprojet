@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -27,6 +26,16 @@ class NotificationController extends Controller
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->markAsRead();
 
-        return redirect($notification->data['url'] ?? route('home'));
+        $data = $notification->data;
+
+        // Product liked: open a chat with the liker instead of showing the product page
+        if (($data['type'] ?? null) === 'product_liked' && ! empty($data['liker_id'])) {
+            return redirect()->route('chat.start-with-user', [
+                'user_id' => $data['liker_id'],
+                'product_id' => $data['product_id'] ?? null,
+            ]);
+        }
+
+        return redirect($data['url'] ?? route('home'));
     }
 }

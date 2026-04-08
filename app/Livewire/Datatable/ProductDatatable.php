@@ -177,9 +177,12 @@ class ProductDatatable extends Datatable
     }
     public function renderVendorColumn(Product $product): string
     {
-        if (!$product->vendor)
+        if (!$product->vendor) {
             return 'N/A';
-        return '<span class="text-gray-600 dark:text-gray-300 font-medium text-sm">' . $product->vendor->username . '</span>';
+        }
+        $url = route('vendor.show', $product->vendor);
+        $name = e($product->vendor->username);
+        return "<a href=\"{$url}\" target=\"_blank\" class=\"text-primary hover:underline font-medium text-sm\">{$name}</a>";
     }
     public function renderAfterActionEdit($product): string|Renderable
     {

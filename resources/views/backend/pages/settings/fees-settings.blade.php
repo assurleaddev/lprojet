@@ -52,8 +52,8 @@
                     </label>
                     <div class="relative">
                         <input type="number" step="0.01" min="0" name="delivery_fee_fixed"
-                            value="{{ config('settings.delivery_fee_fixed') ?? '5.00' }}" class="form-control"
-                            placeholder="5.00">
+                            value="{{ config('settings.delivery_fee_fixed') ?? '25.00' }}" class="form-control"
+                            placeholder="25.00">
                         <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <span class="text-gray-500 sm:text-sm">MAD</span>
                         </div>

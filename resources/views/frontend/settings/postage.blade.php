@@ -221,6 +221,11 @@
                                     <template x-if="isEditMode">
                                         <input type="hidden" name="_method" value="PUT">
                                     </template>
+                                    @if(!empty($redirectTo))
+                                        <template x-if="!isEditMode">
+                                            <input type="hidden" name="redirect_to" value="{{ $redirectTo }}">
+                                        </template>
+                                    @endif
                                     <div class="space-y-4">
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>

@@ -13,10 +13,8 @@
     }
 @endphp
 
-<div x-data="{ 
-        show: {{ $initialProduct ? 'true' : 'false' }}, 
-        product: @json($initialProduct) 
-    }" @item-listed.window="show = true; product = $event.detail.product" x-show="show" class="relative z-50"
+<div x-data="itemListedModal(@js($initialProduct))"
+    @item-listed.window="show = true; product = $event.detail.product" x-show="show" class="relative z-50"
     aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak>
 
     <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
@@ -32,7 +30,7 @@
                 x-transition:leave="ease-in duration-200 transform"
                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                @click.away="window.location.reload()"
+                @click.away="show = false"
                 class="relative transform overflow-hidden rounded-xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md">
 
                 <!-- Decorative Elements -->
@@ -77,19 +75,19 @@
 
                             <!-- Info Text -->
                             <p class="text-sm text-gray-600 mb-6">
-                                Did you know that you appear in search results more often when you have more listings?
+                                Your listing will be published once it is approved by our team
                             </p>
 
                             <!-- Actions -->
                             <div class="space-y-3">
-                                <button type="button" @click="window.location.reload()"
+                                <button type="button" @click="window.location.href = '{{ route('items.create') }}'"
                                     class="w-full inline-flex justify-center rounded-md bg-teal-600 px-3 py-3 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                                     List another
                                 </button>
-                                <a href="{{ route('home') }}"
+                                <button type="button" @click="show = false"
                                     class="block w-full text-sm font-medium text-teal-600 hover:text-teal-500 cursor-pointer">
                                     Later
-                                </a>
+                                </button>
                             </div>
                         </div>
                     </div>

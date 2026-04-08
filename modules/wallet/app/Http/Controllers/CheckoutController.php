@@ -8,7 +8,6 @@ use Modules\Wallet\Services\WalletService;
 use App\Models\Product;
 use App\Models\Order;
 use Modules\Chat\Models\Offer;
-use Modules\Chat\Enums\OfferStatus;
 use Illuminate\Support\Facades\Auth;
 
 class CheckoutController extends Controller
@@ -58,13 +57,13 @@ class CheckoutController extends Controller
 
         // --- Safeguard: Ensure all products are still available ---
         foreach ($products as $p) {
-            if (!$p || in_array($p->status, ['sold', 'pending'])) {
+            if (! $p || in_array($p->status, ['sold', 'pending'])) {
                 return back()->with('error', "Sorry, one or more items are no longer available.");
             }
         }
 
         // --- Fee Calculation ---
-        $shippingCost = config('settings.delivery_fee_fixed', 5.00);
+        $shippingCost = config('settings.delivery_fee_fixed', 25.00);
 
         // If a valid shipping option is provided, use its price
         if ($request->has('shipping_option_id')) {

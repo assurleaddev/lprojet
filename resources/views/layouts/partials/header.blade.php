@@ -77,6 +77,7 @@
                         return [
                             'id' => $n->id,
                             'message' => $n->data['message'] ?? 'New Notification',
+                            'product_image' => $n->data['product_image'] ?? null,
                             'url' => route('notifications.read', $n->id),
                             'created_at' => $n->created_at->diffForHumans(),
                             'read_at' => $n->read_at
@@ -91,6 +92,7 @@
                                                                                                                                                             this.notifications.unshift({
                                                                                                                                                                 id: notification.id,
                                                                                                                                                                 message: notification.message,
+                                                                                                                                                                product_image: notification.product_image || null,
                                                                                                                                                                 url: '/notifications/' + notification.id + '/read',
                                                                                                                                                                 created_at: 'Just now',
                                                                                                                                                                 read_at: null
@@ -124,13 +126,19 @@
                                         <div class="py-2">
                                             <template x-for="notification in notifications" :key="notification.id">
                                                 <a :href="notification.url"
-                                                    class="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 flex items-start justify-between group">
-                                                    <div>
+                                                    class="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 flex items-start gap-3 group">
+                                                    <template x-if="notification.product_image">
+                                                        <img :src="notification.product_image" class="w-10 h-10 rounded object-cover flex-shrink-0 mt-0.5">
+                                                    </template>
+                                                    <template x-if="!notification.product_image">
+                                                        <div class="w-10 h-10 rounded bg-gray-100 flex-shrink-0 mt-0.5"></div>
+                                                    </template>
+                                                    <div class="flex-1 min-w-0">
                                                         <p class="text-sm text-gray-800" x-text="notification.message"></p>
                                                         <p class="text-xs text-gray-500 mt-1" x-text="notification.created_at"></p>
                                                     </div>
                                                     <div x-show="!notification.read_at"
-                                                        class="ml-2 w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1.5"></div>
+                                                        class="w-2 h-2 rounded-full bg-red-500 flex-shrink-0 mt-1.5"></div>
                                                 </a>
                                             </template>
 
