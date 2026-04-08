@@ -5,8 +5,8 @@
 @section('content')
     <main class="w-full">
         <section class="shell px-4 md:px-6 py-8 max-w-2xl mx-auto">
-            <h1 class="text-2xl font-bold mb-2">Twilio Verify API Test</h1>
-            <p class="text-sm text-gray-500 mb-6">Send and verify OTP codes via SMS, Call, or WhatsApp.</p>
+            <h1 class="text-2xl font-bold mb-2">Twilio SMS Test</h1>
+            <p class="text-sm text-gray-500 mb-6">Send and verify OTP codes via SMS (Alphanumeric Sender ID).</p>
 
             {{-- Flash messages --}}
             @if(session('success'))
@@ -55,13 +55,13 @@
                         @endif
                     </div>
                     <div class="flex items-center gap-2">
-                        @if(config('services.twilio.verify_sid'))
+                        @if(config('services.twilio.from'))
                             <span class="w-2 h-2 rounded-full bg-green-500"></span>
-                            <span class="text-gray-700">TWILIO_VERIFY_SID: <code
-                                    class="text-xs bg-gray-200 px-1 py-0.5 rounded">{{ Str::mask(config('services.twilio.verify_sid'), '*', 8) }}</code></span>
+                            <span class="text-gray-700">TWILIO_FROM: <code
+                                    class="text-xs bg-gray-200 px-1 py-0.5 rounded">{{ config('services.twilio.from') }}</code></span>
                         @else
                             <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                            <span class="text-red-600 font-medium">TWILIO_VERIFY_SID: not set</span>
+                            <span class="text-red-600 font-medium">TWILIO_FROM: not set</span>
                         @endif
                     </div>
                 </div>
@@ -86,12 +86,10 @@
                             @error('phone') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         </div>
 
-                        <!-- Channel choice removed as we force WhatsApp in backend -->
-
                         <button type="submit"
                             class="w-full py-2.5 text-white text-sm font-bold rounded-lg hover:opacity-90 transition mt-4"
                             style="background-color: var(--brand)">
-                            Send WhatsApp Code
+                            Send SMS Code
                         </button>
                     </form>
                 </div>
@@ -124,7 +122,7 @@
                         <button type="submit"
                             class="w-full py-2.5 text-white text-sm font-bold rounded-lg hover:opacity-90 transition"
                             style="background-color: var(--brand)">
-                            Verify WhatsApp Code
+                            Verify SMS Code
                         </button>
                     </form>
                 </div>
@@ -138,10 +136,10 @@
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div class="text-xs text-blue-800 space-y-1">
-                    <p class="font-bold">Required .env variables for Custom WhatsApp OTP:</p>
+                    <p class="font-bold">Required .env variables for SMS OTP:</p>
                     <pre class="bg-blue-100 p-2 rounded text-[11px] font-mono">TWILIO_SID=your_account_sid
 TWILIO_AUTH_TOKEN=your_auth_token
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886</pre>
+TWILIO_FROM=Used</pre>
                     <p class="mt-2">Get these from your <a href="https://console.twilio.com" target="_blank"
                             class="underline font-bold">Twilio Console</a>.</p>
                 </div>

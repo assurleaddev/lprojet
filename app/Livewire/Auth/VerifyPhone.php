@@ -36,16 +36,15 @@ class VerifyPhone extends Component
         $user->phone_verification_code_expires_at = now()->addMinutes(10);
         $user->save();
 
-        // Send verification code via WhatsApp (Twilio)
+        // Send verification code via SMS (Alphanumeric Sender ID)
         try {
             $sid = config('services.twilio.sid');
             $token = config('services.twilio.token');
-            $from = config('services.twilio.whatsapp_from') ?: config('services.twilio.from');
+            $from = config('services.twilio.from'); // Set TWILIO_FROM=Used in .env
 
-            $to = 'whatsapp:' . $this->country_code . $this->phone_number;
-            $fromWhatsapp = 'whatsapp:' . $from;
+            $to = $this->country_code . $this->phone_number;
 
-            \Illuminate\Support\Facades\Log::info("Attempting to send WhatsApp. SID: " . substr($sid, 0, 5) . "..., From: $fromWhatsapp, To: $to");
+            \Illuminate\Support\Facades\Log::info("Attempting to send SMS. SID: " . substr($sid, 0, 5) . "..., From: $from, To: $to");
 
             if ($sid && $token && $from) {
                 $client = new \Twilio\Rest\Client($sid, $token);
@@ -57,16 +56,16 @@ class VerifyPhone extends Component
                 $message = $client->messages->create(
                     $to,
                     [
-                        'from' => $fromWhatsapp,
+                        'from' => $from,
                         'body' => "Votre code de vérification est : {$code}",
                     ]
                 );
-                \Illuminate\Support\Facades\Log::info("WhatsApp Sent Successfully. SID: " . $message->sid);
+                \Illuminate\Support\Facades\Log::info("SMS Sent Successfully. SID: " . $message->sid);
             } else {
                 \Illuminate\Support\Facades\Log::warning("Twilio credentials missing in config.");
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Twilio WhatsApp Error: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error("Twilio SMS Error: " . $e->getMessage());
         }
 
         return redirect()->route('auth.verify_phone_code');
