@@ -22,7 +22,7 @@ class RolesService
 
     public function getRolesDropdown(): array
     {
-        return Role::pluck('name', 'name')->toArray();
+        return Role::whereIn('name', ['Superadmin'])->pluck('name', 'name')->toArray();
     }
 
     public function getPaginatedRoles(?string $search = null, int $perPage = 10): LengthAwarePaginator

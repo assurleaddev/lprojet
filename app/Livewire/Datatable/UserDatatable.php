@@ -12,7 +12,7 @@ use App\Models\User;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
-use Livewire\WithPagination; // Add if missing or just rely on parent
+// Add if missing or just rely on parent
 use Illuminate\Support\Facades\DB;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -20,6 +20,7 @@ class UserDatatable extends Datatable
 {
     public string $role = '';
     public string $status = '';
+    public string $seller = '';
     public bool $confirmingForceDelete = false;
     public array $usersWithDependencies = [];
     public array $usersToDeleteIds = [];
@@ -27,6 +28,7 @@ class UserDatatable extends Datatable
         ...parent::QUERY_STRING_DEFAULTS,
         'role' => [],
         'status' => [],
+        'seller' => [],
     ];
     public string $model = User::class;
     public array $disabledRoutes = ['view'];
@@ -37,6 +39,11 @@ class UserDatatable extends Datatable
     }
 
     public function updatingRole()
+    {
+        $this->resetPage();
+    }
+
+    public function updatingSeller()
     {
         $this->resetPage();
     }
@@ -58,6 +65,18 @@ class UserDatatable extends Datatable
                 'allLabel' => __('All Roles'),
                 'options' => app(RolesService::class)->getRolesDropdown(),
                 'selected' => $this->role,
+            ],
+            [
+                'id' => 'seller',
+                'label' => __('Type'),
+                'filterLabel' => __('Filter by Type'),
+                'icon' => 'lucide:tag',
+                'allLabel' => __('All Users'),
+                'options' => [
+                    'yes' => __('Sellers'),
+                    'no' => __('Buyers'),
+                ],
+                'selected' => $this->seller,
             ],
             [
                 'id' => 'status',
@@ -130,6 +149,8 @@ class UserDatatable extends Datatable
                     $q->where('name', $this->role);
                 });
             })
+            ->when($this->seller === 'yes', fn ($q) => $q->has('products'))
+            ->when($this->seller === 'no', fn ($q) => $q->doesntHave('products'))
             ->when($this->status, function ($query) {
                 if ($this->status === 'active') {
                     $query->whereNull('banned_at');
@@ -194,7 +215,7 @@ class UserDatatable extends Datatable
                 return false;
             }
             // Defensiive check against case variations if strict mode fails
-            if ($user->roles->contains(fn($r) => strcasecmp($r->name, 'superadmin') === 0)) {
+            if ($user->roles->contains(fn ($r) => strcasecmp($r->name, 'superadmin') === 0)) {
                 $debugReasons[] = "ID {$user->id} roles contains superadmin";
                 return false;
             }
@@ -328,7 +349,7 @@ class UserDatatable extends Datatable
             $buttons .= view('backend.pages.users.partials.action-button-login-as', compact('user'))->render();
         }
 
-        if (Auth::user()->can('update', $user) && $user->id !== Auth::id() && !$user->hasRole(Role::SUPERADMIN)) {
+        if (Auth::user()->can('update', $user) && $user->id !== Auth::id() && ! $user->hasRole(Role::SUPERADMIN)) {
             $buttons .= view('backend.pages.users.partials.action-button-ban', compact('user'))->render();
         }
 
