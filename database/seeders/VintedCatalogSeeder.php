@@ -342,19 +342,23 @@ class VintedCatalogSeeder extends Seeder
 
             // Map Vinted group descriptions to clean Attribute names
             $attrName = match ($group['description']) {
-                'Women (UK)', 'Femme (UK)' => 'Taille Femme',
-                'Men (UK)', 'Homme (UK)' => 'Taille Homme',
-                'Shoes, women, UK' => 'Chaussures Femme',
-                'Shoes, men, UK' => 'Chaussures Homme',
-                default => $groupName
+                'Women (UK)', 'Femme (UK)'       => 'Taille',
+                'Men (UK)', 'Homme (UK)'          => 'Taille',
+                'Shoes, women, UK'                => 'Pointure',
+                'Shoes, men, UK'                  => 'Pointure',
+                'Children\'s shoe sizes'          => 'Pointure enfant',
+                'Children\'s clothing sizes'      => 'Taille enfant',
+                default                           => $groupName,
             };
 
-            // Create Attribute
-            // Generate a code from ID to be unique
+            // Key on code (unique) so two attributes can share the same display name
             $attr = Attribute::firstOrCreate(
-                ['name' => $attrName],
-                ['code' => 'size_group_' . $group['id'], 'type' => 'select']
+                ['code' => 'size_group_' . $group['id']],
+                ['name' => $attrName, 'type' => 'select']
             );
+
+            // Keep name in sync if seeder is re-run after a rename
+            $attr->update(['name' => $attrName]);
 
             $this->sizeAttributes[$group['id']] = $attr;
 
@@ -417,34 +421,36 @@ class VintedCatalogSeeder extends Seeder
             ]
         );
 
-        // 3. Attach Attributes (Sizes)
-        // json has "size_group_ids": [4, 7, ...]
-        if (isset($node['size_group_ids']) && is_array($node['size_group_ids'])) {
-            $attrIds = [];
-            foreach ($node['size_group_ids'] as $groupId) {
-                if (isset($this->sizeAttributes[$groupId])) {
-                    $attrIds[] = $this->sizeAttributes[$groupId]->id;
-                }
-            }
-            if (!empty($attrIds)) {
-                $category->assignedAttributes()->syncWithoutDetaching($attrIds);
-            }
-        }
+        $isLeaf = empty($node['catalogs']);
 
-        // 4. Attach Colors (Global)
-        // If it's a leaf node or specific depth? 
-        // Vinted data "color_field_visibility": 1
-        if (isset($node['color_field_visibility']) && $node['color_field_visibility'] == 1) {
-            $colorAttr = Attribute::where('code', 'colors')->first();
-            if ($colorAttr) {
-                $category->assignedAttributes()->syncWithoutDetaching([$colorAttr->id]);
-            }
-        }
-
-        // 5. Recurse (catalogs array)
-        if (isset($node['catalogs']) && is_array($node['catalogs'])) {
+        // 3. Recurse first so children exist before we decide on leaf status
+        if (!$isLeaf) {
             foreach ($node['catalogs'] as $child) {
                 $this->processCategoryNode($child, $category->id);
+            }
+        }
+
+        // 4. Only attach attributes to leaf categories (no children)
+        if ($isLeaf) {
+            // Sizes
+            if (isset($node['size_group_ids']) && is_array($node['size_group_ids'])) {
+                $attrIds = [];
+                foreach ($node['size_group_ids'] as $groupId) {
+                    if (isset($this->sizeAttributes[$groupId])) {
+                        $attrIds[] = $this->sizeAttributes[$groupId]->id;
+                    }
+                }
+                if (!empty($attrIds)) {
+                    $category->assignedAttributes()->syncWithoutDetaching($attrIds);
+                }
+            }
+
+            // Colors
+            if (isset($node['color_field_visibility']) && $node['color_field_visibility'] == 1) {
+                $colorAttr = Attribute::where('code', 'colors')->first();
+                if ($colorAttr) {
+                    $category->assignedAttributes()->syncWithoutDetaching([$colorAttr->id]);
+                }
             }
         }
     }
