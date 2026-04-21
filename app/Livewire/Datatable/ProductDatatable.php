@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Livewire\Datatable;
 
 use App\Models\Product;
@@ -6,7 +7,6 @@ use Spatie\QueryBuilder\QueryBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Support\Renderable;
 use App\Models\Category;
-use App\Models\Option;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
@@ -21,15 +21,12 @@ class ProductDatatable extends Datatable
     public string $status = '';
     public string $vendor = '';
 
-
-
     public array $queryString = [
         ...parent::QUERY_STRING_DEFAULTS,
         'category' => ['except' => ''],
 
         'status' => ['except' => ''],
         'vendor' => ['except' => ''],
-
 
     ];
 
@@ -48,8 +45,14 @@ class ProductDatatable extends Datatable
         $this->resetPage();
     }
 
-
-
+    public function resetFilters(): void
+    {
+        $this->category = '';
+        $this->status = '';
+        $this->vendor = '';
+        $this->search = '';
+        $this->resetPage();
+    }
 
     public function getFilters(): array
     {
@@ -88,7 +91,6 @@ class ProductDatatable extends Datatable
                 'allLabel' => __('All Vendors'),
                 'selected' => $this->vendor,
             ],
-
 
         ];
     }
@@ -130,7 +132,7 @@ class ProductDatatable extends Datatable
             ->with(['category', 'vendor']);
 
         // Role-based product visibility
-        if (!$user->hasRole(['admin', 'Superadmin'])) {
+        if (! $user->hasRole(['admin', 'Superadmin'])) {
             $query->where('vendor_id', $user->id);
         }
 
@@ -149,10 +151,8 @@ class ProductDatatable extends Datatable
                 $query->where('vendor_id', $this->vendor);
             });
 
-
         return $this->sortQuery($query);
     }
-
 
     public function renderNameColumn(Product $product): string|Renderable
     {
@@ -177,7 +177,7 @@ class ProductDatatable extends Datatable
     }
     public function renderVendorColumn(Product $product): string
     {
-        if (!$product->vendor) {
+        if (! $product->vendor) {
             return 'N/A';
         }
         $url = route('vendor.show', $product->vendor);

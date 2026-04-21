@@ -4,7 +4,6 @@ namespace App\Livewire\Datatable;
 
 use App\Models\Order;
 use Spatie\QueryBuilder\QueryBuilder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Support\Facades\Auth;
 
@@ -35,6 +34,15 @@ class OrderDatatable extends Datatable
     }
     public function updatingDateRange()
     {
+        $this->resetPage();
+    }
+
+    public function resetFilters(): void
+    {
+        $this->status = '';
+        $this->vendor = '';
+        $this->date_range = '';
+        $this->search = '';
         $this->resetPage();
     }
 
@@ -113,7 +121,7 @@ class OrderDatatable extends Datatable
             ->with(['user', 'vendor', 'product']);
 
         // Role-based visibility
-        if (!$user->hasRole(['admin', 'Superadmin'])) {
+        if (! $user->hasRole(['admin', 'Superadmin'])) {
             // If vendor, show orders where they are the vendor
             // Or if they are a buyer? Usually "Order Management" is for sellers/admins.
             $query->where('vendor_id', $user->id);

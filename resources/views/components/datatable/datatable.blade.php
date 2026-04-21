@@ -311,8 +311,11 @@
                                 @endif
                             @endforeach
 
-                            @if ($enableLivewire && collect($filters)->contains(fn($f) => ($f['selected'] ?? '') !== ''))
-                                <button wire:click="resetFilters"
+                            @if ($enableLivewire && count($filters) > 0)
+                                <button
+                                    x-show="{{ json_encode(collect($filters)->pluck('id')->values()) }}.some(id => $wire[id] !== '')"
+                                    x-cloak
+                                    wire:click="resetFilters"
                                     class="btn-default flex items-center justify-center gap-1.5 text-sm text-red-600 dark:text-red-400 border-red-200 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                     type="button">
                                     <iconify-icon icon="lucide:x-circle"></iconify-icon>
