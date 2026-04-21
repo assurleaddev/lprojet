@@ -33,11 +33,9 @@ class ProductController extends Controller
     }
     public function getAttributesByCategory(Category $category)
     {
-        $attributes = $category->inherited_attributes;
-        // Ensure options are loaded (they were loaded in the accessor but good to be sure or formatted)
-        // The accessor already loaded 'options'.
+        $category->load('assignedAttributes.options');
 
-        return response()->json($attributes->values()->all());
+        return response()->json($category->assignedAttributes->values()->all());
     }
     public function create()
     {
