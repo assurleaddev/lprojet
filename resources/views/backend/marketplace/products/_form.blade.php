@@ -169,16 +169,17 @@
                                 <option value="">Select condition</option>
                                 @php
                                     $conditions = [
-                                        'New with tags',
-                                        'New without tags',
-                                        'Very good',
-                                        'Good',
-                                        'Satisfactory'
+                                        'new_with_tags'    => 'New with tags',
+                                        'new_without_tags' => 'New without tags',
+                                        'very_good'        => 'Very good',
+                                        'good'             => 'Good',
+                                        'satisfactory'     => 'Satisfactory',
+                                        'heavily_worn'     => 'Heavily worn',
                                     ];
                                 @endphp
-                                @foreach($conditions as $cond)
-                                    <option value="{{ $cond }}" @selected(old('condition', $product->condition ?? '') == $cond)>
-                                        {{ $cond }}
+                                @foreach($conditions as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('condition', $product->condition ?? '') == $value)>
+                                        {{ $label }}
                                     </option>
                                 @endforeach
                             </select>
