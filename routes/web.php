@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\Marketplace\ProductController;
 use App\Http\Controllers\Backend\Marketplace\CategoryController;
 use App\Http\Controllers\Backend\Marketplace\AttributeController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -197,7 +198,7 @@ Route::group(['prefix' => 'auth', 'as' => 'auth.social.'], function () {
     Route::get('/{provider}/callback', [App\Http\Controllers\Auth\SocialAuthController::class, 'callback'])->name('callback');
 });
 
-Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], function () {
+Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'role:Superadmin']], function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
     Route::resource('settings', SettingController::class);
     Route::resource('translations', TranslationController::class);
@@ -268,7 +269,6 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth']], 
         Route::delete('product-images/{image}', [ProductController::class, 'destroyImage'])->name('products.images.destroy');
     });
 
-
     // Editor Upload Route.
     Route::post('/editor/upload', [App\Http\Controllers\Backend\EditorController::class, 'upload'])->name('editor.upload');
 
@@ -293,4 +293,4 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
-Route::get('/demo-preview', fn() => view('demo.preview'))->name('demo.preview');
+Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');

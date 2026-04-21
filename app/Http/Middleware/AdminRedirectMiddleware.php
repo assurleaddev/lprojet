@@ -18,23 +18,21 @@ class AdminRedirectMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        // Only handle exact /admin path
-        if ($request->path() === 'admin') {
-            // If user is authenticated, let the route handle it normally (dashboard)
-            if (Auth::check()) {
-                return $next($request);
-            }
-
-            // For non-authenticated users:
-            $disableRedirect = config('settings.disable_default_admin_redirect', '0') === '1';
-
-            // If redirect is disabled, show 403
-            if ($disableRedirect) {
+        // Block non-superadmin authenticated users from all /admin/* paths
+        if ($request->is('admin') || $request->is('admin/*')) {
+            if (Auth::check() && ! Auth::user()->hasRole('Superadmin')) {
                 abort(403, __('Unauthorized access'));
             }
 
-            // Otherwise redirect to login (using the admin.login route which points to the custom path)
-            return redirect()->route('admin.login');
+            if (! Auth::check()) {
+                $disableRedirect = config('settings.disable_default_admin_redirect', '0') === '1';
+
+                if ($disableRedirect) {
+                    abort(403, __('Unauthorized access'));
+                }
+
+                return redirect()->route('admin.login');
+            }
         }
 
         return $next($request);

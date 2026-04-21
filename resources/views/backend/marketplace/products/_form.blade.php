@@ -200,14 +200,14 @@
             <!-- Status and Visibility -->
             <div class="rounded-md border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
                 <div class="px-4 py-3 sm:px-6 border-b border-gray-100 dark:border-gray-800">
-                    @can('product.aprove')
+                    @can('approve', $product ?? new \App\Models\Product)
                         <h3 class="text-base font-medium text-gray-700 dark:text-white">{{ __('Status & Visibility') }}</h3>
                     @endcan
                     
                 </div>
                 <div class="p-3 space-y-2 sm:p-4">
                     <!-- Status with Combobox -->
-                    @can('product.aprove')
+                    @can('approve', $product ?? new \App\Models\Product)
                         <label for="status" class="form-label">Status</label>
                         <select id="status" name="status" class="form-control">
                             <option value="pending" @selected(old('status', $product->status ?? '') == 'pending')>Pending</option>
