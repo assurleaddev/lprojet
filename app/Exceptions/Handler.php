@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Support\Facades\Log;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -36,6 +38,17 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        // Catch mail/SMTP transport errors globally — log silently and show a toast
+        if ($exception instanceof TransportException) {
+            Log::error('Mail transport error: ' . $exception->getMessage());
+
+            if ($request->wantsJson()) {
+                return response()->json(['message' => 'Something went wrong. Please try again.'], 500);
+            }
+
+            return redirect()->back()->with('error', 'Something went wrong. Please try again.');
+        }
+
         return parent::render($request, $exception);
     }
 }

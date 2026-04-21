@@ -350,8 +350,28 @@ $nextTick(() => {
     </main>
     @include('layouts.partials.footer')
     @livewire(\App\Livewire\LoginPopup::class)
+    <x-toast-notifications />
     @yield('after_body')
     @stack('scripts')
+
+    @if (session('error'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: { variant: 'error', title: 'Error', message: @js(session('error')) }
+                }));
+            });
+        </script>
+    @endif
+    @if (session('success'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: { variant: 'success', title: 'Success', message: @js(session('success')) }
+                }));
+            });
+        </script>
+    @endif
 
     <script>
         function itemListedModal(initialProduct) {
