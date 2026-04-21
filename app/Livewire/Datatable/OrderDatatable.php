@@ -61,7 +61,7 @@ class OrderDatatable extends Datatable
                 'id' => 'vendor',
                 'label' => __('Seller'),
                 'type' => 'searchable',
-                'options' => \App\Models\User::role('vendor')->get()->pluck('full_name', 'id')->toArray(),
+                'options' => \App\Models\User::has('products')->get()->pluck('full_name', 'id')->toArray(),
                 'filterLabel' => __('Filter by seller'),
                 'icon' => 'lucide:store',
                 'allLabel' => __('All Sellers'),

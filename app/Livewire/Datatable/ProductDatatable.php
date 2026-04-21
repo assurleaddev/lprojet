@@ -82,7 +82,7 @@ class ProductDatatable extends Datatable
                 'id' => 'vendor',
                 'label' => __('Vendor'),
                 'type' => 'searchable',
-                'options' => User::role('vendor')->get()->pluck('full_name', 'id')->toArray(),
+                'options' => User::has('products')->get()->pluck('full_name', 'id')->toArray(),
                 'filterLabel' => __('Filter by vendor'),
                 'icon' => 'lucide:user',
                 'allLabel' => __('All Vendors'),
