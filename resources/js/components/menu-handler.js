@@ -21,16 +21,7 @@ window.handleMenuItemClick = function (buttonElement, submenuId, firstChildRoute
         submenu.classList.remove('submenu-collapsed');
         submenu.classList.add('submenu-expanded');
         arrowIcon.setAttribute('icon', 'lucide:chevron-up');
-        
-        // Add rotation animation to arrow.
         arrowIcon.style.transform = 'rotate(180deg)';
-        
-        // If there's a first child route, we're not currently on a child page, and we're not already on that route, navigate to it.
-        if (firstChildRoute && !isOnChildPage && window.location.href !== firstChildRoute) {
-            setTimeout(() => {
-                window.location.href = firstChildRoute;
-            }, 50);
-        }
     } else {
         // Collapsing submenu.
         submenu.classList.remove('submenu-expanded');
