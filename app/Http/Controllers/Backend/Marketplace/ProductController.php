@@ -78,6 +78,7 @@ class ProductController extends Controller
                     }
                 }
             }
+            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
 
             if ($request->has('images')) {
@@ -173,6 +174,7 @@ class ProductController extends Controller
                     }
                 }
             }
+            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
             // Delete all old image records for this product
 

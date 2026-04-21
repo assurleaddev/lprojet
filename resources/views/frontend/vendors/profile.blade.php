@@ -104,12 +104,21 @@
                 </div>
             </div>
 
-            <!-- Follow button (right) -->
+            <!-- Follow / Edit button (right) -->
             <div class="col-span-3 flex justify-end">
                 <div class="relative flex items-center gap-3">
-                    <livewire:follow-button :user="$user" />
+                    @if(auth()->id() === $user->id)
+                        <a href="{{ route('settings.profile') }}"
+                            class="h-10 px-4 font-bold text-sm border border-zinc-300 text-zinc-700 rounded-md hover:bg-zinc-50 transition flex items-center gap-2">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                            Edit Profile
+                        </a>
+                    @else
+                        <livewire:follow-button :user="$user" />
 
-                    @if(auth()->id() !== $user->id)
                         <button onclick="Livewire.dispatch('open-bundle-builder')"
                             class="h-10 px-4 font-bold text-sm text-white rounded-md shadow-sm hover:opacity-90 transition whitespace-nowrap"
                             style="background-color: var(--brand)">
@@ -158,11 +167,17 @@
 
         <!-- Listings panel -->
         <section id="panel-listings" role="tabpanel" aria-labelledby="tab-listings" class="pt-6">
-            <div class="text-sm text-zinc-700 mb-3">3 items</div>
             @php
+                $isOwner = auth()->id() === $user->id;
+                $products = $user->products()
+                    ->when(!$isOwner, fn($q) => $q->whereNotIn('status', ['pending', 'hidden', 'holiday', 'rejected']))
+                    ->orderByRaw("CASE WHEN status = 'sold' THEN 1 ELSE 0 END ASC")
+                    ->orderBy('created_at', 'desc')
+                    ->get();
                 $vendorDiscounts = $user->bundleDiscounts()->orderBy('min_items')->get();
                 $maxDiscount = $vendorDiscounts->max('discount_percentage');
             @endphp
+            <div class="text-sm text-zinc-700 mb-3">{{ $products->count() }} items</div>
 
             @if($vendorDiscounts->count() > 0 && auth()->id() !== $user->id)
                 <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4" style="background: #fff5f5; border: 1px solid #ffe0e0;">
@@ -179,7 +194,7 @@
             @endif
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-5">
-                @forelse ($user->products as $item)
+                @forelse ($products as $item)
                     <div class="grid-item relative">
                         <div class="used-image-wrapper">
                             <a href="{{ route('products.show', $item) }}"
@@ -204,6 +219,21 @@
                                 <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
                                     style="background-color: #f59e0b !important;">
                                     Reserved
+                                </div>
+                            @elseif($item->status === 'pending')
+                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
+                                    style="background-color: #6b7280 !important;">
+                                    Pending
+                                </div>
+                            @elseif(in_array($item->status, ['hidden', 'holiday']))
+                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
+                                    style="background-color: #374151 !important;">
+                                    Hidden
+                                </div>
+                            @elseif($item->status === 'rejected')
+                                <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
+                                    style="background-color: #dc2626 !important;">
+                                    Rejected
                                 </div>
                             @endif
 

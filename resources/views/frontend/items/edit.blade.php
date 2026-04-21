@@ -215,7 +215,7 @@
                         fetch(`/items/categories/${categoryId}/attributes`)
                             .then(response => response.json())
                             .then(attributes => {
-                                const selectedOptions = @json($selectedOptions ?? []);
+                                const selectedOptions = (@json($selectedOptions ?? [])).map(Number);
 
                                 attributes.forEach(attr => {
                                     const attrName = attr.name || `Attribute #${attr.id}`;
@@ -245,7 +245,7 @@
 
                                         // Options
                                         (attr.options || []).forEach(option => {
-                                            const isSelected = selectedOptions.includes(option.id);
+                                            const isSelected = selectedOptions.includes(Number(option.id));
                                             if (isSelected) initialLabels.push(option.value);
 
                                             const row = document.createElement('label');
@@ -318,7 +318,7 @@
                                         const radioContainer = document.createElement('div');
                                         radioContainer.className = 'grid grid-cols-2 gap-2';
                                         (attr.options || []).forEach(option => {
-                                            const isSelected = selectedOptions.includes(option.id);
+                                            const isSelected = selectedOptions.includes(Number(option.id));
                                             const labelEl = document.createElement('label');
                                             labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-teal-50 transition cursor-pointer';
                                             labelEl.innerHTML = `
@@ -344,7 +344,7 @@
                                                 const option = document.createElement('option');
                                                 option.value = opt.id;
                                                 option.innerText = opt.value;
-                                                option.selected = selectedOptions.includes(opt.id);
+                                                option.selected = selectedOptions.includes(Number(opt.id));
                                                 select.appendChild(option);
                                             });
                                             div.appendChild(select);
@@ -358,14 +358,10 @@
                     }
                 });
 
-                // Trigger category change on page load (via Livewire? Wait, Livewire handles this)
-                // But we still need attributes if page loads with selection.
-                // Livewire component does NOT emit on mount.
-                // So we can manually trigger if needed, or let component dispatch "init-selection".
-                // Simplest: Check input value on logic
-                const catInput = document.querySelector('input[name="category_id"]');
-                if (catInput && catInput.value) {
-                    window.dispatchEvent(new CustomEvent('category-selected', { detail: { id: catInput.value } }));
+                // Trigger initial attribute load with pre-selected options
+                const initCatId = {{ $product->category_id ?? 'null' }};
+                if (initCatId) {
+                    window.dispatchEvent(new CustomEvent('category-selected', { detail: { id: initCatId } }));
                 }
 
 

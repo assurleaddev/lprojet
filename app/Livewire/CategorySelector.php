@@ -16,11 +16,9 @@ class CategorySelector extends Component
         $this->name = $name;
         $this->value = $value;
 
-        // Initialize view at the parent of the key selected category
         if ($this->value) {
             $selected = Category::find($this->value);
             if ($selected) {
-                // Should view the parent of the selected category so the user sees it selected in the list
                 $this->viewCategoryId = $selected->parent_id;
             }
         }

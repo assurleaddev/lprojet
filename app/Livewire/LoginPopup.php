@@ -63,9 +63,12 @@ class LoginPopup extends Component
 
         auth()->login($user);
 
-        // Send verification code
         $code = $user->generateVerificationCode();
-        $user->notify(new \App\Notifications\SendVerificationCode($code));
+        try {
+            $user->notify(new \App\Notifications\SendVerificationCode($code));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('SendVerificationCode failed: ' . $e->getMessage());
+        }
 
         return redirect()->route('verify-email');
     }

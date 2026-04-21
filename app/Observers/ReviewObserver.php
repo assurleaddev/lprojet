@@ -15,18 +15,19 @@ class ReviewObserver
         if ($review->model_type === 'App\Models\User') {
             $vendor = \App\Models\User::find($review->model_id);
             if ($vendor) {
-                $vendor->notify(new \App\Notifications\ReviewReceivedNotification($review->author, $review->rating));
+                try {
+                    $vendor->notify(new \App\Notifications\ReviewReceivedNotification($review->author, $review->rating));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('ReviewReceivedNotification failed: ' . $e->getMessage());
+                }
             }
-        }
-        // If review is for a product, notify the vendor of the product
-        elseif ($review->model_type === 'App\Models\Product') {
+        } elseif ($review->model_type === 'App\Models\Product') {
             $product = \App\Models\Product::find($review->model_id);
-            if ($product && $product->vendor) {
-                // Assuming author is a User
-                $reviewer = $review->author;
-                // If author is not a user model, we might need to handle differently
-                if ($reviewer instanceof \App\Models\User) {
-                    $product->vendor->notify(new \App\Notifications\ReviewReceivedNotification($reviewer, $review->rating));
+            if ($product && $product->vendor && $review->author instanceof \App\Models\User) {
+                try {
+                    $product->vendor->notify(new \App\Notifications\ReviewReceivedNotification($review->author, $review->rating));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('ReviewReceivedNotification failed: ' . $e->getMessage());
                 }
             }
         }

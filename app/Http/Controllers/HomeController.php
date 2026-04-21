@@ -215,7 +215,11 @@ class HomeController extends Controller
         $count = $product->favoritedBy()->count();            // total users who favorited
 
         if ($liked) {
-            $product->vendor->notify(new \App\Notifications\ProductLikedNotification(Auth::user(), $product));
+            try {
+                $product->vendor->notify(new \App\Notifications\ProductLikedNotification(Auth::user(), $product));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('ProductLikedNotification failed: ' . $e->getMessage());
+            }
         }
 
         return response()->json([
@@ -235,7 +239,11 @@ class HomeController extends Controller
         $isFollowing = $me->isFollowing($user);
 
         if ($isFollowing) {
-            $user->notify(new \App\Notifications\NewFollowerNotification($me));
+            try {
+                $user->notify(new \App\Notifications\NewFollowerNotification($me));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('NewFollowerNotification failed: ' . $e->getMessage());
+            }
         }
 
         return response()->json([

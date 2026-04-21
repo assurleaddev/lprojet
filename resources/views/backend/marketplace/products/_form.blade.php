@@ -301,18 +301,21 @@
                         return;
                     }
 
+                    // Normalize to integers for type-safe comparison
+                    const selectedIds = (window.selectedOptionIds || []).map(Number);
+
                     attributes.forEach(attribute => {
                         const attrName = attribute.name || `Attribute #${attribute.id}`;
                         const selectId = `attribute-${attribute.id}`;
-                        const selectName = `options[${attribute.id}]`; 
+                        const selectName = `options[${attribute.id}]`;
                         let inputHtml = '';
 
                         if (attribute.type === 'color') {
                             inputHtml = `<div class="flex flex-wrap gap-2 mt-2">`;
                             (attribute.options || []).forEach(option => {
-                                const isSel = (window.selectedOptionIds || []).includes(option.id) ? 'checked' : '';
-                                const colorName = `options[${attribute.id}][]`; 
-                                const colorStyle = option.value.toLowerCase(); 
+                                const isSel = selectedIds.includes(Number(option.id)) ? 'checked' : '';
+                                const colorName = `options[${attribute.id}][]`;
+                                const colorStyle = option.value.toLowerCase();
                                 inputHtml += `
                                     <label class="cursor-pointer group relative">
                                         <input type="checkbox" name="${colorName}" value="${option.id}" class="peer sr-only" ${isSel}>
@@ -325,7 +328,7 @@
                         } else if (attribute.type === 'radio') {
                              inputHtml = `<div class="grid grid-cols-2 lg:grid-cols-3 gap-2 mt-2">`;
                             (attribute.options || []).forEach(option => {
-                                const isSel = (window.selectedOptionIds || []).includes(option.id) ? 'checked' : '';
+                                const isSel = selectedIds.includes(Number(option.id)) ? 'checked' : '';
                                 inputHtml += `
                                     <label class="inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800 cursor-pointer">
                                         <input type="radio" name="${selectName}" value="${option.id}" class="form-radio text-blue-600 focus:ring-blue-500" ${isSel}>
@@ -337,7 +340,7 @@
                         } else {
                             let optionsHtml = `<option value="">Select ${attrName}</option>`;
                             (attribute.options || []).forEach(option => {
-                                const isSel = (window.selectedOptionIds || []).includes(option.id) ? 'selected' : '';
+                                const isSel = selectedIds.includes(Number(option.id)) ? 'selected' : '';
                                 optionsHtml += `<option value="${option.id}" ${isSel}>${option.value}</option>`;
                             });
                             inputHtml = `

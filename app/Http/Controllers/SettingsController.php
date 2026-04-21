@@ -27,7 +27,7 @@ class SettingsController extends Controller
         $user = Auth::user();
 
         $request->validate([
-            'username' => 'required|string|max:255|unique:users,username,' . $user->id,
+            'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
             'about' => 'nullable|string|max:1000',
             'country' => 'nullable|string|max:255',
             'city' => 'nullable|string|max:255',
@@ -35,16 +35,24 @@ class SettingsController extends Controller
             'avatar' => 'nullable|image|max:2048',
         ]);
 
-        $user->update([
-            'username' => $request->username,
-        ]);
+        if ($request->filled('username')) {
+            $user->update(['username' => $request->username]);
+        }
 
-        // Update meta
-        $this->updateMeta($user, 'about', $request->about);
-        $this->updateMeta($user, 'country', $request->country);
-        $this->updateMeta($user, 'city', $request->city);
+        // Update meta only when values are present
+        if ($request->filled('about')) {
+            $this->updateMeta($user, 'about', $request->about);
+        }
+        if ($request->filled('country')) {
+            $this->updateMeta($user, 'country', $request->country);
+        }
+        if ($request->filled('city')) {
+            $this->updateMeta($user, 'city', $request->city);
+        }
         $this->updateMeta($user, 'show_city', $request->has('show_city') ? '1' : '0');
-        $this->updateMeta($user, 'language', $request->language);
+        if ($request->filled('language')) {
+            $this->updateMeta($user, 'language', $request->language);
+        }
 
         // Handle Avatar
         if ($request->hasFile('avatar')) {
@@ -83,8 +91,12 @@ class SettingsController extends Controller
             'birthday' => 'nullable|date',
         ]);
 
-        $this->updateMeta($user, 'gender', $request->gender);
-        $this->updateMeta($user, 'birthday', $request->birthday);
+        if ($request->filled('gender')) {
+            $this->updateMeta($user, 'gender', $request->gender);
+        }
+        if ($request->filled('birthday')) {
+            $this->updateMeta($user, 'birthday', $request->birthday);
+        }
 
         return back()->with('success', 'Account settings updated successfully.');
     }
@@ -336,11 +348,13 @@ class SettingsController extends Controller
             'expires_at' => now()->addMinutes(15),
         ]);
 
-        // Send email
-        \Illuminate\Support\Facades\Mail::raw("Your verification code is: $code", function ($message) use ($request) {
-            $message->to($request->new_email)
-                ->subject('Verify Email Change');
-        });
+        try {
+            \Illuminate\Support\Facades\Mail::raw("Your verification code is: $code", function ($message) use ($request) {
+                $message->to($request->new_email)->subject('Verify Email Change');
+            });
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Email change mail failed: ' . $e->getMessage());
+        }
 
         return back()->with('email_verification_sent', true)->with('success', 'Verification code sent to new email.');
     }
@@ -383,11 +397,13 @@ class SettingsController extends Controller
                 'expires_at' => now()->addMinutes(15),
             ]);
 
-            // Send email
-            \Illuminate\Support\Facades\Mail::raw("Your verification code to enable 2FA is: $code", function ($message) use ($user) {
-                $message->to($user->email)
-                    ->subject('Verify 2FA Enable');
-            });
+            try {
+                \Illuminate\Support\Facades\Mail::raw("Your verification code to enable 2FA is: $code", function ($message) use ($user) {
+                    $message->to($user->email)->subject('Verify 2FA Enable');
+                });
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('2FA mail failed: ' . $e->getMessage());
+            }
 
             return back()->with('2fa_verification_needed', true);
         } else {

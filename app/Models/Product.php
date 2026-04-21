@@ -30,28 +30,35 @@ class Product extends Model implements HasMedia
     protected static function booted()
     {
         static::updated(function ($product) {
-            // Price Change Notification
             if ($product->isDirty('price') && $product->price < $product->getOriginal('price')) {
-                // Notify users who liked/favorited this product
                 foreach ($product->favoritedBy() as $user) {
-                    $user->notify(new \App\Notifications\PriceChangeNotification($product, $product->getOriginal('price'), $product->price));
+                    try {
+                        $user->notify(new \App\Notifications\PriceChangeNotification($product, $product->getOriginal('price'), $product->price));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('PriceChangeNotification failed: ' . $e->getMessage());
+                    }
                 }
             }
 
-            // New Product Approval Notification
             if ($product->isDirty('status') && $product->status == 'approved' && $product->getOriginal('status') != 'approved') {
-                // Notify followers of the vendor
                 foreach ($product->vendor->followers as $follower) {
-                    $follower->notify(new \App\Notifications\NewProductNotification($product));
+                    try {
+                        $follower->notify(new \App\Notifications\NewProductNotification($product));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('NewProductNotification failed: ' . $e->getMessage());
+                    }
                 }
             }
         });
 
         static::created(function ($product) {
             if ($product->status == 'approved') {
-                // Notify followers of the vendor
                 foreach ($product->vendor->followers as $follower) {
-                    $follower->notify(new \App\Notifications\NewProductNotification($product));
+                    try {
+                        $follower->notify(new \App\Notifications\NewProductNotification($product));
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::error('NewProductNotification failed: ' . $e->getMessage());
+                    }
                 }
             }
         });

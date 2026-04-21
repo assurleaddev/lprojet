@@ -79,6 +79,7 @@ class ItemController extends Controller
                     }
                 }
             }
+            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
 
             // Handle Duplicate Images (for Repost feature)
@@ -203,6 +204,7 @@ class ItemController extends Controller
                     }
                 }
             }
+            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
 
             // Handle new images if uploaded

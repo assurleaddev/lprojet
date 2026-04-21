@@ -14,15 +14,15 @@
 @endphp
 
 <div x-data="itemListedModal(@js($initialProduct))"
-    @item-listed.window="show = true; product = $event.detail.product" x-show="show" class="relative z-50"
+    @item-listed.window="show = true; product = $event.detail.product" x-show="show" class="relative z-[100]"
     aria-labelledby="modal-title" role="dialog" aria-modal="true" x-cloak>
 
     <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-        class="fixed inset-0 bg-gray-500 opacity-75 transition-opacity backdrop-blur-sm"></div>
+        class="fixed inset-0 z-[100] bg-gray-500 opacity-75 transition-opacity backdrop-blur-sm"></div>
 
-    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+    <div class="fixed inset-0 z-[101] w-screen overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
             <div x-show="show" x-transition:enter="ease-out duration-300 transform"
                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
