@@ -83,6 +83,19 @@ class SearchComponent extends Component
         return Category::whereNull('parent_id')->get();
     }
 
+    /**
+     * Recursively collect a category ID and all its descendant IDs.
+     */
+    protected function getDescendantIds(int $categoryId): array
+    {
+        $ids = [$categoryId];
+        $children = Category::where('parent_id', $categoryId)->pluck('id')->toArray();
+        foreach ($children as $childId) {
+            $ids = array_merge($ids, $this->getDescendantIds($childId));
+        }
+        return $ids;
+    }
+
     public function removeFilter($type, $id)
     {
         if ($type === 'category') {
@@ -163,9 +176,13 @@ class SearchComponent extends Component
                 });
             }
 
-            // Categories
+            // Categories — include selected categories and all their descendants
             if (!empty($this->categoryIds)) {
-                $productsQuery->whereIn('category_id', $this->categoryIds);
+                $expandedIds = [];
+                foreach ($this->categoryIds as $catId) {
+                    $expandedIds = array_merge($expandedIds, $this->getDescendantIds((int) $catId));
+                }
+                $productsQuery->whereIn('category_id', array_unique($expandedIds));
             }
 
             // Brands
