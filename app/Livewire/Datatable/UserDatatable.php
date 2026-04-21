@@ -48,6 +48,15 @@ class UserDatatable extends Datatable
         $this->resetPage();
     }
 
+    public function resetFilters(): void
+    {
+        $this->role = '';
+        $this->seller = '';
+        $this->status = '';
+        $this->search = '';
+        $this->resetPage();
+    }
+
     public function updatingStatus()
     {
         $this->resetPage();
