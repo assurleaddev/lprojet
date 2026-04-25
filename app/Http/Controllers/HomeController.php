@@ -259,6 +259,11 @@ class HomeController extends Controller
         }
 
         $addresses = Auth::user()->addresses;
+
+        if ($addresses->isEmpty()) {
+            $checkoutUrl = route('product.checkout', $product);
+            return redirect()->route('settings.postage', ['redirect_to' => $checkoutUrl]);
+        }
         $allShippingOptions = \App\Models\ShippingOption::where('is_active', true)->get();
 
         // Filter options based on Vendor preferences

@@ -11,7 +11,15 @@
             @include('frontend.settings.partials._sidebar')
 
             <!-- Content -->
-            <div class="flex-1 bg-white border border-gray-200 rounded-lg p-6" x-data="addressManager()">
+            <div class="flex-1 bg-white border border-gray-200 rounded-lg p-6" x-data="addressManager()" x-init="{{ $redirectTo ? 'openModal(\'add\')' : '' }}">
+                @if($redirectTo)
+                    <div class="mb-4 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded flex items-center gap-2">
+                        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M12 2a10 10 0 100 20A10 10 0 0012 2z"/>
+                        </svg>
+                        {{ __('Please add a delivery address to continue with your purchase.') }}
+                    </div>
+                @endif
                 @if (session('success'))
                     <div class="mb-4 bg-green-50 border border-green-200 text-green-600 px-4 py-3 rounded">
                         {{ session('success') }}
