@@ -353,6 +353,40 @@
                 {{ $results->links() }}
             </div>
         @endif
-    
+
+    @else
+        {{-- Member search results --}}
+        <div class="mb-6">
+            <h1 class="text-2xl font-bold">{{ __('Members') }}</h1>
+        </div>
+
+        @if($results->isEmpty())
+            <div class="text-center py-12">
+                <p class="text-gray-500 text-lg">{{ __('No members found.') }}</p>
+            </div>
+        @else
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                @foreach($results as $user)
+                    <a href="{{ route('vendor.show', $user) }}"
+                        class="flex flex-col items-center text-center p-4 bg-white border border-gray-100 rounded-xl hover:shadow-md transition">
+                        @if($user->avatar_id && $user->avatar)
+                            <img src="{{ $user->avatar_url }}" alt="{{ $user->username }}"
+                                class="w-16 h-16 rounded-full object-cover mb-3">
+                        @else
+                            <div class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mb-3"
+                                style="background-color: var(--brand)">
+                                {{ strtoupper(substr($user->username, 0, 2)) }}
+                            </div>
+                        @endif
+                        <p class="text-sm font-semibold text-gray-900 truncate w-full">{{ $user->username }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ $user->products()->where('status', 'approved')->count() }} {{ __('items') }}</p>
+                    </a>
+                @endforeach
+            </div>
+            <div class="mt-8">
+                {{ $results->links() }}
+            </div>
+        @endif
+
     @endif
 </div>
