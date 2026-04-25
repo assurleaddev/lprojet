@@ -4,15 +4,13 @@
             <div class="space-y-2">
                 {{-- Make Offer Button --}}
                 <button type="button" wire:click="$dispatch('open-make-offer-modal', { productId: {{ $product->id }} })"
-                    class="w-full block text-center border font-bold py-2 rounded-md transition-colors text-sm"
-                    style="border-color: #111827; color: #111827"
+                    class="w-full block text-center border border-gray-900 text-gray-900 font-bold py-2 rounded-md hover:bg-gray-50 transition-colors text-sm">
                     Make an offer
                 </button>
 
                 {{-- Message Seller Button --}}
                 <button type="button" wire:click="startConversation"
-                    class="w-full block text-center border font-bold py-2 rounded-md transition-colors text-sm"
-                    style="border-color: #111827; color: #111827"
+                    class="w-full block text-center border border-gray-900 text-gray-900 font-bold py-2 rounded-md hover:bg-gray-50 transition-colors text-sm">
                     Ask seller
                 </button>
             </div>
@@ -21,13 +19,11 @@
         {{-- Buttons requiring login --}}
         <div class="space-y-2">
             <button type="button" x-data @click="$dispatch('open-auth-modal')"
-                class="w-full border font-bold py-2 rounded-md transition-colors text-sm"
-                style="border-color: #111827; color: #111827"
+                class="w-full border border-gray-900 text-gray-900 font-bold py-2 rounded-md hover:bg-gray-50 transition-colors text-sm">
                 Make an offer
             </button>
             <button type="button" x-data @click="$dispatch('open-auth-modal')"
-                class="w-full border font-bold py-2 rounded-md transition-colors text-sm"
-                style="border-color: #111827; color: #111827"
+                class="w-full border border-gray-900 text-gray-900 font-bold py-2 rounded-md hover:bg-gray-50 transition-colors text-sm">
                 Ask seller
             </button>
         </div>
