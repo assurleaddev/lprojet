@@ -286,7 +286,7 @@ class HomeController extends Controller
         $deliveryFeeFixed = config('settings.delivery_fee_fixed', 25.00);
 
         // Calculate default protection fee
-        $protectionFee = ($product->price * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
+        $protectionFee = ((float) $product->price * ((float) $buyerProtectionPercentage / 100)) + (float) $buyerProtectionFixed;
 
         return view('frontend.products.checkout', [
             'product' => $product,
@@ -338,7 +338,7 @@ class HomeController extends Controller
         $deliveryFeeFixed = config('settings.delivery_fee_fixed', 25.00);
 
         // Calculate default protection fee
-        $protectionFee = ($priceToPay * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
+        $protectionFee = ((float) $priceToPay * ((float) $buyerProtectionPercentage / 100)) + (float) $buyerProtectionFixed;
 
         // --- Display View ---
         // Ensure 'frontend.products.checkout' view exists

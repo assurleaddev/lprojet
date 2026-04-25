@@ -27,6 +27,13 @@ class Product extends Model implements HasMedia
         'size',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'price' => 'decimal:2',
+        ];
+    }
+
     protected static function booted()
     {
         static::updated(function ($product) {
