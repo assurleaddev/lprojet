@@ -423,39 +423,30 @@
                             </svg>
                         </div>
 
-                        <!-- Badges -->
-                        <div class="mb-4 space-y-3">
-                            <div class="flex items-center gap-3">
-                                <div
-                                    class="w-8 h-8 rounded-full bg-cyan-50 flex items-center justify-center text-vinted-teal">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium text-gray-900">Frequent Uploads</p>
-                                    <p class="text-xs text-gray-500">Regularly lists 5 or more items.</p>
-                                </div>
-                            </div>
-                        </div>
+                        @php
+                            $vendorCity    = $product->vendor->getMeta('city');
+                            $vendorCountry = $product->vendor->getMeta('country');
+                            $vendorLocation = collect([$vendorCity, $vendorCountry])->filter()->implode(', ');
+                        @endphp
 
                         <div class="border-t border-gray-100 pt-4 mb-4 space-y-2 text-sm">
+                            @if($vendorLocation)
                             <div class="flex items-center gap-2 text-gray-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                 </svg>
-                                <span>{{ $product->vendor->city ?? 'Morocco' }}</span>
+                                <span>{{ $vendorLocation }}</span>
                             </div>
+                            @endif
                             <div class="flex items-center gap-2 text-gray-600">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span>Last seen {{ now()->subMinutes(rand(1, 59))->diffForHumans() }}</span>
+                                <span>Last seen {{ $product->vendor->updated_at->diffForHumans() }}</span>
                             </div>
                         </div>
 
