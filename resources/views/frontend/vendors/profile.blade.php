@@ -28,13 +28,18 @@
             <!-- “Logo” block (left) -->
             <div class="col-span-2 flex items-center justify-center">
                 @php
-                    $nameParts = explode(' ', trim($user->full_name));
-                    $initials = strtoupper(substr($nameParts[0], 0, 1) . (isset($nameParts[1]) ? substr($nameParts[1], 0, 1) : ''));
+                    $initials = strtoupper(substr($user->username, 0, 2));
+                    $hasAvatar = $user->avatar_id && $user->avatar;
                 @endphp
-                <div class="h-40 w-40 rounded-full flex items-center justify-center text-white text-4xl font-bold select-none"
-                    style="background-color: var(--brand)">
-                    {{ $initials }}
-                </div>
+                @if($hasAvatar)
+                    <img src="{{ $user->avatar_url }}" alt="{{ $user->username }}"
+                        class="h-40 w-40 rounded-full object-cover select-none">
+                @else
+                    <div class="h-40 w-40 rounded-full flex items-center justify-center text-white text-4xl font-bold select-none"
+                        style="background-color: var(--brand)">
+                        {{ $initials }}
+                    </div>
+                @endif
             </div>
 
             <!-- Profile summary -->
@@ -76,13 +81,20 @@
                 <div class="mt-6 grid grid-cols-2 gap-10 max-w-3xl">
                     <div>
                         <div class="text-sm font-semibold text-zinc-700 mb-2">About:</div>
+                        @php
+                            $city = $user->getMeta('city');
+                            $country = $user->getMeta('country');
+                            $location = collect([$city, $country])->filter()->implode(', ');
+                        @endphp
+                        @if($location)
                         <div class="flex items-center gap-2 text-[15px]">
                             <svg class="h-4 w-4 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
                                 <path
                                     d="M12 2C8.14 2 5 5.14 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.86-3.14-7-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z" />
                             </svg>
-                            Bradford, United Kingdom
+                            {{ $location }}
                         </div>
+                        @endif
                         <div class="mt-1 flex items-center gap-2 text-[15px]">
                             <svg class="h-4 w-4 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
                                 <path
