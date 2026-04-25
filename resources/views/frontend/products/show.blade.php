@@ -165,7 +165,7 @@
                         <!-- Price Block -->
                         <div class="mb-4">
                             <!-- Item Price (Gray) -->
-                            <div class="text-gray-500 text-lg">{{ number_format($product->price, 2) }} MAD</div>
+                            <div class="text-gray-500 text-lg font-bold">{{ number_format($product->price, 2) }} MAD</div>
                             <!-- Total Price (Teal, Bold) - Approximated Total -->
                             @php
                                 $buyerProtectionFee = 0.70 + ($product->price * 0.05);
