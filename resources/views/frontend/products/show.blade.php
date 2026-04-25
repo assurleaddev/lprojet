@@ -277,6 +277,10 @@
                                                 <div class="w-full py-2 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-sm font-medium text-center">
                                                     Pending approval
                                                 </div>
+                                                <a href="{{ route('items.edit', $product) }}"
+                                                    class="block w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-center">
+                                                    Edit listing
+                                                </a>
                                             @else
                                                 <!-- Bump Button -->
                                                 <button type="button" @click="$dispatch('open-bump-modal')"
