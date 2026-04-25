@@ -60,7 +60,10 @@
                     @php
                         $mediaItems = $product->getMedia('products');
                         $mediaCount = $mediaItems->count();
-                        $featuredUrl = $mediaCount > 0 ? $mediaItems[0]->getUrl() : $product->getFeaturedImageUrl();
+                        // Use the dedicated featured image if set, otherwise fall back to first product image
+                        $featuredUrl = $product->hasFeaturedImage()
+                            ? $product->getFeaturedImageUrl()
+                            : ($mediaCount > 0 ? $mediaItems[0]->getUrl() : null);
                     @endphp
 
                         @if($mediaCount <= 1)
