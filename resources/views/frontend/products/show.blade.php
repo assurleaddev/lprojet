@@ -273,60 +273,66 @@
                                     <div class="p-4 bg-gray-50 border border-gray-100 rounded-md text-center">
                                         <p class="text-sm text-gray-600 mb-3">This is your item</p>
                                         <div class="space-y-2">
-                                            <!-- Bump Button -->
-                                            <button type="button" @click="$dispatch('open-bump-modal')"
-                                                class="w-full py-2 text-white rounded text-sm font-bold border border-transparent"
-                                                style="background-color: var(--brand)">
-                                                Bump
-                                            </button>
-
-                                            <!-- Mark as Sold -->
-                                            @if($product->status !== 'sold')
-                                                <form action="{{ route('items.markAsSold', $product) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit"
-                                                        class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                        Mark as sold
-                                                    </button>
-                                                </form>
-                                            @endif
-
-                                            <!-- Mark as Reserved / Unreserve -->
-                                            @if($product->status === 'reserved')
-                                                <form action="{{ route('items.unreserve', $product) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit"
-                                                        class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                        Mark as unreserved
-                                                    </button>
-                                                </form>
-                                            @elseif($product->status !== 'sold')
-                                                <button type="button" @click="$dispatch('open-reserve-modal')"
-                                                    class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                    Mark as reserved
-                                                </button>
-                                            @endif
-
-                                            <!-- Hide / Unhide -->
-                                            @if($product->status === 'hidden')
-                                                <button type="button" @click="$dispatch('open-unhide-modal')"
-                                                    class="w-full py-2 bg-white text-gray-700 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                    Unhide
-                                                </button>
+                                            @if($product->status === 'pending')
+                                                <div class="w-full py-2 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-sm font-medium text-center">
+                                                    Pending approval
+                                                </div>
                                             @else
-                                                <button type="button" @click="$dispatch('open-hide-modal')"
-                                                    class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                    Hide
+                                                <!-- Bump Button -->
+                                                <button type="button" @click="$dispatch('open-bump-modal')"
+                                                    class="w-full py-2 text-white rounded text-sm font-bold border border-transparent"
+                                                    style="background-color: var(--brand)">
+                                                    Bump
                                                 </button>
+
+                                                <!-- Mark as Sold -->
+                                                @if($product->status !== 'sold')
+                                                    <form action="{{ route('items.markAsSold', $product) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
+                                                            Mark as sold
+                                                        </button>
+                                                    </form>
+                                                @endif
+
+                                                <!-- Mark as Reserved / Unreserve -->
+                                                @if($product->status === 'reserved')
+                                                    <form action="{{ route('items.unreserve', $product) }}" method="POST">
+                                                        @csrf
+                                                        <button type="submit"
+                                                            class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
+                                                            Mark as unreserved
+                                                        </button>
+                                                    </form>
+                                                @elseif($product->status !== 'sold')
+                                                    <button type="button" @click="$dispatch('open-reserve-modal')"
+                                                        class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
+                                                        Mark as reserved
+                                                    </button>
+                                                @endif
+
+                                                <!-- Hide / Unhide -->
+                                                @if($product->status === 'hidden')
+                                                    <button type="button" @click="$dispatch('open-unhide-modal')"
+                                                        class="w-full py-2 bg-white text-gray-700 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
+                                                        Unhide
+                                                    </button>
+                                                @else
+                                                    <button type="button" @click="$dispatch('open-hide-modal')"
+                                                        class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
+                                                        Hide
+                                                    </button>
+                                                @endif
+
+                                                <!-- Edit Button -->
+                                                <a href="{{ route('items.edit', $product) }}"
+                                                    class="block w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-center">
+                                                    Edit listing
+                                                </a>
                                             @endif
 
-                                            <!-- Edit Button -->
-                                            <a href="{{ route('items.edit', $product) }}"
-                                                class="block w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-center">
-                                                Edit listing
-                                            </a>
-
-                                            <!-- Delete Button -->
+                                            <!-- Delete Button (always visible to owner) -->
                                             <button type="button" @click="$dispatch('open-delete-modal')"
                                                 class="w-full py-2 bg-white text-red-600 border border-red-200 rounded text-sm font-bold hover:bg-red-50">
                                                 Delete
