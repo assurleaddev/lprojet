@@ -39,6 +39,10 @@ use App\Http\Controllers\Backend\Marketplace\AttributeController;
  */
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+Route::get('/faq', fn () => view('frontend.pages.faq'))->name('faq');
+Route::get('/mentions-legales', fn () => view('frontend.pages.mentions-legales'))->name('mentions-legales');
+Route::get('/cgu', fn () => view('frontend.pages.cgu'))->name('cgu');
+
 // Twilio Verify Test
 Route::get('/twilio-verify-test', [App\Http\Controllers\TwilioVerifyTestController::class, 'index'])->name('twilio.test');
 Route::post('/twilio-verify-test/send', [App\Http\Controllers\TwilioVerifyTestController::class, 'sendCode'])->name('twilio.test.send');

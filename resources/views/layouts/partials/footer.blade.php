@@ -18,10 +18,10 @@
             <div>
                 <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 mb-6">À Propos</h3>
                 <ul class="space-y-4">
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">FAQ</a></li>
+                    <li><a href="{{ route('faq') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">FAQ</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Contact</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Mentions Légales</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">CGU</a></li>
+                    <li><a href="{{ route('mentions-legales') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Mentions Légales</a></li>
+                    <li><a href="{{ route('cgu') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">CGU</a></li>
                 </ul>
             </div>
 
