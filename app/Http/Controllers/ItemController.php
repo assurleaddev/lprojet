@@ -79,7 +79,7 @@ class ItemController extends Controller
                     }
                 }
             }
-            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
+            $optionIds = array_values(array_filter($optionIds, fn ($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
 
             // Handle Duplicate Images (for Repost feature)
@@ -204,7 +204,7 @@ class ItemController extends Controller
                     }
                 }
             }
-            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
+            $optionIds = array_values(array_filter($optionIds, fn ($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
 
             // Handle new images if uploaded
@@ -339,5 +339,16 @@ class ItemController extends Controller
         $product->update(['status' => 'hidden']);
 
         return back()->with('success', 'Product hidden successfully.');
+    }
+
+    public function unhide(Product $product)
+    {
+        if (auth()->id() !== $product->vendor_id) {
+            abort(403);
+        }
+
+        $product->update(['status' => 'pending']);
+
+        return back()->with('success', 'Product is now visible and pending approval.');
     }
 }

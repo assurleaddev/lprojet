@@ -53,6 +53,7 @@ Route::post('/items/{product}/mark-as-sold', [App\Http\Controllers\ItemControlle
 Route::post('/items/{product}/reserve', [App\Http\Controllers\ItemController::class, 'reserve'])->middleware('auth')->name('items.reserve');
 Route::post('/items/{product}/unreserve', [App\Http\Controllers\ItemController::class, 'unreserve'])->middleware('auth')->name('items.unreserve');
 Route::post('/items/{product}/hide', [App\Http\Controllers\ItemController::class, 'hide'])->middleware('auth')->name('items.hide');
+Route::post('/items/{product}/unhide', [App\Http\Controllers\ItemController::class, 'unhide'])->middleware('auth')->name('items.unhide');
 Route::get('/items/categories/{category}/attributes', [App\Http\Controllers\ItemController::class, 'getAttributes'])->name('items.attributes');
 Route::get('items/{product}', [HomeController::class, 'show'])->name('products.show');
 Route::get('member/{user}', [HomeController::class, 'member_profile'])->name('vendor.show');

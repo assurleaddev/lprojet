@@ -309,13 +309,10 @@
 
                                             <!-- Hide / Unhide -->
                                             @if($product->status === 'hidden')
-                                                {{-- Logic to unhide if needed, usually just reuse logic or separate route --}}
-                                                {{-- Assuming 'hide' toggles or just hides. For now, strictly 'Hide' per request unless
-                                                hidden --}}
-                                                <div
-                                                    class="w-full py-2 bg-gray-200 text-gray-500 border border-gray-300 rounded text-sm font-medium text-center">
-                                                    Item is hidden
-                                                </div>
+                                                <button type="button" @click="$dispatch('open-unhide-modal')"
+                                                    class="w-full py-2 bg-white text-gray-700 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
+                                                    Unhide
+                                                </button>
                                             @else
                                                 <button type="button" @click="$dispatch('open-hide-modal')"
                                                     class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
@@ -761,6 +758,32 @@
                         <button type="submit"
                             class="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
                             Hide
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- Unhide Confirmation Modal --}}
+        <div x-data="{ showUnhideModal: false }" @open-unhide-modal.window="showUnhideModal = true" x-show="showUnhideModal" x-cloak
+            class="fixed inset-0 z-50 flex items-center justify-center">
+            <div class="fixed inset-0 bg-black opacity-50" @click="showUnhideModal = false"></div>
+            <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Unhide Product?</h3>
+                <p class="text-sm text-gray-600 mb-6">
+                    Your listing will be submitted for review and made visible to buyers once approved.
+                </p>
+                <div class="flex gap-3 justify-end">
+                    <button @click="showUnhideModal = false"
+                        class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                        Cancel
+                    </button>
+                    <form action="{{ route('items.unhide', $product) }}" method="POST" class="inline">
+                        @csrf
+                        <button type="submit"
+                            class="px-4 py-2 text-white rounded-md transition-colors"
+                            style="background-color: var(--brand)">
+                            Unhide
                         </button>
                     </form>
                 </div>
