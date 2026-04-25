@@ -127,6 +127,7 @@
                         <livewire:chat::bundle-builder :vendor="$user" />
                     @endif
 
+                    @if(auth()->id() !== $user->id)
                     <!-- Report dropdown trigger -->
                     <button id="reportBtn"
                         class="h-10 w-10 grid place-items-center rounded-md ring-muted text-zinc-700 hover:bg-zinc-50"
@@ -144,6 +145,7 @@
                         <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Report this user</a>
                         <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Block user</a>
                     </div>
+                    @endif
 
                 </div>
             </div>
