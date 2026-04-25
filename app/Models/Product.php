@@ -37,7 +37,7 @@ class Product extends Model implements HasMedia
     protected static function booted()
     {
         static::updated(function ($product) {
-            if ($product->isDirty('price') && $product->price < $product->getOriginal('price')) {
+            if ($product->wasChanged('price') && (float) $product->price < (float) $product->getOriginal('price')) {
                 foreach ($product->favoritedBy() as $user) {
                     try {
                         $user->notify(new \App\Notifications\PriceChangeNotification($product, $product->getOriginal('price'), $product->price));

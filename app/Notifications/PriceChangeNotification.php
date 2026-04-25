@@ -52,22 +52,29 @@ class PriceChangeNotification extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $discount = round((1 - $this->newPrice / $this->oldPrice) * 100);
+
         return (new MailMessage())
-            ->line('The introduction to the notification.')
-            ->action('Notification Action', url('/'))
+            ->subject("Price drop on {$this->product->name}")
+            ->greeting("Hello {$notifiable->username},")
+            ->line("Good news! A product you liked just dropped in price.")
+            ->line("**{$this->product->name}** is now **" . number_format($this->newPrice, 2) . " MAD** (was " . number_format($this->oldPrice, 2) . " MAD — {$discount}% off).")
+            ->action('View Product', route('products.show', $this->product))
             ->line('Thank you for using our application!');
     }
 
     public function toDatabase($notifiable)
     {
+        $discount = round((1 - $this->newPrice / $this->oldPrice) * 100);
+
         return [
             'type' => 'price_change',
             'product_id' => $this->product->id,
             'product_image' => $this->product->getFeaturedImageUrl('thumb'),
             'old_price' => $this->oldPrice,
             'new_price' => $this->newPrice,
-            'message' => "Price drop! {$this->product->name} is now $" . number_format($this->newPrice, 2),
-            'url' => route('products.show', $this->product->slug),
+            'message' => "Price drop! {$this->product->name} is now " . number_format($this->newPrice, 2) . " MAD (-{$discount}%)",
+            'url' => route('products.show', $this->product),
         ];
     }
 
