@@ -93,6 +93,7 @@
         /* Top nav (bottom underline on hover, tighter paddings) */
         .nav-link {
             font-size: 14px;
+            font-weight: 700;
             color: #555;
             padding: 10px 0;
             border-bottom: 2px solid transparent;
