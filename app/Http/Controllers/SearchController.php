@@ -29,10 +29,7 @@ class SearchController extends Controller
             // User search logic remains same (only runs if query is present, or maybe user wants to browse all vendors?)
             // For now, let's keep user search requiring a query as listing all users might not be desired default behavior
             if ($query) {
-                $results = User::where('first_name', 'like', "%{$query}%")
-                    ->orWhere('last_name', 'like', "%{$query}%")
-                    ->orWhere('username', 'like', "%{$query}%")
-                    ->orWhere('email', 'like', "%{$query}%")
+                $results = User::where('username', 'like', "%{$query}%")
                     ->paginate(20)
                     ->appends(['query' => $query, 'type' => $type]);
             }
@@ -59,14 +56,14 @@ class SearchController extends Controller
             }
 
             // Category filter
-            if (!empty($categoryIds)) {
+            if (! empty($categoryIds)) {
                 $productsQuery->whereIn('category_id', $categoryIds);
             }
 
             // Attribute filters
-            if (!empty($attributeFilters)) {
+            if (! empty($attributeFilters)) {
                 foreach ($attributeFilters as $attributeId => $optionIds) {
-                    if (!empty($optionIds)) {
+                    if (! empty($optionIds)) {
                         $productsQuery->whereHas('options', function ($q) use ($attributeId, $optionIds) {
                             $q->where('attribute_id', $attributeId)
                                 ->whereIn('id', $optionIds);
@@ -76,7 +73,7 @@ class SearchController extends Controller
             }
 
             // Condition Filter
-            if (!empty($conditionsFilter)) {
+            if (! empty($conditionsFilter)) {
                 $productsQuery->whereIn('condition', $conditionsFilter);
             }
 
@@ -90,7 +87,7 @@ class SearchController extends Controller
             // Get attributes logic
             // Get attributes logic
             $allAttributes = [];
-            if (!empty($categoryIds)) {
+            if (! empty($categoryIds)) {
                 $allAttributes = \App\Models\Attribute::whereHas('categories', function ($q) use ($categoryIds) {
                     $q->whereIn('categories.id', $categoryIds);
                 })->with('options')->get();
@@ -139,7 +136,7 @@ class SearchController extends Controller
         $query = $request->input('query');
         $type = $request->input('type', 'product');
 
-        if (!$query || strlen($query) < 2) {
+        if (! $query || strlen($query) < 2) {
             return response()->json([]);
         }
 
@@ -155,7 +152,7 @@ class SearchController extends Controller
                         'type' => 'category',
                         'label' => 'In ' . $cat->name,
                         'value' => $cat->id,
-                        'url' => route('search', ['categories' => [$cat->id]])
+                        'url' => route('search', ['categories' => [$cat->id]]),
                     ];
                 });
 
@@ -178,18 +175,14 @@ class SearchController extends Controller
                         'label' => $product->name,
                         'sub' => $product->price . ' MAD',
                         'image' => $product->getFeaturedImageUrl('preview'),
-                        'url' => route('products.show', $product)
+                        'url' => route('products.show', $product),
                     ];
                 });
 
             $results = $categories->concat($products);
         } else {
             // Suggest Users
-            $results = User::where(function ($q) use ($query) {
-                $q->where('username', 'like', "%{$query}%")
-                    ->orWhere('first_name', 'like', "%{$query}%")
-                    ->orWhere('email', 'like', "%{$query}%");
-            })
+            $results = User::where('username', 'like', "%{$query}%")
                 ->limit(5)
                 ->get()
                 ->map(function ($user) {
@@ -198,7 +191,7 @@ class SearchController extends Controller
                         'label' => $user->full_name,
                         'sub' => '@' . $user->username,
                         'image' => $user->profile_photo_url, // or helper method
-                        'url' => route('vendor.show', $user)
+                        'url' => route('vendor.show', $user),
                     ];
                 });
         }

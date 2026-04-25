@@ -139,7 +139,6 @@ class SearchComponent extends Component
         $this->resetPage();
     }
 
-
     public function render()
     {
         $results = collect();
@@ -150,10 +149,7 @@ class SearchComponent extends Component
 
         if ($this->type === 'user') {
             if ($this->query) {
-                $results = User::where('first_name', 'like', "%{$this->query}%")
-                    ->orWhere('last_name', 'like', "%{$this->query}%")
-                    ->orWhere('username', 'like', "%{$this->query}%")
-                    ->orWhere('email', 'like', "%{$this->query}%")
+                $results = User::where('username', 'like', "%{$this->query}%")
                     ->paginate(20);
             }
         } else {
@@ -177,7 +173,7 @@ class SearchComponent extends Component
             }
 
             // Categories — include selected categories and all their descendants
-            if (!empty($this->categoryIds)) {
+            if (! empty($this->categoryIds)) {
                 $expandedIds = [];
                 foreach ($this->categoryIds as $catId) {
                     $expandedIds = array_merge($expandedIds, $this->getDescendantIds((int) $catId));
@@ -186,8 +182,8 @@ class SearchComponent extends Component
             }
 
             // Brands
-            if (!empty($this->selectedBrands)) {
-                // Assuming Brand is a relation or column. 
+            if (! empty($this->selectedBrands)) {
+                // Assuming Brand is a relation or column.
                 // Based on "Brand" model existence, likely a relation or direct column.
                 // Earlier view used $product->brand (string?). Let's check model.
                 // Actually earlier code used $product->brand (property) and "Brand" Model.
@@ -198,14 +194,14 @@ class SearchComponent extends Component
             }
 
             // Conditions
-            if (!empty($this->selectedConditions)) {
+            if (! empty($this->selectedConditions)) {
                 $productsQuery->whereIn('condition', $this->selectedConditions);
             }
 
             // Attributes
-            if (!empty($this->selectedAttributes)) {
+            if (! empty($this->selectedAttributes)) {
                 foreach ($this->selectedAttributes as $attributeId => $optionIds) {
-                    if (!empty($optionIds) && is_array($optionIds)) {
+                    if (! empty($optionIds) && is_array($optionIds)) {
                         $productsQuery->whereHas('options', function ($q) use ($attributeId, $optionIds) {
                             $q->where('attribute_id', $attributeId)
                                 ->whereIn('id', $optionIds);
@@ -238,7 +234,7 @@ class SearchComponent extends Component
             // Fetch Sidebar Data
             $categories = Category::with('children')->whereNull('parent_id')->get();
 
-            if (!empty($this->categoryIds)) {
+            if (! empty($this->categoryIds)) {
                 $allAttributes = Attribute::whereHas('categories', function ($q) {
                     $q->whereIn('categories.id', $this->categoryIds);
                 })->with('options')->get();
@@ -261,7 +257,6 @@ class SearchComponent extends Component
             return $sizeAttributes->contains('id', $attr->id)
                 || ($colorAttribute && $attr->id === $colorAttribute->id);
         });
-
 
         return view('livewire.search-component', compact(
             'results',
