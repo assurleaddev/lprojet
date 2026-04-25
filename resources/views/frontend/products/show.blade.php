@@ -209,31 +209,31 @@
                         <div class="space-y-3 text-sm mb-6">
                             @if($product->brand)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500">Brand</span>
+                                    <span class="text-gray-500 font-bold">Brand</span>
                                     <a href="#" class="hover:underline"
                                         style="color: var(--brand)">{{ $product->brand->name }}</a>
                                 </div>
                             @endif
                             @if($product->size)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500">Size</span>
+                                    <span class="text-gray-500 font-bold">Size</span>
                                     <span class="text-gray-700 uppercase">{{ $product->size }}</span>
                                 </div>
                             @endif
                             @if($product->condition)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500">Condition</span>
+                                    <span class="text-gray-500 font-bold">Condition</span>
                                     <span class="text-gray-700">{{ ucwords(str_replace('_', ' ', $product->condition)) }}</span>
                                 </div>
                             @endif
                             @if($product->color)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500">Colour</span>
+                                    <span class="text-gray-500 font-bold">Colour</span>
                                     <span class="text-gray-700">{{ $product->color }}</span>
                                 </div>
                             @endif
                             <div class="grid grid-cols-2">
-                                <span class="text-gray-500">Uploaded</span>
+                                <span class="text-gray-500 font-bold">Uploaded</span>
                                 <span class="text-gray-700">{{ $product->created_at->diffForHumans() }}</span>
                             </div>
                         </div>
@@ -258,7 +258,7 @@
 
                         <!-- Shipping Estimates -->
                         <div class="flex justify-between items-center text-sm mb-6">
-                            <span class="text-gray-500">Shipping</span>
+                            <span class="text-gray-500 font-bold">Shipping</span>
                             <span class="text-gray-700">from {{ number_format($deliveryFeeFixed, 2) }} MAD</span>
                         </div>
 
