@@ -777,7 +777,7 @@
             <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
                 <h3 class="text-lg font-bold text-gray-900 mb-2">Unhide Product?</h3>
                 <p class="text-sm text-gray-600 mb-6">
-                    Your listing will be submitted for review and made visible to buyers once approved.
+                    Your listing will be made visible to buyers again.
                 </p>
                 <div class="flex gap-3 justify-end">
                     <button @click="showUnhideModal = false"

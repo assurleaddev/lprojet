@@ -347,8 +347,8 @@ class ItemController extends Controller
             abort(403);
         }
 
-        $product->update(['status' => 'pending']);
+        $product->update(['status' => 'approved']);
 
-        return back()->with('success', 'Product is now visible and pending approval.');
+        return back()->with('success', 'Product is now visible.');
     }
 }
