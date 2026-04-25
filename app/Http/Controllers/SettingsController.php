@@ -224,6 +224,9 @@ class SettingsController extends Controller
             abort(403);
         }
 
+        // Detach from orders before deleting to avoid FK constraint failure
+        \App\Models\Order::where('address_id', $address->id)->update(['address_id' => null]);
+
         $address->delete();
 
         return back()->with('success', 'Address deleted successfully.');
