@@ -31,7 +31,8 @@ class User extends Authenticatable
     use HasRoles;
     use Notifiable;
     use QueryBuilderTrait;
-    use Follower, Followable;
+    use Follower;
+    use Followable;
     use Favoriteability;
     use HasReviewRating;
 
@@ -55,6 +56,7 @@ class User extends Authenticatable
         'phone_verification_code_expires_at',
         'verification_code',
         'verification_code_expires_at',
+        'last_seen_at',
     ];
 
     /**
@@ -79,6 +81,7 @@ class User extends Authenticatable
         'phone_verified_at' => 'datetime',
         'phone_verification_code_expires_at' => 'datetime',
         'verification_code_expires_at' => 'datetime',
+        'last_seen_at' => 'datetime',
     ];
 
     /**
@@ -228,7 +231,7 @@ class User extends Authenticatable
      */
     public function isBanned(): bool
     {
-        return !is_null($this->banned_at);
+        return ! is_null($this->banned_at);
     }
 
     /**
@@ -287,7 +290,7 @@ class User extends Authenticatable
             'item_sold',
             'item_shipped',
             'order_update',
-            'order_completed'
+            'order_completed',
         ];
     }
 

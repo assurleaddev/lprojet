@@ -41,6 +41,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\AdminRedirectMiddleware::class,
             \App\Http\Middleware\CheckBanned::class,
             \App\Http\Middleware\EnsurePhoneIsVerified::class, // Enforce Phone Verification
+            \App\Http\Middleware\TrackLastSeen::class,
         ],
 
         'api' => [
