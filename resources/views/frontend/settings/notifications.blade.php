@@ -153,7 +153,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Save</button>
                     </div>
                 </form>
             </div>

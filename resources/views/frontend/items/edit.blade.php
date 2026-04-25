@@ -135,7 +135,7 @@
             </div>
 
             <button type="submit"
-                class="w-full bg-teal-600 text-white font-bold py-3 rounded-md hover:bg-teal-700 transition-colors">Update
+                class="w-full bg-gray-900 text-white font-bold py-3 rounded-md hover:bg-gray-800 transition-colors">Update
                 Product</button>
         </form>
     </div>

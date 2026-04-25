@@ -43,7 +43,7 @@
                                 </svg></span>
                         </div>
                         <button type="button"
-                            class="text-brand border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
+                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
                     </div>
 
                     <!-- Phone number -->
@@ -135,7 +135,7 @@
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-base font-medium text-gray-900">Facebook</h3>
                             <button type="button"
-                                class="text-[var(--brand)] border border-[var(--brand)] px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Link</button>
+                                class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Link</button>
                         </div>
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="text-base font-medium text-gray-900">Google</h3>
@@ -151,7 +151,7 @@
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <h3 class="text-base font-medium text-gray-900">Change password</h3>
                         <button type="button"
-                            class="text-brand border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
+                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
                     </div>
 
                     <!-- Delete account -->
@@ -164,7 +164,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Save</button>
                     </div>
 
                     <!-- Warning Modal (Moved to end of form) -->
@@ -213,7 +213,7 @@
                                 </button>
                                 <button type="button" @click="confirmHolidayMode()"
                                     class="px-4 py-2 text-white font-medium rounded-lg shadow-sm transition-colors"
-                                    :class="pendingState ? 'bg-amber-600 hover:bg-amber-700' : 'bg-brand hover:opacity-90'">
+                                    :class="pendingState ? 'bg-amber-600 hover:bg-amber-700' : 'bg-gray-900 hover:bg-gray-800'">
                                     Confirm
                                 </button>
                             </div>

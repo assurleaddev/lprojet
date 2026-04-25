@@ -136,7 +136,7 @@
                                     </div>
                                     <div class="mt-8 flex gap-3">
                                         <button type="submit"
-                                            class="flex-1 bg-brand text-white py-3.5 rounded-xl font-bold hover:opacity-90 shadow-lg shadow-brand/20 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                            class="flex-1 bg-gray-900 text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
                                             Save Account
                                         </button>
                                         <button type="button" @click="showAddModal = false"

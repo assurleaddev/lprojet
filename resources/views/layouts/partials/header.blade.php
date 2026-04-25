@@ -205,13 +205,11 @@
                                 </div>
                 @else
                     <button @click="$dispatch('open-login-popup'); mobileMenuOpen = false"
-                        class="px-4 font-bold py-2 rounded-md transition-colors text-sm whitespace-nowrap shrink-0 text-center"
-                        style="border: 1px solid var(--brand); color: var(--brand);">
+                        class="px-4 font-bold py-2 rounded-md transition-colors text-sm whitespace-nowrap shrink-0 text-center border border-gray-900 text-gray-900 hover:bg-gray-50">
                         Login / register
                     </button>
                 @endif
-                <a href="{{ route('items.create') }}" class="px-4 py-2 rounded text-white font-bold text-sm whitespace-nowrap shrink-0 text-center"
-                    style="background:var(--brand)">Sell now</a>
+                <a href="{{ route('items.create') }}" class="px-4 py-2 rounded text-white font-bold text-sm whitespace-nowrap shrink-0 text-center bg-gray-900 hover:bg-gray-800">Sell now</a>
                 <a href="#" class="text-gray-600 hover:text-black shrink-0 flex items-center md:block" aria-label="Help">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"

@@ -215,7 +215,7 @@
                             <button
                                 @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $this->conversation->product->id }} })"
                                 @if($isUnavailable) disabled @endif
-                                class="px-3 py-1 bg-white border border-teal-600 text-teal-600 text-sm font-medium rounded hover:bg-teal-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="px-3 py-1 bg-white border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                                 Make Offer
                             </button>
                             <button
@@ -374,13 +374,13 @@
                                     <div
                                         class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
                                         <button wire:click="acceptOffer({{ $offerId }})" wire:loading.attr="disabled"
-                                            class="col-span-2 w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                            class="col-span-2 w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
                                             Accept
                                         </button>
                                         @if($productData && isset($productData->id))
                                             <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
                                                 wire:loading.attr="disabled" type="button"
-                                                class="w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 rounded-md transition-colors">
+                                                class="w-full bg-white border border-gray-900 text-gray-900 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
                                                 Counter
                                             </button>
                                         @endif
@@ -397,7 +397,7 @@
                                     <div
                                         class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
                                         <button wire:click="acceptOffer({{ $offerId }})" wire:loading.attr="disabled"
-                                            class="col-span-2 w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                            class="col-span-2 w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
                                             Acheter {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
                                         </button>
                                         <button wire:click="promptRejectOffer({{ $offerId }})" wire:loading.attr="disabled"
@@ -413,14 +413,14 @@
                                             @if(auth()->id() === ($offerData->seller_id ?? ($productData->vendor_id ?? null))) {{-- Seller side Counter --}}
                                                 @if($productData && isset($productData->id))
                                                     <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
-                                                        class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                        class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
                                                         Offer your price
                                                     </button>
                                                 @endif
                                             @else {{-- Buyer side New Offer --}}
                                                 @if($productData && isset($productData->id))
                                                     <button @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $productData->id }} })"
-                                                        class="w-full bg-teal-700 hover:bg-teal-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                                        class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
                                                         Offer your price
                                                     </button>
                                                 @endif
@@ -474,11 +474,11 @@
 
                                     <div class="mt-4 space-y-2">
                                         <a href="{{ $downloadUrl }}" target="_blank"
-                                            class="block w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            class="block w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                             Download Shipping Label
                                         </a>
                                         <button wire:click="markAsShipped" wire:loading.attr="disabled"
-                                            class="block w-full bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                            class="block w-full bg-white border border-gray-900 text-gray-900 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                             Mark as Shipped
                                         </button>
                                     </div>
@@ -569,13 +569,13 @@
                                             @if(isset($latestOrder) && $latestOrder->status === 'delivered')
                                                 {{-- If delivered but not completed, show Leave Review --}}
                                                 <button wire:click="openReviewModal({{ $latestOrder->id }})" wire:loading.attr="disabled"
-                                                    class="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                    class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                                     Leave Review
                                                 </button>
                                             @else
                                                 {{-- Standard Item Received Button --}}
                                                 <button wire:click="markAsReceived(0)" wire:loading.attr="disabled"
-                                                    class="w-full bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                    class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                                     Item Received
                                                 </button>
                                             @endif
@@ -1055,7 +1055,7 @@
                         Cancel
                     </button>
                     <button type="button" wire:click="confirmReception" wire:loading.attr="disabled"
-                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-teal-600 text-base font-medium text-white hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:col-start-2 sm:text-sm">
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 sm:col-start-2 sm:text-sm">
                         <span wire:loading.remove wire:target="confirmReception">Confirm Received</span>
                         <span wire:loading wire:target="confirmReception">Processing...</span>
                     </button>
@@ -1128,7 +1128,7 @@
                             Cancel
                         </button>
                         <button type="submit" wire:loading.attr="disabled" wire:target="submitReview"
-                            class="px-4 py-2 text-sm font-medium text-white bg-teal-600 border border-transparent rounded-md shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50">
+                            class="px-4 py-2 text-sm font-medium text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50">
                             <span wire:loading wire:target="submitReview" class="animate-pulse">Submitting...</span>
                             <span wire:loading.remove wire:target="submitReview">Submit Review</span>
                         </button>

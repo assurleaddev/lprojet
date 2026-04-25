@@ -284,8 +284,7 @@
                                             @else
                                                 <!-- Bump Button -->
                                                 <button type="button" @click="$dispatch('open-bump-modal')"
-                                                    class="w-full py-2 text-white rounded text-sm font-bold border border-transparent"
-                                                    style="background-color: var(--brand)">
+                                                    class="w-full py-2 text-white rounded text-sm font-bold border border-transparent bg-gray-900 hover:bg-gray-800">
                                                     Bump
                                                 </button>
 
@@ -355,7 +354,7 @@
                                                 style="background-color: var(--brand)">
                                                 Buy now
                                             </a>
-                                            @livewire('product-messaging-button', ['product' => $product, 'class' => 'w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm', 'style' => 'border-color: var(--brand); color: var(--brand)', 'text' => 'Ask seller'])
+                                            @livewire('product-messaging-button', ['product' => $product, 'class' => 'w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm', 'style' => 'border-color: #111827; color: #111827', 'text' => 'Ask seller'])
                                         @endif
                                     </div>
                                 @endif
@@ -373,7 +372,7 @@
                                         </a>
                                         <button type="button" @click="$dispatch('open-auth-modal')"
                                             class="w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm"
-                                            style="border-color: var(--brand); color: var(--brand)">
+                                            style="border-color: #111827; color: #111827">
                                             Ask seller
                                         </button>
                                     @endif
@@ -456,14 +455,14 @@
                         @if(auth()->check() && auth()->id() !== $product->vendor->id)
                             <button type="button"
                                 class="follow-btn w-full py-2 border font-medium rounded hover:opacity-80 transition-colors text-sm"
-                                style="{{ $isFollowing ? 'border-color: #d1d5db; color: #374151; background-color: #f9fafb;' : 'border-color: var(--brand); color: var(--brand);' }}"
+                                style="{{ $isFollowing ? 'border-color: #d1d5db; color: #374151; background-color: #f9fafb;' : 'border-color: #111827; color: #111827;' }}"
                                 data-user-id="{{ $product->vendor->id }}">
                                 {{ $isFollowing ? 'Following' : 'Follow' }}
                             </button>
                         @elseif(!auth()->check())
                             <button type="button" @click="$dispatch('open-auth-modal')"
                                 class="w-full py-2 border font-medium rounded hover:opacity-80 transition-colors text-sm"
-                                style="border-color: var(--brand); color: var(--brand)">
+                                style="border-color: #111827; color: #111827">
                                 Follow
                             </button>
                         @endif
@@ -673,8 +672,7 @@
                             class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                             Cancel
                         </button>
-                        <button type="submit" class="px-4 py-2 text-white rounded-md transition-colors"
-                            style="background-color: var(--brand)">
+                        <button type="submit" class="px-4 py-2 text-white rounded-md transition-colors bg-gray-900 hover:bg-gray-800">
                             Reserve
                         </button>
                     </div>
@@ -703,8 +701,7 @@
                     boost your product's visibility to reach more buyers. Stay tuned!
                 </p>
                 <button @click="showBumpModal = false"
-                    class="w-full px-4 py-2 text-white font-bold rounded-md transition-colors"
-                    style="background-color: var(--brand)">
+                    class="w-full px-4 py-2 text-white font-bold rounded-md transition-colors bg-gray-900 hover:bg-gray-800">
                     Got it!
                 </button>
             </div>
@@ -782,8 +779,7 @@
                     <form action="{{ route('items.unhide', $product) }}" method="POST" class="inline">
                         @csrf
                         <button type="submit"
-                            class="px-4 py-2 text-white rounded-md transition-colors"
-                            style="background-color: var(--brand)">
+                            class="px-4 py-2 text-white rounded-md transition-colors bg-gray-900 hover:bg-gray-800">
                             Unhide
                         </button>
                     </form>
@@ -798,14 +794,14 @@
                     @if($product->status === 'reserved' && $product->buyer_id !== auth()->id())
                         <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Reserved</button>
                     @else
-                        <button type="button" @click="$dispatch('open-make-offer-modal', { productId: {{ $product->id }} })" class="flex-1 py-2.5 bg-white border font-bold rounded transition-colors text-sm text-center" style="border-color: var(--brand); color: var(--brand)">Make an offer</button>
+                        <button type="button" @click="$dispatch('open-make-offer-modal', { productId: {{ $product->id }} })" class="flex-1 py-2.5 bg-white border border-gray-900 text-gray-900 font-bold rounded transition-colors text-sm text-center">Make an offer</button>
                         <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base" style="background-color: var(--brand)">Buy now</a>
                     @endif
                 @else
                     @if($product->status === 'reserved')
                         <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Reserved</button>
                     @else
-                        <button type="button" @click="$dispatch('open-auth-modal')" class="flex-1 py-2.5 bg-white border font-bold rounded transition-colors text-sm text-center" style="border-color: var(--brand); color: var(--brand)">Make an offer</button>
+                        <button type="button" @click="$dispatch('open-auth-modal')" class="flex-1 py-2.5 bg-white border border-gray-900 text-gray-900 font-bold rounded transition-colors text-sm text-center">Make an offer</button>
                         <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base" style="background-color: var(--brand)">Buy now</a>
                     @endif
                 @endauth

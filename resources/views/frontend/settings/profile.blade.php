@@ -157,7 +157,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
                             :disabled="isLoading" x-text="isLoading ? 'Updating...' : 'Update profile'">
                         </button>
                     </div>
@@ -180,7 +180,7 @@
                                     Cancel
                                 </button>
                                 <button type="button" @click="cropAndClose"
-                                    class="px-4 py-2 text-white bg-brand rounded hover:opacity-90">
+                                    class="px-4 py-2 text-white bg-gray-900 rounded hover:bg-gray-800">
                                     Crop & Save
                                 </button>
                             </div>

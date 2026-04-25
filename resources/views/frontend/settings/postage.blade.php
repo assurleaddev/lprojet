@@ -200,7 +200,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Save</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Save</button>
                     </div>
                 </form>
 
@@ -305,7 +305,7 @@
                                     </div>
                                     <div class="mt-5 sm:mt-6 flex gap-3">
                                         <button type="submit"
-                                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-brand text-base font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand sm:text-sm">
+                                            class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 sm:text-sm">
                                             Save address
                                         </button>
                                         <button type="button" @click="closeModal"

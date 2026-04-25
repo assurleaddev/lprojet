@@ -245,8 +245,7 @@
                         <span class="font-bold text-lg text-gray-900" id="summary-total">-- MAD</span>
                     </div>
                     <button type="submit" id="submit-btn"
-                        class="w-full text-white font-bold py-3 rounded-md transition-colors mb-3"
-                        style="background-color: var(--brand)">
+                        class="w-full text-white font-bold py-3 rounded-md transition-colors mb-3 bg-gray-900 hover:bg-gray-800">
                         Place order
                     </button>
                     <p class="text-xs text-center text-gray-400 flex items-center justify-center gap-1">

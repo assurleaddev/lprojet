@@ -132,8 +132,7 @@
                         <livewire:follow-button :user="$user" />
 
                         <button onclick="Livewire.dispatch('open-bundle-builder')"
-                            class="h-10 px-4 font-bold text-sm text-white rounded-md shadow-sm hover:opacity-90 transition whitespace-nowrap"
-                            style="background-color: var(--brand)">
+                            class="h-10 px-4 font-bold text-sm text-white bg-gray-900 hover:bg-gray-800 rounded-md shadow-sm transition whitespace-nowrap">
                             Shop bundles
                         </button>
                         <livewire:chat::bundle-builder :vendor="$user" />
@@ -327,8 +326,7 @@
                         </div>
 
                         <button type="submit"
-                            class="px-4 py-2 text-white text-sm font-medium rounded-md shadow-sm transition-colors"
-                            style="background-color: var(--brand)">
+                            class="px-4 py-2 text-white text-sm font-medium bg-gray-900 hover:bg-gray-800 rounded-md shadow-sm transition-colors">
                             Submit Review
                         </button>
                     </form>

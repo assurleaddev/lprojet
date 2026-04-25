@@ -44,7 +44,7 @@
                                     <input type="text" name="code" placeholder="Enter code"
                                         class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                                     <button type="submit"
-                                        class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Verify</button>
+                                        class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Verify</button>
                                 </form>
                             </div>
                         @else
@@ -87,7 +87,7 @@
                                 class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                         </div>
                         <button type="submit"
-                            class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Update
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Update
                             Password</button>
                     </form>
                 </div>
@@ -118,7 +118,7 @@
                                 <input type="text" name="code" placeholder="Enter code"
                                     class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                                 <button type="submit"
-                                    class="bg-brand text-white px-6 py-2 rounded font-medium hover:opacity-90">Verify &
+                                    class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Verify &
                                     Enable</button>
                             </form>
                         </div>

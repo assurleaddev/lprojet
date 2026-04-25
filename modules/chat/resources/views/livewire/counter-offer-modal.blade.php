@@ -47,7 +47,7 @@
                             Cancel
                         </button>
                         <button type="submit" wire:loading.attr="disabled" wire:target="submitCounterOffer"
-                            class="px-4 py-2 text-sm font-medium text-white bg-teal-600 border border-transparent rounded-md shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50">
+                            class="px-4 py-2 text-sm font-medium text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50">
                             <span wire:loading wire:target="submitCounterOffer" class="animate-pulse">Sending...</span>
                             <span wire:loading.remove wire:target="submitCounterOffer">Send Counter Offer</span>
                         </button>

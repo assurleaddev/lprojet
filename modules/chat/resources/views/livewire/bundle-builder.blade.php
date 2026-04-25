@@ -135,8 +135,7 @@
                 </div>
 
                 <button wire:click="sendRequest" wire:loading.attr="disabled"
-                    class="px-6 py-2.5 text-white text-sm font-bold rounded-full shadow-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                    style="background-color: var(--brand)">
+                    class="px-6 py-2.5 text-white text-sm font-bold bg-gray-900 hover:bg-gray-800 rounded-full shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap">
                     <span wire:loading wire:target="sendRequest" class="animate-pulse">Sending...</span>
                     <span wire:loading.remove wire:target="sendRequest">Request Bundle</span>
                 </button>
