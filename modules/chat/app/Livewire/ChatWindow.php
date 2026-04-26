@@ -732,8 +732,9 @@ class ChatWindow extends Component
         try {
             // For COD orders the delivery man collects cash directly — no escrow was held, skip wallet ops.
             if ($order->payment_method !== 'cod') {
+                $vendorPayout = $order->amount - ($order->platform_commission ?? 0);
                 $walletService = app(\Modules\Wallet\Services\WalletService::class);
-                $walletService->releasePendingFunds($order->vendor, $order->vendor_payout ?? $order->amount, 'Order #' . $order->id);
+                $walletService->releasePendingFunds($order->vendor, $vendorPayout, 'Order #' . $order->id);
             }
 
             $order->update(['status' => 'completed']);
