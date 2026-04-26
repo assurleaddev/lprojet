@@ -8,6 +8,8 @@ use App\Models\Category;
 
 class VintedCatalogTranslatorSeeder extends Seeder
 {
+    private const CHUNK_SIZE = 50;
+
     public function run(): void
     {
         $apiKey = config('services.openai.key');
@@ -29,12 +31,30 @@ class VintedCatalogTranslatorSeeder extends Seeder
         }
 
         $names = $categories->pluck('name')->unique()->values()->all();
-        $this->command->info('Translating '.count($names).' unique category names via OpenAI…');
+        $chunks = array_chunk($names, self::CHUNK_SIZE);
+        $total = count($names);
+        $chunkCount = count($chunks);
 
-        $translations = $this->translateBatch($names, $apiKey);
+        $this->command->info("Translating {$total} unique category names in {$chunkCount} batches of ".self::CHUNK_SIZE.'…');
+
+        $translations = [];
+        foreach ($chunks as $i => $chunk) {
+            $batch = $i + 1;
+            $this->command->line("  Batch {$batch}/{$chunkCount}…");
+
+            $result = $this->translateBatch($chunk, $apiKey);
+
+            if (empty($result)) {
+                $this->command->error("  Batch {$batch} failed — skipping.");
+
+                continue;
+            }
+
+            $translations = array_merge($translations, $result);
+        }
 
         if (empty($translations)) {
-            $this->command->error('OpenAI returned an empty response. Aborting.');
+            $this->command->error('No translations were returned. Aborting.');
 
             return;
         }
@@ -44,7 +64,7 @@ class VintedCatalogTranslatorSeeder extends Seeder
             $ar = $translations[$category->name] ?? null;
 
             if (! $ar) {
-                $this->command->warn("  No translation returned for: {$category->name}");
+                $this->command->warn("  No translation for: {$category->name}");
 
                 continue;
             }
@@ -74,7 +94,7 @@ Category names to translate:
 PROMPT;
 
         $response = Http::withToken($apiKey)
-            ->timeout(60)
+            ->timeout(30)
             ->post('https://api.openai.com/v1/chat/completions', [
                 'model' => 'gpt-4o-mini',
                 'response_format' => ['type' => 'json_object'],
@@ -91,7 +111,6 @@ PROMPT;
         }
 
         $content = $response->json('choices.0.message.content');
-
         $decoded = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
