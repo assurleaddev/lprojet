@@ -73,7 +73,7 @@
                                     @endforeach
                                 </div>
                                 <div class="mt-4 pt-3 border-t flex justify-end">
-                                     <button type="submit" class="text-xs font-bold text-white bg-teal-600 px-3 py-1.5 rounded hover:bg-teal-700">Apply</button>
+                                     <button type="submit" class="text-xs font-bold text-white bg-gray-900 px-3 py-1.5 rounded hover:bg-gray-800">Appliquer</button>
                                 </div>
                             </form>
                         </div>
@@ -220,13 +220,13 @@
                                     <div class="flex items-center justify-between mb-3">
                                         <h3 class="font-semibold">{{ $attribute->name }}</h3>
                                         <button type="button" @click="open = false"
-                                            class="text-teal-600 hover:underline text-sm">Close</button>
+                                            class="text-gray-700 hover:underline text-sm">Fermer</button>
                                     </div>
                                     @foreach($attribute->options as $option)
                                         <label class="flex items-center py-2 cursor-pointer hover:bg-gray-50 px-2 rounded">
                                             <input type="checkbox" name="attributes[{{ $attribute->id }}][]" value="{{ $option->id }}"
                                                 {{ isset($attributeFilters[$attribute->id]) && in_array($option->id, $attributeFilters[$attribute->id]) ? 'checked' : '' }} onchange="this.form.submit()"
-                                                class="rounded text-teal-600 mr-2">
+                                                class="rounded text-gray-900 mr-2">
                                             <span>{{ $option->value }}</span>
                                         </label>
                                     @endforeach
@@ -240,7 +240,7 @@
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50">
-                        <span>Sort by</span>
+                        <span>Trier par</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -248,10 +248,10 @@
                     <div x-show="open" @click.away="open = false"
                         class="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
                         <div class="p-2">
-                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Relevance</a>
-                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Newest first</a>
-                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Price: Low to high</a>
-                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Price: High to low</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Pertinence</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Plus récents</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Prix croissant</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Prix décroissant</a>
                         </div>
                     </div>
                 </div>
@@ -287,7 +287,7 @@
                     @endforeach
                     @if(!empty($categoryIds) || !empty($attributeFilters))
                         <a href="{{ route('search', ['query' => $query, 'type' => $type]) }}"
-                            class="text-sm hover:underline ml-2" style="color: var(--brand)">Clear filters</a>
+                            class="text-sm hover:underline ml-2" class="text-gray-700 hover:underline text-sm ml-2">Effacer les filtres</a>
                     @endif
                 </div>
             @endif
@@ -297,7 +297,7 @@
                 <div class="flex flex-wrap gap-x-8 gap-y-2">
                     @foreach($categories->take(8) as $category)
                         <a href="{{ route('search', ['query' => $query, 'type' => $type, 'categories' => [$category->id]]) }}"
-                            class="hover:underline" style="color: var(--brand)">{{ $category->name }}</a>
+                            class="hover:underline" class="hover:underline text-gray-700">{{ $category->name }}</a>
                     @endforeach
                 </div>
             </div>
@@ -395,7 +395,7 @@
                             </div>
                             <div>
                                 <a href="{{ route('vendor.show', $user) }}"
-                                    class="text-teal-600 hover:text-teal-700 text-sm font-medium">View</a>
+                                    class="text-gray-900 hover:underline text-sm font-medium">Voir</a>
                             </div>
                         </div>
                     @endforeach
