@@ -730,10 +730,14 @@ class ChatWindow extends Component
 
         // 2. Release Funds & Complete Order
         try {
-            // For COD orders the delivery man collects cash directly — no escrow was held, skip wallet ops.
-            if ($order->payment_method !== 'cod') {
-                $vendorPayout = $order->amount - ($order->platform_commission ?? 0);
-                $walletService = app(\Modules\Wallet\Services\WalletService::class);
+            $vendorPayout = $order->amount - ($order->platform_commission ?? 0);
+            $walletService = app(\Modules\Wallet\Services\WalletService::class);
+
+            if ($order->payment_method === 'cod') {
+                // Cash was collected by the delivery company — credit the seller's balance directly, no escrow to release.
+                $walletService->credit($order->vendor, $vendorPayout, 'sale', 'COD sale for Order #' . $order->id, 'order_' . $order->id);
+            } else {
+                // Wallet or card — move from pending_balance to available balance.
                 $walletService->releasePendingFunds($order->vendor, $vendorPayout, 'Order #' . $order->id);
             }
 
