@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Security Settings')
+@section('title', __('Security'))
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Settings</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Settings') }}</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -26,7 +26,7 @@
                 <!-- Email Change -->
                 <div class="mb-8 pb-8 border-b border-gray-100">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Email</h2>
-                    <p class="text-sm text-gray-500 mb-4">Keep your email up to date.</p>
+                    <p class="text-sm text-gray-500 mb-4">{{ __('Keep your email up to date.') }}</p>
 
                     <form action="{{ route('settings.security.email.request') }}" method="POST" class="space-y-4">
                         @csrf
@@ -38,13 +38,13 @@
 
                         @if(session('email_verification_sent'))
                             <div class="bg-blue-50 p-4 rounded-md border border-blue-200">
-                                <p class="text-sm text-blue-700 mb-2">We sent a verification code to your new email address.</p>
+                                <p class="text-sm text-blue-700 mb-2">{{ __('We sent a verification code to your new email address.') }}</p>
                                 <form action="{{ route('settings.security.email.verify') }}" method="POST" class="flex gap-2">
                                     @csrf
-                                    <input type="text" name="code" placeholder="Enter code"
+                                    <input type="text" name="code" placeholder="{{ __('Enter code') }}"
                                         class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                                     <button type="submit"
-                                        class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Verify</button>
+                                        class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">{{ __('Verify') }}</button>
                                 </form>
                             </div>
                         @else
@@ -54,7 +54,7 @@
                                     <input type="email" name="new_email"
                                         class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                                     <button type="submit"
-                                        class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded font-medium hover:bg-gray-50">Change</button>
+                                        class="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded font-medium hover:bg-gray-50">{{ __('Change') }}</button>
                                 </div>
                             </div>
                         @endif
@@ -64,7 +64,7 @@
                 <!-- Password Change -->
                 <div class="mb-8 pb-8 border-b border-gray-100">
                     <h2 class="text-lg font-medium text-gray-900 mb-4">Password</h2>
-                    <p class="text-sm text-gray-500 mb-4">Protect your account with a stronger password.</p>
+                    <p class="text-sm text-gray-500 mb-4">{{ __('Protect your account with a stronger password.') }}</p>
 
                     <form action="{{ route('settings.security.password.update') }}" method="POST"
                         class="space-y-4 max-w-md">
@@ -82,7 +82,7 @@
                             @error('new_password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Confirm Nouveau mot de passe</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Confirm New Password') }}</label>
                             <input type="password" name="new_password_confirmation"
                                 class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                         </div>
@@ -97,7 +97,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-lg font-medium text-gray-900">{{ __('2-step verification') }}</h2>
-                            <p class="text-sm text-gray-500">Confirm new logins with a code sent to your email.</p>
+                            <p class="text-sm text-gray-500">{{ __('Confirm new logins with a code sent to your email.') }}</p>
                         </div>
                         <form action="{{ route('settings.security.2fa.toggle') }}" method="POST">
                             @csrf
@@ -112,10 +112,10 @@
                     </div>
                     @if(session('2fa_verification_needed'))
                         <div class="mt-4 bg-blue-50 p-4 rounded-md border border-blue-200">
-                            <p class="text-sm text-blue-700 mb-2">To enable 2FA, verify your email address.</p>
+                            <p class="text-sm text-blue-700 mb-2">{{ __('To enable 2FA, verify your email address.') }}</p>
                             <form action="{{ route('settings.security.2fa.verify') }}" method="POST" class="flex gap-2">
                                 @csrf
-                                <input type="text" name="code" placeholder="Enter code"
+                                <input type="text" name="code" placeholder="{{ __('Enter code') }}"
                                     class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                                 <button type="submit"
                                     class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Verify &
@@ -127,8 +127,8 @@
 
                 <!-- Login Activity -->
                 <div>
-                    <h2 class="text-lg font-medium text-gray-900 mb-4">Login activity</h2>
-                    <p class="text-sm text-gray-500 mb-4">Manage your logged-in devices.</p>
+                    <h2 class="text-lg font-medium text-gray-900 mb-4">{{ __('Login activity') }}</h2>
+                    <p class="text-sm text-gray-500 mb-4">{{ __('Manage your logged-in devices.') }}</p>
 
                     <div class="space-y-4">
                         @foreach($sessions as $session)
@@ -137,7 +137,7 @@
                                     <div class="font-medium text-gray-900">
                                         {{ $session->ip_address }}
                                         @if($session->id === request()->session()->getId())
-                                            <span class="text-gray-900 text-xs ml-2">(Current Device)</span>
+                                            <span class="text-gray-900 text-xs ml-2">{{ __('(Current Device)') }}</span>
                                         @endif
                                     </div>
                                     <div class="text-sm text-gray-500">

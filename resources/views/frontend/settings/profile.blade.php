@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Settings')
+@section('title', __('Settings'))
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Settings</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Settings') }}</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -74,16 +74,16 @@
                         <div class="w-full md:w-1/2">
                             <textarea name="about" rows="4"
                                 class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand"
-                                placeholder="Tell us more about yourself and your style">{{ old('about', $user->getMeta('about')) }}</textarea>
+                                placeholder="{{ __('Tell us more about yourself and your style') }}">{{ old('about', $user->getMeta('about')) }}</textarea>
                         </div>
                     </div>
 
                     <!-- My location -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
-                        <h3 class="text-sm text-gray-500 mb-4 uppercase tracking-wide">My location</h3>
+                        <h3 class="text-sm text-gray-500 mb-4 uppercase tracking-wide">{{ __('My location') }}</h3>
 
                         <div class="flex items-center justify-between mb-4">
-                            <label class="text-base font-medium text-gray-900">Country</label>
+                            <label class="text-base font-medium text-gray-900">{{ __('Country') }}</label>
                             <div class="w-1/2 relative">
                                 <input type="hidden" name="country" :value="selectedCountry">
                                 <div class="relative">
@@ -99,14 +99,14 @@
                                             </div>
                                         </template>
                                         <div x-show="filteredCountries.length === 0"
-                                            class="px-4 py-2 text-gray-500 text-sm">No countries found</div>
+                                            class="px-4 py-2 text-gray-500 text-sm">{{ __('No countries found') }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between mb-4">
-                            <label class="text-base font-medium text-gray-900">Town/City</label>
+                            <label class="text-base font-medium text-gray-900">{{ __('Town/City') }}</label>
                             <div class="w-1/2 relative">
                                 <input type="hidden" name="city" :value="selectedCity">
                                 <div class="relative">
@@ -124,14 +124,14 @@
                                         <div x-show="isLoadingCities" class="px-4 py-2 text-gray-500 text-sm">Loading
                                             cities...</div>
                                         <div x-show="!isLoadingCities && filteredCities.length === 0"
-                                            class="px-4 py-2 text-gray-500 text-sm">No cities found</div>
+                                            class="px-4 py-2 text-gray-500 text-sm">{{ __('No cities found') }}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <label class="text-base font-medium text-gray-900">Show city in profile</label>
+                            <label class="text-base font-medium text-gray-900">{{ __('Show city in profile') }}</label>
                             <label class="relative inline-flex items-center cursor-pointer">
                                 <input type="checkbox" name="show_city" value="1" class="sr-only peer" {{ old('show_city', $user->getMeta('show_city')) ? 'checked' : '' }}>
                                 <div
@@ -144,13 +144,13 @@
                     <!-- Language -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-medium text-gray-900">Language</h3>
+                            <h3 class="text-base font-medium text-gray-900">{{ __('Language') }}</h3>
                         </div>
                         <div class="w-1/2">
                             <select name="language"
                                 class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
-                                <option value="en" {{ old('language', $user->getMeta('language')) == 'en' ? 'selected' : '' }}>English, UK (English)</option>
-                                <option value="fr" {{ old('language', $user->getMeta('language')) == 'fr' ? 'selected' : '' }}>French (Français)</option>
+                                <option value="en" {{ old('language', $user->getMeta('language')) == 'en' ? 'selected' : '' }}>{{ __('English, UK (English)') }}</option>
+                                <option value="fr" {{ old('language', $user->getMeta('language')) == 'fr' ? 'selected' : '' }}>{{ __('French (Français)') }}</option>
                             </select>
                         </div>
                     </div>
@@ -158,7 +158,7 @@
                     <div class="flex justify-end">
                         <button type="submit"
                             class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                            :disabled="isLoading" x-text="isLoading ? 'Updating...' : 'Mettre à jour le profil'">
+                            :disabled="isLoading" x-text="__('Updating...')" x-show="isLoading"></span><span x-show="!isLoading">{{ __('Update profile') }}">
                         </button>
                     </div>
 
@@ -166,7 +166,7 @@
                     <div x-show="showCropper" style="display: none;"
                         class="fixed inset-0 z-50 flex items-center justify-center bg-black opacity-75 p-4">
                         <div class="bg-white rounded-lg p-4 w-full max-w-lg">
-                            <h3 class="text-lg font-bold mb-4">Crop Profile Picture</h3>
+                            <h3 class="text-lg font-bold mb-4">{{ __('Crop Profile Picture') }}</h3>
 
                             <div class="mb-4">
                                 <div class="h-96 w-full bg-gray-100 rounded overflow-hidden">

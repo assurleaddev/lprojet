@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Notification Settings')
+@section('title', __('Notifications'))
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Settings</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Settings') }}</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -32,7 +32,7 @@
                     @csrf
 
                     <div class="flex items-center justify-between mb-8 pb-8 border-b border-gray-100">
-                        <span class="font-medium text-gray-900">Activer les notifications par e-mail</span>
+                        <span class="font-medium text-gray-900">{{ __('Enable email notifications') }}</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="enable_email_notifications" value="1" class="sr-only peer" {{ $user->getMeta('enable_email_notifications') ? 'checked' : '' }}>
                             <div
@@ -43,11 +43,11 @@
 
                     <!-- News -->
                     <div class="mb-8">
-                        <h3 class="text-sm text-gray-500 mb-4">News</h3>
+                        <h3 class="text-sm text-gray-500 mb-4">{{ __('News') }}</h3>
                         <div class="space-y-4 border border-gray-200 rounded-md divide-y divide-gray-100">
                             <div class="p-4 flex items-center justify-between">
                                 <div>
-                                    <span class="block font-medium text-gray-900">Used Updates</span>
+                                    <span class="block font-medium text-gray-900">{{ __('Platform Updates') }}</span>
                                     <span class="block text-xs text-gray-500">Be the first to know about our newest
                                         features, updates, and changes</span>
                                 </div>
@@ -60,7 +60,7 @@
                             </div>
                             <div class="p-4 flex items-center justify-between">
                                 <div>
-                                    <span class="block font-medium text-gray-900">Marketing communications</span>
+                                    <span class="block font-medium text-gray-900">{{ __('Marketing communications') }}</span>
                                     <span class="block text-xs text-gray-500">Receive personalised offers, news, and
                                         recommendations</span>
                                 </div>
@@ -76,10 +76,10 @@
 
                     <!-- Notifications prioritaires -->
                     <div class="mb-8">
-                        <h3 class="text-sm text-gray-500 mb-4">Notifications prioritaires</h3>
+                        <h3 class="text-sm text-gray-500 mb-4">{{ __('Priority notifications') }}</h3>
                         <div class="space-y-4 border border-gray-200 rounded-md divide-y divide-gray-100">
                             <div class="p-4 flex items-center justify-between">
-                                <span class="block font-medium text-gray-900">New messages</span>
+                                <span class="block font-medium text-gray-900">{{ __('New messages') }}</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notify_high_priority_messages" value="1"
                                         class="sr-only peer" {{ $user->getMeta('notify_high_priority_messages') ? 'checked' : '' }}>
@@ -89,7 +89,7 @@
                                 </label>
                             </div>
                             <div class="p-4 flex items-center justify-between">
-                                <span class="block font-medium text-gray-900">New feedback</span>
+                                <span class="block font-medium text-gray-900">{{ __('New feedback') }}</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notify_high_priority_feedback" value="1"
                                         class="sr-only peer" {{ $user->getMeta('notify_high_priority_feedback') ? 'checked' : '' }}>
@@ -99,7 +99,7 @@
                                 </label>
                             </div>
                             <div class="p-4 flex items-center justify-between">
-                                <span class="block font-medium text-gray-900">Reduced items</span>
+                                <span class="block font-medium text-gray-900">{{ __('Reduced items') }}</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notify_high_priority_reduced_items" value="1"
                                         class="sr-only peer" {{ $user->getMeta('notify_high_priority_reduced_items') ? 'checked' : '' }}>
@@ -113,10 +113,10 @@
 
                     <!-- Other notifications -->
                     <div class="mb-8">
-                        <h3 class="text-sm text-gray-500 mb-4">Other notifications</h3>
+                        <h3 class="text-sm text-gray-500 mb-4">{{ __('Other notifications') }}</h3>
                         <div class="space-y-4 border border-gray-200 rounded-md divide-y divide-gray-100">
                             <div class="p-4 flex items-center justify-between">
-                                <span class="block font-medium text-gray-900">Favourited items</span>
+                                <span class="block font-medium text-gray-900">{{ __('Favourited items') }}</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notify_favourited_items" value="1" class="sr-only peer" {{ $user->getMeta('notify_favourited_items') ? 'checked' : '' }}>
                                     <div
@@ -125,7 +125,7 @@
                                 </label>
                             </div>
                             <div class="p-4 flex items-center justify-between">
-                                <span class="block font-medium text-gray-900">New items</span>
+                                <span class="block font-medium text-gray-900">{{ __('New items') }}</span>
                                 <label class="relative inline-flex items-center cursor-pointer">
                                     <input type="checkbox" name="notify_new_items" value="1" class="sr-only peer" {{ $user->getMeta('notify_new_items') ? 'checked' : '' }}>
                                     <div
@@ -138,7 +138,7 @@
 
                     <!-- Daily Limit -->
                     <div class="mb-8">
-                        <label class="block text-sm text-gray-500 mb-2">Set a daily limit for each notification type</label>
+                        <label class="block text-sm text-gray-500 mb-2">{{ __('Set a daily limit for each notification type') }}</label>
                         <select name="notification_limit"
                             class="w-full border-gray-300 rounded-md shadow-sm focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                             <option value="1" {{ $user->getMeta('notification_limit') == '1' ? 'selected' : '' }}>Up to 1
@@ -147,7 +147,7 @@
                                 notifications</option>
                             <option value="5" {{ $user->getMeta('notification_limit') == '5' ? 'selected' : '' }}>Up to 5
                                 notifications</option>
-                            <option value="unlimited" {{ $user->getMeta('notification_limit') == 'unlimited' ? 'selected' : '' }}>Unlimited</option>
+                            <option value="unlimited" {{ $user->getMeta('notification_limit') == 'unlimited' ? 'selected' : '' }}>{{ __('Unlimited') }}</option>
                         </select>
                     </div>
 

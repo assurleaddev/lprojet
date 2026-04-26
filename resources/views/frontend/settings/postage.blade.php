@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Postage Settings')
+@section('title', __('Shipping'))
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Settings</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Settings') }}</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -35,12 +35,12 @@
                     @csrf
                     <!-- Votre adresse -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
-                        <h3 class="text-base font-medium text-gray-900 mb-4">Votre adresse</h3>
+                        <h3 class="text-base font-medium text-gray-900 mb-4">{{ __('Your address') }}</h3>
 
                         @if($addresses->isEmpty())
                             <button type="button" @click="openModal('add')"
                                 class="w-full border border-gray-300 rounded-md py-3 px-4 flex items-center justify-between hover:bg-gray-50">
-                                <span class="font-medium text-gray-700">Add your address</span>
+                                <span class="font-medium text-gray-700">{{ __('Add your address') }}</span>
                                 <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
                                     </path>
@@ -105,7 +105,7 @@
 
                     <!-- Expédition en tant que vendeur -->
                     <div class="mb-8">
-                        <h3 class="text-base font-medium text-gray-900 mb-2">Expédition en tant que vendeur</h3>
+                        <h3 class="text-base font-medium text-gray-900 mb-2">{{ __('Shipping as seller') }}</h3>
                         <p class="text-sm text-gray-500 mb-6">Choose which options you'd like to use for each shipping type.
                         </p>
 
@@ -121,7 +121,7 @@
                                         </path>
                                     </svg>
                                     <div class="text-left">
-                                        <span class="block font-medium text-gray-900">Depuis votre adresse</span>
+                                        <span class="block font-medium text-gray-900">{{ __('From your address') }}</span>
                                         <span class="block text-xs text-gray-500">A courier collects the order from
                                             you.</span>
                                     </div>
@@ -164,7 +164,7 @@
                                             d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                                     </svg>
                                     <div class="text-left">
-                                        <span class="block font-medium text-gray-900">From a drop-off point</span>
+                                        <span class="block font-medium text-gray-900">{{ __('From a drop-off point') }}</span>
                                         <span class="block text-xs text-gray-500">You take the order to a location like a
                                             locker or parcel shop.</span>
                                     </div>
@@ -216,7 +216,7 @@
                             <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                                 <div class="flex justify-between items-center mb-4">
                                     <h3 class="text-lg leading-6 font-medium text-gray-900"
-                                        x-text="isEditMode ? 'Edit address' : 'Add address'"></h3>
+                                        x-text="isEditMode ? `{{ __('Edit address') }}` : `{{ __('Add address') }}`"></h3>
                                     <button @click="closeModal" class="text-gray-400 hover:text-gray-500">
                                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -236,7 +236,7 @@
                                     @endif
                                     <div class="space-y-4">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Country</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Country') }}</label>
                                             <input type="hidden" name="country" :value="formData.country">
                                             <div class="relative">
                                                 <input type="text" x-model="countrySearch"
@@ -253,12 +253,12 @@
                                                         </div>
                                                     </template>
                                                     <div x-show="filteredCountriesList.length === 0"
-                                                        class="px-4 py-2 text-gray-500 text-sm">No countries found</div>
+                                                        class="px-4 py-2 text-gray-500 text-sm">{{ __('No countries found') }}</div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Full name</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Full name') }}</label>
                                             <input type="text" name="full_name" x-model="formData.full_name"
                                                 class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
@@ -275,7 +275,7 @@
                                                 class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('City') }}</label>
                                             <input type="hidden" name="city" :value="formData.city">
                                             <div class="relative">
                                                 <input type="text" x-model="citySearch" @focus="openCityDropdown = true"
@@ -293,12 +293,12 @@
                                                     <div x-show="isLoadingCities" class="px-4 py-2 text-gray-500 text-sm">
                                                         Loading cities...</div>
                                                     <div x-show="!isLoadingCities && filteredCitiesList.length === 0"
-                                                        class="px-4 py-2 text-gray-500 text-sm">No cities found</div>
+                                                        class="px-4 py-2 text-gray-500 text-sm">{{ __('No cities found') }}</div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-700 mb-1">Postcode</label>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Postcode') }}</label>
                                             <input type="text" name="postcode" x-model="formData.postcode"
                                                 class="w-full border-gray-300 rounded-md shadow-sm py-2 px-3 focus:border-brand focus:ring focus:ring-red-100 focus:ring-opacity-50">
                                         </div>
@@ -459,7 +459,7 @@
                             this.openCityDropdown = false;
                         },
                         confirmDelete(url) {
-                            if (confirm('Are you sure you want to delete this address?')) {
+                            if (confirm('{{ __('Are you sure you want to delete this address?') }}')) {
                                 this.$refs.deleteForm.action = url;
                                 this.$refs.deleteForm.submit();
                             }

@@ -1,6 +1,6 @@
 <div>
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Settings</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Settings') }}</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -26,8 +26,8 @@
                                 <span class="text-sm font-bold">2+</span>
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-900 text-sm">2 or more items</p>
-                                <p class="text-xs text-gray-500">Discount when buyer bundles 2+ items</p>
+                                <p class="font-semibold text-gray-900 text-sm">{{ __('2 or more items') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('Discount when buyer bundles 2+ items') }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
@@ -55,8 +55,8 @@
                                 <span class="text-sm font-bold">3+</span>
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-900 text-sm">3 or more items</p>
-                                <p class="text-xs text-gray-500">Discount when buyer bundles 3+ items</p>
+                                <p class="font-semibold text-gray-900 text-sm">{{ __('3 or more items') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('Discount when buyer bundles 3+ items') }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
@@ -84,8 +84,8 @@
                                 <span class="text-sm font-bold">5+</span>
                             </div>
                             <div>
-                                <p class="font-semibold text-gray-900 text-sm">5 or more items</p>
-                                <p class="text-xs text-gray-500">Discount when buyer bundles 5+ items</p>
+                                <p class="font-semibold text-gray-900 text-sm">{{ __('5 or more items') }}</p>
+                                <p class="text-xs text-gray-500">{{ __('Discount when buyer bundles 5+ items') }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-4">
@@ -109,7 +109,7 @@
                 <div class="mt-6">
                     <button wire:click="save"
                         class="w-full sm:w-auto px-8 py-2.5 text-white text-sm font-bold rounded-lg shadow-sm bg-gray-900 hover:bg-gray-800 transition"
-                        <span wire:loading wire:target="save" class="animate-pulse">Saving...</span>
+                        <span wire:loading wire:target="save" class="animate-pulse">{{ __('Saving...') }}</span>
                         <span wire:loading.remove wire:target="save">{{ __('Save changes') }}</span>
                     </button>
                 </div>
@@ -122,11 +122,11 @@
                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <div class="text-xs text-blue-800 space-y-1">
-                        <p class="font-bold">Comment ça fonctionne:</p>
+                        <p class="font-bold">{{ __('How it works:') }}</p>
                         <ul class="list-disc list-inside">
-                            <li>Discounts are automatically applied when a buyer creates a bundle request.</li>
-                            <li>The highest applicable tier based on item count is chosen.</li>
-                            <li>A bundle badge will appear on your listings to attract buyers.</li>
+                            <li>{{ __('Discounts are automatically applied when a buyer creates a bundle request.') }}</li>
+                            <li>{{ __('The highest applicable tier based on item count is chosen.') }}</li>
+                            <li>{{ __('A bundle badge will appear on your listings to attract buyers.') }}</li>
                         </ul>
                     </div>
                 </div>

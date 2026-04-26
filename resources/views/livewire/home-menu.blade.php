@@ -30,8 +30,8 @@
                 {{ $category->name }}
             </a>
         @endforeach
-        <a href="#" class="nav-link">À propos</a>
-        <a href="#" class="nav-link">Our Platform</a>
+        <a href="#" class="nav-link">{{ __('About') }}</a>
+        <a href="#" class="nav-link">{{ __('Our Platform') }}</a>
     </nav>
 
     <!-- Megamenus -->
@@ -82,14 +82,14 @@
                     <div class="w-3/4 pl-4">
                         <!-- Default view (if needed, or placeholder) -->
                         <div x-show="!activeSubCategory" class="text-gray-400 text-sm italic">
-                            Select a category to see more options.
+                            {{ __('Select a category to see more options.') }}
                         </div>
 
                         <!-- Loop for sub-category contents -->
                         @foreach($category->children as $child)
                             <div x-show="activeSubCategory === {{ $child->id }}" style="display: none;">
                                 <div class="mb-4">
-                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-gray-700 mb-2 inline-block">Voir tout {{ $child->name }}</a>
+                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-gray-700 mb-2 inline-block">{{ __('See all') }} {{ $child->name }}</a>
                                 </div>
                                 
                                 @if($child->children->count() > 0)
@@ -113,7 +113,7 @@
     <!-- Mobile Categories via Teleport -->
     <template x-teleport="#mobile-categories-teleport">
         <div class="flex flex-col w-full md:hidden">
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">Categories</h3>
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">{{ __('Categories') }}</h3>
             @foreach($categories as $category)
                 <div x-data="{ open: false }" class="border-b border-gray-50 last:border-0">
                     <button @click="open = !open" class="flex items-center justify-between w-full py-3 px-2 text-left text-gray-700 hover:text-gray-700 font-medium transition-colors">
@@ -128,7 +128,7 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2">
-                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-gray-700 font-medium hover:underline">Voir tout {{ $category->name }}</a>
+                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-gray-700 font-medium hover:underline">{{ __('See all') }} {{ $category->name }}</a>
                         @foreach($category->children as $child)
                             <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="block py-2 text-sm text-gray-600 hover:text-gray-700">
                                 {{ $child->name }}
@@ -138,8 +138,8 @@
                 </div>
             @endforeach
             <div class="mt-4 border-t border-gray-100 pt-4 px-2">
-                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">À propos</a>
-                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">Our Platform</a>
+                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">{{ __('About') }}</a>
+                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">{{ __('Our Platform') }}</a>
             </div>
         </div>
     </template>

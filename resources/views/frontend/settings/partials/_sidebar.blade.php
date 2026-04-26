@@ -11,7 +11,7 @@
         <a href="{{ route('settings.bundle-discounts') }}"
             class="block px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('settings.bundle-discounts') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}">{{ __('Bundle discounts') }}</a>
         <a href="{{ route('settings.notifications') }}"
-            class="block px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('settings.notifications') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}">Notifications</a>
+            class="block px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('settings.notifications') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}">{{ __('Notifications') }}</a>
         <a href="#" class="block px-3 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50">{{ __('Privacy settings') }}</a>
         <a href="{{ route('settings.security') }}"
             class="block px-3 py-2 text-sm font-medium rounded-md {{ request()->routeIs('settings.security') ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50' }}">{{ __('Security') }}</a>

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Paramètres du compte')
+@section('title', __('Account settings'))
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
@@ -36,7 +36,7 @@
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <div>
                             <h3 class="text-base font-medium text-gray-900">{{ $user->email }}</h3>
-                            <span class="text-xs text-gray-500 flex items-center gap-1">Vérifié <svg
+                            <span class="text-xs text-gray-500 flex items-center gap-1">{{ __('Verified') }} <svg
                                     class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
@@ -55,7 +55,7 @@
                                         {{ $user->phone_number }}
                                     </h3>
                                     @if($user->phone_verified_at)
-                                        <span class="text-xs text-gray-500 flex items-center gap-1">Vérifié <svg
+                                        <span class="text-xs text-gray-500 flex items-center gap-1">{{ __('Verified') }} <svg
                                                 class="w-3 h-3 text-green-500" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -71,7 +71,7 @@
 
                             <a href="{{ route('auth.verify_phone') }}"
                                 class="text-gray-900 border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
-                                {{ $user->phone_verified_at ? 'Change' : 'Verify' }}
+                                {{ $user->phone_verified_at ? __('Change') : __('Verify') }}
                             </a>
                         </div>
                         <p class="text-xs text-gray-500">Your phone number will only be used to help you log in. It won't be
@@ -192,13 +192,13 @@
                                     </svg>
                                 </template>
                                 <h3 class="text-lg font-bold text-gray-900"
-                                    x-text="pendingState ? 'Activer le mode vacances ?' : 'Désactiver le mode vacances ?'"></h3>
+                                    x-text="pendingState ? `{{ __('Activate holiday mode?') }}` : `{{ __('Deactivate holiday mode?') }}`"></h3>
                             </div>
 
                             <p class="text-gray-600 mb-6 leading-relaxed">
                                 <template x-if="pendingState">
                                     <span>Your <strong>{{ $approvedProductsCount }}</strong> approved products will be
-                                        masqués des annonces jusqu'à ce que vous le désactiviez.</span>
+                                        {{ __('hidden from listings until you deactivate it.') }}</span>
                                 </template>
                                 <template x-if="!pendingState">
                                     <span>Your <strong>{{ $holidayProductsCount }}</strong> products will be visible to
@@ -273,7 +273,7 @@
                                 console.error('Error:', error);
                                 // Revert on error
                                 this.holidayMode = !this.pendingState;
-                                alert('Something went wrong. Please try again.');
+                                alert('{{ __('Something went wrong. Please try again.') }}');
                             });
                     }
                 }));

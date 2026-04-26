@@ -8,15 +8,13 @@
                     <img src="{{ config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}" alt="{{ config('app.name') }}" class="h-12">
                 </a>
                 <p class="text-gray-500 text-sm leading-relaxed max-w-xs">
-                    La seconde-main, c'est l'avenir et {{ config('app.name') }} te le prouve. Sur {{ config('app.name') }},
-                    tu vends les vêtements qui ont encore des choses à vivre et
-                    tu déniches des merveilles que tu ne trouves pas en boutique.
+                    {{ __('Second-hand is the future and :app proves it. On :app, you can sell clothes that still have stories and discover treasures you will not find in stores.', ['app' => config('app.name')]) }}
                 </p>
             </div>
 
             {{-- À Propos column --}}
             <div>
-                <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 mb-6">À Propos</h3>
+                <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 mb-6">{{ __('About') }}</h3>
                 <ul class="space-y-4">
                     <li><a href="{{ route('faq') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">FAQ</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Contact</a></li>
@@ -27,7 +25,7 @@
 
             {{-- Suivez-nous sur column --}}
             <div>
-                <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 mb-6">Suivez-nous sur</h3>
+                <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 mb-6">{{ __('Follow us on') }}</h3>
 
                 {{-- Social icons --}}
                 <div class="flex gap-3 mb-8">
@@ -55,9 +53,9 @@
 
                 {{-- Help links --}}
                 <ul class="space-y-3">
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Besoin d'aide?</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Comment vendre ?</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Comment acheter</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('Need help?') }}</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('How to sell?') }}</a></li>
+                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('How to buy?') }}</a></li>
                 </ul>
             </div>
 
@@ -67,7 +65,7 @@
     {{-- Bottom bar --}}
     <div class="border-t border-gray-200">
         <p class="text-center text-xs font-bold uppercase tracking-widest text-gray-400 py-5">
-            USEDIGITAL &ndash; &copy; {{ date('Y') }}. ALL RIGHTS RESERVED.
+            USEDIGITAL &ndash; &copy; {{ date('Y') }}. {{ __('ALL RIGHTS RESERVED.') }}
         </p>
     </div>
 </footer>
