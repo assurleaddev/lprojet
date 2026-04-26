@@ -9,13 +9,9 @@
                 style="background-image:url('{{ asset('images/home/hero.png') }}');">
                 <div class="shell px-4 md:px-6 h-full">
                     <div class="absolute top-1/2 -translate-y-1/2 bg-white p-6 md:p-8 rounded-lg shadow-lg w-[90%] max-w-sm">
-                        <h1 class="text-[28px] md:text-[32px] leading-tight font-extrabold text-gray-800 mb-5">Prêt(e) à
-                            désencombrer
-                            votre garde-robe ?</h1>
-                        <a href="{{ route('items.create') }}" class="block w-full mb-3 py-3 text-center text-white font-bold rounded bg-gray-900 hover:bg-gray-800">Vendre maintenant</a>
-                        <a href="{{ route('faq') }}" class="block w-full text-center hover:underline font-bold text-gray-700">Comment
-                            ça
-                            fonctionne</a>
+                        <h1 class="text-[28px] md:text-[32px] leading-tight font-extrabold text-gray-800 mb-5">{{ __('Ready to declutter your wardrobe?') }}</h1>
+                        <a href="{{ route('items.create') }}" class="block w-full mb-3 py-3 text-center text-white font-bold rounded bg-gray-900 hover:bg-gray-800">{{ __('Sell now') }}</a>
+                        <a href="{{ route('faq') }}" class="block w-full text-center hover:underline font-bold text-gray-700">{{ __('How it works') }}</a>
                     </div>
                 </div>
             </section>
@@ -31,7 +27,7 @@
 
             {{-- Add a loading indicator for when new products are being fetched --}}
             <div id="loading-indicator" style="display: none;" class="col-span-full text-center py-8">
-                <p class="text-gray-600 font-semibold">Chargement des articles...</p>
+                <p class="text-gray-600 font-semibold">{{ __('Loading more products...') }}</p>
             </div>
         </section>
     </main>

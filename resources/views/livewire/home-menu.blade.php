@@ -49,7 +49,7 @@
                         <div class="mb-4">
                             <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="flex items-center gap-2 text-gray-700 font-bold hover:underline mb-4">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                                Voir tout
+                                {{ __('See all') }}
                             </a>
                         </div>
                         
@@ -74,7 +74,7 @@
                                 @endforeach
                             </ul>
                         @else
-                            <p class="text-gray-400 italic">Aucune sous-catégorie trouvée.</p>
+                            <p class="text-gray-400 italic">{{ __('No sub-categories found.') }}</p>
                         @endif
                     </div>
                     
@@ -99,7 +99,7 @@
                                         @endforeach
                                     </div>
                                 @else
-                                    <p class="text-gray-400 text-sm">Aucune sous-catégorie trouvée.</p>
+                                    <p class="text-gray-400 text-sm">{{ __('No sub-categories found.') }}</p>
                                 @endif
                             </div>
                         @endforeach

@@ -41,7 +41,7 @@
                     <!-- Votre photo -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-medium text-gray-900">Votre photo</h3>
+                            <h3 class="text-base font-medium text-gray-900">{{ __('Your photo') }}</h3>
                         </div>
                         <div class="flex items-center gap-4">
                             <img :src="avatarPreview || '{{ $user->avatar_url }}'" alt="{{ $user->username }}"
@@ -58,7 +58,7 @@
                     <!-- Nom d'utilisateur -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-medium text-gray-900">Nom d'utilisateur</h3>
+                            <h3 class="text-base font-medium text-gray-900">{{ __('Username') }}</h3>
                         </div>
                         <div class="flex items-center gap-4 w-1/2">
                             <input type="text" name="username" value="{{ old('username', $user->username) }}"
@@ -69,7 +69,7 @@
                     <!-- À propos de vous -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex flex-col md:flex-row md:justify-between">
                         <div class="mb-4 md:mb-0">
-                            <h3 class="text-base font-medium text-gray-900">À propos de vous</h3>
+                            <h3 class="text-base font-medium text-gray-900">{{ __('About you') }}</h3>
                         </div>
                         <div class="w-full md:w-1/2">
                             <textarea name="about" rows="4"
@@ -181,7 +181,7 @@
                                 </button>
                                 <button type="button" @click="cropAndClose"
                                     class="px-4 py-2 text-white bg-gray-900 rounded hover:bg-gray-800">
-                                    Recadrer et enregistrer
+                                    {{ __('Crop & Save') }}
                                 </button>
                             </div>
                         </div>

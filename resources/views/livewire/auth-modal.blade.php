@@ -18,18 +18,18 @@
             <!-- View: Initial Signup with Socials -->
             @if ($view === 'signup-social')
                 <div class="text-center">
-                    <h2 class="mb-6 text-2xl font-bold text-gray-800">Rejoignez et vendez vos vêtements d'occasion sans frais</h2>
+                    <h2 class="mb-6 text-2xl font-bold text-gray-800">{{ __('Join and sell pre-loved clothes with no fees') }}</h2>
                     {{-- Social buttons... --}}
                     <div class="space-y-3">
                         {{-- ... --}}
                     </div>
                     <p class="mt-6 text-sm text-gray-600">
-                        Ou s'inscrire avec un
+                        {{ __('Or register with') }}
                         <button wire:click="setView('signup-email')" class="font-semibold hover:underline text-gray-900">e-mail</button>
                     </p>
                     <p class="mt-2 text-sm text-gray-600">
-                        Déjà un compte ?
-                        <button wire:click="setView('login-social')" class="font-semibold hover:underline text-gray-900">Se connecter</button>
+                        {{ __('Already have an account?') }}
+                        <button wire:click="setView('login-social')" class="font-semibold hover:underline text-gray-900">{{ __('Log in') }}</button>
                     </p>
                 </div>
             @endif
@@ -37,28 +37,28 @@
             <!-- View: Sign up with Email -->
             @if ($view === 'signup-email')
                 <div class="text-gray-700">
-                    <h2 class="mb-6 text-2xl font-bold text-center text-gray-800">S'inscrire avec un e-mail</h2>
+                    <h2 class="mb-6 text-2xl font-bold text-center text-gray-800">{{ __('Sign up with email') }}</h2>
                     <form wire:submit.prevent="register" class="space-y-4">
                         <div>
-                            <label for="username" class="text-sm font-semibold">Nom d'utilisateur</label>
+                            <label for="username" class="text-sm font-semibold">{{ __('Username') }}</label>
                             <input type="text" id="username" wire:model.defer="username" class="w-full p-2 mt-1 border rounded-md @error('username') border-red-500 @else border-gray-300 @enderror" >
                             @error('username') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label for="email-signup" class="text-sm font-semibold">E-mail</label>
+                            <label for="email-signup" class="text-sm font-semibold">{{ __('Email') }}</label>
                             <input type="email" id="email-signup" wire:model.defer="email" class="w-full p-2 mt-1 border rounded-md @error('email') border-red-500 @else border-gray-300 @enderror" >
                             @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                             <label for="password-signup" class="text-sm font-semibold">Mot de passe</label>
+                             <label for="password-signup" class="text-sm font-semibold">{{ __('Password') }}</label>
                              <input type="password" id="password-signup" wire:model.defer="password" class="w-full p-2 mt-1 border rounded-md @error('password') border-red-500 @else border-gray-300 @enderror" >
-                             <p class="mt-1 text-xs text-gray-500">Au moins 7 caractères, dont 1 lettre et 1 chiffre</p>
+                             <p class="mt-1 text-xs text-gray-500">{{ __('At least 7 characters, including 1 letter and 1 number') }}</p>
                              @error('password') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div class="pt-2 space-y-4">
                             <label class="flex items-start">
                                 <input type="checkbox" wire:model.defer="offersAccepted" class="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-0 text-gray-900">
-                                <span class="ml-2 text-sm text-gray-600">Je souhaite recevoir des offres personnalisées et être informé(e) en avant-première des dernières nouveautés de Used par e-mail.</span>
+                                <span class="ml-2 text-sm text-gray-600">{{ __('I'd like to receive personalised offers and be the first to know about the latest updates to Used via email.') }}</span>
                             </label>
                             <label class="flex items-start">
                                 <input type="checkbox" wire:model.defer="termsAccepted" class="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-0 @error('termsAccepted') border-red-500 @enderror text-gray-900">
@@ -66,7 +66,7 @@
                             </label>
                              @error('termsAccepted') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
-                        <button type="submit" class="w-full py-3 font-bold text-white rounded-md transition-colors bg-gray-900 hover:bg-gray-800">Continuer</button>
+                        <button type="submit" class="w-full py-3 font-bold text-white rounded-md transition-colors bg-gray-900 hover:bg-gray-800">{{ __('Continue') }}</button>
                     </form>
                 </div>
             @endif
@@ -74,18 +74,18 @@
             <!-- View: Initial Login with Socials -->
             @if ($view === 'login-social')
                 <div class="text-center">
-                    <h2 class="mb-6 text-2xl font-bold text-gray-800">Bon retour !</h2>
+                    <h2 class="mb-6 text-2xl font-bold text-gray-800">{{ __('Welcome back!') }}</h2>
                      {{-- Social buttons... --}}
                     <div class="space-y-3">
                          {{-- ... --}}
                     </div>
                     <p class="mt-6 text-sm text-gray-600">
-                        Ou se connecter avec un
+                        {{ __('Or log in with') }}
                         <button wire:click="setView('login-email')" class="font-semibold hover:underline text-gray-900">e-mail</button>
                     </p>
                     <p class="mt-2 text-sm text-gray-600">
-                        Pas encore de compte ?
-                        <button wire:click="setView('signup-social')" class="font-semibold hover:underline text-gray-900">S'inscrire</button>
+                        {{ __('Don't have an account yet?') }}
+                        <button wire:click="setView('signup-social')" class="font-semibold hover:underline text-gray-900">{{ __('Sign up') }}</button>
                     </p>
                 </div>
             @endif
@@ -93,20 +93,20 @@
             <!-- View: Log in with Email -->
             @if ($view === 'login-email')
                 <div class="text-gray-700">
-                    <h2 class="mb-6 text-2xl font-bold text-center text-gray-800">Se connecter</h2>
+                    <h2 class="mb-6 text-2xl font-bold text-center text-gray-800">{{ __('Log in') }}</h2>
                     <form wire:submit.prevent="login" class="space-y-4">
                         <div>
-                            <label for="email-login" class="text-sm font-semibold">E-mail ou nom d'utilisateur</label>
+                            <label for="email-login" class="text-sm font-semibold">{{ __('Email or username') }}</label>
                             <input type="text" id="email-login" wire:model.defer="email" class="w-full p-2 mt-1 border rounded-md @error('email') border-red-500 @else border-gray-300 @enderror">
                             @error('email') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label for="password-login" class="text-sm font-semibold">Mot de passe</label>
+                            <label for="password-login" class="text-sm font-semibold">{{ __('Password') }}</label>
                             <input type="password" id="password-login" wire:model.defer="password" class="w-full p-2 mt-1 border rounded-md @error('password') border-red-500 @else border-gray-300 @enderror">
                              @error('password') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
                         <div class="pt-2">
-                            <button type="submit" class="w-full py-3 font-bold text-white rounded-md transition-colors bg-gray-900 hover:bg-gray-800">Continuer</button>
+                            <button type="submit" class="w-full py-3 font-bold text-white rounded-md transition-colors bg-gray-900 hover:bg-gray-800">{{ __('Continue') }}</button>
                         </div>
                     </form>
                 </div>

@@ -303,7 +303,7 @@
                 </button>
                 <div x-show="open" @click.away="open = false" style="display: none;" class="absolute right-0 z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
                     <div class="p-2">
-                        <button wire:click="$set('sort', 'newest'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Plus récents d'abord</button>
+                        <button wire:click="$set('sort', 'newest'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">{{ __('Newest first') }}</button>
                         <button wire:click="$set('sort', 'price_asc'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Prix : croissant</button>
                         <button wire:click="$set('sort', 'price_desc'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Prix : décroissant</button>
                     </div>
@@ -314,8 +314,8 @@
         {{-- Results Grid --}}
         @if($results->isEmpty())
              <div class="text-center py-12">
-                <p class="text-gray-500 text-lg">Aucun résultat trouvé.</p>
-                <button wire:click="clearAllFiltrers" class="text-gray-700 hover:underline mt-4">Effacer les filtres</button>
+                <p class="text-gray-500 text-lg">{{ __('No results found.') }}</p>
+                <button wire:click="clearAllFiltrers" class="text-gray-700 hover:underline mt-4">{{ __('Clear filters') }}</button>
             </div>
         @else
              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-2 gap-y-6">

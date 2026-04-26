@@ -31,7 +31,7 @@
                     <form action="{{ route('settings.security.email.request') }}" method="POST" class="space-y-4">
                         @csrf
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">E-mail actuel</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Current Email') }}</label>
                             <input type="email" value="{{ $user->email }}" disabled
                                 class="w-full bg-gray-100 border border-gray-300 rounded-lg p-2.5 shadow-sm">
                         </div>
@@ -49,7 +49,7 @@
                             </div>
                         @else
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nouvel e-mail</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('New Email') }}</label>
                                 <div class="flex gap-2">
                                     <input type="email" name="new_email"
                                         class="flex-1 border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
@@ -70,13 +70,13 @@
                         class="space-y-4 max-w-md">
                         @csrf
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Mot de passe actuel</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Current Password') }}</label>
                             <input type="password" name="current_password"
                                 class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                             @error('current_password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nouveau mot de passe</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('New Password') }}</label>
                             <input type="password" name="new_password"
                                 class="w-full border border-gray-300 rounded-lg p-2.5 shadow-sm focus:border-brand focus:ring-brand">
                             @error('new_password') <p class="text-xs text-red-500 mt-1">{{ $message }}</p> @enderror
@@ -96,7 +96,7 @@
                 <div class="mb-8 pb-8 border-b border-gray-100">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h2 class="text-lg font-medium text-gray-900">Vérification en 2 étapes</h2>
+                            <h2 class="text-lg font-medium text-gray-900">{{ __('2-step verification') }}</h2>
                             <p class="text-sm text-gray-500">Confirm new logins with a code sent to your email.</p>
                         </div>
                         <form action="{{ route('settings.security.2fa.toggle') }}" method="POST">

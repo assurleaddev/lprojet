@@ -3,7 +3,7 @@
 @section('content')
     <div class="mx-auto max-w-[1200px] px-6 md:px-10">
         <div class="h-6"></div>
-        <h1 class="text-2xl font-semibold mb-6">Mes favoris</h1>
+        <h1 class="text-2xl font-semibold mb-6">{{ __('Favourited items') }}</h1>
 
         @if($products->count() > 0)
                 <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
@@ -58,8 +58,8 @@
             </div>
         @else
         <div class="text-center py-20">
-            <h2 class="text-xl text-gray-600">Aucun favori pour l'instant.</h2>
-            <a href="{{ route('home') }}" class="mt-4 inline-block px-6 py-2 text-white bg-gray-900 hover:bg-gray-700 rounded-md transition-colors">Explorer les articles</a>
+            <h2 class="text-xl text-gray-600">{{ __('No favourited items yet.') }}</h2>
+            <a href="{{ route('home') }}" class="mt-4 inline-block px-6 py-2 text-white bg-gray-900 hover:bg-gray-700 rounded-md transition-colors">{{ __('Start exploring') }}</a>
         </div>
     @endif
     </div>

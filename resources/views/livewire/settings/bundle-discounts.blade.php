@@ -9,7 +9,7 @@
             <!-- Content -->
             <div class="flex-1 bg-white border border-gray-200 rounded-lg p-6">
                 <div class="mb-6 pb-5 border-b border-gray-100">
-                    <h2 class="text-lg font-bold text-gray-900 mb-1">Remises groupées</h2>
+                    <h2 class="text-lg font-bold text-gray-900 mb-1">{{ __('Bundle discounts') }}</h2>
                     <p class="text-sm text-gray-500">Encourage buyers to purchase multiple items by offering
                         automatic discounts.</p>
                 </div>
@@ -110,7 +110,7 @@
                     <button wire:click="save"
                         class="w-full sm:w-auto px-8 py-2.5 text-white text-sm font-bold rounded-lg shadow-sm bg-gray-900 hover:bg-gray-800 transition"
                         <span wire:loading wire:target="save" class="animate-pulse">Saving...</span>
-                        <span wire:loading.remove wire:target="save">Enregistrer les modifications</span>
+                        <span wire:loading.remove wire:target="save">{{ __('Save changes') }}</span>
                     </button>
                 </div>
 

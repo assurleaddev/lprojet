@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mx-auto max-w-[800px] px-4 py-8">
-        <h1 class="text-2xl font-bold mb-6">Vendre un article</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Sell an item') }}</h1>
 
         <form action="{{ route('items.store') }}" method="POST" enctype="multipart/form-data" id="item-form">
             @csrf
@@ -29,7 +29,7 @@
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            <span class="text-gray-600 font-semibold text-sm">Télécharger des photos</span>
+                            <span class="text-gray-600 font-semibold text-sm">{{ __('Upload photos') }}</span>
                         </div>
                     </div>
 
@@ -38,20 +38,20 @@
                         <!-- Images will be appended here -->
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">Glissez-déposez pour réorganiser. La première photo sera la principale.</p>
+                <p class="text-xs text-gray-400 mt-2">{{ __('Drag and drop to reorder. The first photo will be the main one.') }}</p>
             </div>
 
             <!-- Item Details -->
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
-                    <label class="block font-semibold mb-1">Titre</label>
+                    <label class="block font-semibold mb-1">{{ __('Title') }}</label>
                     <input type="text" name="title" value="{{ $duplicateProduct->name ?? '' }}"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
                         placeholder="ex. Pull blanc COS" required>
                 </div>
 
                 <div>
-                    <label class="block font-semibold mb-1">Décrivez votre article</label>
+                    <label class="block font-semibold mb-1">{{ __('Describe your item') }}</label>
                     <textarea name="description" rows="4"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
                         placeholder="ex. porté quelques fois seulement, taille fidèle"
@@ -61,12 +61,12 @@
 
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
-                    <label class="block font-semibold mb-1">Catégorie</label>
+                    <label class="block font-semibold mb-1">{{ __('Category') }}</label>
                     <livewire:category-selector name="category_id" :value="$duplicateProduct->category_id ?? null" />
                 </div>
 
                 <div x-data="brandDropdown">
-                    <label class="block font-semibold mb-1">Marque</label>
+                    <label class="block font-semibold mb-1">{{ __('Brand') }}</label>
                     <div class="relative">
                         <button @click="toggle" type="button"
                             class="w-full border border-gray-300 rounded-md p-2.5 text-left">
@@ -74,7 +74,7 @@
                         </button>
                         <div x-show="open" @click.outside="close()" x-cloak
                             class="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-hidden">
-                            <input x-ref="searchInput" x-model="search" type="text" placeholder="Rechercher des marques..."
+                            <input x-ref="searchInput" x-model="search" type="text" placeholder="{{ __('Search brands...') }}"
                                 class="w-full p-2 border-b focus:outline-none focus:ring-1 focus:ring-gray-500">
                             <div class="max-h-48 overflow-y-auto">
                                 <template x-for="option in filteredOptions" :key="option.value">
@@ -90,10 +90,10 @@
                 </div>
 
                 <div>
-                    <label class="block font-semibold mb-1">État</label>
+                    <label class="block font-semibold mb-1">{{ __('Condition') }}</label>
                     <select name="condition"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500">
-                        <option value="">Sélectionner l'état</option>
+                        <option value="">{{ __('Select Condition') }}</option>
                         @foreach($conditions as $cond)
                             <option value="{{ $cond }}">{{ ucwords(str_replace('_', ' ', $cond)) }}</option>
                         @endforeach
@@ -109,7 +109,7 @@
 
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
-                    <label class="block font-semibold mb-1">Prix</label>
+                    <label class="block font-semibold mb-1">{{ __('Price') }}</label>
                     <div class="relative">
                         <input type="number" name="price" step="0.01" value="{{ $duplicateProduct->price ?? '' }}"
                             class="w-full border border-gray-300 rounded-md py-2.5 pl-12 focus:ring-gray-500 focus:border-gray-500"
@@ -120,7 +120,7 @@
             </div>
 
             <button type="submit"
-                class="w-full bg-gray-900 text-white font-bold py-3 rounded-md hover:bg-gray-800 transition-colors">Publier l'article</button>
+                class="w-full bg-gray-900 text-white font-bold py-3 rounded-md hover:bg-gray-800 transition-colors">{{ __('Publish item') }}</button>
         </form>
     </div>
 

@@ -66,7 +66,7 @@
                                     <span x-show="msgCount > 0" x-text="msgCount"
                                         class="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full z-10">
                                     </span>
-                                    <span class="ml-3 font-medium md:hidden">Messagerie</span>
+                                    <span class="ml-3 font-medium md:hidden">{{ __('Messages') }}</span>
                                 </a>
 
                                 <div class="relative shrink-0 flex flex-col md:block" x-data="{
@@ -144,12 +144,12 @@
 
                                             <div x-show="notifications.length === 0"
                                                 class="px-4 py-3 text-sm text-gray-500 text-center">
-                                                Aucune nouvelle notification
+                                                {{ __('No new notifications') }}
                                             </div>
 
                                             <div class="bg-gray-50 px-4 py-2 text-center">
                                                 <a href="{{ route('notifications.index') }}"
-                                                    class="text-xs font-semibold hover:underline text-gray-900">Voir tout</a>
+                                                    class="text-xs font-semibold hover:underline text-gray-900">{{ __('See all') }}</a>
                                             </div>
                                         </div>
                                     </div>
@@ -161,7 +161,7 @@
                                             d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z">
                                         </path>
                                     </svg>
-                                    <span class="ml-4 font-medium md:hidden">Favoris</span>
+                                    <span class="ml-4 font-medium md:hidden">{{ __('Favorites') }}</span>
                                 </a>
 
                                 <div class="relative shrink-0 flex flex-col md:block" x-data="{ open: false }">
@@ -180,41 +180,41 @@
                                         class="md:absolute md:right-0 mt-2 w-full md:w-64 bg-white border border-gray-200 rounded-md shadow-sm md:shadow-lg z-50 py-2"
                                         style="display: none;">
                                         <a href="{{ route('vendor.show', auth()->user()) }}"
-                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Mon profil</a>
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('My profile') }}</a>
                                         <a href="{{ route('settings.profile') }}"
-                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Paramètres</a>
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('Settings') }}</a>
                                         <a href="{{ route('settings.account') }}"
-                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Personnalisation</a>
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('Personalisation') }}</a>
                                         <a href="{{ route('wallet.index') }}"
                                             class="flex items-center justify-between px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                            <span>Solde</span>
+                                            <span>{{ __('Balance') }}</span>
                                             <span class="text-gray-500">{{ number_format(auth()->user()->wallet?->balance ?? 0, 2) }}
                                                 MAD</span>
                                         </a>
                                         <a href="{{ route('orders.index') }}"
-                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Mes commandes</a>
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('My orders') }}</a>
                                         <div class="border-t border-gray-100 my-1"></div>
                                         <form method="POST" action="{{ route('logout') }}">
                                             @csrf
                                             <button type="submit"
-                                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Déconnexion</button>
+                                                class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('Log out') }}</button>
                                         </form>
                                     </div>
                                 </div>
                 @else
                     <button @click="$dispatch('open-login-popup'); mobileMenuOpen = false"
                         class="px-4 font-bold py-2 rounded-md transition-colors text-sm whitespace-nowrap shrink-0 text-center border border-gray-900 text-gray-900 hover:bg-gray-50">
-                        Connexion
+                        {{ __('Login / register') }}
                     </button>
                 @endif
-                <a href="{{ route('items.create') }}" class="px-4 py-2 rounded text-white font-bold text-sm whitespace-nowrap shrink-0 text-center bg-gray-900 hover:bg-gray-800">Vendre</a>
+                <a href="{{ route('items.create') }}" class="px-4 py-2 rounded text-white font-bold text-sm whitespace-nowrap shrink-0 text-center bg-gray-900 hover:bg-gray-800">{{ __('Sell') }}</a>
                 <a href="#" class="text-gray-600 hover:text-black shrink-0 flex items-center md:block" aria-label="Help">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z">
                         </path>
                     </svg>
-                    <span class="ml-4 font-medium md:hidden">Centre d'aide</span>
+                    <span class="ml-4 font-medium md:hidden">{{ __('Help Center') }}</span>
                 </a>
 
                 <!-- Language Dropdown -->
@@ -225,7 +225,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                 d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
                         </svg>
-                        <span class="ml-3 font-medium md:hidden inline-block flex-1">Langue</span>
+                        <span class="ml-3 font-medium md:hidden inline-block flex-1">{{ __('Language') }}</span>
                         <svg class="w-4 h-4 ml-auto md:ml-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                                 d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -239,7 +239,7 @@
                         x-transition:leave="transition ease-in duration-75"
                         x-transition:leave-start="opacity-100 md:scale-100" x-transition:leave-end="opacity-0 md:scale-95">
 
-                        <a href="#"
+                        <a href="{{ route('locale.switch', 'en') }}"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
                             <span class="font-medium">English</span>
                             @if(app()->getLocale() == 'en')
@@ -250,7 +250,7 @@
                                 </svg>
                             @endif
                         </a>
-                        <a href="#"
+                        <a href="{{ route('locale.switch', 'fr') }}"
                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center justify-between group">
                             <span class="font-medium">Français</span>
                             @if(app()->getLocale() == 'fr')

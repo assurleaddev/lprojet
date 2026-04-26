@@ -200,7 +200,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Enregistrer</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">{{ __('Save') }}</button>
                     </div>
                 </form>
 

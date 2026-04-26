@@ -80,7 +80,7 @@
                 <!-- About / Verified info -->
                 <div class="mt-6 grid grid-cols-2 gap-10 max-w-3xl">
                     <div>
-                        <div class="text-sm font-semibold text-zinc-700 mb-2">À propos :</div>
+                        <div class="text-sm font-semibold text-zinc-700 mb-2">{{ __('About:') }}</div>
                         @php
                             $city = $user->getMeta('city');
                             $country = $user->getMeta('country');
@@ -105,7 +105,7 @@
                         <livewire:follower-stats :user="$user" />
                     </div>
                     <div>
-                        <div class="text-sm font-semibold text-zinc-700 mb-2">Informations vérifiées :</div>
+                        <div class="text-sm font-semibold text-zinc-700 mb-2">{{ __('Verified info:') }}</div>
                         <div class="flex items-center gap-2 text-[15px]">
                             <svg class="h-4 w-4 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M9 12 7 10l-2 2 4 4 8-8-2-2-6 6Z" />
@@ -126,14 +126,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
-                            Modifier le profil
+                            {{ __('Edit Profile') }}
                         </a>
                     @else
                         <livewire:follow-button :user="$user" />
 
                         <button onclick="Livewire.dispatch('open-bundle-builder')"
                             class="h-10 px-4 font-bold text-sm text-white bg-gray-900 hover:bg-gray-800 rounded-md shadow-sm transition whitespace-nowrap">
-                            Commander en lot
+                            {{ __('Shop bundles') }}
                         </button>
                         <livewire:chat::bundle-builder :vendor="$user" />
                     @endif
@@ -152,9 +152,9 @@
                     <!-- Dropdown -->
                     <div id="reportMenu"
                         class="invisible opacity-0 pointer-events-none absolute right-0 top-12 w-44 rounded-lg border border-zinc-200 bg-white py-2 text-sm shadow-lg transition">
-                        <div class="px-4 pb-2 text-zinc-400 text-[12px]">Signaler</div>
-                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Signaler cet utilisateur</a>
-                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Bloquer l'utilisateur</a>
+                        <div class="px-4 pb-2 text-zinc-400 text-[12px]">{{ __('Report') }}</div>
+                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">{{ __('Report this user') }}</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">{{ __('Block user') }}</a>
                     </div>
                     @endif
 
@@ -196,12 +196,12 @@
                 <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4" style="background: #fff5f5; border: 1px solid #ffe0e0;">
                     <svg class="w-5 h-5 shrink-0 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <p class="text-sm text-gray-700">
-                        <span class="font-bold text-gray-900">Remises groupées !</span>
+                        <span class="font-bold text-gray-900">{{ __('Bundle discounts!') }}</span>
                         Achetez
                         @foreach($vendorDiscounts as $d)
                             {{ $d->min_items }}+ items ({{ $d->discount_percentage }}% off){{ !$loop->last ? ', ' : '' }}
                         @endforeach
-                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline text-gray-900">Commander en lot</button>
+                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline text-gray-900">{{ __('Shop bundles') }}</button>
                     </p>
                 </div>
             @endif
@@ -281,7 +281,7 @@
                         </a>
                     </div>
                 @empty
-                    <div class="col-span-full text-center text-gray-500 py-10">Aucun article pour l'instant</div>
+                    <div class="col-span-full text-center text-gray-500 py-10">{{ __('No products yet') }}</div>
                 @endforelse
             </div>
             <div class="h-16"></div>
@@ -303,7 +303,7 @@
                         <input type="hidden" name="order_id" value="{{ $pendingReviewOrder->id }}">
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Rating') }}</label>
                             <div class="flex items-center space-x-2">
                                 @for ($i = 1; $i <= 5; $i++)
                                     <label class="cursor-pointer">
@@ -319,15 +319,15 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="review" class="block text-sm font-medium text-gray-700 mb-1">Avis (Obligatoire)</label>
+                            <label for="review" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Review (Required)') }}</label>
                             <textarea name="review" id="review" rows="3" required minlength="5"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:ring-0"
-                                style="focus-border-color: var(--brand)" placeholder="Écrivez votre avis ici..."></textarea>
+                                style="focus-border-color: var(--brand)" placeholder="{{ __('Write your review here...') }}"></textarea>
                         </div>
 
                         <button type="submit"
                             class="px-4 py-2 text-white text-sm font-medium bg-gray-900 hover:bg-gray-800 rounded-md shadow-sm transition-colors">
-                            Soumettre l'avis
+                            {{ __('Submit Review') }}
                         </button>
                     </form>
                 </div>
@@ -364,7 +364,7 @@
                                 </div>
                             </div>
                             <div class="ml-auto">
-                                <a href="#" class="hover:underline text-gray-900">Comment fonctionnent les avis</a>
+                                <a href="#" class="hover:underline text-gray-900">{{ __('How reviews work') }}</a>
                             </div>
                         </div>
                     </div>
@@ -377,7 +377,7 @@
                 <div class="flex gap-4 mb-8">
                     <button @click="filter = 'all'" :class="filter === 'all' ? 'bg-zinc-100' : ''"
                         class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] hover:bg-zinc-50 transition">
-                        Tous
+                        {{ __('All') }}
                     </button>
                     <button @click="filter = 'member'" :class="filter === 'member' ? 'bg-zinc-100' : ''"
                         class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] hover:bg-zinc-50 transition">
@@ -443,14 +443,14 @@
                                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
                                         </svg>
-                                        Traduire
+                                        {{ __('Translate this') }}
                                     </button>
                                 </div>
                             </div>
                         </li>
                     @empty
                         <li class="py-6 text-center text-gray-500">
-                            Aucun avis pour l'instant.
+                            {{ __('No reviews yet.') }}
                         </li>
                     @endforelse
                 </ul>
@@ -473,20 +473,20 @@
             </div>
             <div class="px-8 pb-8 -mt-4">
                 <h2 id="authTitle" class="text-center text-[26px] font-semibold leading-tight">
-                    Rejoignez et vendez vos vêtements d'occasion sans frais
+                    {{ __('Join and sell pre-loved clothes with no fees') }}
                 </h2>
 
                 <div class="mt-6 space-y-3">
                     <a href="#"
                         class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
                         <img src="https://www.gstatic.com/images/branding/product/1x/gsa_64dp.png" class="h-5 w-5" alt="">
-                        <span class="font-medium">Continuer avec Google</span>
+                        <span class="font-medium">{{ __('Continue with Google') }}</span>
                     </a>
 
                     <a href="#"
                         class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
                         <span class="text-2xl"></span>
-                        <span class="font-medium">Continuer avec Apple</span>
+                        <span class="font-medium">{{ __('Continue with Apple') }}</span>
                     </a>
 
                     <a href="#"
@@ -495,7 +495,7 @@
                             <path
                                 d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.3V12h2.3V9.7c0-2.3 1.4-3.6 3.5-3.6 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.5.7-1.5 1.4V12h2.6l-.4 2.9h-2.2v7A10 10 0 0 0 22 12Z" />
                         </svg>
-                        <span class="font-medium">Continuer avec Facebook</span>
+                        <span class="font-medium">{{ __('Continue with Facebook') }}</span>
                     </a>
                 </div>
 
@@ -503,7 +503,7 @@
                     Ou s'inscrire avec un <a href="#" class="underline text-gray-900">e-mail</a>
                 </div>
                 <div class="mt-2 text-center text-[15px] text-zinc-700">
-                    Déjà inscrit(e) ? <a href="#" class="underline text-gray-900">Se connecter</a>
+                    Déjà inscrit(e) ? <a href="#" class="underline text-gray-900">{{ __('Log in') }}</a>
                 </div>
             </div>
         </div>

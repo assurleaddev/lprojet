@@ -73,7 +73,7 @@
                                     @endforeach
                                 </div>
                                 <div class="mt-4 pt-3 border-t flex justify-end">
-                                     <button type="submit" class="text-xs font-bold text-white bg-gray-900 px-3 py-1.5 rounded hover:bg-gray-800">Appliquer</button>
+                                     <button type="submit" class="text-xs font-bold text-white bg-gray-900 px-3 py-1.5 rounded hover:bg-gray-800">{{ __('Apply') }}</button>
                                 </div>
                             </form>
                         </div>
@@ -220,7 +220,7 @@
                                     <div class="flex items-center justify-between mb-3">
                                         <h3 class="font-semibold">{{ $attribute->name }}</h3>
                                         <button type="button" @click="open = false"
-                                            class="text-gray-700 hover:underline text-sm">Fermer</button>
+                                            class="text-gray-700 hover:underline text-sm">{{ __('Close') }}</button>
                                     </div>
                                     @foreach($attribute->options as $option)
                                         <label class="flex items-center py-2 cursor-pointer hover:bg-gray-50 px-2 rounded">
@@ -240,7 +240,7 @@
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
                         class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50">
-                        <span>Trier par</span>
+                        <span>{{ __('Sort by') }}</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
@@ -248,10 +248,10 @@
                     <div x-show="open" @click.away="open = false"
                         class="absolute z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
                         <div class="p-2">
-                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Pertinence</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">{{ __('Relevance') }}</a>
                             <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Plus récents</a>
-                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Prix croissant</a>
-                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">Prix décroissant</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">{{ __('Price: Low to high') }}</a>
+                            <a href="#" class="block px-4 py-2 hover:bg-gray-50 rounded">{{ __('Price: High to low') }}</a>
                         </div>
                     </div>
                 </div>
@@ -287,7 +287,7 @@
                     @endforeach
                     @if(!empty($categoryIds) || !empty($attributeFilters))
                         <a href="{{ route('search', ['query' => $query, 'type' => $type]) }}"
-                            class="text-sm hover:underline ml-2" class="text-gray-700 hover:underline text-sm ml-2">Effacer les filtres</a>
+                            class="text-sm hover:underline ml-2" class="text-gray-700 hover:underline text-sm ml-2">{{ __('Clear filters') }}</a>
                     @endif
                 </div>
             @endif
@@ -395,7 +395,7 @@
                             </div>
                             <div>
                                 <a href="{{ route('vendor.show', $user) }}"
-                                    class="text-gray-900 hover:underline text-sm font-medium">Voir</a>
+                                    class="text-gray-900 hover:underline text-sm font-medium">{{ __('View') }}</a>
                             </div>
                         </div>
                     @endforeach

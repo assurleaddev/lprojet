@@ -24,12 +24,12 @@
             @if($product->status === 'sold')
                 <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
                     style="background-color: #4fb286 !important;">
-                    Sold
+                    {{ __('Sold') }}
                 </div>
             @elseif($product->status === 'reserved')
                 <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
                     style="background-color: #f59e0b !important;">
-                    Reserved
+                    {{ __('Reserved') }}
                 </div>
             @endif
 
@@ -66,8 +66,8 @@
     @if ($loop->iteration > 0 && $loop->iteration % 15 == 0)
         <div class="col-span-full bg-[#f6f2ff] rounded-lg p-8 min-h-[150px] h-[300px] flex flex-col items-start justify-between bannner"
             style="background-repeat:no-repeat;background-position:right center;background-size:cover;background-image: url('{{ asset('images/home/banner.png') }}')">
-            <h2 class="text-xl md:text-2xl font-bold mb-4">Gagnez de l'argent avec vos articles</h2>
-            <a href="{{ route('items.create') }}" class="px-4 py-2 rounded text-white font-bold text-sm bg-gray-900 hover:bg-gray-800">Vendre maintenant</a>
+            <h2 class="text-xl md:text-2xl font-bold mb-4">{{ __('Earn money from your homeware') }}</h2>
+            <a href="{{ route('items.create') }}" class="px-4 py-2 rounded text-white font-bold text-sm bg-gray-900 hover:bg-gray-800">{{ __('Sell now') }}</a>
         </div>
     @endif
 @empty

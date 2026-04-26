@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Settings</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Settings') }}</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -24,8 +24,8 @@
                 @endif
 
                 <div class="mb-8 pb-8 border-b border-gray-100">
-                    <h3 class="text-base font-medium text-gray-900 mb-4">Comptes de retrait</h3>
-                    <p class="text-sm text-gray-500 mb-6">Manage your bank accounts for withdrawing funds from your wallet.
+                    <h3 class="text-base font-medium text-gray-900 mb-4">{{ __('Payout Accounts') }}</h3>
+                    <p class="text-sm text-gray-500 mb-6">{{ __('Manage your bank accounts for withdrawing funds from your wallet.') }}
                     </p>
 
                     @if($payoutAccounts->isEmpty())
@@ -39,8 +39,8 @@
                                     </path>
                                 </svg>
                             </div>
-                            <span class="font-semibold text-gray-700">Add a withdrawal account</span>
-                            <span class="text-xs text-gray-500 mt-1">RIB, Bank name, and Holder name required</span>
+                            <span class="font-semibold text-gray-700">{{ __('Add a withdrawal account') }}</span>
+                            <span class="text-xs text-gray-500 mt-1">{{ __('RIB, Bank name, and Holder name required') }}</span>
                         </button>
                     @else
                         <div class="grid grid-cols-1 gap-4">
@@ -84,7 +84,7 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                             </svg>
-                            Add another bank account
+                            {{ __('Add another bank account') }}
                         </button>
                     @endif
                 </div>
@@ -100,7 +100,7 @@
                             class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-50">
                             <div class="bg-white px-6 pt-6 pb-6">
                                 <div class="flex justify-between items-center mb-6">
-                                    <h3 class="text-xl font-bold text-gray-900">Ajouter un compte bancaire</h3>
+                                    <h3 class="text-xl font-bold text-gray-900">{{ __('Add a bank account') }}</h3>
                                     <button @click="showAddModal = false"
                                         class="text-gray-400 hover:text-gray-600 transition-colors">
                                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -113,22 +113,19 @@
                                     @csrf
                                     <div class="space-y-5">
                                         <div>
-                                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Bank
-                                                Name</label>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Bank Name') }}</label>
                                             <input type="text" name="bank_name" required
                                                 class="w-full border-gray-200 bg-gray-50 rounded-xl shadow-sm py-3 px-4 focus:border-brand focus:ring-brand transition-all"
                                                 placeholder="e.g. Attijariwafa Bank, BCP, BMCE...">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">Account Holder
-                                                Name</label>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('Account Holder Name') }}</label>
                                             <input type="text" name="account_holder" required
                                                 class="w-full border-gray-200 bg-gray-50 rounded-xl shadow-sm py-3 px-4 focus:border-brand focus:ring-brand transition-all"
                                                 placeholder="Full name as it appears on your RIB">
                                         </div>
                                         <div>
-                                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">RIB (24
-                                                digits)</label>
+                                            <label class="block text-sm font-semibold text-gray-700 mb-1.5">{{ __('RIB (24 digits)') }}</label>
                                             <input type="text" name="rib" required maxlength="24"
                                                 class="w-full border-gray-200 bg-gray-50 rounded-xl shadow-sm py-3 px-4 focus:border-brand focus:ring-brand font-mono transition-all"
                                                 placeholder="000 000 0000000000000000 00">
@@ -137,11 +134,11 @@
                                     <div class="mt-8 flex gap-3">
                                         <button type="submit"
                                             class="flex-1 bg-gray-900 text-white py-3.5 rounded-xl font-bold hover:bg-gray-800 shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]">
-                                            Save Account
+                                            {{ __('Save Account') }}
                                         </button>
                                         <button type="button" @click="showAddModal = false"
                                             class="flex-1 border border-gray-300 py-3.5 rounded-xl text-gray-700 font-bold hover:bg-gray-50 transition-all">
-                                            Cancel
+                                            {{ __('Cancel') }}
                                         </button>
                                     </div>
                                 </form>
@@ -162,7 +159,7 @@
                     return {
                         showAddModal: false,
                         confirmDelete(url) {
-                            if (confirm('Are you sure you want to delete this payout account?')) {
+                            if (confirm('{{ __('Are you sure you want to delete this payout account?') }}')) {
                                 this.$refs.deleteForm.action = url;
                                 this.$refs.deleteForm.submit();
                             }

@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Paramètres</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ __('Settings') }}</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -43,7 +43,7 @@
                                 </svg></span>
                         </div>
                         <button type="button"
-                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Modifier</button>
+                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">{{ __('Change') }}</button>
                     </div>
 
                     <!-- Numéro de téléphone -->
@@ -62,10 +62,10 @@
                                                     d="M5 13l4 4L19 7"></path>
                                             </svg></span>
                                     @else
-                                        <span class="text-xs text-red-500">Non vérifié</span>
+                                        <span class="text-xs text-red-500">{{ __('Not verified') }}</span>
                                     @endif
                                 @else
-                                    <h3 class="text-base font-medium text-gray-900">Numéro de téléphone</h3>
+                                    <h3 class="text-base font-medium text-gray-900">{{ __('Phone number') }}</h3>
                                 @endif
                             </div>
 
@@ -81,14 +81,14 @@
                     <!-- Personal Information -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
                         <div class="flex items-center justify-between mb-6">
-                            <label class="text-base font-medium text-gray-900 w-1/3">Nom complet</label>
+                            <label class="text-base font-medium text-gray-900 w-1/3">{{ __('Full name') }}</label>
                             <div class="w-2/3 text-gray-700 font-medium uppercase">
                                 {{ $user->full_name }}
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between mb-6">
-                            <label class="text-base font-medium text-gray-900 w-1/3">Genre</label>
+                            <label class="text-base font-medium text-gray-900 w-1/3">{{ __('Gender') }}</label>
                             <div class="w-2/3">
                                 <select name="gender"
                                     class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
@@ -105,7 +105,7 @@
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <label class="text-base font-medium text-gray-900 w-1/3">Date de naissance</label>
+                            <label class="text-base font-medium text-gray-900 w-1/3">{{ __('Birthday') }}</label>
                             <div class="w-2/3">
                                 <input type="date" name="birthday" value="{{ $user->getMeta('birthday') }}"
                                     class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
@@ -117,8 +117,8 @@
                     <!-- Mode vacances -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between relative">
                         <div>
-                            <label class="text-base font-medium text-gray-900">Mode vacances</label>
-                            <p class="text-sm text-gray-500 mt-1">Masquer vos articles des résultats de recherche et du catalogue.</p>
+                            <label class="text-base font-medium text-gray-900">{{ __('Holiday mode') }}</label>
+                            <p class="text-sm text-gray-500 mt-1">{{ __('Hide your items from search results and catalog.') }}</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="holiday_mode" value="1" class="sr-only peer" x-model="holidayMode"
@@ -135,13 +135,13 @@
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-base font-medium text-gray-900">Facebook</h3>
                             <button type="button"
-                                class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Lier</button>
+                                class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">{{ __('Link') }}</button>
                         </div>
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="text-base font-medium text-gray-900">Google</h3>
                             <button type="button"
                                 class="text-gray-400 border border-gray-300 px-4 py-2 rounded text-sm font-medium cursor-not-allowed"
-                                disabled>Lié</button>
+                                disabled>{{ __('Linked') }}</button>
                         </div>
                         <p class="text-xs text-gray-500">Liez vos autres comptes pour devenir un membre vérifié et de confiance.
                         </p>
@@ -149,14 +149,14 @@
 
                     <!-- Changer le mot de passe -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
-                        <h3 class="text-base font-medium text-gray-900">Changer le mot de passe</h3>
+                        <h3 class="text-base font-medium text-gray-900">{{ __('Change password') }}</h3>
                         <button type="button"
-                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Modifier</button>
+                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">{{ __('Change') }}</button>
                     </div>
 
                     <!-- Delete account -->
                     <div class="mb-8 flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded">
-                        <h3 class="text-base font-medium text-gray-900">Supprimer mon compte</h3>
+                        <h3 class="text-base font-medium text-gray-900">{{ __('Delete my account') }}</h3>
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -164,7 +164,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Enregistrer</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">{{ __('Save') }}</button>
                     </div>
 
                     <!-- Warning Modal (Moved to end of form) -->

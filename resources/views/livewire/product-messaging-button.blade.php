@@ -5,13 +5,13 @@
                 {{-- Make Offer Button --}}
                 <button type="button" wire:click="$dispatch('open-make-offer-modal', { productId: {{ $product->id }} })"
                     class="w-full block text-center border border-gray-900 text-gray-900 font-bold py-2 rounded-md hover:bg-gray-50 transition-colors text-sm">
-                    Faire une offre
+                    {{ __('Make an offer') }}
                 </button>
 
                 {{-- Message Seller Button --}}
                 <button type="button" wire:click="startConversation"
                     class="w-full block text-center border border-gray-900 text-gray-900 font-bold py-2 rounded-md hover:bg-gray-50 transition-colors text-sm">
-                    Contacter le vendeur
+                    {{ __('Ask seller') }}
                 </button>
             </div>
         @endif

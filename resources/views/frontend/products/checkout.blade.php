@@ -61,8 +61,8 @@
                                     </div>
                                 </div>
                                 <div class="mt-3 space-y-1">
-                                    @if($product->size) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">Taille</span> {{ $product->size }}</div> @endif
-                                    @if($product->condition) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">État</span> {{ ucwords(str_replace('_', ' ', $product->condition)) }}</div> @endif
+                                    @if($product->size) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">{{ __('Size') }}</span> {{ $product->size }}</div> @endif
+                                    @if($product->condition) <div class="text-sm"><span class="text-gray-500 text-xs uppercase font-semibold w-24 inline-block">{{ __('Condition') }}</span> {{ ucwords(str_replace('_', ' ', $product->condition)) }}</div> @endif
                                 </div>
                             </div>
                         </div>
@@ -71,7 +71,7 @@
 
                 <!-- 2. Address Section -->
                 <div>
-                    <h3 class="font-bold text-gray-900 mb-2">Adresse</h3>
+                    <h3 class="font-bold text-gray-900 mb-2">{{ __('Address') }}</h3>
                     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden divide-y divide-gray-100">
                         @if(isset($addresses) && $addresses->count() > 0)
                             @foreach($addresses as $address)
@@ -89,10 +89,10 @@
                                 </label>
                             @endforeach
                         @else
-                            <div class="p-4 text-center text-gray-500 text-sm">Aucune adresse enregistrée.</div>
+                            <div class="p-4 text-center text-gray-500 text-sm">{{ __('No addresses found.') }}</div>
                         @endif
                         <a href="{{ route('settings.postage', ['redirect_to' => url()->current()]) }}" class="flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors group">
-                            <span class="text-gray-600 font-medium">Ajouter une adresse</span>
+                            <span class="text-gray-600 font-medium">{{ __('Add a new address') }}</span>
                             <span class="w-6 h-6 rounded-full border border-gray-300 flex items-center justify-center text-gray-400 group-hover:border-gray-900 group-hover:text-gray-900 pb-0.5">+</span>
                         </a>
                     </div>
@@ -100,7 +100,7 @@
 
                 @if($shippingOptions->isNotEmpty())
                     <div>
-                        <h3 class="font-bold text-gray-900 mb-2">Mode de livraison</h3>
+                        <h3 class="font-bold text-gray-900 mb-2">{{ __('Delivery option') }}</h3>
                         <div class="bg-white rounded-lg border border-gray-200 overflow-hidden" id="delivery-options-container">
                             @php
                                 $homeOptions = $shippingOptions->where('type', 'home_pickup');
@@ -115,14 +115,14 @@
                                             {{ $pickupOptions->isNotEmpty() ? ($pickupOptions->first()->id == ($initialShippingOption->id ?? 0) ? 'checked' : '') : 'disabled' }}
                                             class="w-5 h-5 border-gray-300 text-gray-900">
                                         <div>
-                                            <span class="block font-medium text-gray-900 {{ $pickupOptions->isEmpty() ? 'text-gray-400' : '' }}">Livraison en point relais</span>
+                                            <span class="block font-medium text-gray-900 {{ $pickupOptions->isEmpty() ? 'text-gray-400' : '' }}">{{ __('Ship to pick-up point') }}</span>
                                             <span class="block text-xs text-gray-500 {{ $pickupOptions->isEmpty() ? 'text-gray-300' : '' }}">Mondial Relay, Chronopost, etc.</span>
                                         </div>
                                     </div>
                                     @if($pickupOptions->isNotEmpty())
                                         <span class="text-sm font-semibold text-gray-700">À partir de {{ number_format($pickupOptions->min('price'), 2) }} MAD</span>
                                     @else
-                                        <span class="text-xs text-gray-400">Non disponible</span>
+                                        <span class="text-xs text-gray-400">{{ __('Not available') }}</span>
                                     @endif
                                 </label>
                                 
@@ -154,14 +154,14 @@
                                             {{ $homeOptions->isNotEmpty() ? ($homeOptions->first()->id == ($initialShippingOption->id ?? 0) ? 'checked' : '') : 'disabled' }}
                                             class="w-5 h-5 border-gray-300 text-gray-900">
                                         <div>
-                                            <span class="block font-medium text-gray-900 {{ $homeOptions->isEmpty() ? 'text-gray-400' : '' }}">Livraison à domicile</span>
+                                            <span class="block font-medium text-gray-900 {{ $homeOptions->isEmpty() ? 'text-gray-400' : '' }}">{{ __('Ship to home') }}</span>
                                             <span class="block text-xs text-gray-500 {{ $homeOptions->isEmpty() ? 'text-gray-300' : '' }}">La Poste / Amana</span>
                                         </div>
                                     </div>
                                     @if($homeOptions->isNotEmpty())
                                         <span class="text-sm font-semibold text-gray-700">À partir de {{ number_format($homeOptions->min('price'), 2) }} MAD</span>
                                     @else
-                                        <span class="text-xs text-gray-400">Non disponible</span>
+                                        <span class="text-xs text-gray-400">{{ __('Not available') }}</span>
                                     @endif
                                 </label>
 
@@ -192,7 +192,7 @@
 
                 <!-- 4. Payment -->
                 <div>
-                    <h3 class="font-bold text-gray-900 mb-2">Paiement</h3>
+                    <h3 class="font-bold text-gray-900 mb-2">{{ __('Payment') }}</h3>
                     <div class="bg-white rounded-lg border border-gray-200 overflow-hidden divide-y divide-gray-100">
                         <!-- Wallet -->
                         <label class="flex items-center gap-3 p-4 hover:bg-gray-50 cursor-pointer" id="wallet-option-label">
@@ -213,7 +213,7 @@
                             <div class="flex-1">
                                 <p class="font-medium text-gray-900 flex items-center gap-2">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 text-gray-500"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" /></svg>
-                                    Paiement à la livraison
+                                    {{ __('Cash on Delivery') }}
                                 </p>
                             </div>
                         </label>
@@ -225,32 +225,32 @@
             <!-- Right Column (Sticky Summary) -->
             <div class="lg:col-span-4">
                 <div class="bg-white rounded-lg border border-gray-200 p-6 sticky top-6">
-                    <h3 class="font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">Récapitulatif</h3>
+                    <h3 class="font-bold text-gray-900 mb-4 border-b border-gray-100 pb-3">{{ __('Price summary') }}</h3>
                     <div class="space-y-3 text-sm mb-6">
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Commande</span>
+                            <span class="text-gray-600">{{ __('Order') }}</span>
                             <span class="font-medium text-gray-900">{{ number_format($price, 2) }} MAD</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Protection acheteur</span>
+                            <span class="text-gray-600">{{ __('Buyer Protection fee') }}</span>
                             <span class="font-medium text-gray-900">{{ number_format($protectionFee, 2) }} MAD</span>
                         </div>
                         <div class="flex justify-between items-center">
-                            <span class="text-gray-600">Livraison</span>
+                            <span class="text-gray-600">{{ __('Shipping') }}</span>
                             <span class="font-medium text-gray-900" id="summary-shipping">-- MAD</span>
                         </div>
                     </div>
                     <div class="flex justify-between items-center border-t border-gray-100 pt-4 mb-6">
-                        <span class="font-bold text-lg text-gray-900">Total à payer</span>
+                        <span class="font-bold text-lg text-gray-900">{{ __('Total to pay') }}</span>
                         <span class="font-bold text-lg text-gray-900" id="summary-total">-- MAD</span>
                     </div>
                     <button type="submit" id="submit-btn"
                         class="w-full text-white font-bold py-3 rounded-md transition-colors mb-3 bg-gray-900 hover:bg-gray-800">
-                        Passer la commande
+                        {{ __('Place order') }}
                     </button>
                     <p class="text-xs text-center text-gray-400 flex items-center justify-center gap-1">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
-                        Vos informations de paiement sont chiffrées et sécurisées
+                        {{ __('Your payment details are encrypted and secure') }}
                     </p>
                 </div>
             </div>
