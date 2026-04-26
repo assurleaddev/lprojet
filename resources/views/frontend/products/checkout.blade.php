@@ -237,12 +237,12 @@
                         </div>
                         <div class="flex justify-between items-center">
                             <span class="text-gray-600">{{ __('Shipping') }}</span>
-                            <span class="font-medium text-gray-900" id="summary-shipping">-- MAD</span>
+                            <span class="font-medium text-gray-900" id="summary-shipping">{{ number_format($initialShippingFee, 2) }} MAD</span>
                         </div>
                     </div>
                     <div class="flex justify-between items-center border-t border-gray-100 pt-4 mb-6">
                         <span class="font-bold text-lg text-gray-900">{{ __('Total to pay') }}</span>
-                        <span class="font-bold text-lg text-gray-900" id="summary-total">-- MAD</span>
+                        <span class="font-bold text-lg text-gray-900" id="summary-total">{{ number_format($initialTotal, 2) }} MAD</span>
                     </div>
                     <button type="submit" id="submit-btn"
                         class="w-full text-white font-bold py-3 rounded-md transition-colors mb-3 bg-gray-900 hover:bg-gray-800">

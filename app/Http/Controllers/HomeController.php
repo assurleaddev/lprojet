@@ -338,6 +338,14 @@ class HomeController extends Controller
             return $product->vendor->getMeta($option->key, '1') !== '0';
         });
 
+        // If vendor has no configured options, fall back to admin defaults
+        if ($shippingOptions->isEmpty()) {
+            $defaultShippingIds = json_decode(config('settings.default_shipping_options', '[]'), true) ?? [];
+            if (! empty($defaultShippingIds)) {
+                $shippingOptions = $allShippingOptions->whereIn('id', $defaultShippingIds)->values();
+            }
+        }
+
         // Fee Settings
         $buyerProtectionPercentage = config('settings.buyer_protection_fee_percentage', 5);
         $buyerProtectionFixed = config('settings.buyer_protection_fee_fixed', 0.70);
