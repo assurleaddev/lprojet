@@ -6,7 +6,11 @@
             $price = isset($checkoutPrice) ? $checkoutPrice : $product->price;
             // Calculations are done in controller or updated via JS
             // Initial shipping fee (defaults to first option or fixed)
-            $initialShippingFee = $shippingOptions->count() > 0 ? $shippingOptions->first()->price : $deliveryFeeFixed;
+            $homeOptions = $shippingOptions->where('type', 'home_pickup');
+            $pickupOptions = $shippingOptions->where('type', 'drop_off');
+            $initialCategory = $pickupOptions->isNotEmpty() ? 'pickup' : ($homeOptions->isNotEmpty() ? 'home' : null);
+            $initialFirstOption = $initialCategory === 'pickup' ? $pickupOptions->first() : ($initialCategory === 'home' ? $homeOptions->first() : null);
+            $initialShippingFee = $initialFirstOption ? $initialFirstOption->price : $deliveryFeeFixed;
             $initialTotal = $price + $protectionFee + $initialShippingFee;
             
             $walletBalance = auth()->user()->wallet->balance ?? 0;
@@ -102,18 +106,13 @@
                     <div>
                         <h3 class="font-bold text-gray-900 mb-2">{{ __('Delivery option') }}</h3>
                         <div class="bg-white rounded-lg border border-gray-200 overflow-hidden" id="delivery-options-container">
-                            @php
-                                $homeOptions = $shippingOptions->where('type', 'home_pickup');
-                                $pickupOptions = $shippingOptions->where('type', 'drop_off');
-                            @endphp
-
                             <!-- Pickup Point Category -->
                             <div class="border-b border-gray-100 last:border-0">
                                 <label class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors delivery-category-label">
                                     <div class="flex items-center gap-3">
                                         <input type="radio" name="delivery_category" value="pickup"
-                                            {{ $pickupOptions->isNotEmpty() ? ($pickupOptions->first()->id == ($initialShippingOption->id ?? 0) ? 'checked' : '') : 'disabled' }}
-                                            class="w-5 h-5 border-gray-300 text-gray-900">
+                                            {{ $pickupOptions->isEmpty() ? 'disabled' : ($initialCategory === 'pickup' ? 'checked' : '') }}
+                                            class="w-5 h-5 border-gray-300 text-gray-900 category-radio">
                                         <div>
                                             <span class="block font-medium text-gray-900 {{ $pickupOptions->isEmpty() ? 'text-gray-400' : '' }}">{{ __('Ship to pick-up point') }}</span>
                                             <span class="block text-xs text-gray-500 {{ $pickupOptions->isEmpty() ? 'text-gray-300' : '' }}">Mondial Relay, Chronopost, etc.</span>
@@ -127,13 +126,14 @@
                                 </label>
                                 
                                 <!-- Sub-options for Pickup -->
-                                <div class="bg-gray-50 pl-12 pr-4 py-2 space-y-2 {{ $pickupOptions->isEmpty() ? 'hidden' : '' }} category-options" id="options-pickup" style="display: none;">
+                                <div class="bg-gray-50 pl-12 pr-4 py-2 space-y-2 {{ $pickupOptions->isEmpty() ? 'hidden' : '' }} category-options" id="options-pickup" {{ $initialCategory !== 'pickup' ? 'style="display: none;"' : '' }}>
                                     @foreach($pickupOptions as $option)
                                         <label class="flex items-center justify-between py-2 cursor-pointer">
                                             <div class="flex items-center gap-3">
                                                 <input type="radio" name="shipping_option_id" value="{{ $option->id }}"
                                                     data-price="{{ $option->price }}"
                                                     data-category="pickup"
+                                                    {{ $initialCategory === 'pickup' && $loop->first ? 'checked' : '' }}
                                                     class="w-4 h-4 border-gray-300 text-gray-900 shipping-option-radio">
                                                 <div class="flex items-center gap-2">
                                                     @if($option->icon_class)<div class="w-2 h-2 rounded-full {{ $option->icon_class }}"></div>@endif
@@ -151,8 +151,8 @@
                                 <label class="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors delivery-category-label">
                                     <div class="flex items-center gap-3">
                                         <input type="radio" name="delivery_category" value="home"
-                                            {{ $homeOptions->isNotEmpty() ? ($homeOptions->first()->id == ($initialShippingOption->id ?? 0) ? 'checked' : '') : 'disabled' }}
-                                            class="w-5 h-5 border-gray-300 text-gray-900">
+                                            {{ $homeOptions->isEmpty() ? 'disabled' : ($initialCategory === 'home' ? 'checked' : '') }}
+                                            class="w-5 h-5 border-gray-300 text-gray-900 category-radio">
                                         <div>
                                             <span class="block font-medium text-gray-900 {{ $homeOptions->isEmpty() ? 'text-gray-400' : '' }}">{{ __('Ship to home') }}</span>
                                             <span class="block text-xs text-gray-500 {{ $homeOptions->isEmpty() ? 'text-gray-300' : '' }}">La Poste / Amana</span>
@@ -166,13 +166,14 @@
                                 </label>
 
                                 <!-- Sub-options for Home -->
-                                <div class="bg-gray-50 pl-12 pr-4 py-2 space-y-2 {{ $homeOptions->isEmpty() ? 'hidden' : '' }} category-options" id="options-home" style="display: none;">
+                                <div class="bg-gray-50 pl-12 pr-4 py-2 space-y-2 {{ $homeOptions->isEmpty() ? 'hidden' : '' }} category-options" id="options-home" {{ $initialCategory !== 'home' ? 'style="display: none;"' : '' }}>
                                     @foreach($homeOptions as $option)
                                         <label class="flex items-center justify-between py-2 cursor-pointer">
                                             <div class="flex items-center gap-3">
                                                 <input type="radio" name="shipping_option_id" value="{{ $option->id }}"
                                                     data-price="{{ $option->price }}"
                                                     data-category="home"
+                                                    {{ $initialCategory === 'home' && $loop->first ? 'checked' : '' }}
                                                     class="w-4 h-4 border-gray-300 text-gray-900 shipping-option-radio">
                                                 <div class="flex items-center gap-2">
                                                     @if($option->icon_class)<div class="w-2 h-2 rounded-full {{ $option->icon_class }}"></div>@endif
