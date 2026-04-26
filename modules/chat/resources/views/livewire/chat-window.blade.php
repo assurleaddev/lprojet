@@ -195,14 +195,24 @@
                 </div>
 
                 <div class="flex space-x-2">
-                    {{-- Seller Actions: Reserve/Unreserve --}}
+                    {{-- Seller Actions: Reserve/Unreserve + Make Offer --}}
                     @if(auth()->id() === $this->conversation->product->vendor_id)
-                        @if($this->conversation->product->status !== 'reserved' && $this->conversation->product->status !== 'sold')
+                        @if($this->conversation->product->status === 'approved')
+                            <button
+                                @click="Livewire.dispatch('open-counter-offer-modal', { productId: {{ $this->conversation->product->id }}, targetBuyerId: {{ $otherUser->id }} })"
+                                class="px-3 py-1 bg-white border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50">
+                                Make Offer
+                            </button>
                             <button wire:click="reserveProduct"
                                 class="px-3 py-1 bg-white border border-yellow-600 text-yellow-600 text-sm font-medium rounded hover:bg-yellow-50">
                                 Reserve
                             </button>
                         @elseif($this->conversation->product->status === 'reserved')
+                            <button
+                                @click="Livewire.dispatch('open-counter-offer-modal', { productId: {{ $this->conversation->product->id }}, targetBuyerId: {{ $otherUser->id }} })"
+                                class="px-3 py-1 bg-white border border-gray-900 text-gray-900 text-sm font-medium rounded hover:bg-gray-50">
+                                Make Offer
+                            </button>
                             <button wire:click="unreserveProduct"
                                 class="px-3 py-1 bg-yellow-600 text-white text-sm font-medium rounded hover:bg-yellow-700">
                                 Unreserve
