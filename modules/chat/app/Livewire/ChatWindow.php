@@ -599,6 +599,12 @@ class ChatWindow extends Component
     // Properties for Reception Confirmation Modal
     public bool $showReceptionConfirmationModal = false;
 
+    // Properties for Claim Modal
+    public bool $showClaimModal = false;
+    public ?int $claimOrderId = null;
+    public string $claimDescription = '';
+    public array $claimPhotos = [];
+
     public function markAsReceived(int $orderId)
     {
         if ($orderId === 0) {
@@ -719,8 +725,11 @@ class ChatWindow extends Component
 
         // 2. Release Funds & Complete Order
         try {
-            $walletService = app(\Modules\Wallet\Services\WalletService::class);
-            $walletService->releasePendingFunds($order->vendor, $order->amount, 'Order #' . $order->id);
+            // For COD orders the delivery man collects cash directly — no escrow was held, skip wallet ops.
+            if ($order->payment_method !== 'cod') {
+                $walletService = app(\Modules\Wallet\Services\WalletService::class);
+                $walletService->releasePendingFunds($order->vendor, $order->vendor_payout ?? $order->amount, 'Order #' . $order->id);
+            }
 
             $order->update(['status' => 'completed']);
 
@@ -742,6 +751,59 @@ class ChatWindow extends Component
         $this->showReviewModal = false;
         $this->orderToReviewId = null;
         $this->reset(['reviewRating', 'reviewText']);
+    }
+
+    public function openClaimModal(int $orderId): void
+    {
+        $order = \App\Models\Order::find($orderId);
+        if (! $order || $order->user_id !== Auth::id()) {
+            $this->dispatch('toast', message: 'Order not found.', type: 'error');
+            return;
+        }
+        $this->claimOrderId = $orderId;
+        $this->claimDescription = '';
+        $this->claimPhotos = [];
+        $this->showClaimModal = true;
+    }
+
+    public function submitClaim(): void
+    {
+        $this->validate([
+            'claimDescription' => 'required|string|min:10|max:2000',
+            'claimPhotos.*' => 'nullable|image|max:5120',
+        ]);
+
+        if (! $this->claimOrderId) {
+            return;
+        }
+
+        $paths = [];
+        foreach ($this->claimPhotos as $photo) {
+            $paths[] = $photo->store('claims', 'public');
+        }
+
+        \App\Models\Claim::create([
+            'order_id' => $this->claimOrderId,
+            'user_id' => Auth::id(),
+            'description' => $this->claimDescription,
+            'photos' => $paths ?: null,
+            'status' => 'pending',
+        ]);
+
+        $this->showClaimModal = false;
+        $this->claimOrderId = null;
+        $this->claimDescription = '';
+        $this->claimPhotos = [];
+        $this->dispatch('toast', message: 'Your claim has been submitted. Our team will review it shortly.', type: 'success');
+    }
+
+    public function closeClaimModal(): void
+    {
+        $this->showClaimModal = false;
+        $this->claimOrderId = null;
+        $this->claimDescription = '';
+        $this->claimPhotos = [];
+        $this->resetValidation(['claimDescription', 'claimPhotos']);
     }
 
     /**

@@ -556,23 +556,22 @@
                                     @if(!$isOrderCompleted)
                                         <div class="mt-4 grid grid-cols-2 gap-2">
                                             @if(isset($latestOrder) && $latestOrder->status === 'delivered')
-                                                {{-- If delivered but not completed, show Leave Review --}}
                                                 <button wire:click="openReviewModal({{ $latestOrder->id }})" wire:loading.attr="disabled"
                                                     class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                                     Leave Review
                                                 </button>
                                             @else
-                                                {{-- Standard Item Received Button --}}
                                                 <button wire:click="markAsReceived(0)" wire:loading.attr="disabled"
                                                     class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                                    Item Received
+                                                    All Good
                                                 </button>
                                             @endif
-                                            <button
-                                                wire:click="$dispatch('toast', {message: 'Please contact support for refunds.', type: 'info'})"
-                                                class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                                Refund
-                                            </button>
+                                            @if(isset($latestOrder))
+                                                <button wire:click="openClaimModal({{ $latestOrder->id }})"
+                                                    class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                    I have a problem
+                                                </button>
+                                            @endif
                                         </div>
                                     @endif
                                 </div>
@@ -601,7 +600,7 @@
                                                 </h3>
                                                 <div class="text-xs text-gray-700 dark:text-gray-300">
                                                     You can now purchase this item for
-                                                    ${{ number_format($offerData->offer_price ?? 0, 2) }}
+                                                    {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
                                                 </div>
                                             </div>
                                         </div>
@@ -1063,6 +1062,96 @@
             </div>
         </div>
     </div>
+    {{-- Claim Modal --}}
+    <div x-data="{ show: @entangle('showClaimModal') }" x-show="show" x-on:keydown.escape.window="show = false"
+        style="display: none;" class="fixed inset-0 z-[200] overflow-y-auto" role="dialog" aria-modal="true">
+
+        <div class="flex items-end sm:items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-gray-900 bg-opacity-80 transition-opacity z-[210]"
+                @click.self="show = false" aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="show" @click.stop x-transition:enter="ease-out duration-300"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave="ease-in duration-200"
+                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                class="relative inline-block w-full max-w-lg p-6 my-8 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg sm:align-middle z-[220]">
+
+                <div class="flex items-start justify-between mb-4">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Report a Problem</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Describe the issue with your order. Our team will review it.</p>
+                    </div>
+                    <button @click="show = false" wire:click="closeClaimModal" type="button" class="text-gray-400 hover:text-gray-600 ml-4">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <form wire:submit.prevent="submitClaim" class="space-y-5">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Description <span class="text-red-500">*</span>
+                        </label>
+                        <textarea wire:model="claimDescription" rows="5"
+                            class="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-900 focus:border-gray-900 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
+                            placeholder="Describe the issue in detail (e.g. item not as described, damaged, missing...)"></textarea>
+                        @error('claimDescription') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Photos <span class="text-gray-400 font-normal">(optional, up to 5)</span>
+                        </label>
+                        <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 dark:border-gray-600 border-dashed rounded-md">
+                            <div class="space-y-1 text-center">
+                                <svg class="mx-auto h-10 w-10 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <div class="text-sm text-gray-500 dark:text-gray-400">
+                                    <label class="relative cursor-pointer rounded-md font-medium text-gray-900 dark:text-gray-100 underline">
+                                        <span>Upload photos</span>
+                                        <input type="file" wire:model="claimPhotos" multiple accept="image/*" class="sr-only">
+                                    </label>
+                                    <span class="ml-1">or drag and drop</span>
+                                </div>
+                                <p class="text-xs text-gray-400">PNG, JPG up to 5MB each</p>
+                            </div>
+                        </div>
+                        @error('claimPhotos.*') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+
+                        @if(count($claimPhotos) > 0)
+                            <div class="mt-2 flex flex-wrap gap-2">
+                                @foreach($claimPhotos as $photo)
+                                    <img src="{{ $photo->temporaryUrl() }}" class="h-16 w-16 object-cover rounded-md border border-gray-200">
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="flex justify-end gap-3 pt-4 border-t dark:border-gray-600">
+                        <button type="button" @click="show = false" wire:click="closeClaimModal"
+                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none">
+                            Cancel
+                        </button>
+                        <button type="submit" wire:loading.attr="disabled" wire:target="submitClaim"
+                            class="px-4 py-2 text-sm font-medium text-white bg-gray-900 border border-transparent rounded-md shadow-sm hover:bg-gray-800 focus:outline-none disabled:opacity-50">
+                            <span wire:loading wire:target="submitClaim" class="animate-pulse">Submitting...</span>
+                            <span wire:loading.remove wire:target="submitClaim">Submit Claim</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     {{-- Details Sidebar Overlay --}}
     <div x-data="{ show: @entangle('showDetailsSidebar') }"
          x-show="show"
