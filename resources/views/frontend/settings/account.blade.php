@@ -70,7 +70,7 @@
                             </div>
 
                             <a href="{{ route('auth.verify_phone') }}"
-                                class="text-brand border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
+                                class="text-gray-900 border border-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
                                 {{ $user->phone_verified_at ? 'Change' : 'Verify' }}
                             </a>
                         </div>
@@ -177,7 +177,7 @@
                             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100">
 
                             <div class="flex items-center gap-3 mb-4"
-                                :class="pendingState ? 'text-amber-600' : 'text-brand'">
+                                :class="pendingState ? 'text-amber-600' : 'text-gray-900'">
                                 <template x-if="pendingState">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

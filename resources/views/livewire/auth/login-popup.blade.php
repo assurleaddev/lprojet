@@ -66,12 +66,12 @@
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Ou inscris-toi avec') }} <button wire:click="setView('register')"
                             class="font-medium hover:underline"
-                            style="color: var(--brand)">{{ __('ton adresse e-mail') }}</button>
+                            class="text-gray-900">{{ __('ton adresse e-mail') }}</button>
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Tu as déjà un compte ?') }} <button wire:click="setView('login_menu')"
                             class="font-medium hover:underline"
-                            style="color: var(--brand)">{{ __('Se connecter') }}</button>
+                            class="text-gray-900">{{ __('Se connecter') }}</button>
                     </p>
                 </div>
             @endif
@@ -114,12 +114,12 @@
                 <div class="mt-8 space-y-2">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Ou connecte-toi avec') }} <button wire:click="setView('login')"
-                            class="font-medium hover:underline" style="color: var(--brand)">{{ __('ton e-mail') }}</button>
+                            class="font-medium hover:underline text-gray-900">{{ __('ton e-mail') }}</button>
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Tu n\'as pas de compte ' . config('app.name') . ' ?') }} <button
                             wire:click="setView('register')" class="font-medium hover:underline"
-                            style="color: var(--brand)">{{ __('S\'inscrire') }}</button>
+                            class="text-gray-900">{{ __('S\'inscrire') }}</button>
                     </p>
                 </div>
             @endif
@@ -171,16 +171,16 @@
                     <div class="pt-4 space-y-4">
                         <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" wire:model="newsletter" class="mt-1 border-gray-300 rounded w-5 h-5"
-                                style="color: var(--brand); focus-ring-color: var(--brand)">
+                                class="text-gray-900">
                             <span
                                 class="text-sm text-gray-500">{{ __('Je souhaite recevoir par e-mail des offres personnalisées et les dernières mises à jour.') }}</span>
                         </label>
 
                         <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" wire:model="terms" class="mt-1 border-gray-300 rounded w-5 h-5"
-                                style="color: var(--brand); focus-ring-color: var(--brand)">
+                                class="text-gray-900">
                             <span class="text-sm text-gray-500">
-                                {!! __('En t\'inscrivant, tu confirmes que tu acceptes les <a href="#" class="underline" style="color: var(--brand)">Termes & Conditions</a>, avoir lu la <a href="#" class="underline" style="color: var(--brand)">Politique de confidentialité</a> et avoir au moins 18 ans.') !!}
+                                {!! __('En t\'inscrivant, tu confirmes que tu acceptes les <a href="#" class="underline text-gray-900">Termes & Conditions</a>, avoir lu la <a href="#" class="underline text-gray-900">Politique de confidentialité</a> et avoir au moins 18 ans.') !!}
                             </span>
                         </label>
                         @error('terms') <span class="block text-xs text-red-500">{{ $message }}</span> @enderror
@@ -196,7 +196,7 @@
 
                     <div class="mt-4 text-center">
                         <a href="#" class="text-sm hover:underline"
-                            style="color: var(--brand)">{{ __('Besoin d\'aide ?') }}</a>
+                            class="text-gray-900">{{ __('Besoin d\'aide ?') }}</a>
                     </div>
                 </form>
             @endif
@@ -240,11 +240,11 @@
                     <div class="mt-6 space-y-2 text-center">
                         <div>
                             <button type="button" wire:click="setView('forgot_password')" class="text-sm hover:underline"
-                                style="color: var(--brand)">{{ __('Mot de passe oublié ?') }}</button>
+                                class="text-gray-900">{{ __('Mot de passe oublié ?') }}</button>
                         </div>
                         <div>
                             <a href="#" class="text-sm hover:underline"
-                                style="color: var(--brand)">{{ __('Un problème ?') }}</a>
+                                class="text-gray-900">{{ __('Un problème ?') }}</a>
                         </div>
                     </div>
                 </form>
@@ -283,7 +283,7 @@
 
                     <div class="mt-4 text-center">
                         <button type="button" wire:click="setView('login')" class="text-sm hover:underline font-medium"
-                            style="color: var(--brand)">{{ __('Retour à la connexion') }}</button>
+                            class="text-gray-900">{{ __('Retour à la connexion') }}</button>
                     </div>
                 </form>
             @endif

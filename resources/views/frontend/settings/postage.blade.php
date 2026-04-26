@@ -60,7 +60,7 @@
                                     <div class="flex gap-2">
                                         <!-- Edit -->
                                         <button type="button" @click="openModal('edit', {{ json_encode($address) }})"
-                                            class="text-gray-400 hover:text-brand p-1">
+                                            class="text-gray-400 hover:text-gray-900 p-1">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
@@ -81,7 +81,7 @@
                                 </div>
                             @endforeach
                             <button type="button" @click="openModal('add')"
-                                class="text-brand font-medium text-sm hover:underline">
+                                class="text-gray-900 font-medium text-sm hover:underline">
                                 + Add another address
                             </button>
                         @endif

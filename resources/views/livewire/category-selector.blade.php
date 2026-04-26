@@ -3,7 +3,7 @@
 
     <!-- Trigger Button -->
     <button type="button" @click="open = !open"
-        class="flex items-center justify-between w-full px-4 py-2.5 bg-white border rounded-md text-left transition-colors focus:ring-1 focus:ring-teal-500 {{ $value ? 'border-teal-500 ring-1 ring-teal-500' : 'border-gray-300' }}">
+        class="flex items-center justify-between w-full px-4 py-2.5 bg-white border rounded-md text-left transition-colors focus:ring-1 focus:ring-gray-500 {{ $value ? 'border-gray-500 ring-1 ring-gray-500' : 'border-gray-300' }}">
         <span class="block truncate {{ $value ? 'text-gray-900 font-medium' : 'text-gray-500' }}">
             {{ $selectedLabel }}
         </span>
@@ -47,9 +47,9 @@
                 {{-- Allow selecting the current parent if it's a leaf/potential selection --}}
                 @if($currentViewCategory)
                     <div wire:click="select({{ $currentViewCategory->id }})" @click="open = false"
-                        class="flex items-center justify-between px-4 py-3 hover:bg-teal-50 border-b border-gray-50 cursor-pointer group">
-                        <span class="text-teal-700 font-bold">Select "{{ $currentViewCategory->name }}"</span>
-                        <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="flex items-center justify-between px-4 py-3 hover:bg-gray-100 border-b border-gray-50 cursor-pointer group">
+                        <span class="text-gray-900 font-bold">Select "{{ $currentViewCategory->name }}"</span>
+                        <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
                     </div>
@@ -59,7 +59,7 @@
                     <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 cursor-pointer group"
                         wire:click="{{ $category->children->count() > 0 ? 'drillDown(' . $category->id . ')' : 'select(' . $category->id . ')' }}"
                         @if($category->children->count() == 0) @click="open = false" @endif>
-                        <span class="text-gray-700 {{ $value == $category->id ? 'font-bold text-teal-700' : '' }}">
+                        <span class="text-gray-700 {{ $value == $category->id ? 'font-bold text-gray-900' : '' }}">
                             {{ $category->name }}
                         </span>
 
@@ -69,7 +69,7 @@
                             </svg>
                         @else
                             @if($value == $category->id)
-                                <svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
                             @endif

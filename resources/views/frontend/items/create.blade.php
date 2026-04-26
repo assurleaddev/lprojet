@@ -13,23 +13,23 @@
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
                 <div class="mb-4">
                     <span class="block font-semibold mb-1">Photos</span>
-                    <span class="text-sm text-gray-500">Add up to 20 photos. <span class="text-teal-600">See
+                    <span class="text-sm text-gray-500">Add up to 20 photos. <span class="text-gray-700">See
                             tips.</span></span>
                 </div>
 
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-[200px] flex flex-wrap gap-4"
                     id="drop-zone">
                     <!-- Upload Button -->
-                    <div class="w-32 h-32 flex items-center justify-center border border-teal-500 rounded cursor-pointer hover:bg-teal-50 transition-colors relative"
+                    <div class="w-32 h-32 flex items-center justify-center border border-gray-500 rounded cursor-pointer hover:bg-gray-100 transition-colors relative"
                         id="upload-btn-container">
                         <input type="file" name="images[]" id="image-input" multiple accept="image/*"
                             class="absolute inset-0 opacity-0 cursor-pointer">
                         <div class="text-center">
-                            <svg class="w-8 h-8 text-teal-500 mx-auto mb-1" fill="none" stroke="currentColor"
+                            <svg class="w-8 h-8 text-gray-600 mx-auto mb-1" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            <span class="text-teal-500 font-semibold text-sm">Upload photos</span>
+                            <span class="text-gray-600 font-semibold text-sm">Upload photos</span>
                         </div>
                     </div>
 
@@ -46,14 +46,14 @@
                 <div>
                     <label class="block font-semibold mb-1">Title</label>
                     <input type="text" name="title" value="{{ $duplicateProduct->name ?? '' }}"
-                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
                         placeholder="e.g. White COS Jumper" required>
                 </div>
 
                 <div>
                     <label class="block font-semibold mb-1">Describe your item</label>
                     <textarea name="description" rows="4"
-                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500"
+                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
                         placeholder="e.g. only worn a few times, true to size"
                         required>{{ $duplicateProduct->description ?? '' }}</textarea>
                 </div>
@@ -75,11 +75,11 @@
                         <div x-show="open" @click.outside="close()" x-cloak
                             class="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-hidden">
                             <input x-ref="searchInput" x-model="search" type="text" placeholder="Search brands..."
-                                class="w-full p-2 border-b focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                class="w-full p-2 border-b focus:outline-none focus:ring-1 focus:ring-gray-500">
                             <div class="max-h-48 overflow-y-auto">
                                 <template x-for="option in filteredOptions" :key="option.value">
                                     <div @click="select(option.value, option.label)"
-                                        class="p-2 hover:bg-teal-50 cursor-pointer" x-text="option.label"></div>
+                                        class="p-2 hover:bg-gray-100 cursor-pointer" x-text="option.label"></div>
                                 </template>
                                 <div x-show="filteredOptions.length === 0" class="p-2 text-gray-500 text-sm">No brands found
                                 </div>
@@ -92,7 +92,7 @@
                 <div>
                     <label class="block font-semibold mb-1">Condition</label>
                     <select name="condition"
-                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500">
+                        class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500">
                         <option value="">Select Condition</option>
                         @foreach($conditions as $cond)
                             <option value="{{ $cond }}">{{ ucwords(str_replace('_', ' ', $cond)) }}</option>
@@ -112,7 +112,7 @@
                     <label class="block font-semibold mb-1">Price</label>
                     <div class="relative">
                         <input type="number" name="price" step="0.01" value="{{ $duplicateProduct->price ?? '' }}"
-                            class="w-full border border-gray-300 rounded-md py-2.5 pl-12 focus:ring-teal-500 focus:border-teal-500"
+                            class="w-full border border-gray-300 rounded-md py-2.5 pl-12 focus:ring-gray-500 focus:border-gray-500"
                             placeholder="0.00" required>
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">MAD</span>
                     </div>
@@ -219,7 +219,7 @@
                                     // Toggle Button
                                     const btn = document.createElement('button');
                                     btn.type = 'button';
-                                    btn.className = 'w-full border border-gray-300 rounded-md p-2.5 text-left bg-white flex justify-between items-center focus:ring-teal-500 focus:border-teal-500';
+                                    btn.className = 'w-full border border-gray-300 rounded-md p-2.5 text-left bg-white flex justify-between items-center focus:ring-gray-500 focus:border-gray-500';
                                     btn.innerHTML = `<span class="truncate text-gray-500">Select ${attrName} (Max 2)</span>
                                                              <svg class="w-4 h-4 text-gray-500 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>`;
 
@@ -238,13 +238,13 @@
                                     // Options
                                     (attr.options || []).forEach(option => {
                                         const row = document.createElement('label');
-                                        row.className = 'flex items-center px-4 py-2 hover:bg-teal-50 cursor-pointer border-b border-gray-50 last:border-0';
+                                        row.className = 'flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-50 last:border-0';
 
                                         const checkbox = document.createElement('input');
                                         checkbox.type = 'checkbox';
                                         checkbox.name = `options[${attr.id}][]`;
                                         checkbox.value = option.id;
-                                        checkbox.className = 'w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 mr-3 color-checkbox';
+                                        checkbox.className = 'w-4 h-4 text-gray-700 border-gray-300 rounded focus:ring-gray-500 mr-3 color-checkbox';
                                         checkbox.dataset.label = option.value;
 
                                         checkbox.addEventListener('change', () => {
@@ -293,9 +293,9 @@
                                     radioContainer.className = 'grid grid-cols-2 gap-2';
                                     (attr.options || []).forEach(option => {
                                         const labelEl = document.createElement('label');
-                                        labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-teal-50 transition cursor-pointer';
+                                        labelEl.className = 'inline-flex items-center space-x-2 p-2 border border-gray-200 rounded hover:bg-gray-100 transition cursor-pointer';
                                         labelEl.innerHTML = `
-                                                                                            <input type="radio" name="options[${attr.id}]" value="${option.id}" class="form-radio text-teal-600 focus:ring-teal-500">
+                                                                                            <input type="radio" name="options[${attr.id}]" value="${option.id}" class="form-radio text-gray-700 focus:ring-gray-500">
                                                                                             <span class="text-sm">${option.value}</span>
                                                                                         `;
                                         radioContainer.appendChild(labelEl);
@@ -306,7 +306,7 @@
                                     if (attr.options && attr.options.length > 0) {
                                         const select = document.createElement('select');
                                         select.name = `options[${attr.id}]`;
-                                        select.className = 'w-full border border-gray-300 rounded-md p-2.5 focus:ring-teal-500 focus:border-teal-500';
+                                        select.className = 'w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500';
 
                                         const defaultOption = document.createElement('option');
                                         defaultOption.value = '';
@@ -504,7 +504,7 @@
                                     input.checked = true;
                                     // Trigger visual update for color swatches
                                     if (input.classList.contains('color-option')) {
-                                        input.parentElement.classList.add('ring-2', 'ring-teal-500');
+                                        input.parentElement.classList.add('ring-2', 'ring-gray-500');
                                     }
                                 }
 

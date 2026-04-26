@@ -72,7 +72,7 @@
                         </svg>
                     </div>
 
-                    <a href="#reviews" class="hover:underline text-[15px]" style="color: var(--brand)">{{ $stats['total'] }}
+                    <a href="#reviews" class="hover:underline text-[15px] text-gray-900">{{ $stats['total'] }}
                         reviews</a>
                 </div>
 
@@ -194,14 +194,14 @@
 
             @if($vendorDiscounts->count() > 0 && auth()->id() !== $user->id)
                 <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4" style="background: #fff5f5; border: 1px solid #ffe0e0;">
-                    <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color: var(--brand)"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                    <svg class="w-5 h-5 shrink-0 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <p class="text-sm text-gray-700">
-                        <span class="font-bold" style="color: var(--brand)">Bundle discounts!</span>
+                        <span class="font-bold text-gray-900">Bundle discounts!</span>
                         Buy
                         @foreach($vendorDiscounts as $d)
                             {{ $d->min_items }}+ items ({{ $d->discount_percentage }}% off){{ !$loop->last ? ', ' : '' }}
                         @endforeach
-                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline" style="color: var(--brand)">Shop bundles</button>
+                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline text-gray-900">Shop bundles</button>
                     </p>
                 </div>
             @endif
@@ -217,7 +217,7 @@
 
                             {{-- Bundle badge --}}
                             @if($vendorDiscounts->count() > 0)
-                                <div class="absolute top-1.5 left-1.5 z-20 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm" style="color: var(--brand)">
+                                <div class="absolute top-1.5 left-1.5 z-20 bg-white/90 backdrop-blur-sm text-[10px] font-bold px-1.5 py-0.5 rounded-md flex items-center gap-1 shadow-sm text-gray-900">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                                     Bundle
                                 </div>
@@ -292,9 +292,9 @@
 
             @if(isset($pendingReviewOrder) && $pendingReviewOrder)
                 <div class="mb-8 rounded-lg p-6" style="background-color: #fff5f5; border: 1px solid var(--brand)">
-                    <h3 class="text-lg font-semibold mb-2" style="color: var(--brand)">Leave a review for your recent purchase
+                    <h3 class="text-lg font-semibold mb-2 text-gray-900">Leave a review for your recent purchase
                     </h3>
-                    <p class="text-sm mb-4" style="color: var(--brand)">
+                    <p class="text-sm mb-4 text-gray-900">
                         You recently received an item from {{ $user->username }}. Please let us know how it went!
                     </p>
 
@@ -364,7 +364,7 @@
                                 </div>
                             </div>
                             <div class="ml-auto">
-                                <a href="#" class="hover:underline" style="color: var(--brand)">How reviews work</a>
+                                <a href="#" class="hover:underline text-gray-900">How reviews work</a>
                             </div>
                         </div>
                     </div>
@@ -439,7 +439,7 @@
                                     </p>
 
                                     <button class="mt-3 inline-flex items-center gap-2 hover:underline text-[14px]"
-                                        style="color: var(--brand)">
+                                        class="text-gray-900">
                                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
                                         </svg>
@@ -500,10 +500,10 @@
                 </div>
 
                 <div class="mt-6 text-center text-[15px] text-zinc-700">
-                    Or register with <a href="#" class="underline" style="color: var(--brand)">email</a>
+                    Or register with <a href="#" class="underline text-gray-900">email</a>
                 </div>
                 <div class="mt-2 text-center text-[15px] text-zinc-700">
-                    Already have an account? <a href="#" class="underline" style="color: var(--brand)">Log in</a>
+                    Already have an account? <a href="#" class="underline text-gray-900">Log in</a>
                 </div>
             </div>
         </div>

@@ -108,8 +108,7 @@
                 {{-- Save Button --}}
                 <div class="mt-6">
                     <button wire:click="save"
-                        class="w-full sm:w-auto px-8 py-2.5 text-white text-sm font-bold rounded-lg shadow-sm hover:opacity-90 transition"
-                        style="background-color: var(--brand)">
+                        class="w-full sm:w-auto px-8 py-2.5 text-white text-sm font-bold rounded-lg shadow-sm bg-gray-900 hover:bg-gray-800 transition"
                         <span wire:loading wire:target="save" class="animate-pulse">Saving...</span>
                         <span wire:loading.remove wire:target="save">Save changes</span>
                     </button>

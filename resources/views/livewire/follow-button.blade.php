@@ -7,7 +7,7 @@
     @if(!$isSelf)
         <button wire:click="toggleFollow" wire:loading.attr="disabled"
             class="rounded-md px-5 py-2.5 font-semibold shadow-card transition-colors"
-            style="{{ $isFollowing ? 'background-color: white; color: var(--brand); border: 1px solid var(--brand)' : 'background-color: var(--brand); color: white' }}">
+            class="{{ $isFollowing ? 'bg-white text-gray-900 border border-gray-900' : 'bg-gray-900 text-white' }}">
             <span wire:loading.remove>{{ $isFollowing ? 'Following' : 'Follow' }}</span>
             <span wire:loading class="inline-flex items-center gap-2">
                 <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

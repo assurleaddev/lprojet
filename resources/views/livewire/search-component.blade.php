@@ -24,9 +24,9 @@
         @if($query || !empty($categoryIds) || !empty($selectedBrands) || !empty($selectedConditions) || !empty($selectedAttributes) || $minPrice || $maxPrice)
             <div class="flex flex-wrap items-center gap-2 mb-4">
                  @if($query)
-                    <span class="inline-flex items-center gap-1 bg-teal-50 border border-teal-200 text-teal-700 px-3 py-1 rounded-full text-sm font-medium">
+                    <span class="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
                         "{{ $query }}"
-                        <button wire:click="removeFilter('query', null)" class="hover:text-teal-900 focus:outline-none">
+                        <button wire:click="removeFilter('query', null)" class="hover:text-gray-900 focus:outline-none">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </span>
@@ -94,7 +94,7 @@
                     </span>
                 @endif
                 
-                <button wire:click="clearAllFilters" class="text-sm text-teal-600 hover:underline ml-2">Clear all</button>
+                <button wire:click="clearAllFilters" class="text-sm text-gray-700 hover:underline ml-2">Clear all</button>
             </div>
         @endif
 
@@ -147,7 +147,7 @@
                             @foreach($this->browsingCategories as $category)
                                 <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 cursor-pointer"
                                      @if($category->children->count() > 0) wire:click.stop="browseCategory({{ $category->id }})" @else wire:click="selectCategory({{ $category->id }}); open = false" @endif>
-                                    <span class="text-sm text-gray-700 {{ in_array($category->id, $categoryIds) ? 'font-bold text-teal-700' : '' }}">
+                                    <span class="text-sm text-gray-700 {{ in_array($category->id, $categoryIds) ? 'font-bold text-gray-900' : '' }}">
                                         {{ $category->name }}
                                     </span>
                                     @if($category->children->count() > 0)
@@ -180,8 +180,8 @@
                                     <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">{{ $attribute->name }}</h4>
                                     <div class="grid grid-cols-2 gap-2">
                                         @foreach($attribute->options as $option)
-                                            <label class="flex items-center text-sm cursor-pointer hover:text-teal-600">
-                                                <input type="checkbox" wire:model.live="selectedAttributes.{{ $attribute->id }}.{{ $option->id }}" class="rounded text-teal-600 mr-2 border-gray-300 focus:ring-teal-500">
+                                            <label class="flex items-center text-sm cursor-pointer hover:text-gray-700">
+                                                <input type="checkbox" wire:model.live="selectedAttributes.{{ $attribute->id }}.{{ $option->id }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
                                                 <span>{{ $option->value }}</span>
                                             </label>
                                         @endforeach
@@ -204,11 +204,11 @@
                         </svg>
                     </button>
                     <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto p-2">
-                         <input type="text" placeholder="Search brands..." class="w-full px-3 py-2 mb-2 border rounded text-sm focus:outline-none focus:border-teal-500" @click.stop>
+                         <input type="text" placeholder="Search brands..." class="w-full px-3 py-2 mb-2 border rounded text-sm focus:outline-none focus:border-gray-500" @click.stop>
                          {{-- Ideal place for a computed property for searching brands inside the dropdown, but simpler loop for now --}}
                          @foreach($brands as $brand)
                             <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                                <input type="checkbox" wire:model.live="selectedBrands" value="{{ $brand->id }}" class="rounded text-teal-600 mr-2 border-gray-300 focus:ring-teal-500">
+                                <input type="checkbox" wire:model.live="selectedBrands" value="{{ $brand->id }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
                                 <span class="text-sm">{{ $brand->name }}</span>
                             </label>
                          @endforeach
@@ -229,7 +229,7 @@
                      <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-2">
                          @foreach($conditions as $condition)
                             <label class="flex items-center py-2 px-2 cursor-pointer hover:bg-gray-50 rounded">
-                                <input type="checkbox" wire:model.live="selectedConditions" value="{{ $condition }}" class="rounded text-teal-600 mr-2 border-gray-300 focus:ring-teal-500">
+                                <input type="checkbox" wire:model.live="selectedConditions" value="{{ $condition }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
                                 <span class="capitalize">{{ str_replace('_', ' ', $condition) }}</span>
                             </label>
                         @endforeach
@@ -251,7 +251,7 @@
                          <div class="grid grid-cols-2 gap-2">
                              @foreach($colorAttribute->options as $option)
                                 <label class="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
-                                     <input type="checkbox" wire:model.live="selectedAttributes.{{ $colorAttribute->id }}.{{ $option->id }}" class="rounded text-teal-600 mr-2 border-gray-300 focus:ring-teal-500">
+                                     <input type="checkbox" wire:model.live="selectedAttributes.{{ $colorAttribute->id }}.{{ $option->id }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
                                      <div class="flex items-center gap-1">
                                          <span class="w-4 h-4 rounded-full border border-gray-200" style="background-color: {{ $option->value }}"></span>
                                          <span class="text-sm text-gray-700">{{ $option->name ?? $option->value }}</span>
@@ -276,11 +276,11 @@
                      <div class="flex items-center gap-2">
                          <div class="flex-1">
                              <label class="text-xs text-gray-500 block mb-1">De</label>
-                             <input type="number" wire:model.live.debounce.500ms="minPrice" placeholder="Min" class="w-full border-gray-300 rounded-md text-sm focus:ring-teal-500 focus:border-teal-500">
+                             <input type="number" wire:model.live.debounce.500ms="minPrice" placeholder="Min" class="w-full border-gray-300 rounded-md text-sm focus:ring-gray-500 focus:border-gray-500">
                          </div>
                          <div class="flex-1">
                              <label class="text-xs text-gray-500 block mb-1">À</label>
-                             <input type="number" wire:model.live.debounce.500ms="maxPrice" placeholder="Max" class="w-full border-gray-300 rounded-md text-sm focus:ring-teal-500 focus:border-teal-500">
+                             <input type="number" wire:model.live.debounce.500ms="maxPrice" placeholder="Max" class="w-full border-gray-300 rounded-md text-sm focus:ring-gray-500 focus:border-gray-500">
                          </div>
                      </div>
                 </div>
@@ -315,7 +315,7 @@
         @if($results->isEmpty())
              <div class="text-center py-12">
                 <p class="text-gray-500 text-lg">No results found.</p>
-                <button wire:click="clearAllFilters" class="text-teal-600 hover:underline mt-4">Clear filters</button>
+                <button wire:click="clearAllFilters" class="text-gray-700 hover:underline mt-4">Clear filters</button>
             </div>
         @else
              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-2 gap-y-6">
@@ -343,7 +343,7 @@
                                     {{ implode(' · ', $meta) }}
                                 </p>
                                 <p class="text-[14px] font-semibold text-gray-900 mt-1">{{ $product->price }} MAD</p>
-                                <p class="text-[10px] text-teal-600">{{ number_format($product->price * 1.05 + 10, 2) }} MAD incl.</p>
+                                <p class="text-[10px] text-gray-700">{{ number_format($product->price * 1.05 + 10, 2) }} MAD incl.</p>
                             </div>
                         </a>
                     </div>

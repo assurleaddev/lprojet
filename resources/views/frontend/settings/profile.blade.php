@@ -47,7 +47,7 @@
                             <img :src="avatarPreview || '{{ $user->avatar_url }}'" alt="{{ $user->username }}"
                                 class="w-12 h-12 rounded-full object-cover">
                             <label
-                                class="cursor-pointer bg-white border border-brand text-brand px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
+                                class="cursor-pointer bg-white border border-brand text-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">
                                 Choose photo
                                 <input type="file" name="avatar" class="hidden" accept="image/*"
                                     @change="handleAvatarChange">

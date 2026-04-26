@@ -50,7 +50,7 @@
                         class="hover:underline">{{ $category->name }}</a>
                     <span>›</span>
                 @endforeach
-                <a href="#" class="font-semibold hover:underline" style="color: var(--brand)">
+                <a href="#" class="font-semibold hover:underline text-gray-900">
                     {{ $product->brand ? $product->brand->name . ', ' : '' }}{{ $product->name }}
                 </a>
             </nav>
@@ -162,7 +162,7 @@
                             @if($product->condition) <span>{{ ucwords(str_replace('_', ' ', $product->condition)) }}</span>
                             <span class="text-gray-300">•</span> @endif
                             @if($product->brand) <a href="#" class="hover:underline"
-                            style="color: var(--brand)">{{ $product->brand->name }}</a> @endif
+                            class="text-gray-900">{{ $product->brand->name }}</a> @endif
                         </div>
 
                         <!-- Price Block -->
@@ -174,13 +174,13 @@
                                 $buyerProtectionFee = 0.70 + ($product->price * 0.05);
                                 $totalPrice = $product->price + $buyerProtectionFee;
                             @endphp
-                            <div class="text-xl font-bold" style="color: var(--brand)">{{ number_format($totalPrice, 2) }}
+                            <div class="text-xl font-bold text-gray-900">{{ number_format($totalPrice, 2) }}
                                 MAD</div>
 
                             <!-- Buyer Protection Label -->
                             <div class="flex items-center gap-1.5 mt-1">
-                                <span class="text-sm" style="color: var(--brand)">Includes Buyer Protection</span>
-                                <svg class="w-4 h-4" style="color: var(--brand)" fill="none" stroke="currentColor"
+                                <span class="text-sm text-gray-900">Includes Buyer Protection</span>
+                                <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -214,7 +214,7 @@
                                 <div class="grid grid-cols-2">
                                     <span class="text-gray-500 font-bold">Brand</span>
                                     <a href="#" class="hover:underline"
-                                        style="color: var(--brand)">{{ $product->brand->name }}</a>
+                                        class="text-gray-900">{{ $product->brand->name }}</a>
                                 </div>
                             @endif
                             @if($product->size)
@@ -248,7 +248,7 @@
                             <div class="text-sm text-gray-700 leading-relaxed mb-2 prose prose-sm max-w-none">
                                 {!! $product->description !!}
                             </div>
-                            <button class="text-sm hover:underline flex items-center gap-1" style="color: var(--brand)">
+                            <button class="text-sm hover:underline flex items-center gap-1 text-gray-900">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
@@ -383,7 +383,7 @@
                         <!-- Buyer Protection Fee Box -->
                         <div class="mt-6 flex gap-3 p-4 border border-gray-200 rounded">
                             <div class="flex-shrink-0">
-                                <svg class="w-6 h-6" style="color: var(--brand)" fill="none" stroke="currentColor"
+                                <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -392,10 +392,10 @@
                             <div>
                                 <h4 class="text-sm font-semibold text-gray-900">Buyer Protection fee</h4>
                                 <p class="text-xs text-gray-600 mt-1 leading-relaxed">
-                                    Our <a href="#" class="hover:underline" style="color: var(--brand)">Buyer Protection</a>
+                                    Our <a href="#" class="hover:underline text-gray-900">Buyer Protection</a>
                                     is added
                                     for a fee to every purchase made with the "Buy now" button.
-                                    <a href="#" class="hover:underline" style="color: var(--brand)">Refund Policy</a>.
+                                    <a href="#" class="hover:underline text-gray-900">Refund Policy</a>.
                                 </p>
                             </div>
                         </div>
@@ -475,7 +475,7 @@
                 <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Member's items</h2>
                     <a href="{{ route('search', ['vendor_id' => $product->vendor->id]) }}"
-                        class="text-sm font-semibold hover:underline" style="color: var(--brand)">Voir tout</a>
+                        class="text-sm font-semibold hover:underline text-gray-900">Voir tout</a>
                 </div>
                 <div class="relative w-full md:w-2/3">
                     <div class="grid grid-cols-2 gap-3 md:flex md:gap-0 md:space-x-4 md:flex-wrap md:overflow-x-auto pb-4 custom-scrollbar">
@@ -523,7 +523,7 @@
                 <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
                     <h2 class="text-lg font-bold text-vinted-gray-900">Similar products</h2>
                     <a href="{{ route('search', ['categories' => [$product->category_id]]) }}"
-                        class="text-sm font-semibold hover:underline" style="color: var(--brand)">Voir tout</a>
+                        class="text-sm font-semibold hover:underline text-gray-900">Voir tout</a>
                 </div>
                 <div class="relative w-full md:w-2/3">
                     <div class="grid grid-cols-2 gap-3 md:flex md:gap-0 md:space-x-4 md:flex-wrap md:overflow-x-auto pb-4 custom-scrollbar">
@@ -630,7 +630,7 @@
                         <div class="relative">
                             <input type="text" x-model="search" @input.debounce.300ms="fetchUsers()" @click="fetchUsers()"
                                 @click.outside="isOpen = false" placeholder="Type to search users..."
-                                class="w-full border border-gray-300 rounded-md p-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
+                                class="w-full border border-gray-300 rounded-md p-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
                                 autocomplete="off">
 
                             <!-- Spinner -->
@@ -688,7 +688,7 @@
 
             <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 text-center">
                 <div class="mb-4">
-                    <span class="inline-block p-3 rounded-full bg-teal-100 text-teal-600">
+                    <span class="inline-block p-3 rounded-full bg-teal-100 text-gray-700">
                         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M13 10V3L4 14h7v7l9-11h-7z" />

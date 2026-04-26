@@ -47,7 +47,7 @@
                     <!-- Left list (Subcategories) -->
                     <div class="w-1/4 border-r border-gray-100 pr-4">
                         <div class="mb-4">
-                            <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="flex items-center gap-2 text-teal-600 font-bold hover:underline mb-4">
+                            <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="flex items-center gap-2 text-gray-700 font-bold hover:underline mb-4">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                                 See all
                             </a>
@@ -62,13 +62,13 @@
                                            :class="{ 'active': activeSubCategory === {{ $child->id }} }">
                                             <div class="flex items-center gap-3">
                                                 @if($child->icon)
-                                                    <iconify-icon icon="{{ $child->icon }}" class="text-xl text-gray-400 group-hover:text-teal-600 transition-colors"></iconify-icon>
+                                                    <iconify-icon icon="{{ $child->icon }}" class="text-xl text-gray-400 group-hover:text-gray-700 transition-colors"></iconify-icon>
                                                 @else
-                                                    <svg class="w-5 h-5 text-gray-300 group-hover:text-teal-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                                    <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                                 @endif
                                                 <span>{{ $child->name }}</span>
                                             </div>
-                                            <svg class="w-4 h-4 text-gray-300 group-hover:text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                                            <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                         </a>
                                     </li>
                                 @endforeach
@@ -89,7 +89,7 @@
                         @foreach($category->children as $child)
                             <div x-show="activeSubCategory === {{ $child->id }}" style="display: none;">
                                 <div class="mb-4">
-                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-teal-600 mb-2 inline-block">See all {{ $child->name }}</a>
+                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-gray-700 mb-2 inline-block">See all {{ $child->name }}</a>
                                 </div>
                                 
                                 @if($child->children->count() > 0)
@@ -116,7 +116,7 @@
             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">Categories</h3>
             @foreach($categories as $category)
                 <div x-data="{ open: false }" class="border-b border-gray-50 last:border-0">
-                    <button @click="open = !open" class="flex items-center justify-between w-full py-3 px-2 text-left text-gray-700 hover:text-teal-600 font-medium transition-colors">
+                    <button @click="open = !open" class="flex items-center justify-between w-full py-3 px-2 text-left text-gray-700 hover:text-gray-700 font-medium transition-colors">
                         {{ $category->name }}
                         <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
@@ -128,9 +128,9 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2">
-                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-teal-600 font-medium hover:underline">See all {{ $category->name }}</a>
+                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-gray-700 font-medium hover:underline">See all {{ $category->name }}</a>
                         @foreach($category->children as $child)
-                            <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="block py-2 text-sm text-gray-600 hover:text-teal-600">
+                            <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="block py-2 text-sm text-gray-600 hover:text-gray-700">
                                 {{ $child->name }}
                             </a>
                         @endforeach

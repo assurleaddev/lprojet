@@ -137,7 +137,7 @@
                                     <div class="font-medium text-gray-900">
                                         {{ $session->ip_address }}
                                         @if($session->id === request()->session()->getId())
-                                            <span class="text-brand text-xs ml-2">(Current Device)</span>
+                                            <span class="text-gray-900 text-xs ml-2">(Current Device)</span>
                                         @endif
                                     </div>
                                     <div class="text-sm text-gray-500">
@@ -148,7 +148,7 @@
                                 @if($session->id !== request()->session()->getId())
                                     <form action="{{ route('settings.security.logout_session', $session->id) }}" method="POST">
                                         @csrf
-                                        <button type="submit" class="text-sm font-medium text-brand hover:underline">Log
+                                        <button type="submit" class="text-sm font-medium text-gray-900 hover:underline">Log
                                             out</button>
                                     </form>
                                 @endif

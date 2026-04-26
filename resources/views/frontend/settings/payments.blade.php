@@ -33,7 +33,7 @@
                             class="w-full border border-gray-300 border-dashed rounded-xl py-8 px-4 flex flex-col items-center justify-center hover:bg-gray-50 transition-colors group">
                             <div
                                 class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-brand/10 transition-colors">
-                                <svg class="w-6 h-6 text-gray-400 group-hover:text-brand" fill="none" stroke="currentColor"
+                                <svg class="w-6 h-6 text-gray-400 group-hover:text-gray-900" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4">
                                     </path>
@@ -80,7 +80,7 @@
                             @endforeach
                         </div>
                         <button type="button" @click="showAddModal = true"
-                            class="mt-6 text-brand font-bold text-sm hover:underline flex items-center gap-1">
+                            class="mt-6 text-gray-900 font-bold text-sm hover:underline flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                             </svg>
