@@ -29,7 +29,7 @@ class AdminMenuService
     {
         $group = $group ?: __('Main');
         $menuItem = $this->createAdminMenuItem($item);
-        if (!isset($this->groups[$group])) {
+        if (! isset($this->groups[$group])) {
             $this->groups[$group] = [];
         }
 
@@ -51,7 +51,7 @@ class AdminMenuService
                 function ($child) {
                     // Check if user is authenticated
                     $user = auth()->user();
-                    if (!$user) {
+                    if (! $user) {
                         return null;
                     }
 
@@ -177,6 +177,15 @@ class AdminMenuService
             'active' => Route::is('admin.withdrawals.*'),
             'priority' => 38,
             'permissions' => ['products.approve', 'order.view.all'], // Fixed permission names
+        ], __('Order Management'));
+        $this->addMenuItem([
+            'label' => __('Claims'),
+            'icon' => 'lucide:alert-circle',
+            'id' => 'claims-menu',
+            'route' => route('admin.claims.index'),
+            'active' => Route::is('admin.claims.*'),
+            'priority' => 39,
+            'permissions' => ['order.view'],
         ], __('Order Management'));
         // END: ADD YOUR NEW MENU BLOCK HERE
         $this->addMenuItem([
@@ -317,7 +326,7 @@ class AdminMenuService
 
         foreach ($postTypes as $typeName => $type) {
             // Skip if not showing in menu.
-            if (isset($type->show_in_menu) && !$type->show_in_menu) {
+            if (isset($type->show_in_menu) && ! $type->show_in_menu) {
                 continue;
             }
 
@@ -328,7 +337,7 @@ class AdminMenuService
                     'route' => 'admin.posts.index',
                     'params' => $typeName,
                     'active' => request()->is('admin/posts/' . $typeName) ||
-                        (request()->is('admin/posts/' . $typeName . '/*') && !request()->is('admin/posts/' . $typeName . '/create')),
+                        (request()->is('admin/posts/' . $typeName . '/*') && ! request()->is('admin/posts/' . $typeName . '/create')),
                     'priority' => 10,
                     'permissions' => 'post.view',
                 ],
@@ -343,7 +352,7 @@ class AdminMenuService
             ];
 
             // Add taxonomies as children of this post type if this post type has them.
-            if (!empty($type->taxonomies)) {
+            if (! empty($type->taxonomies)) {
                 $taxonomies = $contentService->getTaxonomies()
                     ->whereIn('name', $type->taxonomies);
 
@@ -365,7 +374,7 @@ class AdminMenuService
                 'icon' => get_post_type_icon($typeName),
                 'id' => 'post-type-' . $typeName,
                 'active' => request()->is('admin/posts/' . $typeName . '*') ||
-                    (!empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies)),
+                    (! empty($type->taxonomies) && $this->isCurrentTermBelongsToPostType($type->taxonomies)),
                 'priority' => 10,
                 'permissions' => 'post.view',
                 'children' => $children,
@@ -380,7 +389,7 @@ class AdminMenuService
      */
     protected function isCurrentTermBelongsToPostType(array $taxonomies): bool
     {
-        if (!request()->is('admin/terms/*')) {
+        if (! request()->is('admin/terms/*')) {
             return false;
         }
 
@@ -412,7 +421,7 @@ class AdminMenuService
             $filteredItems = Hook::applyFilters(AdminFilterHook::SIDEBAR_MENU->value . strtolower((string) $group), $filteredItems);
 
             // Only add the group if it has items after filtering.
-            if (!empty($filteredItems)) {
+            if (! empty($filteredItems)) {
                 $result[$group] = $filteredItems;
             }
         }

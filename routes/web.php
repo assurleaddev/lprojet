@@ -262,6 +262,10 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'r
     Route::resource('orders', \App\Http\Controllers\Backend\Marketplace\OrderController::class)->only(['index', 'show']);
     Route::patch('orders/{order}/status', [\App\Http\Controllers\Backend\Marketplace\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::post('orders/{order}/receipt', [\App\Http\Controllers\Backend\Marketplace\OrderController::class, 'uploadReceipt'])->name('orders.uploadReceipt');
+
+    Route::get('claims', [\App\Http\Controllers\Backend\Marketplace\ClaimController::class, 'index'])->name('claims.index');
+    Route::get('claims/{claim}', [\App\Http\Controllers\Backend\Marketplace\ClaimController::class, 'show'])->name('claims.show');
+    Route::patch('claims/{claim}', [\App\Http\Controllers\Backend\Marketplace\ClaimController::class, 'update'])->name('claims.update');
     // Marketplace Routes
     Route::prefix('marketplace')->as('marketplace.')->group(function () {
         // Route::resource('products', ProductController::class);
