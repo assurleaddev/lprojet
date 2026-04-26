@@ -62,8 +62,10 @@ class CheckoutController extends Controller
             }
         }
 
+        $amount = (float) $amount;
+
         // --- Fee Calculation ---
-        $shippingCost = config('settings.delivery_fee_fixed', 25.00);
+        $shippingCost = (float) config('settings.delivery_fee_fixed', 25.00);
 
         // If a valid shipping option is provided, use its price
         if ($request->has('shipping_option_id')) {
@@ -73,7 +75,7 @@ class CheckoutController extends Controller
                 $vendorPref = $vendor->getMeta($shippingOption->key, '1');
 
                 if ($vendorPref !== '0') {
-                    $shippingCost = $shippingOption->price;
+                    $shippingCost = (float) $shippingOption->price;
                 } else {
                     return back()->with('error', 'This shipping option is not supported by the seller.');
                 }
@@ -82,9 +84,9 @@ class CheckoutController extends Controller
             }
         }
 
-        $buyerProtectionPercentage = config('settings.buyer_protection_fee_percentage', 5);
-        $buyerProtectionFixed = config('settings.buyer_protection_fee_fixed', 0.70);
-        $platformCommissionPercentage = config('settings.platform_commission_percentage', 0);
+        $buyerProtectionPercentage = (float) config('settings.buyer_protection_fee_percentage', 5);
+        $buyerProtectionFixed = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+        $platformCommissionPercentage = (float) config('settings.platform_commission_percentage', 0);
 
         $buyerProtectionFee = ($amount * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
         $platformCommission = $amount * ($platformCommissionPercentage / 100);

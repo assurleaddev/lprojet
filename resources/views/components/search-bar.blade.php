@@ -71,7 +71,7 @@
                 </path>
             </svg>
             <input type="text" name="query" x-model="query" @input.debounce.300ms="fetchSuggestions()"
-                class="search-input w-full bg-transparent focus:outline-none text-sm py-1.5 md:py-2.5 pl-10 pr-3 rounded-r-lg" placeholder="Search for items or members"
+                class="search-input w-full bg-transparent focus:outline-none text-sm py-1.5 md:py-2.5 pl-10 pr-3 rounded-r-lg" placeholder="{{ __('Search for items or members') }}"
                 autocomplete="off">
 
             <!-- Loading Indicator -->

@@ -131,10 +131,10 @@
                                     @foreach($pickupOptions as $option)
                                         <label class="flex items-center justify-between py-2 cursor-pointer">
                                             <div class="flex items-center gap-3">
-                                                <input type="radio" name="shipping_option_id" value="{{ $option->id }}" 
+                                                <input type="radio" name="shipping_option_id" value="{{ $option->id }}"
                                                     data-price="{{ $option->price }}"
                                                     data-category="pickup"
-                                                    class="w-4 h-4 border-gray-300 text-gray-900">
+                                                    class="w-4 h-4 border-gray-300 text-gray-900 shipping-option-radio">
                                                 <div class="flex items-center gap-2">
                                                     @if($option->icon_class)<div class="w-2 h-2 rounded-full {{ $option->icon_class }}"></div>@endif
                                                     <span class="text-sm text-gray-700">{{ $option->label }}</span>
@@ -170,10 +170,10 @@
                                     @foreach($homeOptions as $option)
                                         <label class="flex items-center justify-between py-2 cursor-pointer">
                                             <div class="flex items-center gap-3">
-                                                <input type="radio" name="shipping_option_id" value="{{ $option->id }}" 
+                                                <input type="radio" name="shipping_option_id" value="{{ $option->id }}"
                                                     data-price="{{ $option->price }}"
                                                     data-category="home"
-                                                    class="w-4 h-4 border-gray-300 text-gray-900">
+                                                    class="w-4 h-4 border-gray-300 text-gray-900 shipping-option-radio">
                                                 <div class="flex items-center gap-2">
                                                     @if($option->icon_class)<div class="w-2 h-2 rounded-full {{ $option->icon_class }}"></div>@endif
                                                     <span class="text-sm text-gray-700">{{ $option->label }}</span>
