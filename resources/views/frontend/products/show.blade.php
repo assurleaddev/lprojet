@@ -170,12 +170,7 @@
                             <!-- Item Price (Gray) -->
                             <div class="text-gray-500 text-lg font-bold">{{ number_format($product->price, 2) }} MAD</div>
                             <!-- Total Price (Teal, Bold) - Approximated Total -->
-                            @php
-                                $buyerProtectionFee = 0.70 + ($product->price * 0.05);
-                                $totalPrice = $product->price + $buyerProtectionFee;
-                            @endphp
-                            <div class="text-xl font-bold text-gray-900">{{ number_format($totalPrice, 2) }}
-                                MAD</div>
+                            <div class="text-xl font-bold text-gray-900">{{ number_format($product->price + $protectionFee, 2) }} MAD</div>
 
                             <!-- Buyer Protection Label -->
                             <div class="flex items-center gap-1.5 mt-1">

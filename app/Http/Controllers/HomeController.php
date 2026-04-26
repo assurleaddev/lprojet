@@ -124,12 +124,16 @@ class HomeController extends Controller
         $breadcrumbs = array_reverse($breadcrumbs);
 
         $deliveryFeeFixed = config('settings.delivery_fee_fixed', 25.00);
+        $buyerProtectionPercentage = (float) config('settings.buyer_protection_fee_percentage', 5);
+        $buyerProtectionFixed = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+        $protectionFee = ($product->price * $buyerProtectionPercentage / 100) + $buyerProtectionFixed;
 
         return view('frontend.products.show', [
             'product' => $product,
             'similarProducts' => $similarProducts,
             'breadcrumbs' => $breadcrumbs,
             'deliveryFeeFixed' => $deliveryFeeFixed,
+            'protectionFee' => $protectionFee,
         ]);
     }
 
