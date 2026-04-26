@@ -148,7 +148,7 @@
                                 <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 cursor-pointer"
                                      @if($category->children->count() > 0) wire:click.stop="browseCategory({{ $category->id }})" @else wire:click="selectCategory({{ $category->id }}); open = false" @endif>
                                     <span class="text-sm text-gray-700 {{ in_array($category->id, $categoryIds) ? 'font-bold text-gray-900' : '' }}">
-                                        {{ $category->name }}
+                                        {{ $category->translated_name }}
                                     </span>
                                     @if($category->children->count() > 0)
                                         <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>

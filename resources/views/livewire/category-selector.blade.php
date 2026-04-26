@@ -60,7 +60,7 @@
                         wire:click="{{ $category->children->count() > 0 ? 'drillDown(' . $category->id . ')' : 'select(' . $category->id . ')' }}"
                         @if($category->children->count() == 0) @click="open = false" @endif>
                         <span class="text-gray-700 {{ $value == $category->id ? 'font-bold text-gray-900' : '' }}">
-                            {{ $category->name }}
+                            {{ $category->translated_name }}
                         </span>
 
                         @if($category->children->count() > 0)

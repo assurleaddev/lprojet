@@ -297,7 +297,7 @@
                 <div class="flex flex-wrap gap-x-8 gap-y-2">
                     @foreach($categories->take(8) as $category)
                         <a href="{{ route('search', ['query' => $query, 'type' => $type, 'categories' => [$category->id]]) }}"
-                            class="hover:underline" class="hover:underline text-gray-700">{{ $category->name }}</a>
+                            class="hover:underline" class="hover:underline text-gray-700">{{ $category->translated_name }}</a>
                     @endforeach
                 </div>
             </div>

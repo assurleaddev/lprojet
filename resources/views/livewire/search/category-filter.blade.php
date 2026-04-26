@@ -63,7 +63,7 @@
                         onclick="window.location='{{ route('search', array_merge(request()->except(['categories', 'page']), ['categories' => [$category->id]])) }}'"
                     @endif>
                     <span class="text-gray-700 {{ in_array($category->id, $categoryIds) ? 'font-bold text-gray-900' : '' }}">
-                        {{ $category->name }}
+                        {{ $category->translated_name }}
                     </span>
 
                     @if($category->children->count() > 0)

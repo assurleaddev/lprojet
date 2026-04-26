@@ -27,7 +27,7 @@
                class="nav-link" 
                :class="{ 'active': activeMenu === {{ $category->id }} }" 
                @mouseenter="show({{ $category->id }}, {{ $category->children->first()?->id ?? 'null' }})">
-                {{ $category->name }}
+                {{ $category->translated_name }}
             </a>
         @endforeach
         <a href="#" class="nav-link">{{ __('About') }}</a>
@@ -66,7 +66,7 @@
                                                 @else
                                                     <svg class="w-5 h-5 text-gray-300 group-hover:text-gray-700 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
                                                 @endif
-                                                <span>{{ $child->name }}</span>
+                                                <span>{{ $child->translated_name }}</span>
                                             </div>
                                             <svg class="w-4 h-4 text-gray-300 group-hover:text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                                         </a>
@@ -89,13 +89,13 @@
                         @foreach($category->children as $child)
                             <div x-show="activeSubCategory === {{ $child->id }}" style="display: none;">
                                 <div class="mb-4">
-                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-gray-700 mb-2 inline-block">{{ __('See all') }} {{ $child->name }}</a>
+                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-gray-700 mb-2 inline-block">{{ __('See all') }} {{ $child->translated_name }}</a>
                                 </div>
                                 
                                 @if($child->children->count() > 0)
                                     <div class="grid grid-cols-3 gap-x-8 gap-y-4">
                                         @foreach($child->children as $grandChild)
-                                            <a href="{{ route('search', ['categories' => [$grandChild->id]]) }}" class="megamenu-link">{{ $grandChild->name }}</a>
+                                            <a href="{{ route('search', ['categories' => [$grandChild->id]]) }}" class="megamenu-link">{{ $grandChild->translated_name }}</a>
                                         @endforeach
                                     </div>
                                 @else
@@ -117,7 +117,7 @@
             @foreach($categories as $category)
                 <div x-data="{ open: false }" class="border-b border-gray-50 last:border-0">
                     <button @click="open = !open" class="flex items-center justify-between w-full py-3 px-2 text-left text-gray-700 hover:text-gray-700 font-medium transition-colors">
-                        {{ $category->name }}
+                        {{ $category->translated_name }}
                         <svg class="w-4 h-4 transition-transform duration-200" :class="{'rotate-180': open}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </button>
                     <!-- Subcategories -->
@@ -128,10 +128,10 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2">
-                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-gray-700 font-medium hover:underline">{{ __('See all') }} {{ $category->name }}</a>
+                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-gray-700 font-medium hover:underline">{{ __('See all') }} {{ $category->translated_name }}</a>
                         @foreach($category->children as $child)
                             <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="block py-2 text-sm text-gray-600 hover:text-gray-700">
-                                {{ $child->name }}
+                                {{ $child->translated_name }}
                             </a>
                         @endforeach
                     </div>

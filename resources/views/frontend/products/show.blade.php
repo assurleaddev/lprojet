@@ -47,7 +47,7 @@
             <nav class="px-4 md:px-0 text-xs text-vinted-gray-500 mb-4 mt-4 md:mt-0 space-x-1.5 flex flex-wrap items-center">
                 @foreach($breadcrumbs as $category)
                     <a href="{{ route('search', ['categories' => [$category->id]]) }}"
-                        class="hover:underline">{{ $category->name }}</a>
+                        class="hover:underline">{{ $category->translated_name }}</a>
                     <span>›</span>
                 @endforeach
                 <a href="#" class="font-semibold hover:underline text-gray-900">

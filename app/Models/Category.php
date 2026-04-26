@@ -13,6 +13,21 @@ class Category extends Model implements HasMedia
 
     protected $fillable = ['name', 'name_fr', 'name_ar', 'slug', 'image', 'parent_id', 'order', 'vinted_id'];
 
+    public function getTranslatedNameAttribute(): string
+    {
+        $locale = app()->getLocale();
+
+        if ($locale === 'ar' && $this->name_ar) {
+            return $this->name_ar;
+        }
+
+        if ($locale === 'fr' && $this->name_fr) {
+            return $this->name_fr;
+        }
+
+        return $this->name;
+    }
+
     public function children()
     {
         return $this->hasMany(Category::class, 'parent_id');
