@@ -675,7 +675,7 @@ class ChatWindow extends Component
     {
         $this->validate([
             'reviewRating' => 'required|integer|min:1|max:5',
-            'reviewText' => 'required|string|min:5|max:1000', // Required per request
+            'reviewText' => 'nullable|string|max:1000',
         ]);
 
         if (! $this->orderToReviewId) {
@@ -713,10 +713,15 @@ class ChatWindow extends Component
             return;
         }
 
+        $ratingLabels = [1 => 'Terrible', 2 => 'Bad', 3 => 'OK', 4 => 'Good', 5 => 'Excellent'];
+        $reviewContent = trim($this->reviewText) !== ''
+            ? $this->reviewText
+            : ($ratingLabels[$this->reviewRating] ?? 'Good') . ' transaction. Smooth and as described.';
+
         // 1. Create Review
         \App\Models\Review::create([
             'rating' => $this->reviewRating,
-            'review' => $this->reviewText,
+            'review' => $reviewContent,
             'model_id' => $order->vendor_id, // Reviewing the Seller
             'model_type' => \App\Models\User::class,
             'author_id' => Auth::id(), // Buyer

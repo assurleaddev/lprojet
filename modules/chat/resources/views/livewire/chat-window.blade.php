@@ -1040,10 +1040,10 @@
                     {{-- Review Text --}}
                     <div>
                         <label for="reviewTextInput"
-                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Review (Required)</label>
+                            class="block text-sm font-medium text-gray-700 dark:text-gray-300">Review <span class="text-gray-400 font-normal">(optional)</span></label>
                         <textarea wire:model="reviewText" id="reviewTextInput" rows="3"
                             class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
-                            placeholder="Describe your experience..." required></textarea>
+                            placeholder="Leave empty for an auto-generated message..."></textarea>
                         @error('reviewText') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
