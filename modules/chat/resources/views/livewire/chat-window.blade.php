@@ -394,41 +394,18 @@
 
                                     {{-- 2. Buyer seeing their own Pending Offer --}}
 
-                                    {{-- 3. Buyer receiving Counter Offer --}}
+                                    {{-- 3. Buyer receiving Counter Offer — Buy Now only, no decline --}}
                                 @elseif($messageType === 'offer_countered' && $offerStatus === \Modules\Chat\Enums\OfferStatus::AwaitingBuyer && !$isOwnMessage && $offerId)
-                                    <div
-                                        class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-2">
+                                    <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
                                         <button wire:click="acceptOffer({{ $offerId }})" wire:loading.attr="disabled"
-                                            class="col-span-2 w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
-                                            Acheter {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
-                                        </button>
-                                        <button wire:click="rejectOffer({{ $offerId }})" wire:loading.attr="disabled"
-                                            class="col-span-2 w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
-                                            Decline
+                                            class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
+                                            Buy now · {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
                                         </button>
                                     </div>
 
-                                    {{-- 4. Offer Declined (Only visible to the person who and on the message they declined) --}}
+                                    {{-- 4. Offer Declined — show card only, no action button --}}
                                 @elseif($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected)
-                                    @if($messageType === 'offer_rejected' && $isOwnMessage)
-                                        <div class="p-2 bg-gray-50 dark:bg-gray-900 border-t border-gray-100 dark:border-gray-700">
-                                            @if(auth()->id() === ($offerData->seller_id ?? ($productData->vendor_id ?? null))) {{-- Seller side Counter --}}
-                                                @if($productData && isset($productData->id))
-                                                    <button wire:click="triggerCounterOffer({{ $productData->id }}, {{ $offerData->buyer_id }})"
-                                                        class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
-                                                        Offer your price
-                                                    </button>
-                                                @endif
-                                            @else {{-- Buyer side New Offer --}}
-                                                @if($productData && isset($productData->id))
-                                                    <button @click="Livewire.dispatch('open-make-offer-modal', { productId: {{ $productData->id }} })"
-                                                        class="w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
-                                                        Offer your price
-                                                    </button>
-                                                @endif
-                                            @endif
-                                        </div>
-                                    @endif
+                                    {{-- nothing: buyer sees the declined card, makes new offer from product page or chat header --}}
                                 @endif
                             </div>
                         </div>
