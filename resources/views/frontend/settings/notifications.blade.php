@@ -32,7 +32,7 @@
                     @csrf
 
                     <div class="flex items-center justify-between mb-8 pb-8 border-b border-gray-100">
-                        <span class="font-medium text-gray-900">Enable email notifications</span>
+                        <span class="font-medium text-gray-900">Activer les notifications par e-mail</span>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="enable_email_notifications" value="1" class="sr-only peer" {{ $user->getMeta('enable_email_notifications') ? 'checked' : '' }}>
                             <div
@@ -74,9 +74,9 @@
                         </div>
                     </div>
 
-                    <!-- High-priority notifications -->
+                    <!-- Notifications prioritaires -->
                     <div class="mb-8">
-                        <h3 class="text-sm text-gray-500 mb-4">High-priority notifications</h3>
+                        <h3 class="text-sm text-gray-500 mb-4">Notifications prioritaires</h3>
                         <div class="space-y-4 border border-gray-200 rounded-md divide-y divide-gray-100">
                             <div class="p-4 flex items-center justify-between">
                                 <span class="block font-medium text-gray-900">New messages</span>
@@ -153,7 +153,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Save</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Enregistrer</button>
                     </div>
                 </form>
             </div>

@@ -179,7 +179,7 @@
 
                             <!-- Buyer Protection Label -->
                             <div class="flex items-center gap-1.5 mt-1">
-                                <span class="text-sm text-gray-900">Includes Buyer Protection</span>
+                                <span class="text-sm text-gray-900">Protection acheteur incluse</span>
                                 <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -189,8 +189,8 @@
 
                             @if(auth()->check() && auth()->user()->wallet)
                                 <div class="text-xs text-gray-400 mt-1">
-                                    {{ number_format(auth()->user()->wallet->balance, 2) }} MAD in your Balance to use for
-                                    purchases
+                                    {{ number_format(auth()->user()->wallet->balance, 2) }} MAD dans votre solde pour
+                                    vos achats
                                 </div>
                             @endif
 
@@ -201,7 +201,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                     </svg>
-                                    <span>Reserved for <strong>{{ $product->buyer->username }}</strong></span>
+                                    <span>Réservé pour <strong>{{ $product->buyer->username }}</strong></span>
                                 </div>
                             @endif
                         </div>
@@ -212,31 +212,31 @@
                         <div class="space-y-3 text-sm mb-6">
                             @if($product->brand)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500 font-bold">Brand</span>
+                                    <span class="text-gray-500 font-bold">Marque</span>
                                     <a href="#" class="hover:underline"
                                         class="text-gray-900">{{ $product->brand->name }}</a>
                                 </div>
                             @endif
                             @if($product->size)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500 font-bold">Size</span>
+                                    <span class="text-gray-500 font-bold">Taille</span>
                                     <span class="text-gray-700 uppercase">{{ $product->size }}</span>
                                 </div>
                             @endif
                             @if($product->condition)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500 font-bold">Condition</span>
+                                    <span class="text-gray-500 font-bold">État</span>
                                     <span class="text-gray-700">{{ ucwords(str_replace('_', ' ', $product->condition)) }}</span>
                                 </div>
                             @endif
                             @if($product->color)
                                 <div class="grid grid-cols-2">
-                                    <span class="text-gray-500 font-bold">Colour</span>
+                                    <span class="text-gray-500 font-bold">Couleur</span>
                                     <span class="text-gray-700">{{ $product->color }}</span>
                                 </div>
                             @endif
                             <div class="grid grid-cols-2">
-                                <span class="text-gray-500 font-bold">Uploaded</span>
+                                <span class="text-gray-500 font-bold">Publié</span>
                                 <span class="text-gray-700">{{ $product->created_at->diffForHumans() }}</span>
                             </div>
                         </div>
@@ -253,7 +253,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
                                 </svg>
-                                Translate this
+                                Traduire
                             </button>
                         </div>
 
@@ -261,8 +261,8 @@
 
                         <!-- Shipping Estimates -->
                         <div class="flex justify-between items-center text-sm mb-6">
-                            <span class="text-gray-500 font-bold">Shipping</span>
-                            <span class="text-gray-700">from {{ number_format($deliveryFeeFixed, 2) }} MAD</span>
+                            <span class="text-gray-500 font-bold">Livraison</span>
+                            <span class="text-gray-700">à partir de {{ number_format($deliveryFeeFixed, 2) }} MAD</span>
                         </div>
 
                         <!-- Action Buttons -->
@@ -271,15 +271,15 @@
                                 @if(auth()->id() === $product->vendor_id)
                                     {{-- Owner Actions --}}
                                     <div class="p-4 bg-gray-50 border border-gray-100 rounded-md text-center">
-                                        <p class="text-sm text-gray-600 mb-3">This is your item</p>
+                                        <p class="text-sm text-gray-600 mb-3">Ceci est votre article</p>
                                         <div class="space-y-2">
                                             @if($product->status === 'pending')
                                                 <div class="w-full py-2 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-sm font-medium text-center">
-                                                    Pending approval
+                                                    En attente d'approbation
                                                 </div>
                                                 <a href="{{ route('items.edit', $product) }}"
                                                     class="block w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-center">
-                                                    Edit listing
+                                                    Modifier l'annonce
                                                 </a>
                                             @else
                                                 <!-- Bump Button -->
@@ -294,7 +294,7 @@
                                                         @csrf
                                                         <button type="submit"
                                                             class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                            Mark as sold
+                                                            Marquer comme vendu
                                                         </button>
                                                     </form>
                                                 @endif
@@ -305,13 +305,13 @@
                                                         @csrf
                                                         <button type="submit"
                                                             class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                            Mark as unreserved
+                                                            Annuler la réservation
                                                         </button>
                                                     </form>
                                                 @elseif($product->status !== 'sold')
                                                     <button type="button" @click="$dispatch('open-reserve-modal')"
                                                         class="w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50">
-                                                        Mark as reserved
+                                                        Réserver
                                                     </button>
                                                 @endif
 
@@ -331,7 +331,7 @@
                                                 <!-- Edit Button -->
                                                 <a href="{{ route('items.edit', $product) }}"
                                                     class="block w-full py-2 bg-white text-vinted-gray-900 border border-gray-300 rounded text-sm font-medium hover:bg-gray-50 text-center">
-                                                    Edit listing
+                                                    Modifier l'annonce
                                                 </a>
                                             @endif
 
@@ -347,14 +347,13 @@
                                     <div class="hidden md:block md:space-y-3">
                                         @if($product->status === 'reserved' && $product->buyer_id !== auth()->id())
                                             <button disabled
-                                                class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Reserved</button>
+                                                class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Réservé</button>
                                         @else
                                             <a href="{{ route('product.checkout', $product) }}"
-                                                class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm"
-                                                style="background-color: var(--brand)">
-                                                Buy now
+                                                class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm bg-gray-900 hover:bg-gray-800">
+                                                Acheter maintenant
                                             </a>
-                                            @livewire('product-messaging-button', ['product' => $product, 'class' => 'w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm', 'style' => 'border-color: #111827; color: #111827', 'text' => 'Ask seller'])
+                                            @livewire('product-messaging-button', ['product' => $product])
                                         @endif
                                     </div>
                                 @endif
@@ -363,17 +362,15 @@
                                 <div class="hidden md:block md:space-y-3">
                                     @if($product->status === 'reserved')
                                         <button disabled
-                                            class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Reserved</button>
+                                            class="w-full py-2.5 bg-gray-200 text-gray-400 font-medium rounded text-sm cursor-not-allowed">Réservé</button>
                                     @else
                                         <a href="{{ route('product.checkout', $product) }}"
-                                            class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm"
-                                            style="background-color: var(--brand)">
-                                            Buy now
+                                            class="block w-full py-2.5 text-center text-white font-medium rounded transition-colors text-sm bg-gray-900 hover:bg-gray-800">
+                                            Acheter maintenant
                                         </a>
                                         <button type="button" @click="$dispatch('open-auth-modal')"
-                                            class="w-full py-2.5 bg-white border font-medium rounded transition-colors text-sm"
-                                            style="border-color: #111827; color: #111827">
-                                            Ask seller
+                                            class="w-full py-2.5 bg-white border border-gray-900 text-gray-900 font-medium rounded transition-colors text-sm">
+                                            Contacter le vendeur
                                         </button>
                                     @endif
                                 </div>
@@ -390,12 +387,11 @@
                                 </svg>
                             </div>
                             <div>
-                                <h4 class="text-sm font-semibold text-gray-900">Buyer Protection fee</h4>
+                                <h4 class="text-sm font-semibold text-gray-900">Protection acheteur</h4>
                                 <p class="text-xs text-gray-600 mt-1 leading-relaxed">
                                     Our <a href="#" class="hover:underline text-gray-900">Buyer Protection</a>
-                                    is added
-                                    for a fee to every purchase made with the "Buy now" button.
-                                    <a href="#" class="hover:underline text-gray-900">Refund Policy</a>.
+                                    est incluse dans chaque achat effectué via le bouton "Acheter maintenant".
+                                    <a href="#" class="hover:underline text-gray-900">Politique de remboursement</a>.
                                 </p>
                             </div>
                         </div>
@@ -445,7 +441,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                 </svg>
-                                <span>Last seen {{ $product->vendor->last_seen_at ? $product->vendor->last_seen_at->diffForHumans() : 'a while ago' }}</span>
+                                <span>Vu {{ $product->vendor->last_seen_at ? $product->vendor->last_seen_at->diffForHumans() : 'il y a longtemps' }}</span>
                             </div>
                         </div>
 
@@ -457,13 +453,13 @@
                                 class="follow-btn w-full py-2 border font-medium rounded hover:opacity-80 transition-colors text-sm"
                                 style="{{ $isFollowing ? 'border-color: #d1d5db; color: #374151; background-color: #f9fafb;' : 'border-color: #111827; color: #111827;' }}"
                                 data-user-id="{{ $product->vendor->id }}">
-                                {{ $isFollowing ? 'Following' : 'Follow' }}
+                                {{ $isFollowing ? 'Abonné(e)' : 'Suivre' }}
                             </button>
                         @elseif(!auth()->check())
                             <button type="button" @click="$dispatch('open-auth-modal')"
                                 class="w-full py-2 border font-medium rounded hover:opacity-80 transition-colors text-sm"
                                 style="border-color: #111827; color: #111827">
-                                Follow
+                                Suivre
                             </button>
                         @endif
                     </div>
@@ -473,7 +469,7 @@
 
             <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6 md:p-6 bg-white md:bg-transparent">
                 <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
-                    <h2 class="text-lg font-bold text-vinted-gray-900">Member's items</h2>
+                    <h2 class="text-lg font-bold text-vinted-gray-900">Articles du vendeur</h2>
                     <a href="{{ route('search', ['vendor_id' => $product->vendor->id]) }}"
                         class="text-sm font-semibold hover:underline text-gray-900">Voir tout</a>
                 </div>
@@ -514,14 +510,14 @@
                                 </a>
                             </div>
                         @empty
-                            <p class="text-sm text-gray-500">No products yet</p>
+                            <p class="text-sm text-gray-500">Aucun article pour l'instant</p>
                         @endforelse
                     </div>
                 </div>
             </section>
             <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6 md:p-6 bg-white md:bg-transparent">
                 <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
-                    <h2 class="text-lg font-bold text-vinted-gray-900">Similar products</h2>
+                    <h2 class="text-lg font-bold text-vinted-gray-900">Articles similaires</h2>
                     <a href="{{ route('search', ['categories' => [$product->category_id]]) }}"
                         class="text-sm font-semibold hover:underline text-gray-900">Voir tout</a>
                 </div>
@@ -562,7 +558,7 @@
                                 </a>
                             </div>
                         @empty
-                            <p class="text-sm text-gray-500">No similar products</p>
+                            <p class="text-sm text-gray-500">Aucun article similaire</p>
                         @endforelse
                     </div>
                 </div>
@@ -577,9 +573,9 @@
             <div class="fixed inset-0 bg-black opacity-50" @click="showReserveModal = false"></div>
 
             <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Reserve this item</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Réserver cet article</h3>
                 <p class="text-sm text-gray-600 mb-4">
-                    You can reserve this item for a specific buyer. They will still be able to buy it, but others won't.
+                    Vous pouvez réserver cet article pour un acheteur spécifique. Il pourra toujours l'acheter, mais pas les autres.
                 </p>
 
                 <form action="{{ route('items.reserve', $product) }}" method="POST" x-data="{
@@ -620,8 +616,8 @@
                                     }">
                     @csrf
                     <div class="mb-4 relative">
-                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Reserve for (username or
-                            email)</label>
+                        <label for="username" class="block text-sm font-medium text-gray-700 mb-1">Réserver pour (nom d'utilisateur ou
+                            e-mail)</label>
 
                         <!-- Hidden Input for Form Submission -->
                         <input type="hidden" name="username" :value="search">
@@ -629,7 +625,7 @@
                         <!-- Search Input -->
                         <div class="relative">
                             <input type="text" x-model="search" @input.debounce.300ms="fetchUsers()" @click="fetchUsers()"
-                                @click.outside="isOpen = false" placeholder="Type to search users..."
+                                @click.outside="isOpen = false" placeholder="Tapez pour rechercher des utilisateurs..."
                                 class="w-full border border-gray-300 rounded-md p-2 focus:ring-gray-500 focus:border-gray-500 text-sm"
                                 autocomplete="off">
 
@@ -664,7 +660,7 @@
                             </template>
                         </div>
 
-                        <p class="text-xs text-gray-500 mt-1">Leave empty to reserve generally.</p>
+                        <p class="text-xs text-gray-500 mt-1">Laissez vide pour une réservation générale.</p>
                     </div>
 
                     <div class="flex gap-3 justify-end">
@@ -695,14 +691,14 @@
                         </svg>
                     </span>
                 </div>
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Boost Feature Coming Soon!</h3>
+                <h3 class="text-xl font-bold text-gray-900 mb-2">Fonctionnalité Boost à venir !</h3>
                 <p class="text-gray-600 mb-6 leading-relaxed">
-                    We're working on a new way to help you sell faster. The <strong>Bump</strong> feature will allow you to
-                    boost your product's visibility to reach more buyers. Stay tuned!
+                    Nous travaillons sur une nouvelle façon de vous aider à vendre plus vite. La fonctionnalité <strong>Bump</strong> vous permettra
+                    d'augmenter la visibilité de votre article pour toucher plus d'acheteurs. Restez connecté(e) !
                 </p>
                 <button @click="showBumpModal = false"
                     class="w-full px-4 py-2 text-white font-bold rounded-md transition-colors bg-gray-900 hover:bg-gray-800">
-                    Got it!
+                    Compris !
                 </button>
             </div>
         </div>
@@ -714,9 +710,9 @@
             <div class="fixed inset-0 bg-black opacity-50" @click="showDeleteModal = false"></div>
 
             <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Delete Product?</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Supprimer l'article ?</h3>
                 <p class="text-sm text-gray-600 mb-6">
-                    Are you sure you want to delete this product? This action cannot be undone.
+                    Êtes-vous sûr(e) de vouloir supprimer cet article ? Cette action est irréversible.
                 </p>
                 <div class="flex gap-3 justify-end">
                     <button @click="showDeleteModal = false"
@@ -742,9 +738,9 @@
             <div class="fixed inset-0 bg-black opacity-50" @click="showHideModal = false"></div>
 
             <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Hide Product?</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Masquer l'article ?</h3>
                 <p class="text-sm text-gray-600 mb-6">
-                    Are you sure you want to hide this product? It will no longer be visible to other users.
+                    Êtes-vous sûr(e) de vouloir masquer cet article ? Il ne sera plus visible par les autres utilisateurs.
                 </p>
                 <div class="flex gap-3 justify-end">
                     <button @click="showHideModal = false"
@@ -767,9 +763,9 @@
             class="fixed inset-0 z-50 flex items-center justify-center">
             <div class="fixed inset-0 bg-black opacity-50" @click="showUnhideModal = false"></div>
             <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
-                <h3 class="text-lg font-bold text-gray-900 mb-2">Unhide Product?</h3>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Rendre l'article visible ?</h3>
                 <p class="text-sm text-gray-600 mb-6">
-                    Your listing will be made visible to buyers again.
+                    Votre annonce redeviendra visible pour les acheteurs.
                 </p>
                 <div class="flex gap-3 justify-end">
                     <button @click="showUnhideModal = false"
@@ -792,17 +788,17 @@
             <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] flex gap-3 md:hidden z-50">
                 @auth
                     @if($product->status === 'reserved' && $product->buyer_id !== auth()->id())
-                        <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Reserved</button>
+                        <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Réservé</button>
                     @else
-                        <button type="button" @click="$dispatch('open-make-offer-modal', { productId: {{ $product->id }} })" class="flex-1 py-2.5 bg-white border border-gray-900 text-gray-900 font-bold rounded transition-colors text-sm text-center">Make an offer</button>
-                        <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base" style="background-color: var(--brand)">Buy now</a>
+                        <button type="button" @click="$dispatch('open-make-offer-modal', { productId: {{ $product->id }} })" class="flex-1 py-2.5 bg-white border border-gray-900 text-gray-900 font-bold rounded transition-colors text-sm text-center">Faire une offre</button>
+                        <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base bg-gray-900 hover:bg-gray-800">Acheter maintenant</a>
                     @endif
                 @else
                     @if($product->status === 'reserved')
-                        <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Reserved</button>
+                        <button disabled class="flex-1 py-2.5 bg-gray-200 text-gray-400 font-bold rounded text-sm cursor-not-allowed">Réservé</button>
                     @else
-                        <button type="button" @click="$dispatch('open-auth-modal')" class="flex-1 py-2.5 bg-white border border-gray-900 text-gray-900 font-bold rounded transition-colors text-sm text-center">Make an offer</button>
-                        <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base" style="background-color: var(--brand)">Buy now</a>
+                        <button type="button" @click="$dispatch('open-auth-modal')" class="flex-1 py-2.5 bg-white border border-gray-900 text-gray-900 font-bold rounded transition-colors text-sm text-center">Faire une offre</button>
+                        <a href="{{ route('product.checkout', $product) }}" class="flex-1 py-2.5 flex items-center justify-center text-white font-bold rounded transition-colors text-base bg-gray-900 hover:bg-gray-800">Acheter maintenant</a>
                     @endif
                 @endauth
             </div>
@@ -843,11 +839,11 @@
                     const data = await res.json(); // { following: bool, followers_count: int }
 
                     if (data.following) {
-                        followBtn.textContent = 'Following';
+                        followBtn.textContent = 'Abonné(e)';
                         followBtn.classList.remove('border-vinted-teal', 'text-vinted-teal');
                         followBtn.classList.add('border-gray-300', 'text-gray-700', 'bg-gray-50');
                     } else {
-                        followBtn.textContent = 'Follow';
+                        followBtn.textContent = 'Suivre';
                         followBtn.classList.remove('border-gray-300', 'text-gray-700', 'bg-gray-50');
                         followBtn.classList.add('border-vinted-teal', 'text-vinted-teal');
                     }

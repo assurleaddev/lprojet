@@ -73,14 +73,14 @@
                     </div>
 
                     <a href="#reviews" class="hover:underline text-[15px] text-gray-900">{{ $stats['total'] }}
-                        reviews</a>
+                        avis</a>
                 </div>
 
 
                 <!-- About / Verified info -->
                 <div class="mt-6 grid grid-cols-2 gap-10 max-w-3xl">
                     <div>
-                        <div class="text-sm font-semibold text-zinc-700 mb-2">About:</div>
+                        <div class="text-sm font-semibold text-zinc-700 mb-2">À propos :</div>
                         @php
                             $city = $user->getMeta('city');
                             $country = $user->getMeta('country');
@@ -100,12 +100,12 @@
                                 <path
                                     d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-1-6h2v4h-2V2Zm0 16h2v4h-2v-4ZM2 11h4v2H2v-2Zm16 0h4v2h-4v-2Zm-9.78-6.36 1.41-1.41 2.83 2.83-1.41 1.41-2.83-2.83Zm8.49 11.32 2.83 2.83-1.41 1.41-2.83-2.83 1.41-1.41Z" />
                             </svg>
-                            Last seen 3 hours ago
+                            Vu il y a 3 heures
                         </div>
                         <livewire:follower-stats :user="$user" />
                     </div>
                     <div>
-                        <div class="text-sm font-semibold text-zinc-700 mb-2">Verified info:</div>
+                        <div class="text-sm font-semibold text-zinc-700 mb-2">Informations vérifiées :</div>
                         <div class="flex items-center gap-2 text-[15px]">
                             <svg class="h-4 w-4 text-zinc-600" viewBox="0 0 24 24" fill="currentColor">
                                 <path d="M9 12 7 10l-2 2 4 4 8-8-2-2-6 6Z" />
@@ -126,14 +126,14 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                             </svg>
-                            Edit Profile
+                            Modifier le profil
                         </a>
                     @else
                         <livewire:follow-button :user="$user" />
 
                         <button onclick="Livewire.dispatch('open-bundle-builder')"
                             class="h-10 px-4 font-bold text-sm text-white bg-gray-900 hover:bg-gray-800 rounded-md shadow-sm transition whitespace-nowrap">
-                            Shop bundles
+                            Commander en lot
                         </button>
                         <livewire:chat::bundle-builder :vendor="$user" />
                     @endif
@@ -152,9 +152,9 @@
                     <!-- Dropdown -->
                     <div id="reportMenu"
                         class="invisible opacity-0 pointer-events-none absolute right-0 top-12 w-44 rounded-lg border border-zinc-200 bg-white py-2 text-sm shadow-lg transition">
-                        <div class="px-4 pb-2 text-zinc-400 text-[12px]">Report</div>
-                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Report this user</a>
-                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Block user</a>
+                        <div class="px-4 pb-2 text-zinc-400 text-[12px]">Signaler</div>
+                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Signaler cet utilisateur</a>
+                        <a href="#" class="block px-4 py-2 hover:bg-zinc-50">Bloquer l'utilisateur</a>
                     </div>
                     @endif
 
@@ -190,18 +190,18 @@
                 $vendorDiscounts = $user->bundleDiscounts()->orderBy('min_items')->get();
                 $maxDiscount = $vendorDiscounts->max('discount_percentage');
             @endphp
-            <div class="text-sm text-zinc-700 mb-3">{{ $products->count() }} items</div>
+            <div class="text-sm text-zinc-700 mb-3">{{ $products->count() }} articles</div>
 
             @if($vendorDiscounts->count() > 0 && auth()->id() !== $user->id)
                 <div class="flex items-center gap-2 px-4 py-3 rounded-xl mb-4" style="background: #fff5f5; border: 1px solid #ffe0e0;">
                     <svg class="w-5 h-5 shrink-0 text-gray-900" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                     <p class="text-sm text-gray-700">
-                        <span class="font-bold text-gray-900">Bundle discounts!</span>
-                        Buy
+                        <span class="font-bold text-gray-900">Remises groupées !</span>
+                        Achetez
                         @foreach($vendorDiscounts as $d)
                             {{ $d->min_items }}+ items ({{ $d->discount_percentage }}% off){{ !$loop->last ? ', ' : '' }}
                         @endforeach
-                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline text-gray-900">Shop bundles</button>
+                        — use <button onclick="Livewire.dispatch('open-bundle-builder')" class="font-bold underline text-gray-900">Commander en lot</button>
                     </p>
                 </div>
             @endif
@@ -271,7 +271,7 @@
                                 </p>
                                 <p class="price-line">{{ $item->price }} MAD</p>
                                 <div class="incl-line">
-                                    <span>{{ number_format($item->price + 5, 2) }} MAD incl.</span>
+                                    <span>{{ number_format($item->price + 5, 2) }} MAD inclus.</span>
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -281,7 +281,7 @@
                         </a>
                     </div>
                 @empty
-                    <div class="col-span-full text-center text-gray-500 py-10">no products yet</div>
+                    <div class="col-span-full text-center text-gray-500 py-10">Aucun article pour l'instant</div>
                 @endforelse
             </div>
             <div class="h-16"></div>
@@ -292,10 +292,10 @@
 
             @if(isset($pendingReviewOrder) && $pendingReviewOrder)
                 <div class="mb-8 rounded-lg p-6" style="background-color: #fff5f5; border: 1px solid var(--brand)">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-900">Leave a review for your recent purchase
+                    <h3 class="text-lg font-semibold mb-2 text-gray-900">Laisser un avis pour votre achat récent
                     </h3>
                     <p class="text-sm mb-4 text-gray-900">
-                        You recently received an item from {{ $user->username }}. Please let us know how it went!
+                        Vous avez récemment reçu un article de {{ $user->username }}. Dites-nous comment cela s'est passé !
                     </p>
 
                     <form action="{{ route('reviews.store') }}" method="POST">
@@ -303,7 +303,7 @@
                         <input type="hidden" name="order_id" value="{{ $pendingReviewOrder->id }}">
 
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Note</label>
                             <div class="flex items-center space-x-2">
                                 @for ($i = 1; $i <= 5; $i++)
                                     <label class="cursor-pointer">
@@ -319,15 +319,15 @@
                         </div>
 
                         <div class="mb-4">
-                            <label for="review" class="block text-sm font-medium text-gray-700 mb-1">Review (Required)</label>
+                            <label for="review" class="block text-sm font-medium text-gray-700 mb-1">Avis (Obligatoire)</label>
                             <textarea name="review" id="review" rows="3" required minlength="5"
                                 class="w-full rounded-md border-gray-300 shadow-sm focus:ring-0"
-                                style="focus-border-color: var(--brand)" placeholder="Write your review here..."></textarea>
+                                style="focus-border-color: var(--brand)" placeholder="Écrivez votre avis ici..."></textarea>
                         </div>
 
                         <button type="submit"
                             class="px-4 py-2 text-white text-sm font-medium bg-gray-900 hover:bg-gray-800 rounded-md shadow-sm transition-colors">
-                            Submit Review
+                            Soumettre l'avis
                         </button>
                     </form>
                 </div>
@@ -353,18 +353,18 @@
                             </div>
                             <div class="hidden md:block h-12 w-px bg-zinc-200"></div>
                             <div>
-                                <div class="text-[15px] font-semibold">Member reviews ({{ $stats['member_count'] }})</div>
+                                <div class="text-[15px] font-semibold">Avis des membres ({{ $stats['member_count'] }})</div>
                                 <div class="mt-1 flex items-center gap-2 text-[15px]">
                                     {{ number_format($stats['member_avg'], 1) }} <span class="text-amber-400">★</span>
                                 </div>
-                                <div class="mt-4 text-[15px] font-semibold">Automatic reviews ({{ $stats['auto_count'] }})
+                                <div class="mt-4 text-[15px] font-semibold">Avis automatiques ({{ $stats['auto_count'] }})
                                 </div>
                                 <div class="mt-1 flex items-center gap-2 text-[15px]">
                                     {{ number_format($stats['auto_avg'], 1) }} <span class="text-amber-400">★</span>
                                 </div>
                             </div>
                             <div class="ml-auto">
-                                <a href="#" class="hover:underline text-gray-900">How reviews work</a>
+                                <a href="#" class="hover:underline text-gray-900">Comment fonctionnent les avis</a>
                             </div>
                         </div>
                     </div>
@@ -377,7 +377,7 @@
                 <div class="flex gap-4 mb-8">
                     <button @click="filter = 'all'" :class="filter === 'all' ? 'bg-zinc-100' : ''"
                         class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] hover:bg-zinc-50 transition">
-                        All
+                        Tous
                     </button>
                     <button @click="filter = 'member'" :class="filter === 'member' ? 'bg-zinc-100' : ''"
                         class="rounded-full border border-zinc-300 px-5 py-2 text-[15px] hover:bg-zinc-50 transition">
@@ -443,14 +443,14 @@
                                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
                                             <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
                                         </svg>
-                                        Translate this
+                                        Traduire
                                     </button>
                                 </div>
                             </div>
                         </li>
                     @empty
                         <li class="py-6 text-center text-gray-500">
-                            No reviews yet.
+                            Aucun avis pour l'instant.
                         </li>
                     @endforelse
                 </ul>
@@ -473,20 +473,20 @@
             </div>
             <div class="px-8 pb-8 -mt-4">
                 <h2 id="authTitle" class="text-center text-[26px] font-semibold leading-tight">
-                    Join and sell pre-loved clothes<br />with no fees
+                    Rejoignez et vendez vos vêtements d'occasion sans frais
                 </h2>
 
                 <div class="mt-6 space-y-3">
                     <a href="#"
                         class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
                         <img src="https://www.gstatic.com/images/branding/product/1x/gsa_64dp.png" class="h-5 w-5" alt="">
-                        <span class="font-medium">Continue with Google</span>
+                        <span class="font-medium">Continuer avec Google</span>
                     </a>
 
                     <a href="#"
                         class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
                         <span class="text-2xl"></span>
-                        <span class="font-medium">Continue with Apple</span>
+                        <span class="font-medium">Continuer avec Apple</span>
                     </a>
 
                     <a href="#"
@@ -495,15 +495,15 @@
                             <path
                                 d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.3V12h2.3V9.7c0-2.3 1.4-3.6 3.5-3.6 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.5.7-1.5 1.4V12h2.6l-.4 2.9h-2.2v7A10 10 0 0 0 22 12Z" />
                         </svg>
-                        <span class="font-medium">Continue with Facebook</span>
+                        <span class="font-medium">Continuer avec Facebook</span>
                     </a>
                 </div>
 
                 <div class="mt-6 text-center text-[15px] text-zinc-700">
-                    Or register with <a href="#" class="underline text-gray-900">email</a>
+                    Ou s'inscrire avec un <a href="#" class="underline text-gray-900">e-mail</a>
                 </div>
                 <div class="mt-2 text-center text-[15px] text-zinc-700">
-                    Already have an account? <a href="#" class="underline text-gray-900">Log in</a>
+                    Déjà inscrit(e) ? <a href="#" class="underline text-gray-900">Se connecter</a>
                 </div>
             </div>
         </div>

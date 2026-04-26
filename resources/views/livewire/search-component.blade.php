@@ -5,7 +5,7 @@
                 @if(!empty($categoryIds) && $firstCat = \App\Models\Category::find($categoryIds[0]))
                     {{ $firstCat->name }}
                 @else
-                    {{ __('Items') }}
+                    {{ __('Articles') }}
                 @endif
             </h1>
             <!-- Save Search (Placeholder) -->
@@ -20,13 +20,13 @@
             @endauth
         </div>
 
-        {{-- Filter Chips (Active Filters) --}}
+        {{-- Filtrer Chips (Active Filtrers) --}}
         @if($query || !empty($categoryIds) || !empty($selectedBrands) || !empty($selectedConditions) || !empty($selectedAttributes) || $minPrice || $maxPrice)
             <div class="flex flex-wrap items-center gap-2 mb-4">
                  @if($query)
                     <span class="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 text-gray-900 px-3 py-1 rounded-full text-sm font-medium">
                         "{{ $query }}"
-                        <button wire:click="removeFilter('query', null)" class="hover:text-gray-900 focus:outline-none">
+                        <button wire:click="removeFiltrer('query', null)" class="hover:text-gray-900 focus:outline-none">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </span>
@@ -37,7 +37,7 @@
                      @if($cat)
                         <span class="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 px-3 py-1 rounded-full text-sm">
                             {{ $cat->name }}
-                            <button wire:click="removeFilter('category', {{ $catId }})" class="hover:text-gray-700 focus:outline-none">
+                            <button wire:click="removeFiltrer('category', {{ $catId }})" class="hover:text-gray-700 focus:outline-none">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </span>
@@ -49,7 +49,7 @@
                      @if($brand)
                         <span class="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 px-3 py-1 rounded-full text-sm">
                             {{ $brand->name }}
-                            <button wire:click="removeFilter('brand', {{ $brandId }})" class="hover:text-gray-700 focus:outline-none">
+                            <button wire:click="removeFiltrer('brand', {{ $brandId }})" class="hover:text-gray-700 focus:outline-none">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                             </button>
                         </span>
@@ -59,7 +59,7 @@
                  @foreach($selectedConditions as $condition)
                     <span class="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 px-3 py-1 rounded-full text-sm capitalize">
                         {{ str_replace('_', ' ', $condition) }}
-                        <button wire:click="removeFilter('condition', '{{ $condition }}')" class="hover:text-gray-700 focus:outline-none">
+                        <button wire:click="removeFiltrer('condition', '{{ $condition }}')" class="hover:text-gray-700 focus:outline-none">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </span>
@@ -75,7 +75,7 @@
                                  @if($option)
                                     <span class="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 px-3 py-1 rounded-full text-sm">
                                         {{ $option->value }}
-                                        <button wire:click="removeFilter('attribute', {{ $optionId }})" class="hover:text-gray-700 focus:outline-none">
+                                        <button wire:click="removeFiltrer('attribute', {{ $optionId }})" class="hover:text-gray-700 focus:outline-none">
                                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                                         </button>
                                     </span>
@@ -88,19 +88,19 @@
                 @if($minPrice || $maxPrice)
                      <span class="inline-flex items-center gap-1 bg-gray-100 border border-gray-300 px-3 py-1 rounded-full text-sm">
                         {{ $minPrice ?? '0' }} - {{ $maxPrice ?? '∞' }} MAD
-                        <button wire:click="removeFilter('price', null)" class="hover:text-gray-700 focus:outline-none">
+                        <button wire:click="removeFiltrer('price', null)" class="hover:text-gray-700 focus:outline-none">
                              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </span>
                 @endif
                 
-                <button wire:click="clearAllFilters" class="text-sm text-gray-700 hover:underline ml-2">Clear all</button>
+                <button wire:click="clearAllFiltrers" class="text-sm text-gray-700 hover:underline ml-2">Clear all</button>
             </div>
         @endif
 
-        {{-- Filter Bar --}}
+        {{-- Filtrer Bar --}}
         <div class="flex flex-wrap items-center gap-3 mb-4">
-             {{-- Category Filter --}}
+             {{-- Category Filtrer --}}
              {{-- We can reuse existing component or inline it. Reusing is better but needs wire:model support or events --}}
              {{-- Existing component uses URL nav. We should probably inline it or update it. 
                   For speed, let's use a simpler inline dropdown here or modify the existing one to emit events.
@@ -139,7 +139,7 @@
                                 </button>
                             @else
                                 {{-- All Categories --}}
-                                 <button wire:click="clearAllFilters(); open = false" class="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 text-left group">
+                                 <button wire:click="clearAllFiltrers(); open = false" class="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 text-left group">
                                     <span class="text-gray-500 font-medium text-sm">{{ __('All Categories') }}</span>
                                 </button>
                             @endif
@@ -163,7 +163,7 @@
                   </div>
             </div>
 
-            {{-- Size Filter --}}
+            {{-- Size Filtrer --}}
             @if($sizeAttributes->isNotEmpty())
                  <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
@@ -193,7 +193,7 @@
                 </div>
             @endif
 
-            {{-- Brand Filter --}}
+            {{-- Brand Filtrer --}}
              @if($brands->isNotEmpty())
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
@@ -216,7 +216,7 @@
                 </div>
             @endif
 
-            {{-- Condition Filter --}}
+            {{-- Condition Filtrer --}}
             @if(count($conditions) > 0)
                 <div x-data="{ open: false }" class="relative">
                     <button @click="open = !open"
@@ -237,7 +237,7 @@
                 </div>
             @endif
 
-            {{-- Color Filter --}}
+            {{-- Color Filtrer --}}
              @if($colorAttribute)
                 <div x-data="{ open: false }" class="relative">
                      <button @click="open = !open"
@@ -263,7 +263,7 @@
                 </div>
             @endif
 
-             {{-- Price Filter --}}
+             {{-- Price Filtrer --}}
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open"
                     class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 {{ ($minPrice || $maxPrice) ? 'border-teal-600 ring-1 ring-teal-600' : '' }}">
@@ -291,9 +291,9 @@
                 <button @click="open = !open"
                     class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50">
                     <span>
-                        @if($sort === 'newest') Newest first
-                        @elseif($sort === 'price_asc') Price: Low to high
-                        @elseif($sort === 'price_desc') Price: High to low
+                        @if($sort === 'newest') Plus récents d'abord
+                        @elseif($sort === 'price_asc') Prix : croissant
+                        @elseif($sort === 'price_desc') Prix : décroissant
                         @else Relevance
                         @endif
                     </span>
@@ -303,9 +303,9 @@
                 </button>
                 <div x-show="open" @click.away="open = false" style="display: none;" class="absolute right-0 z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
                     <div class="p-2">
-                        <button wire:click="$set('sort', 'newest'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Newest first</button>
-                        <button wire:click="$set('sort', 'price_asc'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Price: Low to high</button>
-                        <button wire:click="$set('sort', 'price_desc'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Price: High to low</button>
+                        <button wire:click="$set('sort', 'newest'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Plus récents d'abord</button>
+                        <button wire:click="$set('sort', 'price_asc'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Prix : croissant</button>
+                        <button wire:click="$set('sort', 'price_desc'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Prix : décroissant</button>
                     </div>
                 </div>
             </div>
@@ -314,8 +314,8 @@
         {{-- Results Grid --}}
         @if($results->isEmpty())
              <div class="text-center py-12">
-                <p class="text-gray-500 text-lg">No results found.</p>
-                <button wire:click="clearAllFilters" class="text-gray-700 hover:underline mt-4">Clear filters</button>
+                <p class="text-gray-500 text-lg">Aucun résultat trouvé.</p>
+                <button wire:click="clearAllFiltrers" class="text-gray-700 hover:underline mt-4">Effacer les filtres</button>
             </div>
         @else
              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-x-2 gap-y-6">

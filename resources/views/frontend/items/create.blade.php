@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Sell an item')
+@section('title', 'Vendre un article')
 
 @section('content')
     <div class="mx-auto max-w-[800px] px-4 py-8">
-        <h1 class="text-2xl font-bold mb-6">Sell an item</h1>
+        <h1 class="text-2xl font-bold mb-6">Vendre un article</h1>
 
         <form action="{{ route('items.store') }}" method="POST" enctype="multipart/form-data" id="item-form">
             @csrf
@@ -13,8 +13,8 @@
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6">
                 <div class="mb-4">
                     <span class="block font-semibold mb-1">Photos</span>
-                    <span class="text-sm text-gray-500">Add up to 20 photos. <span class="text-gray-700">See
-                            tips.</span></span>
+                    <span class="text-sm text-gray-500">Ajoutez jusqu'à 20 photos. <span class="text-gray-700">Voir les
+                            conseils.</span></span>
                 </div>
 
                 <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 min-h-[200px] flex flex-wrap gap-4"
@@ -29,7 +29,7 @@
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
-                            <span class="text-gray-600 font-semibold text-sm">Upload photos</span>
+                            <span class="text-gray-600 font-semibold text-sm">Télécharger des photos</span>
                         </div>
                     </div>
 
@@ -38,43 +38,43 @@
                         <!-- Images will be appended here -->
                     </div>
                 </div>
-                <p class="text-xs text-gray-400 mt-2">Drag and drop to reorder. The first photo will be the main one.</p>
+                <p class="text-xs text-gray-400 mt-2">Glissez-déposez pour réorganiser. La première photo sera la principale.</p>
             </div>
 
             <!-- Item Details -->
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
-                    <label class="block font-semibold mb-1">Title</label>
+                    <label class="block font-semibold mb-1">Titre</label>
                     <input type="text" name="title" value="{{ $duplicateProduct->name ?? '' }}"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
-                        placeholder="e.g. White COS Jumper" required>
+                        placeholder="ex. Pull blanc COS" required>
                 </div>
 
                 <div>
-                    <label class="block font-semibold mb-1">Describe your item</label>
+                    <label class="block font-semibold mb-1">Décrivez votre article</label>
                     <textarea name="description" rows="4"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
-                        placeholder="e.g. only worn a few times, true to size"
+                        placeholder="ex. porté quelques fois seulement, taille fidèle"
                         required>{{ $duplicateProduct->description ?? '' }}</textarea>
                 </div>
             </div>
 
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
-                    <label class="block font-semibold mb-1">Category</label>
+                    <label class="block font-semibold mb-1">Catégorie</label>
                     <livewire:category-selector name="category_id" :value="$duplicateProduct->category_id ?? null" />
                 </div>
 
                 <div x-data="brandDropdown">
-                    <label class="block font-semibold mb-1">Brand</label>
+                    <label class="block font-semibold mb-1">Marque</label>
                     <div class="relative">
                         <button @click="toggle" type="button"
                             class="w-full border border-gray-300 rounded-md p-2.5 text-left">
-                            <span x-text="selectedLabel || 'Select Brand'" class="block truncate"></span>
+                            <span x-text="selectedLabel || 'Sélectionner une marque'" class="block truncate"></span>
                         </button>
                         <div x-show="open" @click.outside="close()" x-cloak
                             class="absolute z-10 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-hidden">
-                            <input x-ref="searchInput" x-model="search" type="text" placeholder="Search brands..."
+                            <input x-ref="searchInput" x-model="search" type="text" placeholder="Rechercher des marques..."
                                 class="w-full p-2 border-b focus:outline-none focus:ring-1 focus:ring-gray-500">
                             <div class="max-h-48 overflow-y-auto">
                                 <template x-for="option in filteredOptions" :key="option.value">
@@ -90,10 +90,10 @@
                 </div>
 
                 <div>
-                    <label class="block font-semibold mb-1">Condition</label>
+                    <label class="block font-semibold mb-1">État</label>
                     <select name="condition"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500">
-                        <option value="">Select Condition</option>
+                        <option value="">Sélectionner l'état</option>
                         @foreach($conditions as $cond)
                             <option value="{{ $cond }}">{{ ucwords(str_replace('_', ' ', $cond)) }}</option>
                         @endforeach
@@ -109,7 +109,7 @@
 
             <div class="bg-white p-6 rounded-lg border border-gray-200 mb-6 space-y-6">
                 <div>
-                    <label class="block font-semibold mb-1">Price</label>
+                    <label class="block font-semibold mb-1">Prix</label>
                     <div class="relative">
                         <input type="number" name="price" step="0.01" value="{{ $duplicateProduct->price ?? '' }}"
                             class="w-full border border-gray-300 rounded-md py-2.5 pl-12 focus:ring-gray-500 focus:border-gray-500"
@@ -120,7 +120,7 @@
             </div>
 
             <button type="submit"
-                class="w-full bg-gray-900 text-white font-bold py-3 rounded-md hover:bg-gray-800 transition-colors">Upload</button>
+                class="w-full bg-gray-900 text-white font-bold py-3 rounded-md hover:bg-gray-800 transition-colors">Publier l'article</button>
         </form>
     </div>
 
@@ -133,7 +133,7 @@
                     open: false,
                     search: '',
                     selected: null,
-                    selectedLabel: 'Select Brand',
+                    selectedLabel: 'Sélectionner une marque',
                     options: @json($brands->map(fn($b) => ['value' => $b->id, 'label' => $b->name])),
 
                     init() {

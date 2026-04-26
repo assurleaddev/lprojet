@@ -8,8 +8,7 @@
                 @if($notifications->count() > 0)
                     <form action="{{ route('notifications.mark-read') }}" method="POST">
                         @csrf
-                        <button type="submit" class="text-sm font-medium text-gray-700 hover:text-gray-900 hover:underline">Mark
-                            all as read</button>
+                        <button type="submit" class="text-sm font-medium text-gray-700 hover:text-gray-900 hover:underline">Tout marquer comme lu</button>
                     </form>
                 @endif
             </div>
@@ -35,7 +34,7 @@
                     </a>
                 @empty
                     <div class="p-8 text-center text-gray-500">
-                        You have no notifications.
+                        Vous n'avez pas encore de notifications.
                     </div>
                 @endforelse
             </div>

@@ -38,10 +38,10 @@
                         <span x-text="successMessage"></span>
                     </div>
 
-                    <!-- Your photo -->
+                    <!-- Votre photo -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-medium text-gray-900">Your photo</h3>
+                            <h3 class="text-base font-medium text-gray-900">Votre photo</h3>
                         </div>
                         <div class="flex items-center gap-4">
                             <img :src="avatarPreview || '{{ $user->avatar_url }}'" alt="{{ $user->username }}"
@@ -55,10 +55,10 @@
                         </div>
                     </div>
 
-                    <!-- Username -->
+                    <!-- Nom d'utilisateur -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <div>
-                            <h3 class="text-base font-medium text-gray-900">Username</h3>
+                            <h3 class="text-base font-medium text-gray-900">Nom d'utilisateur</h3>
                         </div>
                         <div class="flex items-center gap-4 w-1/2">
                             <input type="text" name="username" value="{{ old('username', $user->username) }}"
@@ -66,10 +66,10 @@
                         </div>
                     </div>
 
-                    <!-- About you -->
+                    <!-- À propos de vous -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex flex-col md:flex-row md:justify-between">
                         <div class="mb-4 md:mb-0">
-                            <h3 class="text-base font-medium text-gray-900">About you</h3>
+                            <h3 class="text-base font-medium text-gray-900">À propos de vous</h3>
                         </div>
                         <div class="w-full md:w-1/2">
                             <textarea name="about" rows="4"
@@ -158,7 +158,7 @@
                     <div class="flex justify-end">
                         <button type="submit"
                             class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                            :disabled="isLoading" x-text="isLoading ? 'Updating...' : 'Update profile'">
+                            :disabled="isLoading" x-text="isLoading ? 'Updating...' : 'Mettre à jour le profil'">
                         </button>
                     </div>
 
@@ -181,7 +181,7 @@
                                 </button>
                                 <button type="button" @click="cropAndClose"
                                     class="px-4 py-2 text-white bg-gray-900 rounded hover:bg-gray-800">
-                                    Crop & Save
+                                    Recadrer et enregistrer
                                 </button>
                             </div>
                         </div>

@@ -30,7 +30,7 @@
                 {{ $category->name }}
             </a>
         @endforeach
-        <a href="#" class="nav-link">About</a>
+        <a href="#" class="nav-link">À propos</a>
         <a href="#" class="nav-link">Our Platform</a>
     </nav>
 
@@ -49,7 +49,7 @@
                         <div class="mb-4">
                             <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="flex items-center gap-2 text-gray-700 font-bold hover:underline mb-4">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                                See all
+                                Voir tout
                             </a>
                         </div>
                         
@@ -74,7 +74,7 @@
                                 @endforeach
                             </ul>
                         @else
-                            <p class="text-gray-400 italic">No sub-categories found.</p>
+                            <p class="text-gray-400 italic">Aucune sous-catégorie trouvée.</p>
                         @endif
                     </div>
                     
@@ -89,7 +89,7 @@
                         @foreach($category->children as $child)
                             <div x-show="activeSubCategory === {{ $child->id }}" style="display: none;">
                                 <div class="mb-4">
-                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-gray-700 mb-2 inline-block">See all {{ $child->name }}</a>
+                                     <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="font-bold text-gray-800 hover:text-gray-700 mb-2 inline-block">Voir tout {{ $child->name }}</a>
                                 </div>
                                 
                                 @if($child->children->count() > 0)
@@ -99,7 +99,7 @@
                                         @endforeach
                                     </div>
                                 @else
-                                    <p class="text-gray-400 text-sm">No sub-categories found.</p>
+                                    <p class="text-gray-400 text-sm">Aucune sous-catégorie trouvée.</p>
                                 @endif
                             </div>
                         @endforeach
@@ -128,7 +128,7 @@
                          x-transition:leave="transition ease-in duration-75"
                          x-transition:leave-start="opacity-100 translate-y-0"
                          x-transition:leave-end="opacity-0 -translate-y-2">
-                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-gray-700 font-medium hover:underline">See all {{ $category->name }}</a>
+                        <a href="{{ route('search', ['categories' => [$category->id]]) }}" class="block py-2 text-sm text-gray-700 font-medium hover:underline">Voir tout {{ $category->name }}</a>
                         @foreach($category->children as $child)
                             <a href="{{ route('search', ['categories' => [$child->id]]) }}" class="block py-2 text-sm text-gray-600 hover:text-gray-700">
                                 {{ $child->name }}
@@ -138,7 +138,7 @@
                 </div>
             @endforeach
             <div class="mt-4 border-t border-gray-100 pt-4 px-2">
-                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">About</a>
+                <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">À propos</a>
                 <a href="#" class="block py-3 text-gray-700 hover:text-black font-medium">Our Platform</a>
             </div>
         </div>

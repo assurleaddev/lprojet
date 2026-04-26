@@ -33,9 +33,9 @@
 
                 <form action="{{ route('settings.postage.update') }}" method="POST">
                     @csrf
-                    <!-- Your address -->
+                    <!-- Votre adresse -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
-                        <h3 class="text-base font-medium text-gray-900 mb-4">Your address</h3>
+                        <h3 class="text-base font-medium text-gray-900 mb-4">Votre adresse</h3>
 
                         @if($addresses->isEmpty())
                             <button type="button" @click="openModal('add')"
@@ -103,13 +103,13 @@
                                 more about disabled options</a>.</p>
                     </div>
 
-                    <!-- Shipping as a seller -->
+                    <!-- Expédition en tant que vendeur -->
                     <div class="mb-8">
-                        <h3 class="text-base font-medium text-gray-900 mb-2">Shipping as a seller</h3>
+                        <h3 class="text-base font-medium text-gray-900 mb-2">Expédition en tant que vendeur</h3>
                         <p class="text-sm text-gray-500 mb-6">Choose which options you'd like to use for each shipping type.
                         </p>
 
-                        <!-- From your address (Home Pickup) -->
+                        <!-- Depuis votre adresse (Home Pickup) -->
                         <div class="border border-gray-200 rounded-md mb-4" x-data="{ open: true }">
                             <button type="button" @click="open = !open"
                                 class="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-t-md">
@@ -121,7 +121,7 @@
                                         </path>
                                     </svg>
                                     <div class="text-left">
-                                        <span class="block font-medium text-gray-900">From your address</span>
+                                        <span class="block font-medium text-gray-900">Depuis votre adresse</span>
                                         <span class="block text-xs text-gray-500">A courier collects the order from
                                             you.</span>
                                     </div>
@@ -200,7 +200,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Save</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Enregistrer</button>
                     </div>
                 </form>
 
@@ -306,7 +306,7 @@
                                     <div class="mt-5 sm:mt-6 flex gap-3">
                                         <button type="submit"
                                             class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 sm:text-sm">
-                                            Save address
+                                            Enregistrer l'adresse
                                         </button>
                                         <button type="button" @click="closeModal"
                                             class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:text-sm">

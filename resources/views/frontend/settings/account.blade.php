@@ -1,10 +1,10 @@
 @extends('layouts.app')
 
-@section('title', 'Account Settings')
+@section('title', 'Paramètres du compte')
 
 @section('content')
     <div class="shell px-4 md:px-6 py-8">
-        <h1 class="text-2xl font-bold mb-6">Settings</h1>
+        <h1 class="text-2xl font-bold mb-6">Paramètres</h1>
 
         <div class="flex flex-col md:flex-row gap-8">
             <!-- Sidebar -->
@@ -36,17 +36,17 @@
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
                         <div>
                             <h3 class="text-base font-medium text-gray-900">{{ $user->email }}</h3>
-                            <span class="text-xs text-gray-500 flex items-center gap-1">Verified <svg
+                            <span class="text-xs text-gray-500 flex items-center gap-1">Vérifié <svg
                                     class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M5 13l4 4L19 7"></path>
                                 </svg></span>
                         </div>
                         <button type="button"
-                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
+                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Modifier</button>
                     </div>
 
-                    <!-- Phone number -->
+                    <!-- Numéro de téléphone -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
                         <div class="flex items-center justify-between mb-2">
                             <div>
@@ -55,17 +55,17 @@
                                         {{ $user->phone_number }}
                                     </h3>
                                     @if($user->phone_verified_at)
-                                        <span class="text-xs text-gray-500 flex items-center gap-1">Verified <svg
+                                        <span class="text-xs text-gray-500 flex items-center gap-1">Vérifié <svg
                                                 class="w-3 h-3 text-green-500" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M5 13l4 4L19 7"></path>
                                             </svg></span>
                                     @else
-                                        <span class="text-xs text-red-500">Not verified</span>
+                                        <span class="text-xs text-red-500">Non vérifié</span>
                                     @endif
                                 @else
-                                    <h3 class="text-base font-medium text-gray-900">Phone number</h3>
+                                    <h3 class="text-base font-medium text-gray-900">Numéro de téléphone</h3>
                                 @endif
                             </div>
 
@@ -81,14 +81,14 @@
                     <!-- Personal Information -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
                         <div class="flex items-center justify-between mb-6">
-                            <label class="text-base font-medium text-gray-900 w-1/3">Full name</label>
+                            <label class="text-base font-medium text-gray-900 w-1/3">Nom complet</label>
                             <div class="w-2/3 text-gray-700 font-medium uppercase">
                                 {{ $user->full_name }}
                             </div>
                         </div>
 
                         <div class="flex items-center justify-between mb-6">
-                            <label class="text-base font-medium text-gray-900 w-1/3">Gender</label>
+                            <label class="text-base font-medium text-gray-900 w-1/3">Genre</label>
                             <div class="w-2/3">
                                 <select name="gender"
                                     class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
@@ -105,7 +105,7 @@
                         </div>
 
                         <div class="flex items-center justify-between">
-                            <label class="text-base font-medium text-gray-900 w-1/3">Birthday</label>
+                            <label class="text-base font-medium text-gray-900 w-1/3">Date de naissance</label>
                             <div class="w-2/3">
                                 <input type="date" name="birthday" value="{{ $user->getMeta('birthday') }}"
                                     class="w-full border border-gray-300 rounded-lg p-2.5 focus:ring-brand focus:border-brand">
@@ -113,12 +113,12 @@
                         </div>
                     </div>
 
-                    <!-- Holiday mode -->
-                    <!-- Holiday mode -->
+                    <!-- Mode vacances -->
+                    <!-- Mode vacances -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between relative">
                         <div>
-                            <label class="text-base font-medium text-gray-900">Holiday mode</label>
-                            <p class="text-sm text-gray-500 mt-1">Hide your items from search results and catalog.</p>
+                            <label class="text-base font-medium text-gray-900">Mode vacances</label>
+                            <p class="text-sm text-gray-500 mt-1">Masquer vos articles des résultats de recherche et du catalogue.</p>
                         </div>
                         <label class="relative inline-flex items-center cursor-pointer">
                             <input type="checkbox" name="holiday_mode" value="1" class="sr-only peer" x-model="holidayMode"
@@ -135,28 +135,28 @@
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="text-base font-medium text-gray-900">Facebook</h3>
                             <button type="button"
-                                class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Link</button>
+                                class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Lier</button>
                         </div>
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="text-base font-medium text-gray-900">Google</h3>
                             <button type="button"
                                 class="text-gray-400 border border-gray-300 px-4 py-2 rounded text-sm font-medium cursor-not-allowed"
-                                disabled>Linked</button>
+                                disabled>Lié</button>
                         </div>
-                        <p class="text-xs text-gray-500">Link to your other accounts to become a trusted, verified member.
+                        <p class="text-xs text-gray-500">Liez vos autres comptes pour devenir un membre vérifié et de confiance.
                         </p>
                     </div>
 
-                    <!-- Change password -->
+                    <!-- Changer le mot de passe -->
                     <div class="mb-8 pb-8 border-b border-gray-100 flex items-center justify-between">
-                        <h3 class="text-base font-medium text-gray-900">Change password</h3>
+                        <h3 class="text-base font-medium text-gray-900">Changer le mot de passe</h3>
                         <button type="button"
-                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Change</button>
+                            class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">Modifier</button>
                     </div>
 
                     <!-- Delete account -->
                     <div class="mb-8 flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 -mx-2 rounded">
-                        <h3 class="text-base font-medium text-gray-900">Delete my account</h3>
+                        <h3 class="text-base font-medium text-gray-900">Supprimer mon compte</h3>
                         <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
@@ -164,7 +164,7 @@
 
                     <div class="flex justify-end">
                         <button type="submit"
-                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Save</button>
+                            class="bg-gray-900 text-white px-6 py-2 rounded font-medium hover:bg-gray-800">Enregistrer</button>
                     </div>
 
                     <!-- Warning Modal (Moved to end of form) -->
@@ -192,13 +192,13 @@
                                     </svg>
                                 </template>
                                 <h3 class="text-lg font-bold text-gray-900"
-                                    x-text="pendingState ? 'Activate Holiday Mode?' : 'Disable Holiday Mode?'"></h3>
+                                    x-text="pendingState ? 'Activer le mode vacances ?' : 'Désactiver le mode vacances ?'"></h3>
                             </div>
 
                             <p class="text-gray-600 mb-6 leading-relaxed">
                                 <template x-if="pendingState">
                                     <span>Your <strong>{{ $approvedProductsCount }}</strong> approved products will be
-                                        hidden from listings until you disable it.</span>
+                                        masqués des annonces jusqu'à ce que vous le désactiviez.</span>
                                 </template>
                                 <template x-if="!pendingState">
                                     <span>Your <strong>{{ $holidayProductsCount }}</strong> products will be visible to

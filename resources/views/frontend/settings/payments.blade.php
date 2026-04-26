@@ -24,7 +24,7 @@
                 @endif
 
                 <div class="mb-8 pb-8 border-b border-gray-100">
-                    <h3 class="text-base font-medium text-gray-900 mb-4">Withdrawal Accounts</h3>
+                    <h3 class="text-base font-medium text-gray-900 mb-4">Comptes de retrait</h3>
                     <p class="text-sm text-gray-500 mb-6">Manage your bank accounts for withdrawing funds from your wallet.
                     </p>
 
@@ -100,7 +100,7 @@
                             class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-50">
                             <div class="bg-white px-6 pt-6 pb-6">
                                 <div class="flex justify-between items-center mb-6">
-                                    <h3 class="text-xl font-bold text-gray-900">Add Bank Account</h3>
+                                    <h3 class="text-xl font-bold text-gray-900">Ajouter un compte bancaire</h3>
                                     <button @click="showAddModal = false"
                                         class="text-gray-400 hover:text-gray-600 transition-colors">
                                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
