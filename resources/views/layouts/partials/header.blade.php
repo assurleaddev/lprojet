@@ -94,7 +94,7 @@
                                                                                                                                                                 message: notification.message,
                                                                                                                                                                 product_image: notification.product_image || null,
                                                                                                                                                                 url: '/notifications/' + notification.id + '/read',
-                                                                                                                                                                created_at: 'À l'instant',
+                                                                                                                                                                created_at: @js(__('At the moment')),
                                                                                                                                                                 read_at: null
                                                                                                                                                             });
                                                                                                                                                             if (this.notifications.length > 5) {
