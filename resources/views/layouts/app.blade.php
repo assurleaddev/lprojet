@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="{{ app()->getLocale() }}" dir="{{ app()->getLocale() === 'ar' ? 'rtl' : 'ltr' }}">
 
 <head>
     <meta charset="UTF-8">
@@ -317,6 +317,29 @@
         </style>
     @endif
 
+    @if(app()->getLocale() === 'ar')
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        [dir="rtl"] body {
+            font-family: 'Cairo', sans-serif;
+        }
+        [dir="rtl"] .fav-badge {
+            right: auto;
+            left: 12px;
+        }
+        [dir="rtl"] .like-badge {
+            right: auto;
+            left: 6px;
+        }
+        [dir="rtl"] .search-input {
+            padding: 0 36px 0 12px;
+        }
+        [dir="rtl"] .megamenu {
+            left: 0;
+            right: 0;
+        }
+    </style>
+    @endif
     @include('backend.layouts.partials.integration-scripts')
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"
         integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
