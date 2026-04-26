@@ -58,7 +58,7 @@
                         <div class="pt-2 space-y-4">
                             <label class="flex items-start">
                                 <input type="checkbox" wire:model.defer="offersAccepted" class="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-0 text-gray-900">
-                                <span class="ml-2 text-sm text-gray-600">{{ __('I'd like to receive personalised offers and be the first to know about the latest updates to Used via email.') }}</span>
+                                <span class="ml-2 text-sm text-gray-600">{{ __("I'd like to receive personalised offers and be the first to know about the latest updates to Used via email.") }}</span>
                             </label>
                             <label class="flex items-start">
                                 <input type="checkbox" wire:model.defer="termsAccepted" class="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-0 @error('termsAccepted') border-red-500 @enderror text-gray-900">
@@ -84,7 +84,7 @@
                         <button wire:click="setView('login-email')" class="font-semibold hover:underline text-gray-900">e-mail</button>
                     </p>
                     <p class="mt-2 text-sm text-gray-600">
-                        {{ __('Don't have an account yet?') }}
+                        {{ __("Don't have an account yet?") }}
                         <button wire:click="setView('signup-social')" class="font-semibold hover:underline text-gray-900">{{ __('Sign up') }}</button>
                     </p>
                 </div>

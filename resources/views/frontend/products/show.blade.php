@@ -469,7 +469,7 @@
 
             <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6 md:p-6 bg-white md:bg-transparent">
                 <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
-                    <h2 class="text-lg font-bold text-vinted-gray-900">{{ __('Member's items') }}</h2>
+                    <h2 class="text-lg font-bold text-vinted-gray-900">{{ __("Member's items") }}</h2>
                     <a href="{{ route('search', ['vendor_id' => $product->vendor->id]) }}"
                         class="text-sm font-semibold hover:underline text-gray-900">{{ __('See all') }}</a>
                 </div>
@@ -575,7 +575,7 @@
             <div class="relative z-10 bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
                 <h3 class="text-lg font-bold text-gray-900 mb-2">{{ __('Reserve this item') }}</h3>
                 <p class="text-sm text-gray-600 mb-4">
-                    {{ __('You can reserve this item for a specific buyer. They will still be able to buy it, but others won't.') }}
+                    {{ __("You can reserve this item for a specific buyer. They will still be able to buy it, but others won't.") }}
                 </p>
 
                 <form action="{{ route('items.reserve', $product) }}" method="POST" x-data="{
