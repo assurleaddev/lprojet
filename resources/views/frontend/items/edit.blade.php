@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Modifier l'article')
+@section('title', __('Edit Your Item'))
 
 @section('content')
     <div class="mx-auto max-w-[800px] px-4 py-8">
@@ -483,7 +483,7 @@
                         })
                         .finally(() => {
                             submitBtn.disabled = false;
-                            submitBtn.innerText = 'Mettre à jour l'article';
+                            submitBtn.innerText = "{{ __('Update Product') }}";
                         });
                 });
             });
