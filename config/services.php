@@ -52,6 +52,10 @@ return [
         'redirect' => env('APPLE_REDIRECT_URI'),
     ],
 
+    'openai' => [
+        'key' => env('OPENAI_API_KEY'),
+    ],
+
     'twilio' => [
         'sid' => env('TWILIO_SID'),
         'auth_token' => env('TWILIO_AUTH_TOKEN', env('TWILIO_TOKEN')),

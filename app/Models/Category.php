@@ -11,8 +11,7 @@ class Category extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
-    protected $fillable = ['name', 'name_fr', 'slug', 'image', 'parent_id', 'order', 'vinted_id'];
-
+    protected $fillable = ['name', 'name_fr', 'name_ar', 'slug', 'image', 'parent_id', 'order', 'vinted_id'];
 
     public function children()
     {
