@@ -79,13 +79,14 @@ class MakeOfferModal extends Component
             'offerPrice' => ['required', 'numeric', 'min:0.01', 'max:' . $this->product->price],
         ]);
 
-        // Enforce daily offer limit (buyers only, not counter-offers from sellers)
+        // Enforce daily offer limit per product (buyers only, not counter-offers from sellers)
         if (! $this->isCounter) {
             $todayCount = Offer::where('buyer_id', $user->id)
+                ->where('product_id', $this->product->id)
                 ->whereDate('created_at', today())
                 ->count();
             if ($todayCount >= 5) {
-                $this->addError('offerPrice', 'You have reached your daily limit of 5 offers.');
+                $this->addError('offerPrice', 'You have reached your daily limit of 5 offers on this item.');
                 return;
             }
         }

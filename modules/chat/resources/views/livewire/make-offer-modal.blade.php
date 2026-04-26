@@ -105,11 +105,11 @@
                     </div>
 
                     @php
-                        $offersUsedToday = \Modules\Chat\Models\Offer::where('buyer_id', auth()->id())->whereDate('created_at', today())->count();
+                        $offersUsedToday = \Modules\Chat\Models\Offer::where('buyer_id', auth()->id())->where('product_id', $product->id)->whereDate('created_at', today())->count();
                         $offersLeftToday = max(0, 5 - $offersUsedToday);
                     @endphp
                     <p class="text-xs text-gray-500 mb-6">
-                        You have {{ $offersLeftToday }} offer(s) left today. This limit makes it easier for members to manage and review them.
+                        You have {{ $offersLeftToday }} offer(s) left today on this item. This limit makes it easier for members to manage and review them.
                     </p>
 
                     <button type="submit" wire:loading.attr="disabled" wire:target="submitOffer"
