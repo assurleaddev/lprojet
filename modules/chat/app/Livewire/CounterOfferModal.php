@@ -34,7 +34,7 @@ class CounterOfferModal extends Component
     {
         Log::info("CounterOfferModal: openModal triggered for Product {$productId} and Buyer {$targetBuyerId}");
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $this->dispatch('open-auth-modal');
             return;
         }
@@ -42,7 +42,7 @@ class CounterOfferModal extends Component
         $this->productId = $productId;
         $this->targetBuyerId = $targetBuyerId;
 
-        if (!$this->product()) {
+        if (! $this->product()) {
             Log::warning("CounterOfferModal: Product {$productId} not found.");
             $this->productId = null;
             return;
@@ -69,14 +69,16 @@ class CounterOfferModal extends Component
 
     public function submitCounterOffer(ChatService $chatService): void
     {
-        if (!$this->product || !$this->targetBuyerId)
+        if (! $this->product || ! $this->targetBuyerId) {
             return;
+        }
 
         $sellerUser = Auth::user();
         $buyerUser = User::find($this->targetBuyerId);
 
-        if (!$sellerUser || !$buyerUser)
+        if (! $sellerUser || ! $buyerUser) {
             return;
+        }
 
         $validated = $this->validate([
             'offerPrice' => ['required', 'numeric', 'min:0.01', 'max:' . $this->product->price],
@@ -125,7 +127,7 @@ class CounterOfferModal extends Component
 
             if ($message) {
                 $body = sprintf(
-                    "%s made a counter offer of $%s for %s.",
+                    "%s made a counter offer of %s MAD for %s.",
                     $sellerUser->name,
                     number_format($offer->offer_price, 2),
                     $offer->product->name

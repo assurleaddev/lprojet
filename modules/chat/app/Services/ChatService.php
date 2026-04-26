@@ -7,7 +7,6 @@ use App\Models\Product;
 use Modules\Chat\Models\Message;
 use Modules\Chat\Events\MessageSent;
 use Modules\Chat\Models\Conversation;
-use Illuminate\Database\Eloquent\Builder;
 use Modules\Chat\Models\Offer;
 use App\Models\Order;
 use Modules\Chat\Events\MessageRead;
@@ -23,7 +22,7 @@ class ChatService
                 'messages as unread_messages_count' => function ($query) use ($user) {
                     $query->where('user_id', '!=', $user->id)
                         ->whereNull('read_at');
-                }
+                },
             ])
             ->orderByDesc('last_message_at')
             ->with(['product', 'userOne', 'userTwo'])
@@ -100,7 +99,7 @@ class ChatService
         // Attachments are now handled separately via relation, but we create the message first.
         $message = $conversation->messages()->create($data);
 
-        if (!empty($attachments)) {
+        if (! empty($attachments)) {
             foreach ($attachments as $attachment) {
                 // Determine file type
                 $mime = $attachment->getMimeType();
@@ -139,7 +138,7 @@ class ChatService
             ->whereNull('read_at')
             ->update([
                 'read_at' => now(),
-                'delivered_at' => \DB::raw('COALESCE(delivered_at, NOW())')
+                'delivered_at' => \DB::raw('COALESCE(delivered_at, NOW())'),
             ]);
 
         // Mark related database notifications as read
@@ -167,7 +166,7 @@ class ChatService
             ->whereNull('delivered_at')
             ->update(['delivered_at' => now()]);
 
-        // Note: We don't necessarily need a "MessageDelivered" broadcast yet, 
+        // Note: We don't necessarily need a "MessageDelivered" broadcast yet,
         // as simple read receipts are often enough, but it helps for multi-state.
     }
 
@@ -179,7 +178,7 @@ class ChatService
 
         $offer->update(['status' => OfferStatus::Withdrawn]);
 
-        $body = sprintf("%s withdrew their offer of $%s.", $user->name, number_format($offer->offer_price, 2));
+        $body = sprintf("%s withdrew their offer of %s MAD.", $user->name, number_format($offer->offer_price, 2));
 
         $message = $offer->conversation->messages()->create([
             'user_id' => $user->id,
@@ -235,7 +234,7 @@ class ChatService
         // You might store more structured data if needed, e.g., in a JSON column
         $productName = $offer->product ? $offer->product->name : 'a bundle';
         $body = sprintf(
-            "%s made an offer of $%s for %s.",
+            "%s made an offer of %s MAD for %s.",
             $sender->name,
             number_format($offer->offer_price, 2),
             $productName
@@ -267,7 +266,7 @@ class ChatService
     {
         $productName = $offer->product ? $offer->product->name : 'a bundle';
         $offerDetails = sprintf(
-            "offer of $%s for %s",
+            "offer of %s MAD for %s",
             $offer->offer_price,
             $productName
         );
@@ -297,7 +296,7 @@ class ChatService
             // --- Message 2: Checkout Prompt (Primarily for Buyer) ---
             $checkoutUrl = route('checkout.offer', ['offer' => $offer->id]);
             $checkoutBody = sprintf(
-                "Offer accepted! Proceed to checkout for %s at $%s:\n%s",
+                "Offer accepted! Proceed to checkout for %s at %s MAD:\n%s",
                 $productName,
                 number_format($offer->offer_price, 2),
                 $checkoutUrl
@@ -347,7 +346,7 @@ class ChatService
     {
         $productName = $offer->product ? $offer->product->name : 'a bundle';
         $body = sprintf(
-            "%s made a counter offer of $%s for %s.",
+            "%s made a counter offer of %s MAD for %s.",
             $sender->name,
             number_format($offer->offer_price, 2),
             $productName
@@ -378,7 +377,7 @@ class ChatService
         $productName = $order->product ? $order->product->name : "a bundle of {$productCount} items";
 
         $body = sprintf(
-            "Item Sold! %s has purchased %s.\n\nYou will earn: $%s\n\nFunds will be released to your wallet as soon as the buyer confirms reception. Please download the shipping label and prepare the package.\n%s",
+            "Item Sold! %s has purchased %s.\n\nYou will earn: %s MAD\n\nFunds will be released to your wallet as soon as the buyer confirms reception. Please download the shipping label and prepare the package.\n%s",
             $buyer->full_name,
             $productName,
             number_format($order->payout_amount, 2),
@@ -386,7 +385,7 @@ class ChatService
         );
 
         // System message or from buyer? Let's make it look like a system notification or from the buyer.
-        // Since the buyer triggered the action, we'll attribute it to the buyer for now, 
+        // Since the buyer triggered the action, we'll attribute it to the buyer for now,
         // but the UI will render it specially based on type.
         $message = $conversation->messages()->create([
             'user_id' => $buyer->id,

@@ -177,7 +177,7 @@ class MakeOfferModal extends Component
 
             if ($message) {
                 $body = sprintf(
-                    "%s made a %s of $%s for %s.",
+                    "%s made a %s of %s MAD for %s.",
                     $user->name,
                     $this->isCounter ? 'counter offer' : 'offer',
                     number_format($offer->offer_price, 2),
