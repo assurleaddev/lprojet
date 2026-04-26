@@ -25,7 +25,7 @@ class MakeOfferModal extends Component
     #[On('open-make-offer-modal')] // Listen for the browser event
     public function openModal($productId, $isCounter = false, $targetBuyerId = null): void
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             $this->dispatch('open-auth-modal'); // Redirect to login if not authenticated
             return;
         }
@@ -34,7 +34,7 @@ class MakeOfferModal extends Component
         $this->isCounter = $isCounter;
         $this->targetBuyerId = $targetBuyerId;
 
-        if (!$this->product) {
+        if (! $this->product) {
             $this->product = null;
             return;
         }
@@ -47,7 +47,7 @@ class MakeOfferModal extends Component
         }
 
         // If it's a normal offer, ensure the user is NOT the owner (Buyer)
-        if (!$this->isCounter && $this->product->user_id === Auth::id()) {
+        if (! $this->isCounter && $this->product->user_id === Auth::id()) {
             return; // Owner cannot make offer on own product
         }
 
@@ -66,17 +66,29 @@ class MakeOfferModal extends Component
 
     public function submitOffer(ChatService $chatService): void
     {
-        if (!$this->product)
-            return; // Should not happen if modal opened correctly
+        if (! $this->product) {
+            return;
+        } // Should not happen if modal opened correctly
 
         $user = Auth::user();
-        if (!$user)
-            return; // Should not happen
+        if (! $user) {
+            return;
+        } // Should not happen
 
         $validated = $this->validate([
-            // Ensure offer is numeric and less than or equal to original price
             'offerPrice' => ['required', 'numeric', 'min:0.01', 'max:' . $this->product->price],
         ]);
+
+        // Enforce daily offer limit (buyers only, not counter-offers from sellers)
+        if (! $this->isCounter) {
+            $todayCount = Offer::where('buyer_id', $user->id)
+                ->whereDate('created_at', today())
+                ->count();
+            if ($todayCount >= 5) {
+                $this->addError('offerPrice', 'You have reached your daily limit of 5 offers.');
+                return;
+            }
+        }
 
         // Determine buyer and seller for the conversation and offer
         $buyerUser = null;
@@ -84,7 +96,7 @@ class MakeOfferModal extends Component
 
         if ($this->isCounter) {
             // If current user is the seller making a counter offer
-            if (!$this->targetBuyerId) {
+            if (! $this->targetBuyerId) {
                 // This should not happen if the modal is opened correctly for a counter offer
                 // from a chat context where the other user (buyer) is known.
                 return;
@@ -97,7 +109,7 @@ class MakeOfferModal extends Component
             $sellerUser = $this->product->vendor;
         }
 
-        if (!$buyerUser || !$sellerUser) {
+        if (! $buyerUser || ! $sellerUser) {
             return; // Invalid buyer or seller
         }
 

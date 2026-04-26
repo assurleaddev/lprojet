@@ -143,7 +143,7 @@
                             <img src="{{ $otherUser->avatar_url }}"
                                 alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
                         @else
-                            <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                            <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-sm">
                                 {{ $otherUser->initials }}
                             </div>
                         @endif
@@ -152,12 +152,12 @@
                         </div>
                     </div>
                     <div>
-                        <h3 class="font-bold text-lg text-teal-600 leading-tight">
+                        <h3 class="font-bold text-lg text-gray-900 leading-tight">
                             <a href="{{ route('vendor.show', $otherUser) }}" class="hover:underline">
                                 {{ optional($otherUser)->full_name ?? 'User Not Found' }}
                             </a>
                         </h3>
-                        <p x-show="typingUsers.length > 0" class="text-xs text-teal-500 animate-pulse">
+                        <p x-show="typingUsers.length > 0" class="text-xs text-gray-500 animate-pulse">
                             Typing...
                         </p>
                         <p x-show="typingUsers.length === 0" class="text-xs text-gray-500">
@@ -185,7 +185,7 @@
                 <div class="flex-1">
                     <h4 class="font-medium text-gray-900">{{ $this->conversation->product->name }}</h4>
                     <p class="text-sm text-gray-500">{{ $this->conversation->product->price }} MAD</p>
-                    <p class="text-xs text-teal-600 flex items-center mt-1">
+                    <p class="text-xs text-gray-600 flex items-center mt-1">
                         {{ number_format($this->conversation->product->price * 1.05 + 10, 2) }} MAD Includes Buyer Protection
                         <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -221,7 +221,7 @@
                             <button
                                 @click="window.location.href='{{ route('product.checkout', $this->conversation->product) }}'"
                                 @if($isUnavailable) disabled @endif
-                                class="px-3 py-1 bg-teal-600 text-white text-sm font-medium rounded hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="px-3 py-1 bg-gray-900 text-white text-sm font-medium rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed">
                                 Buy Now
                             </button>
                         @elseif($this->conversation->product->status === 'reserved')
@@ -259,7 +259,7 @@
                         <img src="{{ $otherUser->avatar_url }}"
                             alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
                     @else
-                        <div class="w-10 h-10 rounded-full bg-teal-600 flex items-center justify-center text-white font-bold text-sm">
+                        <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-sm">
                             {{ $otherUser->initials }}
                         </div>
                     @endif
@@ -326,9 +326,11 @@
                                 <div class="p-4 flex items-center justify-between">
                                     <div>
                                         <div class="flex items-baseline space-x-2">
-                                            <span class="text-xl font-bold text-gray-900 dark:text-white">
-                                                {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
-                                            </span>
+                                            @if(!($offerStatus === \Modules\Chat\Enums\OfferStatus::Rejected && ($offerData->rejection_reason ?? '') === 'Counter offer made'))
+                                                <span class="text-xl font-bold text-gray-900 dark:text-white">
+                                                    {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
+                                                </span>
+                                            @endif
                                             @if($productData && isset($productData->price))
                                                 <span class="text-sm text-gray-400 line-through">
                                                     {{ number_format($productData->price ?? 0, 2) }} MAD
@@ -384,7 +386,7 @@
                                                 Counter
                                             </button>
                                         @endif
-                                        <button wire:click="promptRejectOffer({{ $offerId }})" wire:loading.attr="disabled"
+                                        <button wire:click="rejectOffer({{ $offerId }})" wire:loading.attr="disabled"
                                             class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
                                             Decline
                                         </button>
@@ -400,7 +402,7 @@
                                             class="col-span-2 w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 rounded-md transition-colors">
                                             Acheter {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
                                         </button>
-                                        <button wire:click="promptRejectOffer({{ $offerId }})" wire:loading.attr="disabled"
+                                        <button wire:click="rejectOffer({{ $offerId }})" wire:loading.attr="disabled"
                                             class="col-span-2 w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium py-2 rounded-md transition-colors">
                                             Decline
                                         </button>
@@ -444,18 +446,18 @@
                     @if($isSeller)
                         <div wire:key="item-sold-{{ $messageId }}" class="flex justify-center my-4 px-4">
                             <div
-                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
-                                <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
+                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+                                <div class="p-4 bg-gray-50 dark:bg-gray-900/20 text-center">
                                     <div
-                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
-                                        <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
+                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                                        <svg class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
                                             </path>
                                         </svg>
                                     </div>
-                                    <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Item Sold!</h3>
-                                    <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Item Sold!</h3>
+                                    <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
                                         {{ trim($cleanBody) }}
                                     </p>
 
@@ -495,18 +497,18 @@
                     @if($isBuyer)
                         <div wire:key="order-placed-{{ $messageId }}" class="flex justify-center my-4 px-4">
                             <div
-                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
-                                <div class="p-4 bg-teal-50 dark:bg-teal-900/20 text-center">
+                                class="w-full max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+                                <div class="p-4 bg-gray-50 dark:bg-gray-900/20 text-center">
                                     <div
-                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-teal-100 dark:bg-teal-800 mb-3">
-                                        <svg class="h-6 w-6 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor"
+                                        class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 mb-3">
+                                        <svg class="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path>
                                         </svg>
                                     </div>
-                                    <h3 class="text-lg font-medium text-teal-900 dark:text-teal-100">Order Placed!</h3>
-                                    <p class="mt-1 text-sm text-teal-700 dark:text-teal-300">
+                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Order Placed!</h3>
+                                    <p class="mt-1 text-sm text-gray-700 dark:text-gray-300">
                                         {{ $messageBody }}
                                     </p>
 
@@ -598,19 +600,19 @@
                         @if (auth()->id() == $offerData->buyer_id)
                             <div class="flex justify-start"> {{-- Align left for buyer prompt --}}
                                 <div
-                                    class="w-full max-w-sm bg-white dark:bg-gray-800 border border-teal-200 dark:border-teal-700 rounded-lg shadow-sm overflow-hidden">
-                                    <div class="p-4 bg-teal-50 dark:bg-teal-900/20">
+                                    class="w-full max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden">
+                                    <div class="p-4 bg-gray-50 dark:bg-gray-900/20">
                                         <div class="flex items-center mb-3">
-                                            <div class="flex-shrink-0 bg-teal-100 dark:bg-teal-800 rounded-full p-2">
-                                                <svg class="h-5 w-5 text-teal-600 dark:text-teal-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <div class="flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-full p-2">
+                                                <svg class="h-5 w-5 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 11-8 0v4M5 9h14l1 12H4L5 9z"></path>
                                                 </svg>
                                             </div>
                                             <div class="ml-3">
-                                                <h3 class="text-sm font-medium text-teal-900 dark:text-teal-100">
+                                                <h3 class="text-sm font-medium text-gray-900 dark:text-gray-100">
                                                     {{ $offerStatus === \Modules\Chat\Enums\OfferStatus::AwaitingBuyer ? 'Seller sent a counter offer!' : 'Offer Accepted!' }}
                                                 </h3>
-                                                <div class="text-xs text-teal-700 dark:text-teal-300">
+                                                <div class="text-xs text-gray-700 dark:text-gray-300">
                                                     You can now purchase this item for
                                                     ${{ number_format($offerData->offer_price ?? 0, 2) }}
                                                 </div>
@@ -631,7 +633,7 @@
                                             </button>
                                         @else
                                             <a href="{{ $checkoutRoute }}" wire:navigate
-                                                class="block w-full text-center bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition-colors shadow-sm">
+                                                class="block w-full text-center bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors shadow-sm">
                                                 Buy Now
                                             </a>
                                         @endif
@@ -647,10 +649,10 @@
                         @else
                             {{-- Professional Price Comparison for Seller --}}
                             <div class="flex justify-end">
-                                <div class="w-full max-w-xs bg-gray-50 dark:bg-gray-800 border border-teal-100 dark:border-teal-900 rounded-lg shadow-sm overflow-hidden">
+                                <div class="w-full max-w-xs bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-900 rounded-lg shadow-sm overflow-hidden">
                                     <div class="p-4 flex items-center justify-between">
                                          <div>
-                                            <p class="text-[10px] text-teal-600 dark:text-teal-400 font-medium uppercase mb-1">Offer Accepted</p>
+                                            <p class="text-[10px] text-gray-700 dark:text-gray-400 font-medium uppercase mb-1">Offer Accepted</p>
                                             <div class="flex items-baseline space-x-2">
                                                 <span class="text-xl font-bold text-gray-900 dark:text-white">
                                                     {{ number_format($offerData->offer_price ?? 0, 2) }} MAD
@@ -703,7 +705,7 @@
                     <div class="flex flex-col {{ $isOwnMessage ? 'items-end' : 'items-start' }} space-y-1 mb-4" wire:key="msg-{{ $messageId }}">
                         {{-- Standard message bubble --}}
                         <div
-                            class="w-fit max-w-[85%] px-4 py-2.5 rounded-2xl shadow-sm {{ $isOwnMessage ? 'bg-teal-600 text-white rounded-tr-none self-end text-left' : 'bg-white dark:bg-gray-800 dark:text-gray-200 rounded-tl-none self-start text-left border border-gray-100 dark:border-gray-700' }}">@if(isset($messageData->attachments) && count($messageData->attachments) > 0)
+                            class="w-fit max-w-[85%] px-4 py-2.5 rounded-2xl shadow-sm {{ $isOwnMessage ? 'bg-gray-900 text-white rounded-tr-none self-end text-left' : 'bg-white dark:bg-gray-800 dark:text-gray-200 rounded-tl-none self-start text-left border border-gray-100 dark:border-gray-700' }}">@if(isset($messageData->attachments) && count($messageData->attachments) > 0)
                                 {{-- ... attachments ... (kept same for brevity in this tool call, but I will include them) --}}
                                 <div class="mb-2 grid {{ count($messageData->attachments) > 1 ? 'grid-cols-2' : 'grid-cols-1' }} gap-2">
                                     @foreach($messageData->attachments as $att)
@@ -725,7 +727,7 @@
                                                 </a>
                                             @else
                                                 <a href="{{ Storage::url($att->file_path) }}" target="_blank"
-                                                    class="flex flex-col items-center justify-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-center {{ $isOwnMessage ? 'text-teal-50' : 'text-teal-600 dark:text-teal-200' }}">
+                                                    class="flex flex-col items-center justify-center p-2 bg-gray-100 dark:bg-gray-700 rounded-lg text-center {{ $isOwnMessage ? 'text-gray-50' : 'text-gray-700 dark:text-gray-200' }}">
                                                     <svg class="h-8 w-8 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                                     </svg>
@@ -744,7 +746,7 @@
                                         </a>
                                     @else
                                         <a href="{{ Storage::url($messageData->attachment_path) }}" target="_blank"
-                                            class="flex items-center space-x-2 {{ $isOwnMessage ? 'text-teal-100 hover:text-white' : 'text-teal-600 hover:text-teal-800' }}">
+                                            class="flex items-center space-x-2 {{ $isOwnMessage ? 'text-gray-100 hover:text-white' : 'text-gray-700 hover:text-gray-900' }}">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                             </svg>
@@ -765,10 +767,10 @@
                                     @if(isset($messageData->read_at) && $messageData->read_at)
                                         {{-- Double Check Teal --}}
                                         <div class="flex items-center -space-x-1" title="Read">
-                                            <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                                             </svg>
-                                            <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
                                             </svg>
                                         </div>
@@ -805,7 +807,7 @@
                 <div class="flex flex-col items-end mb-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div class="flex flex-col items-end max-w-[85%] px-1">
                         {{-- Bubble --}}
-                        <div class="relative group px-4 py-2.5 rounded-2xl shadow-sm text-white bg-teal-600 rounded-tr-none">
+                        <div class="relative group px-4 py-2.5 rounded-2xl shadow-sm text-white bg-gray-900 rounded-tr-none">
                             <p class="text-[14px] leading-relaxed break-words whitespace-pre-wrap" x-text="msg.body"></p>
                         </div>
 
@@ -817,8 +819,8 @@
                             <template x-if="msg.status === 'sending'">
                                 <div class="flex items-center space-x-1">
                                     <span class="flex h-2 w-2 relative">
-                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
+                                        <span class="relative inline-flex rounded-full h-2 w-2 bg-gray-700"></span>
                                     </span>
                                     <span class="text-[10px] text-gray-400">Sending...</span>
                                 </div>
@@ -861,7 +863,7 @@
                     }
                 }" 
                 x-show="showSafety" x-transition.duration.300ms>
-                <svg class="w-5 h-5 text-teal-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-gray-700 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
                     </path>
@@ -869,7 +871,7 @@
                 <div class="text-xs text-gray-600 dark:text-gray-300">
                     <span class="font-semibold">Stay safe on Used.</span> Don't share personal data, click on external
                     links, or scan QR codes.
-                    <a href="#" class="text-teal-600 hover:underline">More safety tips</a>
+                    <a href="#" class="text-gray-700 hover:underline">More safety tips</a>
                 </div>
                 <button @click="hideBanner()" class="text-gray-400 hover:text-gray-600 ml-auto">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -929,8 +931,8 @@
                     <div wire:loading wire:target="attachments" class="absolute -top-1 -right-1">
                         <span class="flex h-3 w-3 relative">
                             <span
-                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-3 w-3 bg-teal-500"></span>
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-gray-700"></span>
                         </span>
                     </div>
                 </button>
@@ -941,7 +943,7 @@
                         class="w-full bg-gray-100 dark:bg-gray-700 border-none rounded-full py-2.5 px-4 focus:ring-0 text-sm dark:text-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         autocomplete="off" @if(!$this->conversation || $isUnavailable) disabled @endif>
                     <button type="submit"
-                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-teal-600 disabled:opacity-50"
+                        class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 disabled:opacity-50"
                         :disabled="(!messageInput.trim() && !{{ count($attachments ?? []) > 0 ? 'true' : 'false' }}) || {{ $isUnavailable ? 'true' : 'false' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -952,69 +954,6 @@
             </form>
             @error('messageBody') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
         @endif
-    </div>
-
-    {{-- Rejection Reason Modal (controlled by Livewire showRejectionModal) --}}
-    <div x-data="{ show: @entangle('showRejectionModal') }" x-show="show" x-on:keydown.escape.window="show = false"
-        style="display: none;" class="fixed inset-0 z-[100] overflow-y-auto" {{-- Increased z-index --}}
-        aria-labelledby="rejection-modal-title" role="dialog" aria-modal="true">
-
-        <div
-            class="flex items-end sm:items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-            {{-- Centering --}}
-            {{-- Background overlay --}}
-            <div x-show="show" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
-                class="fixed inset-0 transition-opacity bg-gray-500 opacity-75 dark:bg-gray-900 dark:bg-opacity-80 z-[110]"
-                {{-- Higher z-index for overlay --}} @click.self="show = false" {{-- Close on overlay click --}}
-                aria-hidden="true"></div>
-
-            {{-- Modal panel --}}
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span> {{--
-            Vertical centering helper --}}
-            <div x-show="show" x-on:click.stop x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                class="relative inline-block w-full max-w-md p-6 my-8 overflow-hidden text-left align-bottom transition-all transform bg-white dark:bg-gray-800 shadow-xl rounded-lg sm:align-middle z-[120]">
-                {{-- Highest z-index for panel --}}
-
-                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-gray-100" id="rejection-modal-title">
-                    Reason for Rejection
-                </h3>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Please provide a reason for rejecting the
-                    offer.</p>
-
-                <form wire:submit.prevent="rejectOffer" class="mt-4 space-y-4">
-                    <div>
-                        <label for="rejectionReasonInputModal" class="sr-only">Rejection Reason</label> {{-- Unique ID
-                        --}}
-                        <textarea wire:model="rejectionReason" id="rejectionReasonInputModal" rows="4" {{-- Unique ID
-                            --}}
-                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-red-500 focus:border-red-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
-                            placeholder="Enter reason (min 10 characters)..." required></textarea>
-                        @error('rejectionReason') <span class="text-red-500 text-xs mt-1">{{ $message }}</span>
-                        @enderror
-                    </div>
-
-                    <div class="flex justify-end space-x-2 pt-4 border-t dark:border-gray-600"> {{-- Added
-                        padding/border --}}
-                        <button type="button" @click="show = false" wire:click="closeRejectionModal"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Cancel
-                        </button>
-                        <button type="submit" wire:loading.attr="disabled" wire:target="rejectOffer"
-                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50">
-                            <span wire:loading wire:target="rejectOffer" class="animate-pulse">Rejecting...</span>
-                            <span wire:loading.remove wire:target="rejectOffer">Confirm Rejection</span>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
     </div>
 
     {{-- Reception Confirmation Modal --}}
@@ -1051,7 +990,7 @@
 
                 <div class="mt-5 sm:mt-6 grid grid-cols-2 gap-3">
                     <button type="button" @click="show = false"
-                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 sm:mt-0 sm:col-start-1 sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 sm:mt-0 sm:col-start-1 sm:text-sm dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
                         Cancel
                     </button>
                     <button type="button" wire:click="confirmReception" wire:loading.attr="disabled"
@@ -1117,14 +1056,14 @@
                         <label for="reviewTextInput"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Review (Required)</label>
                         <textarea wire:model="reviewText" id="reviewTextInput" rows="3"
-                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
+                            class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-gray-500 focus:border-gray-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"
                             placeholder="Describe your experience..." required></textarea>
                         @error('reviewText') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="flex justify-end space-x-2 pt-4 border-t dark:border-gray-600">
                         <button type="button" @click="show = false" wire:click="closeReviewModal"
-                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                            class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-600 border border-gray-300 dark:border-gray-500 rounded-md shadow-sm hover:bg-gray-50 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500">
                             Cancel
                         </button>
                         <button type="submit" wire:loading.attr="disabled" wire:target="submitReview"
@@ -1180,11 +1119,11 @@
                                         <h5 class="text-sm font-bold text-gray-900 uppercase tracking-wider dark:text-gray-400 mb-4">How we support sellers</h5>
                                         <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-2">
                                             <li class="flex items-start">
-                                                <svg class="h-5 w-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                <svg class="h-5 w-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                                                 You'll be compensated if we confirm the order is lost or damaged in transit
                                             </li>
                                             <li class="flex items-start">
-                                                <svg class="h-5 w-5 text-teal-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                <svg class="h-5 w-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                                                 The sale is final unless the order is significantly not as described
                                             </li>
                                         </ul>
@@ -1248,7 +1187,7 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">What's your reason?</label>
-                            <select wire:model="cancellationReason" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:text-white sm:text-sm">
+                            <select wire:model="cancellationReason" class="block w-full rounded-md border-gray-300 dark:border-gray-600 shadow-sm focus:border-gray-500 focus:ring-gray-500 dark:bg-gray-700 dark:text-white sm:text-sm">
                                 <option value="">Choose a reason</option>
                                 @foreach($cancellationReasons as $value => $label)
                                     <option value="{{ $value }}">{{ $label }}</option>

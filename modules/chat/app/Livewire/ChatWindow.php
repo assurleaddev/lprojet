@@ -17,6 +17,8 @@ use App\Models\Order; // Import Order model
 
 class ChatWindow extends Component
 {
+    // File Uploads
+    use \Livewire\WithFileUploads;
     /**
      * The ID of the current conversation being viewed.
      * Passed from the parent ChatDashboard component.
@@ -31,8 +33,9 @@ class ChatWindow extends Component
     public function conversation()
     {
         $user = Auth::user();
-        if (!$user)
+        if (! $user) {
             return null;
+        }
 
         return Conversation::where('id', $this->conversationId)
             ->where(function ($query) use ($user) {
@@ -45,7 +48,7 @@ class ChatWindow extends Component
                 },
                 'product',
                 'userOne',
-                'userTwo'
+                'userTwo',
             ])
             ->first();
     }
@@ -66,7 +69,7 @@ class ChatWindow extends Component
     public function order()
     {
         $conversation = $this->conversation;
-        if (!$conversation || !$conversation->product_id) {
+        if (! $conversation || ! $conversation->product_id) {
             return null;
         }
 
@@ -91,14 +94,9 @@ class ChatWindow extends Component
      * @var string
      */
     public string $messageBody = '';
-
-    // File Uploads
-    use \Livewire\WithFileUploads;
     public $attachments = []; // For the file input (multiple)
 
-    public bool $showRejectionModal = false;
     public ?int $offerToRejectId = null;
-    public string $rejectionReason = '';
 
     // Advanced Features Properties
     public bool $isOtherUserOnline = false;
@@ -106,7 +104,7 @@ class ChatWindow extends Component
     public bool $showParcelModal = false;
     public string $parcelSize = 'm'; // Default to medium for bundles
     public ?int $offerToConfirmId = null;
-    
+
     // Cancellation Features
     public bool $showDetailsSidebar = false;
     public bool $showCancellationModal = false;
@@ -115,7 +113,7 @@ class ChatWindow extends Component
         'item_unavailable' => 'Item is unavailable',
         'changed_mind' => 'Changed my mind',
         'shipping_issue' => 'Shipping issues',
-        'other' => 'Other'
+        'other' => 'Other',
     ];
 
     /**
@@ -149,7 +147,7 @@ class ChatWindow extends Component
     protected function loadConversation(ChatService $chatService): void
     {
         $user = Auth::user();
-        if (!$user) {
+        if (! $user) {
             Log::error("ChatWindow: User not authenticated while trying to load conversation {$this->conversationId}");
             $this->messages = [];
             return;
@@ -198,7 +196,7 @@ class ChatWindow extends Component
                                 'name' => $item->product->name,
                                 'price' => $item->product->price,
                                 'featured_image_url' => $item->product->getFeaturedImageUrl('preview'),
-                            ]
+                            ],
                         ];
                     })->toArray();
                 } else {
@@ -249,8 +247,9 @@ class ChatWindow extends Component
     public function withdrawOffer(int $offerId, ChatService $chatService): void
     {
         $offer = Offer::find($offerId);
-        if (!$offer)
+        if (! $offer) {
             return;
+        }
 
         try {
             $chatService->withdrawOffer($offer, Auth::user());
@@ -263,8 +262,9 @@ class ChatWindow extends Component
 
     public function reserveProduct(ChatService $chatService): void
     {
-        if (!$this->conversation || !$this->conversation->product)
+        if (! $this->conversation || ! $this->conversation->product) {
             return;
+        }
 
         try {
             $otherUser = $this->conversation->getOtherUser(Auth::user());
@@ -278,8 +278,9 @@ class ChatWindow extends Component
 
     public function unreserveProduct(ChatService $chatService): void
     {
-        if (!$this->conversation || !$this->conversation->product)
+        if (! $this->conversation || ! $this->conversation->product) {
             return;
+        }
 
         try {
             $chatService->unreserveProduct($this->conversation->product, Auth::user());
@@ -313,14 +314,15 @@ class ChatWindow extends Component
             return;
         }
 
-        if (!$this->conversation) {
+        if (! $this->conversation) {
             Log::error("ChatWindow: Attempted to send message on unloaded conversation ID {$this->conversationId}");
             $this->addError('messageBody', 'Cannot send message. Conversation not loaded.');
             return;
         }
         $user = Auth::user();
-        if (!$user)
+        if (! $user) {
             return;
+        }
 
         $newMessage = $chatService->sendMessage(
             $this->conversation,
@@ -370,7 +372,7 @@ class ChatWindow extends Component
         $user = Auth::user();
         $offer = Offer::with('items')->find($offerId);
 
-        if (!$offer) {
+        if (! $offer) {
             $this->dispatch('toast', message: 'Offer not found.', type: 'error');
             return;
         }
@@ -387,12 +389,14 @@ class ChatWindow extends Component
 
     public function confirmParcelSize(ChatService $chatService): void
     {
-        if (!$this->offerToConfirmId)
+        if (! $this->offerToConfirmId) {
             return;
+        }
 
         $offer = Offer::find($this->offerToConfirmId);
-        if (!$offer || $offer->seller_id !== Auth::id())
+        if (! $offer || $offer->seller_id !== Auth::id()) {
             return;
+        }
 
         $offer->parcel_size = $this->parcelSize;
         $offer->save();
@@ -442,42 +446,9 @@ class ChatWindow extends Component
         $this->dispatch('toast', message: 'Unauthorized action or invalid offer status.', type: 'error');
     }
 
-    // Method to show the rejection reason modal
-    public function promptRejectOffer(int $offerId): void
+    public function rejectOffer(int $offerId, ChatService $chatService): void
     {
-        $offerExists = Offer::where('id', $offerId)
-            ->where(function ($query) {
-                $query->where(function ($q) {
-                    $q->where('seller_id', Auth::id())
-                        ->where('status', OfferStatus::Pending);
-                })->orWhere(function ($q) {
-                    $q->where('buyer_id', Auth::id())
-                        ->where('status', OfferStatus::AwaitingBuyer);
-                });
-            })
-            ->exists();
-
-        if ($offerExists) {
-            $this->offerToRejectId = $offerId;
-            $this->reset('rejectionReason');
-            $this->showRejectionModal = true;
-        } else {
-            Log::warning("ChatWindow: Invalid or unauthorized attempt to prompt rejection for offer {$offerId} by User " . Auth::id());
-            $this->dispatch('toast', message: 'Offer not found or already actioned.', type: 'error'); // Updated dispatch syntax
-        }
-    }
-
-    // Method to submit the rejection with reason
-    public function rejectOffer(ChatService $chatService): void
-    {
-        if ($this->offerToRejectId === null)
-            return;
-
-        $validated = $this->validate([
-            'rejectionReason' => 'required|string|min:10|max:500',
-        ]);
-
-        $offer = Offer::where('id', $this->offerToRejectId)
+        $offer = Offer::where('id', $offerId)
             ->where(function ($query) {
                 $query->where(function ($q) {
                     $q->where('seller_id', Auth::id())
@@ -489,38 +460,24 @@ class ChatWindow extends Component
             })
             ->first();
 
-        if (!$offer) {
-            Log::warning("ChatWindow: Offer {$this->offerToRejectId} not found or invalid state during rejection by User " . Auth::id());
-            $this->closeRejectionModal();
-            $this->dispatch('toast', message: 'Offer not found or already actioned.', type: 'error'); // Updated dispatch syntax
+        if (! $offer) {
+            $this->dispatch('toast', message: 'Offer not found or already actioned.', type: 'error');
             return;
         }
 
         $offer->status = OfferStatus::Rejected;
-        $offer->rejection_reason = $validated['rejectionReason'];
         $offer->responded_at = now();
         $offer->save();
 
-        Log::info("ChatWindow: Offer {$this->offerToRejectId} rejected by User " . Auth::id() . " Reason: " . $validated['rejectionReason']);
+        $chatService->sendOfferResponseMessage($offer->conversation, Auth::user(), $offer, false, null);
 
-        $chatService->sendOfferResponseMessage($offer->conversation, Auth::user(), $offer, false, $validated['rejectionReason']);
-
-        $this->closeRejectionModal();
-        $this->loadConversation($chatService); // Re-fetch to update $this->messages
-        $this->dispatch('toast', message: 'Offer rejected.', type: 'info'); // Updated dispatch syntax
-    }
-
-    public function closeRejectionModal(): void
-    {
-        $this->showRejectionModal = false;
-        $this->offerToRejectId = null;
-        $this->reset('rejectionReason');
-        $this->resetValidation('rejectionReason');
+        $this->loadConversation($chatService);
+        $this->dispatch('toast', message: 'Offer declined.', type: 'info');
     }
 
     public function toggleDetailsSidebar(): void
     {
-        $this->showDetailsSidebar = !$this->showDetailsSidebar;
+        $this->showDetailsSidebar = ! $this->showDetailsSidebar;
     }
 
     public function openCancellationModal(): void
@@ -543,14 +500,14 @@ class ChatWindow extends Component
 
         $order = $this->order;
 
-        if (!$order) {
+        if (! $order) {
             $this->dispatch('toast', message: 'No cancellable order found.', type: 'error');
             return;
         }
 
         try {
             $isSeller = Auth::id() === $order->vendor_id;
-            
+
             // 1. Update Order Status
             $order->update(['status' => 'cancelled']);
 
@@ -588,7 +545,9 @@ class ChatWindow extends Component
 
     public function reuploadItem(): void
     {
-        if (!$this->conversation || !$this->conversation->product) return;
+        if (! $this->conversation || ! $this->conversation->product) {
+            return;
+        }
 
         $this->conversation->product->update(['status' => 'approved']);
         $this->dispatch('toast', message: 'Item is now available for sale.', type: 'success');
@@ -609,15 +568,15 @@ class ChatWindow extends Component
                 if ($this->conversation->product_id) {
                     $query->where('product_id', $this->conversation->product_id);
                 }
-                
-                if (!empty($offerIds)) {
+
+                if (! empty($offerIds)) {
                     $query->orWhereIn('offer_id', $offerIds);
                 }
             })
             ->latest()
             ->first();
 
-        if (!$order) {
+        if (! $order) {
             $this->dispatch('notify', message: 'No processing or pending order found to ship.', type: 'error');
             return;
         }
@@ -653,7 +612,7 @@ class ChatWindow extends Component
             $order = \App\Models\Order::find($orderId);
         }
 
-        if (!$order || $order->user_id !== Auth::id()) {
+        if (! $order || $order->user_id !== Auth::id()) {
             $this->dispatch('toast', message: 'Unauthorized action or order not found.', type: 'error');
             return;
         }
@@ -675,12 +634,14 @@ class ChatWindow extends Component
 
     public function confirmReception()
     {
-        if (!$this->orderToReviewId)
+        if (! $this->orderToReviewId) {
             return;
+        }
 
         $order = \App\Models\Order::find($this->orderToReviewId);
-        if (!$order || $order->user_id !== Auth::id())
+        if (! $order || $order->user_id !== Auth::id()) {
             return;
+        }
 
         // Update Status to Delivered
         $order->update([
@@ -711,12 +672,14 @@ class ChatWindow extends Component
             'reviewText' => 'required|string|min:5|max:1000', // Required per request
         ]);
 
-        if (!$this->orderToReviewId)
+        if (! $this->orderToReviewId) {
             return;
+        }
 
         $order = \App\Models\Order::find($this->orderToReviewId);
-        if (!$order)
+        if (! $order) {
             return;
+        }
 
         // Ensure order is delivered before reviewing/completing
         if ($order->status !== 'delivered' && $order->status !== 'completed') {
