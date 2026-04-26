@@ -251,7 +251,7 @@
 
         .incl-line {
             font-size: 11px;
-            color: var(--brand);
+            color: #6b7280;
             display: flex;
             align-items: center;
             gap: 4px;

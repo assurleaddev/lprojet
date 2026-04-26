@@ -51,8 +51,14 @@
             <p class="brand-line">{{ $product->name }}</p>
             <p class="meta-line">{{ $product->getOptionsSummaryAttribute() }}</p>
             <p class="price-line">{{ $product->price }} MAD</p>
+            @php
+                $bpPercent = (float) config('settings.buyer_protection_fee_percentage', 5);
+                $bpFixed   = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+                $bpFee     = ($product->price * $bpPercent / 100) + $bpFixed;
+                $inclTotal = $product->price + $bpFee;
+            @endphp
             <div class="incl-line">
-                <span>30.70 MAD incl.</span>
+                <span>{{ number_format($inclTotal, 2) }} MAD incl.</span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
