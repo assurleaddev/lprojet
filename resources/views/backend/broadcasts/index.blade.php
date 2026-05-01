@@ -47,11 +47,22 @@
                             <td class="px-4 py-3 text-gray-500 text-xs">{{ $broadcast->created_at->format('d M Y') }}</td>
                             <td class="px-4 py-3">
                                 @if($broadcast->status === 'draft')
-                                    <form action="{{ route('admin.broadcasts.destroy', $broadcast) }}" method="POST"
-                                        onsubmit="return confirm('Delete this broadcast?')">
-                                        @csrf @method('DELETE')
-                                        <button type="submit" class="text-xs text-red-500 hover:underline">Delete</button>
-                                    </form>
+                                    <div class="flex items-center gap-3">
+                                        <a href="{{ route('admin.broadcasts.edit', $broadcast) }}"
+                                            class="text-xs text-blue-600 hover:underline">Edit</a>
+
+                                        <form action="{{ route('admin.broadcasts.send', $broadcast) }}" method="POST"
+                                            onsubmit="return confirm('Send this broadcast to all users now?')">
+                                            @csrf
+                                            <button type="submit" class="text-xs text-green-600 hover:underline">Send</button>
+                                        </form>
+
+                                        <form action="{{ route('admin.broadcasts.destroy', $broadcast) }}" method="POST"
+                                            onsubmit="return confirm('Delete this broadcast?')">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="text-xs text-red-500 hover:underline">Delete</button>
+                                        </form>
+                                    </div>
                                 @endif
                             </td>
                         </tr>

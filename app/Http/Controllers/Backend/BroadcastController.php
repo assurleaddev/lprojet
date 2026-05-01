@@ -61,6 +61,65 @@ class BroadcastController extends Controller
             ->with('success', 'Broadcast saved as draft.');
     }
 
+    public function edit(Broadcast $broadcast)
+    {
+        abort_if($broadcast->status !== 'draft', 403, 'Only drafts can be edited.');
+
+        return view('backend.broadcasts.edit', compact('broadcast'));
+    }
+
+    public function update(Request $request, Broadcast $broadcast)
+    {
+        abort_if($broadcast->status !== 'draft', 403, 'Only drafts can be edited.');
+
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'pre_text' => 'nullable|string|max:500',
+            'body' => 'required|string|max:2000',
+            'after_text' => 'nullable|string|max:500',
+            'image' => 'nullable|image|max:2048',
+            'button_label' => 'nullable|string|max:100',
+            'button_url' => 'nullable|string|max:500',
+        ]);
+
+        if ($request->hasFile('image')) {
+            if ($broadcast->image_path) {
+                Storage::disk('public')->delete($broadcast->image_path);
+            }
+            $data['image_path'] = $request->file('image')->store('broadcasts', 'public');
+        }
+
+        $broadcast->update([
+            'title' => $data['title'],
+            'pre_text' => $data['pre_text'] ?? null,
+            'body' => $data['body'],
+            'after_text' => $data['after_text'] ?? null,
+            'image_path' => $data['image_path'] ?? $broadcast->image_path,
+            'button_label' => $data['button_label'] ?? null,
+            'button_url' => $data['button_url'] ?? null,
+        ]);
+
+        if ($request->input('action') === 'send') {
+            SendBroadcastJob::dispatch($broadcast->id);
+
+            return redirect()->route('admin.broadcasts.index')
+                ->with('success', 'Broadcast queued and sending to all users.');
+        }
+
+        return redirect()->route('admin.broadcasts.index')
+            ->with('success', 'Broadcast updated.');
+    }
+
+    public function send(Broadcast $broadcast)
+    {
+        abort_if($broadcast->status !== 'draft', 403, 'Only drafts can be sent.');
+
+        SendBroadcastJob::dispatch($broadcast->id);
+
+        return redirect()->route('admin.broadcasts.index')
+            ->with('success', 'Broadcast queued and sending to all users.');
+    }
+
     public function destroy(Broadcast $broadcast)
     {
         if ($broadcast->image_path) {

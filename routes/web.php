@@ -266,6 +266,9 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'r
     Route::get('broadcasts', [\App\Http\Controllers\Backend\BroadcastController::class, 'index'])->name('broadcasts.index');
     Route::get('broadcasts/create', [\App\Http\Controllers\Backend\BroadcastController::class, 'create'])->name('broadcasts.create');
     Route::post('broadcasts', [\App\Http\Controllers\Backend\BroadcastController::class, 'store'])->name('broadcasts.store');
+    Route::get('broadcasts/{broadcast}/edit', [\App\Http\Controllers\Backend\BroadcastController::class, 'edit'])->name('broadcasts.edit');
+    Route::put('broadcasts/{broadcast}', [\App\Http\Controllers\Backend\BroadcastController::class, 'update'])->name('broadcasts.update');
+    Route::post('broadcasts/{broadcast}/send', [\App\Http\Controllers\Backend\BroadcastController::class, 'send'])->name('broadcasts.send');
     Route::delete('broadcasts/{broadcast}', [\App\Http\Controllers\Backend\BroadcastController::class, 'destroy'])->name('broadcasts.destroy');
 
     Route::get('claims', [\App\Http\Controllers\Backend\Marketplace\ClaimController::class, 'index'])->name('claims.index');
