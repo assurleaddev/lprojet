@@ -16,11 +16,21 @@
                             class="p-4 border-b dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 {{ $selectedConversationId === $conv->id ? 'bg-gray-100 dark:bg-gray-700' : '' }}"
                             wire:key="conversation-{{ $conv->id }}">
 
+                            @php
+                                $isSystem = $otherUser && $otherUser->is_system;
+                                $displayName = $isSystem ? config('app.name') : ($otherUser->full_name ?? 'Unknown User');
+                                $lastMeta = $isSystem && $conv->lastMessage ? ($conv->lastMessage->metadata ?? []) : [];
+                                $broadcastPreview = $lastMeta['pre_text'] ?? ($lastMeta['title'] ?? null);
+                            @endphp
+
                             <div class="flex items-start space-x-3">
                                 {{-- User Avatar --}}
-                                @if($otherUser->avatar_id)
+                                @if($isSystem)
+                                    <img src="{{ $otherUser->avatar_url }}" alt="{{ $displayName }}"
+                                        class="w-10 h-10 rounded-full object-cover border border-gray-200 dark:border-gray-600">
+                                @elseif($otherUser->avatar_id)
                                     <img src="{{ $otherUser->avatar_url }}"
-                                        alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
+                                        alt="{{ $displayName }}" class="w-10 h-10 rounded-full object-cover">
                                 @else
                                     <div class="w-10 h-10 rounded-full bg-teal-600 flex-shrink-0 flex items-center justify-center text-white font-bold text-sm">
                                         {{ $otherUser->initials }}
@@ -30,7 +40,7 @@
                                 <div class="flex-1 min-w-0">
                                     <div class="flex justify-between items-baseline">
                                         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                                            {{ $otherUser->full_name ?? 'Unknown User' }}
+                                            {{ $displayName }}
                                         </h3>
                                         <div class="flex flex-col items-end">
                                             <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -43,17 +53,23 @@
                                     </div>
 
                                     <div class="flex justify-between items-center mt-1">
-                                        <p class="text-sm text-gray-600 dark:text-gray-400 truncate pr-2">
-                                            {{ $conv->product->name ?? 'Product Deleted' }}
-                                            <br>
-                                            <span class="text-gray-500 font-normal">
-                                                {{ $conv->product->price ?? '0.00' }} MAD
-                                            </span>
-                                        </p>
+                                        @if($isSystem)
+                                            <p class="text-sm text-gray-500 dark:text-gray-400 truncate pr-2 italic">
+                                                {{ $broadcastPreview ? \Illuminate\Support\Str::limit($broadcastPreview, 40) : config('app.name') }}
+                                            </p>
+                                        @else
+                                            <p class="text-sm text-gray-600 dark:text-gray-400 truncate pr-2">
+                                                {{ $conv->product->name ?? 'Product Deleted' }}
+                                                <br>
+                                                <span class="text-gray-500 font-normal">
+                                                    {{ $conv->product->price ?? '0.00' }} MAD
+                                                </span>
+                                            </p>
 
-                                        @if($conv->product && $conv->product->getFeaturedImageUrl('preview'))
-                                            <img src="{{ $conv->product->getFeaturedImageUrl('preview') }}" alt="Product"
-                                                class="w-10 h-10 rounded-md object-cover border border-gray-200">
+                                            @if($conv->product && $conv->product->getFeaturedImageUrl('preview'))
+                                                <img src="{{ $conv->product->getFeaturedImageUrl('preview') }}" alt="Product"
+                                                    class="w-10 h-10 rounded-md object-cover border border-gray-200">
+                                            @endif
                                         @endif
                                     </div>
                                 </div>

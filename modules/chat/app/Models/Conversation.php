@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
 use App\Models\Product;
+
 // use Modules\Chat\Database\Factories\ConversationFactory;
 
 class Conversation extends Model
@@ -22,6 +23,11 @@ class Conversation extends Model
     public function messages()
     {
         return $this->hasMany(Message::class, 'conversation_id');
+    }
+
+    public function lastMessage()
+    {
+        return $this->hasOne(Message::class, 'conversation_id')->latestOfMany();
     }
 
     public function product()
@@ -45,7 +51,7 @@ class Conversation extends Model
         $isUserOne = $this->user_one_id == $currentUser->id;
         $otherUser = $isUserOne ? $this->userTwo : $this->userOne;
 
-        if (!$otherUser) {
+        if (! $otherUser) {
             $otherId = $isUserOne ? $this->user_two_id : $this->user_one_id;
             $otherUser = User::find($otherId);
         }

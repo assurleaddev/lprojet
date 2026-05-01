@@ -25,7 +25,7 @@ class ChatService
                 },
             ])
             ->orderByDesc('last_message_at')
-            ->with(['product', 'userOne', 'userTwo'])
+            ->with(['product', 'userOne', 'userTwo', 'lastMessage'])
             ->get();
 
         // Fetch unread chat notifications to check per conversation
