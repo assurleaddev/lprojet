@@ -26,10 +26,14 @@ class Order extends Model
         'shipping_option_id',
         'offer_id',
         'received_at',
+        'wants_verification',
+        'verification_fee',
     ];
 
     protected $casts = [
         'received_at' => 'datetime',
+        'wants_verification' => 'boolean',
+        'verification_fee' => 'decimal:2',
     ];
 
     /**

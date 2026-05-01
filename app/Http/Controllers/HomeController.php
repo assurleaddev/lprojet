@@ -301,6 +301,9 @@ class HomeController extends Controller
         // Calculate default protection fee
         $protectionFee = ((float) $product->price * ((float) $buyerProtectionPercentage / 100)) + (float) $buyerProtectionFixed;
 
+        $verificationThreshold = (float) config('settings.product_verification_threshold', 500);
+        $verificationFee = (float) config('settings.product_verification_fee', 50);
+
         return view('frontend.products.checkout', [
             'product' => $product,
             'isBundle' => false,
@@ -308,6 +311,8 @@ class HomeController extends Controller
             'shippingOptions' => $shippingOptions,
             'protectionFee' => $protectionFee,
             'deliveryFeeFixed' => $deliveryFeeFixed,
+            'verificationThreshold' => $verificationThreshold,
+            'verificationFee' => $verificationFee,
         ]);
     }
 
@@ -361,17 +366,20 @@ class HomeController extends Controller
         // Calculate default protection fee
         $protectionFee = ((float) $priceToPay * ((float) $buyerProtectionPercentage / 100)) + (float) $buyerProtectionFixed;
 
-        // --- Display View ---
-        // Ensure 'frontend.products.checkout' view exists
+        $verificationThreshold = (float) config('settings.product_verification_threshold', 500);
+        $verificationFee = (float) config('settings.product_verification_fee', 50);
+
         return view('frontend.products.checkout', [
             'product' => $product,
             'isBundle' => $isBundle,
             'offer' => $offer,
-            'checkoutPrice' => $priceToPay, // Use this variable in the view
+            'checkoutPrice' => $priceToPay,
             'addresses' => $addresses,
             'shippingOptions' => $shippingOptions,
             'protectionFee' => $protectionFee,
             'deliveryFeeFixed' => $deliveryFeeFixed,
+            'verificationThreshold' => $verificationThreshold,
+            'verificationFee' => $verificationFee,
         ]);
     }
 

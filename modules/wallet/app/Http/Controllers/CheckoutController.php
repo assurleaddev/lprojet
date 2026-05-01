@@ -91,8 +91,13 @@ class CheckoutController extends Controller
         $buyerProtectionFee = ($amount * ($buyerProtectionPercentage / 100)) + $buyerProtectionFixed;
         $platformCommission = $amount * ($platformCommissionPercentage / 100);
 
-        $totalAmount = $amount + $shippingCost + $buyerProtectionFee;
-        $platformRevenue = $buyerProtectionFee + $platformCommission + $shippingCost;
+        $wantsVerification = $request->boolean('wants_verification');
+        $verificationFee = $wantsVerification
+            ? (float) config('settings.product_verification_fee', 50)
+            : 0.0;
+
+        $totalAmount = $amount + $shippingCost + $buyerProtectionFee + $verificationFee;
+        $platformRevenue = $buyerProtectionFee + $platformCommission + $shippingCost + $verificationFee;
 
         // Vendor Payout = Item Price - Commission
         $vendorPayout = $amount - $platformCommission;
@@ -126,6 +131,8 @@ class CheckoutController extends Controller
             'address_id' => $request->address_id,
             'shipping_option_id' => $request->shipping_option_id ?? null,
             'offer_id' => $offer?->id,
+            'wants_verification' => $wantsVerification,
+            'verification_fee' => $verificationFee,
         ]);
 
         if ($paymentMethod === 'cod') {

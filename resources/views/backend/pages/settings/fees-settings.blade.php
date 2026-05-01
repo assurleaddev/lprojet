@@ -130,5 +130,42 @@
             </p>
         </div>
 
+        <div class="border-t border-gray-100 dark:border-gray-800 pt-6">
+            <h4 class="text-sm font-medium text-gray-900 dark:text-gray-200 mb-1">{{ __('Product Verification') }}</h4>
+            <p class="text-xs text-gray-500 mb-4">{{ __('Buyers can optionally request a physical verification of the item before it is shipped. Shown at checkout only when the item price meets the threshold.') }}</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ __('Verification Threshold') }}
+                    </label>
+                    <div class="relative">
+                        <input type="number" step="0.01" min="0" name="product_verification_threshold"
+                            value="{{ config('settings.product_verification_threshold') ?? '500' }}" class="form-control"
+                            placeholder="500">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">MAD</span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">{{ __('Minimum item price for the verification option to appear at checkout.') }}</p>
+                </div>
+
+                <div>
+                    <label class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {{ __('Verification Fee') }}
+                    </label>
+                    <div class="relative">
+                        <input type="number" step="0.01" min="0" name="product_verification_fee"
+                            value="{{ config('settings.product_verification_fee') ?? '50' }}" class="form-control"
+                            placeholder="50">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">MAD</span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">{{ __('Fixed amount added to the order total when the buyer opts in for verification.') }}</p>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>

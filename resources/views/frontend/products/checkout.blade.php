@@ -32,6 +32,7 @@
             <input type="hidden" id="base_price" value="{{ $price }}">
             <input type="hidden" id="protection_fee" value="{{ $protectionFee }}">
             <input type="hidden" id="wallet_balance" value="{{ $walletBalance }}">
+            <input type="hidden" id="verification_fee_amount" value="{{ $verificationFee }}">
 
             <!-- Left Column (Content) -->
             <div class="lg:col-span-8 space-y-6">
@@ -191,6 +192,30 @@
                     <input type="hidden" id="fallback_shipping" value="{{ $deliveryFeeFixed }}">
                 @endif
 
+                <!-- 3b. Product Verification (optional, shown when price >= threshold) -->
+                @if($price >= $verificationThreshold)
+                <div>
+                    <h3 class="font-bold text-gray-900 mb-2">{{ __('Product Verification') }}</h3>
+                    <div class="bg-white rounded-lg border border-gray-200 p-4">
+                        <label class="flex items-start gap-4 cursor-pointer group">
+                            <div class="mt-0.5">
+                                <input type="checkbox" name="wants_verification" id="wants_verification" value="1"
+                                    class="w-5 h-5 border-gray-300 text-gray-900 rounded">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <p class="font-medium text-gray-900">{{ __('Verify this item before shipping') }}</p>
+                                    <span class="text-sm font-semibold text-gray-700">+ {{ number_format($verificationFee, 2) }} MAD</span>
+                                </div>
+                                <p class="text-xs text-gray-500 mt-1 leading-relaxed">
+                                    {{ __('A trusted agent will physically inspect the item and confirm its condition before it is sent. Ideal for high-value purchases.') }}
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                @endif
+
                 <!-- 4. Payment -->
                 <div>
                     <h3 class="font-bold text-gray-900 mb-2">{{ __('Payment') }}</h3>
@@ -240,6 +265,10 @@
                             <span class="text-gray-600">{{ __('Shipping') }}</span>
                             <span class="font-medium text-gray-900" id="summary-shipping">{{ number_format($initialShippingFee, 2) }} MAD</span>
                         </div>
+                        <div class="flex justify-between items-center" id="summary-verification-row" style="display:none!important">
+                            <span class="text-gray-600">{{ __('Verification') }}</span>
+                            <span class="font-medium text-gray-900" id="summary-verification">{{ number_format($verificationFee, 2) }} MAD</span>
+                        </div>
                     </div>
                     <div class="flex justify-between items-center border-t border-gray-100 pt-4 mb-6">
                         <span class="font-bold text-lg text-gray-900">{{ __('Total to pay') }}</span>
@@ -263,11 +292,14 @@
             const basePrice = parseFloat(document.getElementById('base_price').value);
             const protectionFee = parseFloat(document.getElementById('protection_fee').value);
             const walletBalance = parseFloat(document.getElementById('wallet_balance').value);
-            
+            const verificationFeeAmount = parseFloat(document.getElementById('verification_fee_amount').value || 0);
+
             const categoryRadios = document.querySelectorAll('.category-radio');
             const shippingRadios = document.querySelectorAll('.shipping-option-radio');
             const categoryOptionsContainers = document.querySelectorAll('.category-options');
-            
+            const verificationCheckbox = document.getElementById('wants_verification');
+            const verificationRow = document.getElementById('summary-verification-row');
+
             const summaryShipping = document.getElementById('summary-shipping');
             const summaryTotal = document.getElementById('summary-total');
             const walletOption = document.getElementById('payment_wallet');
@@ -315,13 +347,19 @@
                 if (selected) {
                     shippingCost = parseFloat(selected.getAttribute('data-price'));
                 } else {
-                    // Fallback
                     const fallback = document.getElementById('fallback_shipping');
-                    if(fallback) shippingCost = parseFloat(fallback.value);
+                    if (fallback) shippingCost = parseFloat(fallback.value);
                 }
 
-                const total = basePrice + protectionFee + shippingCost;
-                
+                const wantsVerification = verificationCheckbox && verificationCheckbox.checked;
+                const verificationCost = wantsVerification ? verificationFeeAmount : 0;
+
+                if (verificationRow) {
+                    verificationRow.style.setProperty('display', wantsVerification ? 'flex' : 'none', 'important');
+                }
+
+                const total = basePrice + protectionFee + shippingCost + verificationCost;
+
                 // Update UI
                 summaryShipping.textContent = shippingCost.toFixed(2) + ' MAD';
                 summaryTotal.textContent = total.toFixed(2) + ' MAD';
@@ -364,6 +402,10 @@
                     }
                 });
             });
+
+            if (verificationCheckbox) {
+                verificationCheckbox.addEventListener('change', updateTotals);
+            }
 
             // Initial calculation
             // Force selection if none
