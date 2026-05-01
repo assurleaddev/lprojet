@@ -81,6 +81,7 @@ Route::get('/product/{product}', [HomeController::class, 'checkout'])
     ->name('product.checkout');
 
 Route::post('/reviews', [App\Http\Controllers\ReviewController::class, 'store'])->name('reviews.store')->middleware('auth');
+Route::post('/reviews/{review}/reply', [App\Http\Controllers\ReviewController::class, 'reply'])->name('reviews.reply')->middleware('auth');
 
 // Verification Route
 Route::get('/verify-email', \App\Livewire\Auth\VerifyEmail::class)

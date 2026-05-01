@@ -146,8 +146,11 @@ class HomeController extends Controller
         // followings is polymorphic-by-type; count the model you care about
         $followingUsersCount = $user->followings()->count();
 
-        $reviews = $user->receivedReviews()->with('author')->latest()->get();
-        \Log::info('Reviews for user ' . $user->id . ': ' . $reviews->count());
+        $reviews = $user->receivedReviews()
+            ->whereNull('parent_id')
+            ->with(['author', 'reply.author'])
+            ->latest()
+            ->get();
 
         // Calculate Stats
         $totalReviews = $reviews->count();

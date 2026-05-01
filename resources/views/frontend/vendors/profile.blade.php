@@ -443,13 +443,39 @@
                                         {{ $review->review }}
                                     </p>
 
-                                    <button class="mt-3 inline-flex items-center gap-2 hover:underline text-[14px]"
-                                        class="text-gray-900">
-                                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                                            <path d="M12 2a9 9 0 1 0 9 9h-9V2Z" />
-                                        </svg>
-                                        {{ __('Translate this') }}
-                                    </button>
+                                    {{-- Seller reply --}}
+                                    @if($review->reply)
+                                        <div class="mt-4 ml-2 pl-4 border-l-2 border-gray-200">
+                                            <div class="flex items-center gap-2 mb-1">
+                                                <img src="{{ $review->reply->author->avatar_url }}"
+                                                    alt="{{ $review->reply->author->username }}"
+                                                    class="w-6 h-6 rounded-full object-cover">
+                                                <span class="text-sm font-semibold text-gray-900">{{ $review->reply->author->username }}</span>
+                                                <span class="text-xs text-gray-400">{{ $review->reply->created_at->diffForHumans() }}</span>
+                                            </div>
+                                            <p class="text-sm text-gray-700">{{ $review->reply->review }}</p>
+                                        </div>
+                                    @elseif(Auth::check() && Auth::id() === $user->id && !$isAuto)
+                                        {{-- Reply form for the seller on their own profile --}}
+                                        <div x-data="{ open: false }" class="mt-3">
+                                            <button @click="open = !open"
+                                                class="text-sm text-gray-500 hover:text-gray-900 hover:underline transition-colors">
+                                                {{ __('Reply to this review') }}
+                                            </button>
+                                            <div x-show="open" x-transition class="mt-2">
+                                                <form action="{{ route('reviews.reply', $review) }}" method="POST">
+                                                    @csrf
+                                                    <textarea name="reply" rows="2" required minlength="2" maxlength="1000"
+                                                        class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
+                                                        placeholder="{{ __('Write your reply...') }}"></textarea>
+                                                    <button type="submit"
+                                                        class="mt-2 px-4 py-1.5 text-sm font-medium rounded-md bg-gray-900 text-white hover:bg-gray-700 transition-colors">
+                                                        {{ __('Post reply') }}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </li>

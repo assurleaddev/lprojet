@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Review extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = [
+        'parent_id',
         'title',
         'review',
         'rating',
@@ -33,5 +35,15 @@ class Review extends Model
     public function author()
     {
         return $this->morphTo();
+    }
+
+    public function reply()
+    {
+        return $this->hasOne(Review::class, 'parent_id');
+    }
+
+    public function parent()
+    {
+        return $this->belongsTo(Review::class, 'parent_id');
     }
 }

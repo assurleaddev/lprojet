@@ -69,4 +69,38 @@ class ReviewController extends Controller
 
         return back()->with('success', 'Review submitted successfully!');
     }
+
+    public function reply(Request $request, Review $review)
+    {
+        $request->validate([
+            'reply' => 'required|string|min:2|max:1000',
+        ]);
+
+        // Only the reviewed seller can reply
+        if ($review->model_id !== Auth::id() || $review->model_type !== User::class) {
+            abort(403);
+        }
+
+        // Top-level reviews only (no reply-to-reply)
+        if ($review->parent_id !== null) {
+            abort(403);
+        }
+
+        // One reply per review
+        if ($review->reply()->exists()) {
+            return back()->with('error', 'You have already replied to this review.');
+        }
+
+        Review::create([
+            'parent_id' => $review->id,
+            'review' => $request->reply,
+            'rating' => $review->rating,
+            'model_id' => $review->model_id,
+            'model_type' => $review->model_type,
+            'author_id' => Auth::id(),
+            'author_type' => User::class,
+        ]);
+
+        return back()->with('success', 'Reply posted.');
+    }
 }
