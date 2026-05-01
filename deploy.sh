@@ -14,7 +14,6 @@ php artisan migrate --force --no-interaction
 echo "==> Clearing and rebuilding caches..."
 php artisan config:cache
 php artisan route:cache
-php artisan view:cache
 php artisan event:cache
 
 echo "==> Fixing storage permissions..."
