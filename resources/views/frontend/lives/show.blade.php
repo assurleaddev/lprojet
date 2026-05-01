@@ -5,18 +5,61 @@
 /* ── Full-screen feed — break out of the app layout ── */
 #main-header { display: none !important; }
 body > main { padding: 0 !important; margin: 0 !important; }
-html, body { height: 100%; margin: 0; overflow: hidden; }
+html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 
-#live-feed {
+/* center a mobile-width column on large screens */
+#live-feed-outer {
     position: fixed;
     inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    background: #111;
+}
+#live-feed {
+    width: 100%;
+    max-width: 480px;
+    height: 100dvh;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    z-index: 50;
+    position: relative;
+    flex-shrink: 0;
 }
 #live-feed::-webkit-scrollbar { display: none; }
+
+/* dim the sides on desktop */
+#live-feed-outer::before,
+#live-feed-outer::after {
+    content: '';
+    flex: 1;
+    background: #000;
+}
+
+/* ── Back button ── */
+#live-back-btn {
+    position: fixed;
+    top: 16px;
+    left: calc(50% - 240px + 12px);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0,0,0,.45);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.2);
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+}
+@media (max-width: 480px) {
+    #live-back-btn { left: 12px; }
+}
 
 /* ── Individual live screen ── */
 .live-screen {
@@ -163,6 +206,12 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 @endsection
 
 @section('content')
+<a href="{{ route('lives.index') }}" id="live-back-btn" aria-label="{{ __('Back') }}">
+    <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+    </svg>
+</a>
+<div id="live-feed-outer">
 <div id="live-feed">
     @foreach($orderedLives as $liveItem)
     @php
@@ -349,7 +398,8 @@ html, body { height: 100%; margin: 0; overflow: hidden; }
 
     </div>
     @endforeach
-</div>
+</div>{{-- #live-feed --}}
+</div>{{-- #live-feed-outer --}}
 @endsection
 
 @section('after_body')
