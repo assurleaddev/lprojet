@@ -402,9 +402,19 @@
                                     <h3 class="text-base font-semibold text-gray-900 group-hover:underline">
                                         {{ $product->vendor->username }}
                                     </h3>
-                                    <div class="flex items-center text-amber-400 text-sm">
-                                        ★★★★★ <span
-                                            class="text-gray-400 ml-1 text-xs">({{ $product->vendor->receivedReviews()->count() }})</span>
+                                    @php
+                                        $vendorReviews = $product->vendor->receivedReviews()->whereNull('parent_id')->get();
+                                        $vendorAvg = $vendorReviews->avg('rating') ?? 0;
+                                        $vendorTotal = $vendorReviews->count();
+                                    @endphp
+                                    <div class="flex items-center gap-0.5 text-sm">
+                                        @for ($i = 0; $i < 5; $i++)
+                                            <svg class="h-3.5 w-3.5 {{ $i < round($vendorAvg) ? 'text-amber-400' : 'text-gray-300' }}"
+                                                viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z"/>
+                                            </svg>
+                                        @endfor
+                                        <span class="text-gray-400 ml-1 text-xs">({{ $vendorTotal }})</span>
                                     </div>
                                 </div>
                             </a>
