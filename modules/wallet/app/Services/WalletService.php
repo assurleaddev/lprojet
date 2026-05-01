@@ -128,14 +128,14 @@ class WalletService
                 $vendorWallet->save();
             }
 
-            // 3. Reclaim funds from Platform Account (Buyer Protection + Commission + Shipping if held)
-            $platformRevenue = ($order->total_amount - $order->amount) + ($order->platform_commission ?? 0);
+            // 3. Reclaim platform fees (protection + commission + verification — shipping goes to delivery company)
+            $platformRevenue = $order->platform_fees;
             if ($platformRevenue > 0) {
                 $platformWallet = $this->getPlatformWallet();
-                
+
                 // We debit the platform the amount they collected
                 if ($platformWallet->balance >= $platformRevenue) {
-                     $this->debitWallet($platformWallet, $platformRevenue, 'refund_debit', "Refund reversal for Order #{$order->id}", "order_refund_rev_{$order->id}");
+                    $this->debitWallet($platformWallet, $platformRevenue, 'refund_debit', "Refund reversal for Order #{$order->id}", "order_refund_rev_{$order->id}");
                 }
             }
 

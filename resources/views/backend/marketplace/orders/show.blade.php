@@ -83,10 +83,6 @@
                                 <span>Buyer Protection</span>
                                 <span class="font-medium text-gray-800">{{ number_format($order->buyer_protection_fee, 2) }} MAD</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span>Shipping Margin</span>
-                                <span class="font-medium text-gray-800">{{ number_format($order->shipping_cost, 2) }} MAD</span>
-                            </div>
                             @if($order->wants_verification)
                                 <div class="flex justify-between">
                                     <span>Verification Fee</span>

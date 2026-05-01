@@ -97,7 +97,7 @@ class CheckoutController extends Controller
             : 0.0;
 
         $totalAmount = $amount + $shippingCost + $buyerProtectionFee + $verificationFee;
-        $platformRevenue = $buyerProtectionFee + $platformCommission + $shippingCost + $verificationFee;
+        $platformRevenue = $buyerProtectionFee + $platformCommission + $verificationFee;
 
         // Vendor Payout = Item Price - Commission
         $vendorPayout = $amount - $platformCommission;

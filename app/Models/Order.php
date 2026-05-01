@@ -45,11 +45,13 @@ class Order extends Model
     }
 
     /**
-     * Total fees collected by the platform for this order.
+     * True platform gain: protection + verification + commission. Shipping goes to the delivery company.
      */
     public function getPlatformFeesAttribute()
     {
-        return ($this->total_amount - $this->amount) + ($this->platform_commission ?? 0);
+        return ($this->buyer_protection_fee ?? 0)
+            + ($this->verification_fee ?? 0)
+            + ($this->platform_commission ?? 0);
     }
 
     // The customer who placed the order
