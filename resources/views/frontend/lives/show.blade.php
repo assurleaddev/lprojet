@@ -95,7 +95,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 
 /* ── Product card ── */
 .live-product {
-    position: absolute; left: 12px; bottom: 200px; z-index: 10; width: 200px;
+    position: absolute; left: 12px; bottom: 390px; z-index: 10; width: 210px;
 }
 .product-card-live {
     display: flex; align-items: center; gap: 8px;
@@ -136,7 +136,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 /* ── Comments ── */
 .live-comments {
     position: absolute; bottom: 185px; left: 12px; right: 80px; z-index: 10;
-    max-height: 210px; overflow-y: auto;
+    max-height: 160px; overflow-y: auto;
     mask-image: linear-gradient(transparent 0%, black 30%);
     scrollbar-width: none; pointer-events: none;
 }
