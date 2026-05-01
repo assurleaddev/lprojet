@@ -73,6 +73,7 @@ class ReviewController extends Controller
     public function reply(Request $request, Review $review)
     {
         $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
             'reply' => 'required|string|min:2|max:1000',
         ]);
 
@@ -94,7 +95,7 @@ class ReviewController extends Controller
         Review::create([
             'parent_id' => $review->id,
             'review' => $request->reply,
-            'rating' => $review->rating,
+            'rating' => $request->rating,
             'model_id' => $review->model_id,
             'model_type' => $review->model_type,
             'author_id' => Auth::id(),

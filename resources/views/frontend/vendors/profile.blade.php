@@ -453,6 +453,14 @@
                                                 <span class="text-sm font-semibold text-gray-900">{{ $review->reply->author->username }}</span>
                                                 <span class="text-xs text-gray-400">{{ $review->reply->created_at->diffForHumans() }}</span>
                                             </div>
+                                            <div class="flex items-center gap-0.5 mb-1">
+                                                @for ($i = 0; $i < 5; $i++)
+                                                    <svg class="h-3.5 w-3.5 {{ $i < $review->reply->rating ? 'text-amber-400' : 'text-gray-300' }}"
+                                                        viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z"/>
+                                                    </svg>
+                                                @endfor
+                                            </div>
                                             <p class="text-sm text-gray-700">{{ $review->reply->review }}</p>
                                         </div>
                                     @elseif(Auth::check() && Auth::id() === $user->id && !$isAuto)
@@ -465,6 +473,20 @@
                                             <div x-show="open" x-transition class="mt-2">
                                                 <form action="{{ route('reviews.reply', $review) }}" method="POST">
                                                     @csrf
+                                                    {{-- Star rating picker --}}
+                                                    <div class="flex items-center gap-1 mb-3" x-data="{ rating: 5 }">
+                                                        @for ($i = 1; $i <= 5; $i++)
+                                                            <label class="cursor-pointer">
+                                                                <input type="radio" name="rating" value="{{ $i }}" class="sr-only"
+                                                                    x-on:change="rating = {{ $i }}" {{ $i === 5 ? 'checked' : '' }}>
+                                                                <svg class="h-6 w-6 transition-colors"
+                                                                    :class="rating >= {{ $i }} ? 'text-amber-400' : 'text-gray-300'"
+                                                                    viewBox="0 0 20 20" fill="currentColor">
+                                                                    <path d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z"/>
+                                                                </svg>
+                                                            </label>
+                                                        @endfor
+                                                    </div>
                                                     <textarea name="reply" rows="2" required minlength="2" maxlength="1000"
                                                         class="block w-full text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-gray-900 focus:border-gray-900"
                                                         placeholder="{{ __('Write your reply...') }}"></textarea>
