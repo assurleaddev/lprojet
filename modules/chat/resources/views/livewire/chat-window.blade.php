@@ -176,6 +176,7 @@
             </div>
 
             {{-- Product Info Bar --}}
+            @if($this->conversation->product)
             <div class="mt-4 flex items-start space-x-4 border-t pt-4">
                 <div class="flex-shrink-0">
                     <img src="{{ $this->conversation->product->getFeaturedImageUrl('preview') }}"
@@ -185,8 +186,13 @@
                 <div class="flex-1">
                     <h4 class="font-medium text-gray-900">{{ $this->conversation->product->name }}</h4>
                     <p class="text-sm text-gray-500">{{ $this->conversation->product->price }} MAD</p>
+                    @php
+                        $bpPct = (float) config('settings.buyer_protection_fee_percentage', 5);
+                        $bpFixed = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+                        $inclPrice = $this->conversation->product->price + ($this->conversation->product->price * $bpPct / 100) + $bpFixed;
+                    @endphp
                     <p class="text-xs text-gray-600 flex items-center mt-1">
-                        {{ number_format($this->conversation->product->price * 1.05 + 10, 2) }} MAD Includes Buyer Protection
+                        {{ number_format($inclPrice, 2) }} MAD Includes Buyer Protection
                         <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -252,6 +258,7 @@
                     @endif
                 </div>
             </div>
+            @endif
 
         @else
             <h3 class="font-semibold text-lg text-gray-400">Select a conversation</h3>
