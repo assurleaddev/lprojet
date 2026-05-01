@@ -76,6 +76,16 @@ Route::get('/users/{user}/following', [HomeController::class, 'following'])->nam
 Route::get('/favorites', [HomeController::class, 'favorites'])->middleware('auth')->name('favorites.index');
 Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->middleware('auth')->name('orders.index');
 
+// Live auctions
+Route::get('/lives', [App\Http\Controllers\LiveController::class, 'index'])->name('lives.index');
+Route::get('/lives/create', [App\Http\Controllers\LiveController::class, 'create'])->middleware('auth')->name('lives.create');
+Route::post('/lives', [App\Http\Controllers\LiveController::class, 'store'])->middleware('auth')->name('lives.store');
+Route::get('/lives/{live}', [App\Http\Controllers\LiveController::class, 'show'])->name('lives.show');
+Route::post('/lives/{live}/go-live', [App\Http\Controllers\LiveController::class, 'goLive'])->middleware('auth')->name('lives.go-live');
+Route::post('/lives/{live}/end', [App\Http\Controllers\LiveController::class, 'endLive'])->middleware('auth')->name('lives.end');
+Route::post('/lives/{live}/bid', [App\Http\Controllers\LiveController::class, 'placeBid'])->middleware('auth')->name('lives.bid');
+Route::get('/lives/{live}/agora-token', [App\Http\Controllers\LiveController::class, 'agoraToken'])->middleware('auth')->name('lives.agora-token');
+
 Route::get('/product/{product}', [HomeController::class, 'checkout'])
     ->middleware('auth')
     ->name('product.checkout');

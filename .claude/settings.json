@@ -4,7 +4,14 @@
       "Bash(python3 -c ':*)",
       "Bash(node -e ':*)",
       "Bash(git add:*)",
-      "Bash(git commit -m ':*)"
+      "Bash(git commit -m ':*)",
+      "Read(//c/Users/benou/.claude/projects/c--Users-benou-Documents-lprojet/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e ' *)",
+      "Read(//c/Users/benou/Desktop/**)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(xargs grep *)"
     ]
   }
 }

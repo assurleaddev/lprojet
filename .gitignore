@@ -28,3 +28,9 @@ public/images/.DS_Store
 
 # Exclude release builds
 /releases
+
+# Large database dumps and archives
+*.sql
+*.sql.gz
+storage.tar.gz
+storage/*.tar.gz
