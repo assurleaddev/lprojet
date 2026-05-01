@@ -184,6 +184,7 @@
 @section('after_body')
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
 <script>
+document.addEventListener('DOMContentLoaded', function () {
 (function () {
     const LIVE_ID        = {{ $live->id }};
     const SELLER_ID      = {{ $live->seller_id }};
@@ -197,22 +198,20 @@
     const END_LIVE_URL   = '{{ route('lives.end', $live) }}';
 
     let client, localTracks = [];
+    let sellerReady = false;
     let countdownInterval = null;
     let countdownEndsAt   = {{ $live->countdown_ends_at ? '"' . $live->countdown_ends_at->toISOString() . '"' : 'null' }};
 
-    // ── Agora Setup ──────────���───────────────────────────────────────────────
-    async function initAgora() {
-        if (STATUS === 'ended') return;
-        if (STATUS === 'scheduled' && !IS_SELLER) return;
+    // ── Seller preview: join channel + open camera but don't publish yet ──────
+    async function setupSellerPreview() {
+        try {
+            const res  = await fetch(TOKEN_URL);
+            const data = await res.json();
 
-        const res   = await fetch(TOKEN_URL);
-        const data  = await res.json();
+            client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+            await client.setClientRole('host');
+            await client.join(data.app_id, data.channel, data.token, data.uid);
 
-        client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
-        await client.setClientRole(IS_SELLER ? 'host' : 'audience');
-        await client.join(data.app_id, data.channel, data.token, data.uid);
-
-        if (IS_SELLER) {
             localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
             document.getElementById('video-placeholder').style.display = 'none';
             const videoDiv = document.createElement('div');
@@ -220,30 +219,58 @@
             videoDiv.style.cssText = 'width:100%;height:100%';
             document.getElementById('agora-video-container').appendChild(videoDiv);
             localTracks[1].play('local-video');
-            await client.publish(localTracks);
+            sellerReady = true;
+        } catch (err) {
+            console.error('Camera setup failed:', err);
+            document.getElementById('video-status-text').textContent = 'Camera access denied — please allow camera permissions.';
         }
-
-        client.on('user-published', async (user, mediaType) => {
-            await client.subscribe(user, mediaType);
-            if (mediaType === 'video') {
-                document.getElementById('video-placeholder').style.display = 'none';
-                const videoDiv = document.createElement('div');
-                videoDiv.id = 'remote-video';
-                videoDiv.style.cssText = 'width:100%;height:100%';
-                document.getElementById('agora-video-container').appendChild(videoDiv);
-                user.videoTrack.play('remote-video');
-            }
-            if (mediaType === 'audio') user.audioTrack.play();
-        });
-
-        client.on('user-unpublished', () => {
-            const el = document.getElementById('remote-video');
-            if (el) el.remove();
-            document.getElementById('video-placeholder').style.display = 'flex';
-        });
     }
 
-    // ── Countdown ─────────────────────────────────��─────────────────────���────
+    // ── Audience: join and subscribe to host video ────────────────────────────
+    async function initAudience() {
+        try {
+            const res  = await fetch(TOKEN_URL);
+            const data = await res.json();
+
+            client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+            await client.setClientRole('audience');
+            await client.join(data.app_id, data.channel, data.token, data.uid);
+
+            client.on('user-published', async (user, mediaType) => {
+                await client.subscribe(user, mediaType);
+                if (mediaType === 'video') {
+                    document.getElementById('video-placeholder').style.display = 'none';
+                    let videoDiv = document.getElementById('remote-video');
+                    if (!videoDiv) {
+                        videoDiv = document.createElement('div');
+                        videoDiv.id = 'remote-video';
+                        videoDiv.style.cssText = 'width:100%;height:100%';
+                        document.getElementById('agora-video-container').appendChild(videoDiv);
+                    }
+                    user.videoTrack.play('remote-video');
+                }
+                if (mediaType === 'audio') user.audioTrack.play();
+            });
+
+            client.on('user-unpublished', () => {
+                const el = document.getElementById('remote-video');
+                if (el) el.remove();
+                document.getElementById('video-placeholder').style.display = 'flex';
+                document.getElementById('video-status-text').textContent = 'Host paused the stream...';
+            });
+        } catch (err) {
+            console.error('Audience init failed:', err);
+        }
+    }
+
+    // ── Bootstrap on page load ────────────────────────────────────────────────
+    if (IS_SELLER && STATUS !== 'ended') {
+        setupSellerPreview();
+    } else if (!IS_SELLER && STATUS === 'live') {
+        initAudience();
+    }
+
+    // ── Countdown ─────────────────────────────────────────────────────────────
     function startCountdown(isoString) {
         countdownEndsAt = isoString;
         const wrap = document.getElementById('countdown-wrap');
@@ -300,7 +327,7 @@
                 document.getElementById('status-badge').innerHTML = `<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mr-1"></span> LIVE`;
                 document.getElementById('status-badge').className = 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600';
                 document.getElementById('video-status-text').textContent = 'Connecting...';
-                if (!IS_SELLER) initAgora();
+                if (!IS_SELLER) initAudience();
             }
             if (e.status === 'ended') {
                 clearInterval(countdownInterval);
@@ -332,22 +359,33 @@
 
     // ── Seller: Go Live ───────────────────────────────────────────────────────
     document.getElementById('btn-go-live')?.addEventListener('click', async () => {
-        await fetch(GO_LIVE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } });
-        await initAgora();
-        document.getElementById('btn-go-live').remove();
+        const btn = document.getElementById('btn-go-live');
+        btn.disabled = true;
+        btn.textContent = '...';
+        try {
+            await fetch(GO_LIVE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } });
+            if (sellerReady) await client.publish(localTracks);
+            document.getElementById('status-badge').innerHTML =
+                '<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> LIVE';
+            document.getElementById('status-badge').className =
+                'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600';
+            btn.remove();
+        } catch (err) {
+            console.error(err);
+            btn.disabled = false;
+            btn.innerHTML = '<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> {{ __("Go Live") }}';
+        }
     });
 
-    // ── Seller: End Live ──────────────────────────��───────────────────────────
+    // ── Seller: End Live ──────────────────────────────────────────────────────
     document.getElementById('btn-end-live')?.addEventListener('click', async () => {
         if (!confirm('{{ __('End this live auction now?') }}')) return;
         for (const t of localTracks) t.close();
         if (client) await client.leave();
         await fetch(END_LIVE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } });
     });
-
-    // Auto-init for live rooms
-    if (STATUS === 'live' && CURRENT_USER) initAgora();
 })();
+}); // DOMContentLoaded
 </script>
 @endsection
 @endsection
