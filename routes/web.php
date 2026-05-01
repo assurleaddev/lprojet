@@ -18,6 +18,7 @@ use App\Http\Controllers\Backend\TermController;
 use App\Http\Controllers\Backend\TranslationController;
 use App\Http\Controllers\Backend\UserLoginAsController;
 use App\Http\Controllers\Backend\UserController;
+use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Backend\Marketplace\ProductController;
 use App\Http\Controllers\Backend\Marketplace\CategoryController;
@@ -311,3 +312,6 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
 Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
 Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');
+
+// Published CMS pages served by slug — must stay last to avoid shadowing other routes
+Route::get('/{slug}', [PageController::class, 'show'])->name('page.show')->where('slug', '[a-zA-Z0-9\-_]+');
