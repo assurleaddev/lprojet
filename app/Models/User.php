@@ -56,6 +56,7 @@ class User extends Authenticatable
         'phone_verification_code_expires_at',
         'verification_code',
         'verification_code_expires_at',
+        'is_system',
         'last_seen_at',
     ];
 

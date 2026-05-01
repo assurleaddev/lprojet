@@ -187,6 +187,15 @@ class AdminMenuService
             'priority' => 39,
             'permissions' => ['order.view'],
         ], __('Order Management'));
+        $this->addMenuItem([
+            'label' => __('Broadcasts'),
+            'icon' => 'lucide:megaphone',
+            'id' => 'broadcasts-menu',
+            'route' => route('admin.broadcasts.index'),
+            'active' => Route::is('admin.broadcasts.*'),
+            'priority' => 40,
+            'permissions' => ['order.view'],
+        ], __('Order Management'));
         // END: ADD YOUR NEW MENU BLOCK HERE
         $this->addMenuItem([
             'label' => __('Modules'),

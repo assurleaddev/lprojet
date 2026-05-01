@@ -263,6 +263,11 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'r
     Route::patch('orders/{order}/status', [\App\Http\Controllers\Backend\Marketplace\OrderController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::post('orders/{order}/receipt', [\App\Http\Controllers\Backend\Marketplace\OrderController::class, 'uploadReceipt'])->name('orders.uploadReceipt');
 
+    Route::get('broadcasts', [\App\Http\Controllers\Backend\BroadcastController::class, 'index'])->name('broadcasts.index');
+    Route::get('broadcasts/create', [\App\Http\Controllers\Backend\BroadcastController::class, 'create'])->name('broadcasts.create');
+    Route::post('broadcasts', [\App\Http\Controllers\Backend\BroadcastController::class, 'store'])->name('broadcasts.store');
+    Route::delete('broadcasts/{broadcast}', [\App\Http\Controllers\Backend\BroadcastController::class, 'destroy'])->name('broadcasts.destroy');
+
     Route::get('claims', [\App\Http\Controllers\Backend\Marketplace\ClaimController::class, 'index'])->name('claims.index');
     Route::get('claims/{claim}', [\App\Http\Controllers\Backend\Marketplace\ClaimController::class, 'show'])->name('claims.show');
     Route::patch('claims/{claim}', [\App\Http\Controllers\Backend\Marketplace\ClaimController::class, 'update'])->name('claims.update');

@@ -324,7 +324,33 @@
                 @endphp
 
                 {{-- Differentiate rendering based on message type --}}
-                @if((str_starts_with($messageType, 'offer_') && $messageType !== 'offer_checkout_prompt') && $offerData && ($productData || !empty($offerData->items)))
+                @if($messageType === 'platform_broadcast')
+                    {{-- PLATFORM BROADCAST CARD --}}
+                    @php $meta = is_array($messageData->metadata) ? (object) $messageData->metadata : $messageData->metadata; @endphp
+                    <div wire:key="broadcast-msg-{{ $messageId }}" class="flex justify-start mb-3">
+                        <div class="w-full max-w-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden shadow-sm">
+                            @if(!empty($meta->image_path))
+                                <img src="{{ Storage::url($meta->image_path) }}" alt="" class="w-full h-40 object-cover">
+                            @endif
+                            <div class="p-4 space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-xs shrink-0">P</div>
+                                    <span class="text-xs font-semibold text-gray-900 dark:text-white">Platform</span>
+                                    <svg class="w-3.5 h-3.5 text-gray-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                                </div>
+                                <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ $meta->title ?? '' }}</p>
+                                <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">{{ $meta->body ?? '' }}</p>
+                                @if(!empty($meta->button_label))
+                                    <a href="{{ $meta->button_url ?? '#' }}"
+                                        class="mt-2 block w-full text-center bg-gray-900 hover:bg-gray-800 text-white text-xs font-medium py-2 px-4 rounded-lg transition-colors">
+                                        {{ $meta->button_label }}
+                                    </a>
+                                @endif
+                                <p class="text-right text-xs text-gray-400">{{ $messageTime }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @elseif((str_starts_with($messageType, 'offer_') && $messageType !== 'offer_checkout_prompt') && $offerData && ($productData || !empty($offerData->items)))
                     {{-- OFFER MESSAGE BLOCK --}}
                     <div wire:key="offer-msg-{{ $messageId }}-{{ $offerStatus?->value ?? 'unknown' }}">
                         <div class="flex {{ $isOwnMessage ? 'justify-end' : 'justify-start' }}">

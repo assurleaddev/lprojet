@@ -3,8 +3,8 @@
 namespace Modules\Chat\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
+
 // use Modules\Chat\Database\Factories\MessageFactory;
 
 class Message extends Model
@@ -24,9 +24,17 @@ class Message extends Model
         'delivered_at',
         'offer_id',
         'type',
+        'metadata',
         'attachment_path',
         'attachment_type',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'metadata' => 'array',
+        ];
+    }
 
     /**
      * Get the user who sent the message.
@@ -46,7 +54,7 @@ class Message extends Model
 
     public function offer()
     {
-        // Links the 'offer_id' column on this message table 
+        // Links the 'offer_id' column on this message table
         // to the 'id' column on the 'chat_offers' table.
         return $this->belongsTo(Offer::class, 'offer_id');
     }
