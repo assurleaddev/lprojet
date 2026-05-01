@@ -138,23 +138,70 @@ class LiveController extends Controller
         $request->validate(['amount' => "required|numeric|min:{$minBid}"]);
 
         $amount = (float) $request->amount;
+        $user = Auth::user();
+
+        if ((float) $user->balance < $amount) {
+            return response()->json([
+                'ok' => false,
+                'insufficient_balance' => true,
+                'balance' => (float) $user->balance,
+                'required' => $amount,
+                'shortfall' => round($amount - (float) $user->balance, 2),
+            ], 422);
+        }
+
         $countdownEndsAt = now()->addSeconds(self::COUNTDOWN_SECONDS);
+
+        $user->decrement('balance', $amount);
+
+        // Refund previous highest bidder if different
+        if ($live->current_bidder_id && $live->current_bidder_id !== $user->id) {
+            $previousBidder = \App\Models\User::find($live->current_bidder_id);
+            $previousBidder?->increment('balance', (float) $live->current_bid);
+        }
 
         $live->update([
             'current_bid' => $amount,
-            'current_bidder_id' => Auth::id(),
+            'current_bidder_id' => $user->id,
             'countdown_ends_at' => $countdownEndsAt,
         ]);
 
-        $live->bids()->create(['user_id' => Auth::id(), 'amount' => $amount]);
+        $live->bids()->create(['user_id' => $user->id, 'amount' => $amount]);
 
-        broadcast(new BidPlaced($live, Auth::user(), $amount, $countdownEndsAt->toISOString()));
+        broadcast(new BidPlaced($live, $user, $amount, $countdownEndsAt->toISOString()));
 
         return response()->json([
             'ok' => true,
             'current_bid' => $amount,
             'countdown_ends_at' => $countdownEndsAt->toISOString(),
+            'balance' => (float) $user->fresh()->balance,
         ]);
+    }
+
+    public function topUpBalance(Request $request)
+    {
+        abort_if(! Auth::check(), 401);
+
+        $request->validate(['amount' => 'required|numeric|min:1|max:10000']);
+
+        $amount = (float) $request->amount;
+
+        // Simulate a short processing delay — fake card charge
+        sleep(1);
+
+        Auth::user()->increment('balance', $amount);
+
+        return response()->json([
+            'ok' => true,
+            'balance' => (float) Auth::user()->fresh()->balance,
+        ]);
+    }
+
+    public function getBalance()
+    {
+        abort_if(! Auth::check(), 401);
+
+        return response()->json(['balance' => (float) Auth::user()->balance]);
     }
 
     public function closeAuction(Live $live)

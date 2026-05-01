@@ -204,6 +204,56 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 /* ── Unmute button ── */
 .unmute-btn { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; }
 .unmute-inner { background: rgba(0,0,0,.6); border: 2px solid rgba(255,255,255,.4); border-radius: 50px; color: #fff; padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+/* ── Balance chip ── */
+#balance-chip {
+    position: fixed; top: 16px; right: 16px; z-index: 200;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.2); border-radius: 20px;
+    padding: 6px 12px; color: #fde68a; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; gap: 5px;
+    max-width: calc(50% - 8px);
+}
+
+/* ── Charge modal ── */
+#charge-modal-backdrop {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
+    display: flex; align-items: flex-end; justify-content: center;
+}
+#charge-modal {
+    width: 100%; max-width: 480px;
+    background: #1a1a1a; border-radius: 24px 24px 0 0;
+    padding: 24px 20px 32px; color: #fff;
+    animation: slideUp .3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.charge-title { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
+.charge-sub { font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 20px; }
+.fake-card {
+    background: linear-gradient(135deg, #1c3f6e 0%, #0f2647 100%);
+    border-radius: 16px; padding: 18px 20px; margin-bottom: 20px;
+    display: flex; flex-direction: column; gap: 12px;
+}
+.fake-card-number { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+.fake-card-row { display: flex; justify-content: space-between; align-items: center; }
+.fake-card-label { font-size: 10px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 1px; }
+.fake-card-value { font-size: 13px; font-weight: 600; color: #fff; }
+.fake-card-logo { display: flex; gap: -4px; }
+.fake-card-logo span { width: 24px; height: 24px; border-radius: 50%; display: block; }
+.charge-amount-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,.06); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
+.charge-amount-label { font-size: 13px; color: rgba(255,255,255,.6); }
+.charge-amount-value { font-size: 20px; font-weight: 800; color: #fbbf24; }
+.charge-confirm-btn {
+    width: 100%; padding: 14px; background: #fbbf24; color: #111;
+    border: none; border-radius: 14px; font-size: 15px; font-weight: 800;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: opacity .2s;
+}
+.charge-confirm-btn:disabled { opacity: .6; cursor: not-allowed; }
+.charge-cancel-btn { width: 100%; padding: 12px; background: transparent; color: rgba(255,255,255,.4); border: none; font-size: 14px; cursor: pointer; margin-top: 8px; }
+.spinner { width: 20px; height: 20px; border: 2px solid rgba(0,0,0,.3); border-top-color: #111; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
 @endsection
@@ -403,6 +453,56 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
     @endforeach
 </div>{{-- #live-feed --}}
 </div>{{-- #live-feed-outer --}}
+
+@auth
+{{-- Balance chip --}}
+<div id="balance-chip">
+    <svg style="width:14px;height:14px;flex-shrink:0;" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>
+    <span id="balance-amount">{{ number_format(Auth::user()->balance, 2) }} MAD</span>
+</div>
+
+{{-- Charge modal --}}
+<div id="charge-modal-backdrop" style="display:none;">
+    <div id="charge-modal">
+        <div class="charge-title">{{ __('Insufficient Balance') }}</div>
+        <p class="charge-sub">{{ __('Top up your balance to place this bid') }}</p>
+
+        {{-- Fake saved card --}}
+        <div class="fake-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div class="fake-card-label">{{ __('Saved card') }}</div>
+                    <div class="fake-card-number">•••• •••• •••• 4242</div>
+                </div>
+                <div style="display:flex;gap:-6px;">
+                    <div style="width:28px;height:28px;border-radius:50%;background:#eb001b;opacity:.9;"></div>
+                    <div style="width:28px;height:28px;border-radius:50%;background:#f79e1b;opacity:.9;margin-left:-8px;"></div>
+                </div>
+            </div>
+            <div class="fake-card-row">
+                <div>
+                    <div class="fake-card-label">{{ __('Cardholder') }}</div>
+                    <div class="fake-card-value">{{ Auth::user()->full_name }}</div>
+                </div>
+                <div>
+                    <div class="fake-card-label">{{ __('Expires') }}</div>
+                    <div class="fake-card-value">12/28</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="charge-amount-row">
+            <span class="charge-amount-label">{{ __('Amount to charge') }}</span>
+            <span class="charge-amount-value" id="charge-amount-display">— MAD</span>
+        </div>
+
+        <button class="charge-confirm-btn" id="charge-confirm-btn">
+            {{ __('Confirm & Charge') }}
+        </button>
+        <button class="charge-cancel-btn" id="charge-cancel-btn">{{ __('Cancel') }}</button>
+    </div>
+</div>
+@endauth
 @endsection
 
 @section('after_body')
@@ -411,6 +511,63 @@ document.addEventListener('DOMContentLoaded', function () {
     (function () {
         const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
         const IS_AUTH = {!! Auth::check() ? 'true' : 'false' !!};
+        const TOP_UP_URL = {!! json_encode(route('balance.top-up')) !!};
+
+        // ── Balance state ─────────────────────────────────────────────
+        let currentBalance = {!! Auth::check() ? (float) Auth::user()->balance : 0 !!};
+
+        function updateBalanceChip(amount) {
+            currentBalance = amount;
+            const el = document.getElementById('balance-amount');
+            if (el) el.textContent = parseFloat(amount).toFixed(2) + ' MAD';
+        }
+
+        // ── Charge modal ──────────────────────────────────────────────
+        let chargeResolve = null;
+
+        function showChargeModal(shortfall) {
+            return new Promise((resolve) => {
+                chargeResolve = resolve;
+                const backdrop = document.getElementById('charge-modal-backdrop');
+                const display = document.getElementById('charge-amount-display');
+                if (display) display.textContent = parseFloat(shortfall).toFixed(2) + ' MAD';
+                if (backdrop) backdrop.style.display = 'flex';
+            });
+        }
+
+        function hideChargeModal() {
+            const backdrop = document.getElementById('charge-modal-backdrop');
+            if (backdrop) backdrop.style.display = 'none';
+            chargeResolve = null;
+        }
+
+        const confirmBtn = document.getElementById('charge-confirm-btn');
+        const cancelBtn = document.getElementById('charge-cancel-btn');
+
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', async () => {
+                const shortfall = parseFloat(document.getElementById('charge-amount-display').textContent);
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<div class="spinner"></div>';
+                try {
+                    const res = await apiFetch(TOP_UP_URL, { amount: shortfall });
+                    if (res.ok) {
+                        updateBalanceChip(res.balance);
+                        hideChargeModal();
+                        if (chargeResolve) { chargeResolve(true); chargeResolve = null; }
+                    }
+                } catch (e) {}
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = {!! json_encode(__('Confirm & Charge')) !!};
+            });
+        }
+
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                hideChargeModal();
+                if (chargeResolve) { chargeResolve(false); chargeResolve = null; }
+            });
+        }
 
         async function apiFetch(url, body) {
             const r = await fetch(url, {
@@ -732,20 +889,29 @@ document.addEventListener('DOMContentLoaded', function () {
             const bidBtn = screen.querySelector('.js-bid-btn');
             const bidInput = screen.querySelector('.js-bid-input');
             if (bidBtn && IS_AUTH) {
-                bidBtn.addEventListener('click', async () => {
-                    const amount = parseFloat(bidInput.value);
-                    if (!amount) return;
+                const placeBid = async (amount) => {
                     bidBtn.disabled = true;
                     try {
                         const res = await apiFetch(screen.dataset.bidUrl, { amount });
-                        if (!res.ok) { alert(res.message || 'Error'); }
-                        else {
+                        if (res.insufficient_balance) {
+                            // Show charge modal and retry after top-up
+                            const charged = await showChargeModal(res.shortfall);
+                            if (charged) await placeBid(amount); // retry
+                        } else if (!res.ok) {
+                            alert(res.message || 'Error');
+                        } else {
                             bidInput.value = '';
-                            // Show own bid in comments immediately (server broadcasts to others)
+                            if (res.balance !== undefined) updateBalanceChip(res.balance);
                             appendBidEvent(screen, {!! json_encode(Auth::user()?->username ?? '') !!}, amount.toFixed(2));
                         }
                     } catch (e) {}
                     bidBtn.disabled = false;
+                };
+
+                bidBtn.addEventListener('click', async () => {
+                    const amount = parseFloat(bidInput.value);
+                    if (!amount) return;
+                    await placeBid(amount);
                 });
                 bidInput.addEventListener('keydown', e => { if (e.key === 'Enter') bidBtn.click(); });
             }
