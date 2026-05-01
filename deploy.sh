@@ -6,7 +6,7 @@ echo "==> Pulling latest code..."
 git pull origin main
 
 echo "==> Installing dependencies..."
-composer install --no-dev --optimize-autoloader --no-interaction
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction
 
 echo "==> Running migrations..."
 php artisan migrate --force --no-interaction
