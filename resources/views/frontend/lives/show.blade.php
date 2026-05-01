@@ -6,6 +6,16 @@
     #agora-video-container video { width: 100%; height: 100%; object-fit: cover; }
     .bid-pulse { animation: bidPop .4s ease; }
     @keyframes bidPop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
+    #winner-overlay {
+        position: absolute; inset: 0; z-index: 30;
+        background: linear-gradient(135deg, rgba(0,0,0,.7) 0%, rgba(16,9,2,.85) 100%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 12px; text-align: center; padding: 24px;
+        animation: fadeInOverlay .5s ease;
+    }
+    @keyframes fadeInOverlay { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
+    #winner-overlay .trophy { font-size: 3.5rem; animation: trophyBounce .6s ease .3s both; }
+    @keyframes trophyBounce { 0%{transform:scale(0) rotate(-20deg)} 70%{transform:scale(1.15) rotate(5deg)} 100%{transform:scale(1) rotate(0)} }
 </style>
 @endsection
 
@@ -50,19 +60,16 @@
 
             {{-- Seller controls --}}
             @if(auth()->id() === $live->seller_id)
-                <div class="flex gap-3">
-                    @if($live->status === 'scheduled')
-                        <button id="btn-go-live"
-                            class="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
-                            <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                            {{ __('Go Live') }}
-                        </button>
-                    @elseif($live->status === 'live')
-                        <button id="btn-end-live"
-                            class="flex-1 py-2.5 bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors">
-                            {{ __('End Live') }}
-                        </button>
-                    @endif
+                <div id="seller-controls" class="flex gap-3">
+                    <button id="btn-go-live"
+                        class="{{ $live->status !== 'scheduled' ? 'hidden' : '' }} flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                        {{ __('Go Live') }}
+                    </button>
+                    <button id="btn-end-live"
+                        class="{{ $live->status !== 'live' ? 'hidden' : '' }} flex-1 py-2.5 bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors">
+                        {{ __('End Live') }}
+                    </button>
                 </div>
             @endif
 
@@ -270,14 +277,50 @@ document.addEventListener('DOMContentLoaded', function () {
         initAudience();
     }
 
+    // ── Winner overlay ────────────────────────────────────────────────────────
+    function showWinnerOverlay(username, amount) {
+        const container = document.getElementById('agora-video-container');
+        const old = document.getElementById('winner-overlay');
+        if (old) old.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'winner-overlay';
+        overlay.innerHTML = `
+            <div class="trophy">🏆</div>
+            <p class="text-white text-2xl font-black drop-shadow">${username}</p>
+            <p class="text-yellow-300 text-lg font-bold">${parseFloat(amount).toFixed(2)} MAD</p>
+            <p class="text-white/70 text-sm mt-1">{{ __('Won the auction!') }}</p>
+        `;
+        container.appendChild(overlay);
+
+        setTimeout(() => {
+            overlay.style.transition = 'opacity .8s ease';
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 800);
+        }, 10000);
+    }
+
     // ── Countdown ─────────────────────────────────────────────────────────────
+    let auctionEnding = false;
+
+    async function triggerEndLive() {
+        if (auctionEnding) return;
+        auctionEnding = true;
+        for (const t of localTracks) t.close();
+        if (client) await client.leave();
+        document.getElementById('btn-end-live')?.classList.add('hidden');
+        const res  = await fetch(END_LIVE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } });
+        const data = await res.json();
+        if (data.winner && data.winning_bid) showWinnerOverlay(data.winner, data.winning_bid);
+    }
+
     function startCountdown(isoString) {
         countdownEndsAt = isoString;
         const wrap = document.getElementById('countdown-wrap');
         wrap.classList.remove('hidden');
         clearInterval(countdownInterval);
 
-        countdownInterval = setInterval(() => {
+        countdownInterval = setInterval(async () => {
             const remaining = Math.max(0, Math.round((new Date(countdownEndsAt) - Date.now()) / 1000));
             document.getElementById('countdown-number').textContent = remaining;
             const pct = (remaining / 10) * 100;
@@ -285,6 +328,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (remaining <= 0) {
                 clearInterval(countdownInterval);
                 wrap.classList.add('hidden');
+                if (IS_SELLER) await triggerEndLive();
             }
         }, 500);
     }
@@ -326,15 +370,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.status === 'live') {
                 document.getElementById('status-badge').innerHTML = `<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mr-1"></span> LIVE`;
                 document.getElementById('status-badge').className = 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600';
-                document.getElementById('video-status-text').textContent = 'Connecting...';
+                document.getElementById('video-status-text').textContent = '{{ __('Connecting...') }}';
                 if (!IS_SELLER) initAudience();
             }
             if (e.status === 'ended') {
                 clearInterval(countdownInterval);
                 document.getElementById('countdown-wrap')?.classList.add('hidden');
-                document.getElementById('status-badge').textContent = '{{ __('Ended') }}';
+                document.getElementById('status-badge').innerHTML = '{{ __('Ended') }}';
                 document.getElementById('status-badge').className = 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500';
-                if (client) client.leave();
+                document.getElementById('btn-end-live')?.classList.add('hidden');
+                if (client && !IS_SELLER) client.leave();
+                if (e.winner_username && e.winning_bid) {
+                    showWinnerOverlay(e.winner_username, e.winning_bid);
+                }
             }
         });
 
@@ -369,7 +417,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 '<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> LIVE';
             document.getElementById('status-badge').className =
                 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600';
-            btn.remove();
+            btn.classList.add('hidden');
+            document.getElementById('btn-end-live')?.classList.remove('hidden');
         } catch (err) {
             console.error(err);
             btn.disabled = false;
@@ -380,9 +429,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // ── Seller: End Live ──────────────────────────────────────────────────────
     document.getElementById('btn-end-live')?.addEventListener('click', async () => {
         if (!confirm('{{ __('End this live auction now?') }}')) return;
-        for (const t of localTracks) t.close();
-        if (client) await client.leave();
-        await fetch(END_LIVE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } });
+        await triggerEndLive();
     });
 })();
 }); // DOMContentLoaded

@@ -87,6 +87,13 @@ class LiveController extends Controller
 
         $live->update(['status' => 'ended', 'ended_at' => now()]);
 
+        if ($live->product && $live->current_bidder_id) {
+            $live->product->update([
+                'status' => 'reserved',
+                'reserved_by_user_id' => $live->current_bidder_id,
+            ]);
+        }
+
         broadcast(new LiveStatusChanged($live));
 
         return response()->json([

@@ -22,6 +22,7 @@ class Product extends Model implements HasMedia
         'buyer_id',
         'category_id',
         'status',
+        'reserved_by_user_id',
         'brand_id',
         'condition',
         'size',
