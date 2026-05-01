@@ -157,7 +157,7 @@ class HomeController extends Controller
         $averageRating = $totalReviews > 0 ? $reviews->avg('rating') : 0;
 
         $autoReviews = $reviews->filter(function ($review) {
-            return str_contains($review->review, 'Auto-feedback');
+            return $review->is_auto || str_contains(strtolower($review->review), 'auto-feedback');
         });
         $memberReviews = $reviews->diff($autoReviews);
 
