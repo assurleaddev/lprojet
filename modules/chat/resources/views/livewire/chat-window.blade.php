@@ -139,30 +139,32 @@
                 {{-- Left: User Info --}}
                 <div class="flex items-center space-x-3">
                     <div class="relative">
-                        @if($otherUser->avatar_id)
-                            <img src="{{ $otherUser->avatar_url }}"
-                                alt="{{ $otherUser->full_name }}" class="w-10 h-10 rounded-full object-cover">
-                        @else
-                            <div class="w-10 h-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-sm">
-                                {{ $otherUser->initials }}
+                        <img src="{{ $otherUser->avatar_url }}"
+                            alt="{{ $otherUser->is_system ? config('app.name') : $otherUser->full_name }}"
+                            class="w-10 h-10 rounded-full object-cover">
+                        @if(!$otherUser->is_system)
+                            <div x-show="isOtherUserOnline"
+                                class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full">
                             </div>
                         @endif
-                        <div x-show="isOtherUserOnline"
-                            class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full">
-                        </div>
                     </div>
                     <div>
-                        <h3 class="font-bold text-lg text-gray-900 leading-tight">
-                            <a href="{{ route('vendor.show', $otherUser) }}" class="hover:underline">
-                                {{ optional($otherUser)->full_name ?? 'User Not Found' }}
-                            </a>
+                        <h3 class="font-bold text-lg text-gray-900 leading-tight flex items-center gap-1.5">
+                            @if($otherUser->is_system)
+                                {{ config('app.name') }}
+                                <svg class="w-4 h-4 text-gray-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
+                            @else
+                                <a href="{{ route('vendor.show', $otherUser) }}" class="hover:underline">
+                                    {{ optional($otherUser)->full_name ?? 'User Not Found' }}
+                                </a>
+                            @endif
                         </h3>
-                        <p x-show="typingUsers.length > 0" class="text-xs text-gray-500 animate-pulse">
-                            Typing...
-                        </p>
-                        <p x-show="typingUsers.length === 0" class="text-xs text-gray-500">
-                            {{ $isOtherUserOnline ? 'Online' : 'Offline' }}
-                        </p>
+                        @if(!$otherUser->is_system)
+                            <p x-show="typingUsers.length > 0" class="text-xs text-gray-500 animate-pulse">Typing...</p>
+                            <p x-show="typingUsers.length === 0" class="text-xs text-gray-500">
+                                {{ $isOtherUserOnline ? 'Online' : 'Offline' }}
+                            </p>
+                        @endif
                     </div>
                 </div>
 
@@ -880,7 +882,11 @@
 
     {{-- 3. Message Input Form --}}
     <div class="px-6 py-4 border-t dark:border-gray-700 bg-white dark:bg-gray-800 flex-shrink-0">
-        @if($isUnavailable)
+        @if($otherUser->is_system)
+            <div class="py-3 text-center text-xs text-gray-400 dark:text-gray-500">
+                You can't reply to this message
+            </div>
+        @elseif($isUnavailable)
             <div class="mb-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-100 dark:border-gray-700">
                 <h4 class="text-sm font-bold text-gray-900 dark:text-gray-100">Item is unavailable</h4>
                 <p class="text-xs text-gray-500 dark:text-gray-400">The item was sold or deleted</p>
