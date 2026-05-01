@@ -165,7 +165,7 @@ class User extends Authenticatable
     public function getAvatarUrlAttribute(): string
     {
         if ($this->is_system) {
-            return config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png');
+            return config('settings.platform_avatar') ?? config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png');
         }
 
         if ($this->avatar_id && $this->avatar) {

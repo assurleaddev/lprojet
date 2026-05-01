@@ -406,7 +406,7 @@
                             <div class="flex items-start gap-4">
                                 @if($isAuto)
                                     <div class="h-12 w-12 rounded-full bg-white border border-gray-200 grid place-items-center overflow-hidden shrink-0">
-                                        <img src="{{ config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}"
+                                        <img src="{{ config('settings.platform_avatar') ?? config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}"
                                             alt="{{ config('app.name') }}" class="w-full h-full object-cover">
                                     </div>
                                 @else

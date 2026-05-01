@@ -96,7 +96,7 @@
 
                         <div class="p-4 space-y-2">
                             <div class="flex items-center gap-2">
-                                <img src="{{ config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}"
+                                <img src="{{ config('settings.platform_avatar') ?? config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}"
                                     alt="{{ config('app.name') }}" class="w-7 h-7 rounded-full object-cover shrink-0">
                                 <span class="font-semibold text-gray-900 dark:text-white text-xs">{{ config('app.name') }}</span>
                                 <svg class="w-3.5 h-3.5 text-gray-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>

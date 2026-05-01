@@ -69,6 +69,18 @@
                 </div>
             </div>
         </div>
+
+        {{-- Platform Avatar --}}
+        <div class="pt-4 border-t border-gray-100 dark:border-gray-800">
+            <x-inputs.file-input
+                name="platform_avatar"
+                id="platform_avatar"
+                label="{{ __('Platform Avatar') }}"
+                :existingAttachment="config('settings.platform_avatar') !== '' && !empty(config('settings.platform_avatar')) ? config('settings.platform_avatar') : null"
+                :existingAltText="''"
+            />
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">{{ __('Used as the avatar for platform chat messages and auto-generated reviews. Defaults to the lite logo if not set.') }}</p>
+        </div>
     </div>
     {!! Hook::applyFilters(SettingFilterHook::SETTINGS_GENERAL_TAB_BEFORE_SECTION_END, '') !!}
 </div>
