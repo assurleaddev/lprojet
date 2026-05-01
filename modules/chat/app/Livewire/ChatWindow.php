@@ -190,6 +190,10 @@ class ChatWindow extends Component
                     }
                     // Load bundle items
                     $messageArray['offer']['items'] = $message->offer->items->map(function ($item) {
+                        if (! $item->product) {
+                            return null;
+                        }
+
                         return [
                             'product' => [
                                 'id' => $item->product->id,
@@ -198,7 +202,7 @@ class ChatWindow extends Component
                                 'featured_image_url' => $item->product->getFeaturedImageUrl('preview'),
                             ],
                         ];
-                    })->toArray();
+                    })->filter()->values()->toArray();
                 } else {
                     $messageArray['offer'] = null;
                 }
