@@ -398,18 +398,16 @@
                 <ul class="divide-y divide-zinc-200">
                     @forelse($reviews as $review)
                         @php
-                            $isAuto = $review->is_auto || \Str::contains($review->review, 'Auto-feedback');
+                            $isAuto = $review->is_auto || \Str::contains(strtolower($review->review), 'auto-feedback');
                         @endphp
                         <li class="py-6"
                             x-show="filter === 'all' || (filter === 'auto' && {{ $isAuto ? 'true' : 'false' }}) || (filter === 'member' && {{ $isAuto ? 'false' : 'true' }})"
                             x-transition>
                             <div class="flex items-start gap-4">
                                 @if($isAuto)
-                                    <!-- System Icon for Auto Review -->
-                                    <div
-                                        class="h-12 w-12 rounded-full bg-white border border-gray-200 grid place-items-center overflow-hidden">
-                                        <img src="{{ asset('images/logo/reviews_logo_mini.png') }}" alt="{{ config('app.name') }}"
-                                            class="w-full h-full object-cover">
+                                    <div class="h-12 w-12 rounded-full bg-white border border-gray-200 grid place-items-center overflow-hidden shrink-0">
+                                        <img src="{{ config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}"
+                                            alt="{{ config('app.name') }}" class="w-full h-full object-cover">
                                     </div>
                                 @else
                                     <!-- Member Avatar -->
@@ -422,8 +420,13 @@
 
                                 <div class="flex-1">
                                     <div class="flex items-center justify-between">
-                                        <div class="font-semibold text-[16px]">
+                                        <div class="flex items-center gap-1.5 font-semibold text-[16px]">
                                             {{ $isAuto ? config('app.name') : ($review->author->username ?? 'Deleted User') }}
+                                            @if($isAuto)
+                                                <svg class="w-4 h-4 text-gray-900 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @endif
                                         </div>
                                         <div class="text-sm text-zinc-500">{{ $review->created_at->diffForHumans() }}</div>
                                     </div>
