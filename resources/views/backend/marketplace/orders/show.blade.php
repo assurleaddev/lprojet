@@ -52,20 +52,57 @@
                         </div>
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-600">Buyer Protection Fee</span>
-                            <span class="font-medium text-gray-900">{{ number_format($order->buyer_protection_fee, 2) }}
-                                MAD</span>
+                            <span class="font-medium text-gray-900">{{ number_format($order->buyer_protection_fee, 2) }} MAD</span>
                         </div>
+                        @if($order->wants_verification)
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600 flex items-center gap-1">
+                                    Verification Fee
+                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-700">Platform</span>
+                                </span>
+                                <span class="font-medium text-gray-900">{{ number_format($order->verification_fee, 2) }} MAD</span>
+                            </div>
+                        @endif
                         @if($order->platform_commission > 0)
                             <div class="flex justify-between text-sm border-t border-gray-100 pt-1 mt-1">
                                 <span class="text-gray-600 text-xs">Platform Commission (from Seller)</span>
-                                <span
-                                    class="font-medium text-gray-900 text-xs">{{ number_format($order->platform_commission, 2) }}
-                                    MAD</span>
+                                <span class="font-medium text-gray-900 text-xs">{{ number_format($order->platform_commission, 2) }} MAD</span>
                             </div>
                         @endif
                         <div class="flex justify-between text-base font-bold border-t border-gray-200 pt-3 mt-2">
                             <span class="text-gray-900">Total</span>
                             <span class="text-vinted-teal">{{ number_format($order->total_amount, 2) }} MAD</span>
+                        </div>
+                    </div>
+
+                    {{-- Platform Revenue Breakdown --}}
+                    <div class="mt-4 pt-4 border-t border-gray-100">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-2">Platform Revenue</p>
+                        <div class="space-y-1 text-xs text-gray-600">
+                            <div class="flex justify-between">
+                                <span>Buyer Protection</span>
+                                <span class="font-medium text-gray-800">{{ number_format($order->buyer_protection_fee, 2) }} MAD</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Shipping Margin</span>
+                                <span class="font-medium text-gray-800">{{ number_format($order->shipping_cost, 2) }} MAD</span>
+                            </div>
+                            @if($order->wants_verification)
+                                <div class="flex justify-between">
+                                    <span>Verification Fee</span>
+                                    <span class="font-medium text-gray-800">{{ number_format($order->verification_fee, 2) }} MAD</span>
+                                </div>
+                            @endif
+                            @if($order->platform_commission > 0)
+                                <div class="flex justify-between">
+                                    <span>Seller Commission</span>
+                                    <span class="font-medium text-gray-800">{{ number_format($order->platform_commission, 2) }} MAD</span>
+                                </div>
+                            @endif
+                            <div class="flex justify-between font-semibold text-gray-900 border-t border-gray-100 pt-1 mt-1">
+                                <span>Total Platform Gain</span>
+                                <span class="text-green-700">{{ number_format($order->platform_fees, 2) }} MAD</span>
+                            </div>
                         </div>
                     </div>
                 </div>
