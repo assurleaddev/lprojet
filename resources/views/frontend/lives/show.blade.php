@@ -2,14 +2,19 @@
 
 @section('before_head')
 <style>
-/* ── Full-screen feed ── */
+/* ── Full-screen feed — break out of the app layout ── */
+#main-header { display: none !important; }
+body > main { padding: 0 !important; margin: 0 !important; }
 html, body { height: 100%; margin: 0; overflow: hidden; }
+
 #live-feed {
-    height: 100dvh;
+    position: fixed;
+    inset: 0;
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    z-index: 50;
 }
 #live-feed::-webkit-scrollbar { display: none; }
 
