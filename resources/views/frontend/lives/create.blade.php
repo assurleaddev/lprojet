@@ -30,13 +30,8 @@
         </div>
 
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Product') }} <span class="text-red-500">*</span></label>
-            @if($products->isEmpty())
-                <p class="text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-4">
-                    {{ __('You have no approved products. List one first.') }}
-                    <a href="{{ route('items.create') }}" class="text-gray-900 font-semibold hover:underline ml-1">{{ __('List a product') }}</a>
-                </p>
-            @else
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Product') }} <span class="text-gray-400 text-xs font-normal">({{ __('optional — you can set it during the live') }})</span></label>
+            @if(!$products->isEmpty())
                 <div class="grid grid-cols-2 gap-3" id="product-picker">
                     @foreach($products as $product)
                         <label class="relative cursor-pointer group">
@@ -68,8 +63,8 @@
             @error('starting_bid')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         </div>
 
-        <button type="submit" {{ $products->isEmpty() ? 'disabled' : '' }}
-                class="w-full py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <button type="submit"
+                class="w-full py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors">
             {{ __('Create Live Room') }}
         </button>
     </form>

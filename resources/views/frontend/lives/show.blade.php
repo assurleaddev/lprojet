@@ -2,471 +2,771 @@
 
 @section('before_head')
 <style>
-    #agora-video-container { background: #111; position: relative; }
-    #agora-video-container video { width: 100%; height: 100%; object-fit: cover; }
-    .bid-pulse { animation: bidPop .4s ease; }
-    @keyframes bidPop { 0%{transform:scale(1)} 50%{transform:scale(1.08)} 100%{transform:scale(1)} }
-    #winner-overlay {
-        position: absolute; inset: 0; z-index: 30;
-        background: linear-gradient(135deg, rgba(0,0,0,.7) 0%, rgba(16,9,2,.85) 100%);
-        display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 12px; text-align: center; padding: 24px;
-        animation: fadeInOverlay .5s ease;
-    }
-    @keyframes fadeInOverlay { from { opacity:0; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
-    #winner-overlay .trophy { font-size: 3.5rem; animation: trophyBounce .6s ease .3s both; }
-    @keyframes trophyBounce { 0%{transform:scale(0) rotate(-20deg)} 70%{transform:scale(1.15) rotate(5deg)} 100%{transform:scale(1) rotate(0)} }
+/* ── Full-screen feed ── */
+html, body { height: 100%; margin: 0; overflow: hidden; }
+#live-feed {
+    height: 100dvh;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+}
+#live-feed::-webkit-scrollbar { display: none; }
+
+/* ── Individual live screen ── */
+.live-screen {
+    position: relative;
+    height: 100dvh;
+    width: 100%;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    background: #000;
+    overflow: hidden;
+}
+.live-video-wrap {
+    position: absolute; inset: 0;
+    background: #111;
+}
+.live-video-wrap video { width: 100%; height: 100%; object-fit: cover; }
+.live-screen::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,.7) 0%, transparent 40%, rgba(0,0,0,.2) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* ── Sidebar ── */
+.live-sidebar {
+    position: absolute; right: 14px; bottom: 140px; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; gap: 20px;
+}
+.side-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #fff; cursor: pointer; user-select: none; }
+.side-btn svg { filter: drop-shadow(0 1px 2px rgba(0,0,0,.5)); }
+.side-btn span { font-size: 11px; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,.5); }
+
+/* ── Product card ── */
+.live-product {
+    position: absolute; left: 12px; bottom: 200px; z-index: 10; width: 200px;
+}
+.product-card-live {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+    border-radius: 12px; padding: 8px; cursor: pointer;
+}
+.product-card-live img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; flex-shrink: 0; }
+.prod-name { color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prod-bid  { color: #fbbf24; font-size: 11px; font-weight: 700; }
+
+/* ── Bid bar ── */
+.bid-bar {
+    position: absolute; bottom: 130px; left: 12px; right: 12px; z-index: 10;
+    display: flex; gap: 8px; align-items: center;
+}
+.bid-bar input {
+    flex: 1; background: rgba(255,255,255,.15); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.3); border-radius: 24px;
+    padding: 10px 16px; color: #fff; font-size: 14px; font-weight: 600; outline: none;
+}
+.bid-bar input::placeholder { color: rgba(255,255,255,.55); }
+.bid-bar button {
+    background: #ef4444; color: #fff; border: none; border-radius: 24px;
+    padding: 10px 20px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+}
+.bid-bar button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Countdown ── */
+.countdown-bar {
+    position: absolute; bottom: 120px; left: 12px; right: 80px; z-index: 10; text-align: center;
+}
+.countdown-inner {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+    border-radius: 20px; padding: 6px 16px; color: #fbbf24; font-size: 13px; font-weight: 700;
+}
+
+/* ── Comments ── */
+.live-comments {
+    position: absolute; bottom: 185px; left: 12px; right: 80px; z-index: 10;
+    max-height: 210px; overflow-y: auto;
+    mask-image: linear-gradient(transparent 0%, black 30%);
+    scrollbar-width: none; pointer-events: none;
+}
+.live-comments::-webkit-scrollbar { display: none; }
+.comment-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; pointer-events: auto; animation: slideIn .25s ease; }
+@keyframes slideIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.comment-item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-top: 2px; }
+.comment-bubble { background: rgba(0,0,0,.45); backdrop-filter: blur(4px); border-radius: 12px; padding: 5px 10px; color: #fff; font-size: 12px; line-height: 1.4; }
+.comment-bubble .c-user { font-weight: 700; margin-right: 4px; color: #fde68a; }
+
+/* ── Comment input ── */
+.comment-input-wrap {
+    position: absolute; bottom: 70px; left: 12px; right: 80px; z-index: 10;
+    display: flex; gap: 8px;
+}
+.comment-input-wrap input {
+    flex: 1; background: rgba(255,255,255,.12); backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,255,255,.25); border-radius: 24px;
+    padding: 9px 14px; color: #fff; font-size: 13px; outline: none;
+}
+.comment-input-wrap input::placeholder { color: rgba(255,255,255,.5); }
+.comment-input-wrap button {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 50%; width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; cursor: pointer; flex-shrink: 0;
+}
+
+/* ── Seller bar ── */
+.seller-bar {
+    position: absolute; top: 16px; left: 12px; right: 12px; z-index: 10;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.seller-info { display: flex; align-items: center; gap: 8px; }
+.seller-info img { width: 36px; height: 36px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+.seller-name { color: #fff; font-size: 14px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+.live-badge { display: flex; align-items: center; gap: 4px; background: #ef4444; color: #fff; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 6px; }
+.live-badge .dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
+.ctrl-btn { background: rgba(0,0,0,.5); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 14px; cursor: pointer; white-space: nowrap; }
+.ctrl-btn.danger { background: rgba(220,38,38,.7); }
+.ctrl-btn.go-live-btn { background: rgba(22,163,74,.8); }
+.ctrl-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* ── Winner overlay ── */
+.winner-overlay { position: absolute; inset: 0; z-index: 30; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,.7); animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+.winner-trophy { font-size: 64px; animation: bounce .6s ease infinite alternate; }
+@keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+.winner-text { color: #fff; font-size: 22px; font-weight: 800; text-align: center; margin-top: 12px; }
+.winner-sub  { color: #fbbf24; font-size: 16px; font-weight: 700; margin-top: 4px; }
+
+/* ── Floating hearts ── */
+.heart-float { position: absolute; bottom: 80px; right: 60px; z-index: 20; pointer-events: none; overflow: hidden; width: 50px; height: 200px; }
+.heart { position: absolute; font-size: 22px; animation: floatHeart 1.8s ease-out forwards; }
+@keyframes floatHeart { 0% { opacity:1; transform:translateY(0) scale(.8); } 50% { opacity:1; transform:translateY(-80px) scale(1.1); } 100% { opacity:0; transform:translateY(-180px) scale(.6); } }
+
+/* ── Product sheet ── */
+.product-sheet { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; background: #111; border-radius: 20px 20px 0 0; padding: 20px 16px; transform: translateY(100%); transition: transform .3s ease; max-height: 60dvh; overflow-y: auto; }
+.product-sheet.open { transform: translateY(0); }
+.sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,.25); border-radius: 2px; margin: 0 auto 16px; }
+
+/* ── Unmute button ── */
+.unmute-btn { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; }
+.unmute-inner { background: rgba(0,0,0,.6); border: 2px solid rgba(255,255,255,.4); border-radius: 50px; color: #fff; padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 </style>
 @endsection
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 py-6">
+<div id="live-feed">
+    @foreach($orderedLives as $liveItem)
+    @php
+        $isSeller = Auth::id() === $liveItem->seller_id;
+        $isFirst  = $loop->first;
+    @endphp
+    <div class="live-screen"
+         data-live-id="{{ $liveItem->id }}"
+         data-status="{{ $liveItem->status }}"
+         data-auction="{{ $liveItem->auction_status }}"
+         data-is-seller="{{ $isSeller ? '1' : '0' }}"
+         data-token-url="{{ route('lives.agora-token', $liveItem) }}"
+         data-bid-url="{{ route('lives.bid', $liveItem) }}"
+         data-comment-url="{{ route('lives.comment', $liveItem) }}"
+         data-like-url="{{ route('lives.like', $liveItem) }}"
+         data-go-live-url="{{ $isSeller ? route('lives.go-live', $liveItem) : '' }}"
+         data-end-live-url="{{ $isSeller ? route('lives.end', $liveItem) : '' }}"
+         data-close-auction-url="{{ $isSeller ? route('lives.close-auction', $liveItem) : '' }}"
+         data-set-product-url="{{ $isSeller ? route('lives.set-product', $liveItem) : '' }}"
+         data-min-next-bid="{{ $liveItem->min_next_bid }}"
+         data-countdown="{{ $liveItem->countdown_ends_at ? $liveItem->countdown_ends_at->toISOString() : '' }}"
+         data-likes="{{ $liveItem->likes_count }}"
+         data-has-liked="{{ ($isFirst && $hasLiked) ? '1' : '0' }}">
 
-    {{-- Header --}}
-    <div class="flex items-center gap-3 mb-4">
-        <a href="{{ route('lives.index') }}" class="text-gray-400 hover:text-gray-600">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </a>
-        <h1 class="font-bold text-gray-900 text-lg truncate">{{ $live->title }}</h1>
-        <span id="status-badge" class="ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full
-            {{ $live->status === 'live' ? 'bg-red-100 text-red-600' : ($live->status === 'ended' ? 'bg-gray-100 text-gray-500' : 'bg-yellow-100 text-yellow-700') }}">
-            @if($live->status === 'live')
-                <span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> LIVE
-            @elseif($live->status === 'ended')
-                {{ __('Ended') }}
-            @else
-                {{ __('Upcoming') }}
-            @endif
-        </span>
-    </div>
+        {{-- Video area --}}
+        <div class="live-video-wrap" id="video-wrap-{{ $liveItem->id }}"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-
-        {{-- Video --}}
-        <div class="lg:col-span-2 space-y-4">
-            <div id="agora-video-container" class="w-full rounded-xl overflow-hidden bg-gray-900" style="aspect-ratio:16/9">
-                <div id="video-placeholder" class="w-full h-full flex flex-col items-center justify-center text-gray-500 gap-3">
-                    <svg class="w-16 h-16 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.862v6.276a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-                    </svg>
-                    <p class="text-sm" id="video-status-text">
-                        @if($live->status === 'ended') {{ __('This live has ended.') }}
-                        @elseif($live->status === 'scheduled') {{ __('Waiting for seller to go live...') }}
-                        @else {{ __('Connecting...') }}
-                        @endif
-                    </p>
-                </div>
+        {{-- Seller bar --}}
+        <div class="seller-bar">
+            <div class="seller-info">
+                <img src="{{ $liveItem->seller->avatar_url }}" alt="">
+                <span class="seller-name">{{ $liveItem->seller->username }}</span>
+                @if($liveItem->status === 'live')
+                    <span class="live-badge"><span class="dot"></span> LIVE</span>
+                @else
+                    <span style="background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;">{{ __('Upcoming') }}</span>
+                @endif
             </div>
-
-            {{-- Seller controls --}}
-            @if(auth()->id() === $live->seller_id)
-                <div id="seller-controls" class="flex gap-3">
-                    <button id="btn-go-live"
-                        class="{{ $live->status !== 'scheduled' ? 'hidden' : '' }} flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2">
-                        <span class="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                        {{ __('Go Live') }}
-                    </button>
-                    <button id="btn-end-live"
-                        class="{{ $live->status !== 'live' ? 'hidden' : '' }} flex-1 py-2.5 bg-gray-700 hover:bg-gray-800 text-white font-semibold rounded-lg transition-colors">
-                        {{ __('End Live') }}
-                    </button>
-                </div>
-            @endif
-
-            {{-- Product info --}}
-            @if($live->product)
-                <div class="bg-white rounded-xl border border-gray-200 p-4 flex gap-4 items-center">
-                    <img src="{{ $live->product->getFeaturedImageUrl('preview') }}"
-                         class="w-16 h-16 rounded-lg object-cover border border-gray-100" alt="">
-                    <div class="flex-1 min-w-0">
-                        <p class="font-semibold text-gray-900 truncate">{{ $live->product->name }}</p>
-                        <p class="text-xs text-gray-500 mt-0.5">{{ $live->product->brand?->name }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-gray-400">{{ __('Listed at') }}</p>
-                        <p class="font-bold text-gray-900">{{ number_format($live->product->price, 2) }} MAD</p>
-                    </div>
-                </div>
-            @endif
-        </div>
-
-        {{-- Bid Panel --}}
-        <div class="space-y-4">
-
-            {{-- Current Bid --}}
-            <div class="bg-white rounded-xl border border-gray-200 p-5 text-center">
-                <p class="text-xs text-gray-400 uppercase tracking-wider mb-1">
-                    {{ $live->current_bid ? __('Current Bid') : __('Starting Bid') }}
-                </p>
-                <p id="current-bid" class="text-3xl font-black text-gray-900">
-                    {{ number_format($live->current_bid ?? $live->starting_bid, 2) }} MAD
-                </p>
-                <p id="current-bidder" class="text-xs text-gray-400 mt-1">
-                    @if($live->currentBidder) {{ $live->currentBidder->username }} @endif
-                </p>
-
-                {{-- Countdown --}}
-                <div id="countdown-wrap" class="{{ $live->status !== 'live' || !$live->countdown_ends_at ? 'hidden' : '' }} mt-4">
-                    <div class="relative w-16 h-16 mx-auto">
-                        <svg class="w-full h-full -rotate-90" viewBox="0 0 36 36">
-                            <circle cx="18" cy="18" r="15.9" fill="none" stroke="#e5e7eb" stroke-width="3"/>
-                            <circle id="countdown-ring" cx="18" cy="18" r="15.9" fill="none"
-                                    stroke="#ef4444" stroke-width="3" stroke-dasharray="100 100"
-                                    stroke-linecap="round" style="transition:stroke-dasharray .9s linear"/>
-                        </svg>
-                        <span id="countdown-number" class="absolute inset-0 flex items-center justify-center text-xl font-black text-gray-900">10</span>
-                    </div>
-                    <p class="text-xs text-gray-400 mt-1">{{ __('seconds left') }}</p>
-                </div>
-            </div>
-
-            {{-- Bid action --}}
-            @if($live->status === 'live' && auth()->id() !== $live->seller_id)
-                <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-                    @auth
-                        <div class="flex items-center gap-2">
-                            <input type="number" id="bid-input" step="10" min="{{ $live->min_next_bid }}"
-                                   value="{{ $live->min_next_bid }}"
-                                   class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-gray-900">
-                            <span class="text-sm text-gray-400 shrink-0">MAD</span>
-                        </div>
-                        <button id="btn-bid"
-                            class="w-full py-3 bg-gray-900 hover:bg-gray-800 text-white font-bold rounded-lg transition-colors text-sm">
-                            {{ __('Place Bid') }}
-                        </button>
-                    @else
-                        <a href="{{ route('login') }}"
-                           class="block w-full py-3 bg-gray-900 text-white font-bold rounded-lg text-center text-sm">
-                            {{ __('Sign in to bid') }}
-                        </a>
-                    @endauth
-                </div>
-            @elseif($live->status === 'ended')
-                <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
-                    <p class="text-sm font-semibold text-green-800">{{ __('Auction ended') }}</p>
-                    @if($live->currentBidder)
-                        <p class="text-xs text-green-600 mt-1">
-                            🏆 {{ $live->currentBidder->username }} — {{ number_format($live->current_bid, 2) }} MAD
-                        </p>
-                    @else
-                        <p class="text-xs text-green-600 mt-1">{{ __('No bids were placed.') }}</p>
+            @if($isSeller)
+            <div style="display:flex;gap:6px;align-items:center;">
+                @if($liveItem->status === 'scheduled')
+                    <button class="ctrl-btn go-live-btn js-go-live">{{ __('Go Live') }}</button>
+                @endif
+                @if($liveItem->status === 'live')
+                    @if($liveItem->auction_status === 'active')
+                        <button class="ctrl-btn js-close-auction">{{ __('Close Bid') }}</button>
                     @endif
-                </div>
-            @endif
-
-            {{-- Bid history --}}
-            <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <p class="text-xs font-semibold uppercase tracking-wider text-gray-400 px-4 py-3 border-b border-gray-100">
-                    {{ __('Bid History') }}
-                </p>
-                <ul id="bid-history" class="divide-y divide-gray-50 max-h-64 overflow-y-auto">
-                    @forelse($live->bids->sortByDesc('created_at') as $bid)
-                        <li class="flex items-center justify-between px-4 py-2.5">
-                            <div class="flex items-center gap-2">
-                                <img src="{{ $bid->user->avatar_url }}" class="w-6 h-6 rounded-full object-cover" alt="">
-                                <span class="text-sm text-gray-700">{{ $bid->user->username }}</span>
-                            </div>
-                            <span class="text-sm font-bold text-gray-900">{{ number_format($bid->amount, 2) }} MAD</span>
-                        </li>
-                    @empty
-                        <li class="px-4 py-6 text-center text-xs text-gray-400" id="no-bids-msg">{{ __('No bids yet. Be the first!') }}</li>
-                    @endforelse
-                </ul>
+                    <button class="ctrl-btn js-open-product-sheet">🛍 {{ __('Set Product') }}</button>
+                    <button class="ctrl-btn danger js-end-live">{{ __('End') }}</button>
+                @endif
             </div>
+            @endif
+        </div>
 
-            {{-- Seller info --}}
-            <div class="flex items-center gap-3 bg-white rounded-xl border border-gray-200 p-4">
-                <img src="{{ $live->seller->avatar_url }}" class="w-10 h-10 rounded-full object-cover border border-gray-100" alt="">
-                <div>
-                    <p class="text-sm font-semibold text-gray-900">{{ $live->seller->username }}</p>
-                    <p class="text-xs text-gray-400">{{ __('Seller') }}</p>
+        {{-- Product card --}}
+        <div class="live-product js-product-card" style="{{ $liveItem->auction_status !== 'active' ? 'display:none;' : '' }}">
+            <div class="product-card-live">
+                @if($liveItem->product)
+                    <img src="{{ $liveItem->product->getFeaturedImageUrl('preview') }}" alt="" class="js-prod-img">
+                @else
+                    <img src="" alt="" class="js-prod-img" style="display:none;">
+                @endif
+                <div style="min-width:0;overflow:hidden;">
+                    <div class="prod-name js-prod-name">{{ $liveItem->product?->name ?? '' }}</div>
+                    <div class="prod-bid js-bid-display">
+                        @if($liveItem->current_bid)
+                            {{ number_format($liveItem->current_bid, 2) }} MAD
+                        @elseif($liveItem->product)
+                            {{ __('Start') }}: {{ number_format($liveItem->starting_bid, 2) }} MAD
+                        @endif
+                    </div>
+                    <div style="color:rgba(255,255,255,.7);font-size:10px;" class="js-bidder-name">{{ $liveItem->currentBidder ? 'by ' . $liveItem->currentBidder->username : '' }}</div>
                 </div>
-                <a href="{{ route('vendor.show', $live->seller) }}"
-                   class="ml-auto text-xs text-gray-500 hover:text-gray-900 hover:underline">{{ __('View profile') }}</a>
             </div>
         </div>
+
+        {{-- Countdown --}}
+        <div class="countdown-bar js-countdown-bar" style="{{ !$liveItem->countdown_ends_at ? 'display:none;' : '' }}">
+            <div class="countdown-inner">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:16px;height:16px;flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="js-countdown-text">{{ __('Closing in') }} ...</span>
+            </div>
+        </div>
+
+        {{-- Bid bar --}}
+        @auth
+        <div class="bid-bar js-bid-bar" style="{{ ($liveItem->auction_status !== 'active' || $isSeller) ? 'display:none;' : '' }}">
+            <input type="number" class="js-bid-input" step="10" min="{{ $liveItem->min_next_bid }}"
+                   placeholder="{{ __('Min') }} {{ number_format($liveItem->min_next_bid, 2) }} MAD">
+            <button class="js-bid-btn">{{ __('Bid') }}</button>
+        </div>
+        @endauth
+
+        {{-- Comments --}}
+        <div class="live-comments js-comments">
+            @if($isFirst)
+                @foreach($recentComments as $comment)
+                <div class="comment-item">
+                    <img src="{{ $comment->user->avatar_url }}" alt="">
+                    <div class="comment-bubble"><span class="c-user">{{ $comment->user->username }}</span>{{ $comment->content }}</div>
+                </div>
+                @endforeach
+            @endif
+        </div>
+
+        {{-- Comment input --}}
+        @auth
+        <div class="comment-input-wrap">
+            <input type="text" class="js-comment-input" maxlength="200" placeholder="{{ __('Say something…') }}">
+            <button class="js-comment-send">
+                <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+        </div>
+        @endauth
+
+        {{-- Sidebar --}}
+        <div class="live-sidebar">
+            @auth
+            <div class="side-btn js-like-btn">
+                <svg style="width:28px;height:28px;" class="js-heart-icon" fill="{{ ($isFirst && $hasLiked) ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z"/>
+                </svg>
+                <span class="js-likes-count">{{ $liveItem->likes_count }}</span>
+            </div>
+            @endauth
+            <div class="side-btn js-share-btn">
+                <svg style="width:28px;height:28px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                <span>{{ __('Share') }}</span>
+            </div>
+        </div>
+
+        {{-- Floating hearts --}}
+        <div class="heart-float js-heart-float"></div>
+
+        {{-- Unmute --}}
+        <div class="unmute-btn js-unmute" style="display:none;">
+            <div class="unmute-inner">
+                <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
+                {{ __('Tap to unmute') }}
+            </div>
+        </div>
+
+        {{-- Winner overlay --}}
+        <div class="winner-overlay js-winner" style="display:none;">
+            <div class="winner-trophy">🏆</div>
+            <div class="winner-text js-winner-text"></div>
+            <div class="winner-sub js-winner-sub"></div>
+        </div>
+
+        {{-- Product sheet (seller only) --}}
+        @if($isSeller && $isFirst)
+        <div class="product-sheet js-product-sheet">
+            <div class="sheet-handle"></div>
+            <p style="color:#fff;font-size:15px;font-weight:700;margin-bottom:12px;">{{ __('Select Product for Auction') }}</p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                @foreach($sellerProducts as $sp)
+                <label style="cursor:pointer;">
+                    <input type="radio" name="sheet-product-{{ $liveItem->id }}" value="{{ $sp->id }}"
+                           data-name="{{ $sp->name }}" data-price="{{ $sp->price }}"
+                           data-img="{{ $sp->getFeaturedImageUrl('preview') }}"
+                           class="js-sheet-radio" style="display:none;">
+                    <div class="js-sheet-card" style="border:2px solid rgba(255,255,255,.15);border-radius:10px;overflow:hidden;transition:border-color .15s;">
+                        <img src="{{ $sp->getFeaturedImageUrl('preview') }}" style="width:100%;height:70px;object-fit:cover;" alt="">
+                        <div style="padding:6px 8px;">
+                            <p style="color:#fff;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $sp->name }}</p>
+                            <p style="color:rgba(255,255,255,.5);font-size:10px;">{{ number_format($sp->price, 2) }} MAD</p>
+                        </div>
+                    </div>
+                </label>
+                @endforeach
+            </div>
+            <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
+                <input type="number" class="js-sheet-bid" min="1" step="1" placeholder="{{ __('Starting bid (MAD)') }}"
+                       style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:9px 14px;color:#fff;font-size:13px;outline:none;">
+                <button class="js-sheet-confirm" style="background:#ef4444;color:#fff;border:none;border-radius:20px;padding:10px 20px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;">
+                    {{ __('Start Auction') }}
+                </button>
+            </div>
+            <button class="js-sheet-close" style="margin-top:10px;width:100%;background:rgba(255,255,255,.08);border:none;border-radius:20px;padding:10px;color:#fff;font-size:13px;cursor:pointer;">
+                {{ __('Cancel') }}
+            </button>
+        </div>
+        @endif
+
     </div>
+    @endforeach
 </div>
 @endsection
 
 @section('after_body')
-<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-(function () {
-    const LIVE_ID        = {!! $live->id !!};
-    const SELLER_ID      = {!! $live->seller_id !!};
-    const CURRENT_USER   = {!! auth()->id() ?? 'null' !!};
-    const IS_SELLER      = CURRENT_USER === SELLER_ID;
-    const STATUS         = {!! json_encode($live->status) !!};
-    const CSRF           = document.querySelector('meta[name="csrf-token"]').content;
-    const TOKEN_URL      = {!! json_encode(route('lives.agora-token', $live)) !!};
-    const BID_URL        = {!! json_encode(route('lives.bid', $live)) !!};
-    const GO_LIVE_URL    = {!! json_encode(route('lives.go-live', $live)) !!};
-    const END_LIVE_URL   = {!! json_encode(route('lives.end', $live)) !!};
+    (function () {
+        const CSRF = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+        const IS_AUTH = {!! Auth::check() ? 'true' : 'false' !!};
 
-    let client, localTracks = [];
-    let sellerReady = false;
-    let countdownInterval = null;
-    let countdownEndsAt   = {!! $live->countdown_ends_at ? json_encode($live->countdown_ends_at->toISOString()) : 'null' !!};
-
-    // ── Seller preview: join channel + open camera but don't publish yet ──────
-    async function setupSellerPreview() {
-        try {
-            const res  = await fetch(TOKEN_URL);
-            const data = await res.json();
-
-            client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
-            await client.setClientRole('host');
-            await client.join(data.app_id, data.channel, data.token, data.uid);
-
-            localTracks = await AgoraRTC.createMicrophoneAndCameraTracks();
-            document.getElementById('video-placeholder').style.display = 'none';
-            const videoDiv = document.createElement('div');
-            videoDiv.id = 'local-video';
-            videoDiv.style.cssText = 'width:100%;height:100%';
-            document.getElementById('agora-video-container').appendChild(videoDiv);
-            localTracks[1].play('local-video');
-            sellerReady = true;
-        } catch (err) {
-            console.error('Camera setup failed:', err);
-            document.getElementById('video-status-text').textContent = 'Camera access denied — please allow camera permissions.';
+        async function apiFetch(url, body) {
+            const r = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            return r.json();
         }
-    }
 
-    // ── Unmute overlay (browsers block audio autoplay) ────────────────────────
-    let pendingAudioTrack = null;
+        const screenState = new Map();
+        function getState(id) {
+            if (!screenState.has(id)) screenState.set(id, { client: null, localTracks: [], countdownTimer: null, auctionEnding: false });
+            return screenState.get(id);
+        }
 
-    function showUnmuteOverlay() {
-        if (document.getElementById('unmute-overlay')) return;
-        const container = document.getElementById('agora-video-container');
-        const btn = document.createElement('button');
-        btn.id = 'unmute-overlay';
-        btn.className = 'absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/70 hover:bg-black/90 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors';
-        btn.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3.63 3.63a.996.996 0 000 1.41L7.29 8.7 7 9H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71v-4.17l4.18 4.18c-.49.37-1.02.68-1.6.91-.36.15-.58.53-.58.92 0 .72.73 1.18 1.39.91.8-.33 1.55-.77 2.22-1.31l1.34 1.34a.996.996 0 101.41-1.41L5.05 3.63c-.39-.39-1.02-.39-1.42 0zM19 12c0 .82-.15 1.61-.41 2.34l1.53 1.53c.56-1.17.88-2.48.88-3.87 0-3.83-2.4-7.11-5.78-8.4-.59-.23-1.22.2-1.22.83v.28c0 .35.22.67.55.79C17.02 6.54 19 9.06 19 12zm-8.71-6.29l-.17.17L12 7.76V6.41c0-.89-1.08-1.33-1.71-.7zM16.5 12A4.5 4.5 0 0014 7.97v1.79l2.48 2.48c.01-.08.02-.16.02-.24z"/></svg> {{ __('Tap to unmute') }}`;
-        btn.addEventListener('click', () => {
-            if (pendingAudioTrack) {
-                pendingAudioTrack.play();
-                pendingAudioTrack = null;
-            }
-            btn.remove();
-        });
-        container.appendChild(btn);
-    }
+        function escHtml(s) {
+            return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
 
-    // ── Audience: join and subscribe to host video ────────────────────────────
-    async function initAudience() {
-        try {
-            const res  = await fetch(TOKEN_URL);
-            const data = await res.json();
+        // ── Countdown ────────────────────────────────────────────────
+        function startCountdown(screen, endsAtIso) {
+            const id = screen.dataset.liveId;
+            const st = getState(id);
+            const bar = screen.querySelector('.js-countdown-bar');
+            const txt = screen.querySelector('.js-countdown-text');
+            const isSeller = screen.dataset.isSeller === '1';
+            clearInterval(st.countdownTimer);
+            if (!endsAtIso) { bar.style.display = 'none'; return; }
+            bar.style.display = '';
+            st.countdownTimer = setInterval(() => {
+                const remaining = Math.round((new Date(endsAtIso) - Date.now()) / 1000);
+                if (remaining <= 0) {
+                    clearInterval(st.countdownTimer);
+                    bar.style.display = 'none';
+                    if (isSeller && !st.auctionEnding) {
+                        st.auctionEnding = true;
+                        triggerCloseAuction(screen);
+                    }
+                    return;
+                }
+                txt.textContent = {!! json_encode(__('Closing in')) !!} + ' ' + remaining + 's';
+            }, 500);
+        }
 
-            client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
-            await client.setClientRole('audience');
-            await client.join(data.app_id, data.channel, data.token, data.uid);
+        // ── Winner overlay ───────────────────────────────────────────
+        function showWinner(screen, username, amount) {
+            const ov = screen.querySelector('.js-winner');
+            screen.querySelector('.js-winner-text').textContent = username
+                ? '🎉 ' + username + ' ' + {!! json_encode(__('won the auction!')) !!}
+                : {!! json_encode(__('Auction closed — no bids.')) !!};
+            screen.querySelector('.js-winner-sub').textContent = amount ? amount + ' MAD' : '';
+            ov.style.display = 'flex';
+            setTimeout(() => { ov.style.display = 'none'; }, 10000);
+        }
 
-            // Handle browsers that block audio autoplay
+        // ── Append comment ───────────────────────────────────────────
+        function appendComment(screen, c) {
+            const box = screen.querySelector('.js-comments');
+            const div = document.createElement('div');
+            div.className = 'comment-item';
+            div.innerHTML = '<img src="' + escHtml(c.avatar_url) + '" alt=""><div class="comment-bubble"><span class="c-user">' + escHtml(c.username) + '</span>' + escHtml(c.content) + '</div>';
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            while (box.children.length > 80) box.removeChild(box.firstChild);
+        }
+
+        // ── Floating hearts ──────────────────────────────────────────
+        function spawnHeart(screen) {
+            const container = screen.querySelector('.js-heart-float');
+            const hearts = ['❤️', '🧡', '💛', '💚', '💙', '💜'];
+            const h = document.createElement('span');
+            h.className = 'heart';
+            h.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+            h.style.left = (Math.random() * 20) + 'px';
+            container.appendChild(h);
+            setTimeout(() => h.remove(), 1900);
+        }
+
+        // ── Pusher bindings ──────────────────────────────────────────
+        function bindPusherChannel(screen) {
+            const id = screen.dataset.liveId;
+            const ch = Echo.channel('live.' + id);
+
+            ch.listen('BidPlaced', (e) => {
+                const bidDisplay = screen.querySelector('.js-bid-display');
+                const bidderName = screen.querySelector('.js-bidder-name');
+                const bidInput = screen.querySelector('.js-bid-input');
+                if (bidDisplay) bidDisplay.textContent = parseFloat(e.current_bid).toFixed(2) + ' MAD';
+                if (bidderName) bidderName.textContent = 'by ' + (e.bidder_username || '');
+                if (bidInput) {
+                    bidInput.min = e.min_next_bid;
+                    bidInput.placeholder = {!! json_encode(__('Min')) !!} + ' ' + parseFloat(e.min_next_bid).toFixed(2) + ' MAD';
+                }
+                startCountdown(screen, e.countdown_ends_at);
+            });
+
+            ch.listen('AuctionProductChanged', (e) => {
+                const pc = screen.querySelector('.js-product-card');
+                const pn = screen.querySelector('.js-prod-name');
+                const pi = screen.querySelector('.js-prod-img');
+                const bd = screen.querySelector('.js-bid-display');
+                const bn = screen.querySelector('.js-bidder-name');
+                const bidBar = screen.querySelector('.js-bid-bar');
+                const isSeller = screen.dataset.isSeller === '1';
+                if (pn) pn.textContent = e.product_name || '';
+                if (pi && e.product_image) { pi.src = e.product_image; pi.style.display = ''; }
+                if (bd) bd.textContent = {!! json_encode(__('Start')) !!} + ': ' + parseFloat(e.starting_bid).toFixed(2) + ' MAD';
+                if (bn) bn.textContent = '';
+                if (pc) pc.style.display = '';
+                if (bidBar && !isSeller) bidBar.style.display = '';
+                screen.dataset.auction = 'active';
+                screen.querySelector('.js-countdown-bar').style.display = 'none';
+                clearInterval(getState(id).countdownTimer);
+            });
+
+            ch.listen('AuctionClosed', (e) => {
+                const bidBar = screen.querySelector('.js-bid-bar');
+                const pc = screen.querySelector('.js-product-card');
+                if (bidBar) bidBar.style.display = 'none';
+                if (pc) pc.style.display = 'none';
+                screen.dataset.auction = 'idle';
+                const bar = screen.querySelector('.js-countdown-bar');
+                if (bar) bar.style.display = 'none';
+                clearInterval(getState(id).countdownTimer);
+                getState(id).auctionEnding = false;
+                showWinner(screen, e.winner_username, e.winning_bid ? parseFloat(e.winning_bid).toFixed(2) : null);
+            });
+
+            ch.listen('CommentPosted', (e) => appendComment(screen, e));
+
+            ch.listen('LiveStatusChanged', (e) => {
+                if (e.status === 'ended') {
+                    screen.remove();
+                    const feed = document.getElementById('live-feed');
+                    if (feed && feed.children.length === 0) window.location.href = {!! json_encode(route('lives.index')) !!};
+                }
+            });
+        }
+
+        // ── Agora ────────────────────────────────────────────────────
+        async function initAgora(screen) {
+            const id = screen.dataset.liveId;
+            const st = getState(id);
+            if (st.client) return;
+
+            const isSeller = screen.dataset.isSeller === '1';
+            const wrap = document.getElementById('video-wrap-' + id);
+
+            let tokenData;
+            try {
+                const r = await fetch(screen.dataset.tokenUrl, { headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF } });
+                tokenData = await r.json();
+            } catch (e) { return; }
+
+            const client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
+            st.client = client;
+
             AgoraRTC.onAudioAutoplayFailed = () => {
-                showUnmuteOverlay();
+                const btn = screen.querySelector('.js-unmute');
+                if (btn) btn.style.display = 'flex';
             };
+
+            try {
+                if (isSeller) {
+                    await client.setClientRole('host');
+                    await client.join(tokenData.app_id, tokenData.channel, tokenData.token, tokenData.uid);
+                    const [audioTrack, videoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks();
+                    st.localTracks = [audioTrack, videoTrack];
+                    videoTrack.play(wrap);
+                    if (screen.dataset.status === 'live') {
+                        await client.publish([audioTrack, videoTrack]);
+                    }
+                } else {
+                    await client.setClientRole('audience');
+                    await client.join(tokenData.app_id, tokenData.channel, tokenData.token, tokenData.uid);
+                }
+            } catch (e) { console.error('Agora join error', e); return; }
 
             client.on('user-published', async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
                 if (mediaType === 'video') {
-                    document.getElementById('video-placeholder').style.display = 'none';
-                    let videoDiv = document.getElementById('remote-video');
-                    if (!videoDiv) {
-                        videoDiv = document.createElement('div');
-                        videoDiv.id = 'remote-video';
-                        videoDiv.style.cssText = 'width:100%;height:100%';
-                        document.getElementById('agora-video-container').appendChild(videoDiv);
-                    }
-                    user.videoTrack.play('remote-video');
+                    const div = document.createElement('div');
+                    div.id = 'agora-remote-' + user.uid;
+                    div.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;';
+                    wrap.innerHTML = '';
+                    wrap.appendChild(div);
+                    user.videoTrack.play(div);
                 }
                 if (mediaType === 'audio') {
-                    try {
-                        user.audioTrack.play();
-                    } catch (e) {
-                        pendingAudioTrack = user.audioTrack;
-                        showUnmuteOverlay();
+                    try { user.audioTrack.play(); }
+                    catch (e) {
+                        const btn = screen.querySelector('.js-unmute');
+                        if (btn) btn.style.display = 'flex';
                     }
                 }
             });
 
             client.on('user-unpublished', (user, mediaType) => {
                 if (mediaType === 'video') {
-                    const el = document.getElementById('remote-video');
-                    if (el) el.remove();
-                    document.getElementById('video-placeholder').style.display = 'flex';
-                    document.getElementById('video-status-text').textContent = 'Host paused the stream...';
+                    const div = document.getElementById('agora-remote-' + user.uid);
+                    if (div) div.remove();
                 }
             });
-        } catch (err) {
-            console.error('Audience init failed:', err);
         }
-    }
 
-    // ── Bootstrap on page load ────────────────────────────────────────────────
-    if (IS_SELLER && STATUS !== 'ended') {
-        setupSellerPreview();
-    } else if (!IS_SELLER && STATUS === 'live') {
-        initAudience();
-    }
+        async function teardownAgora(screen) {
+            const id = screen.dataset.liveId;
+            const st = getState(id);
+            if (!st.client) return;
+            st.localTracks.forEach(t => { try { t.stop(); t.close(); } catch (e) {} });
+            try { await st.client.leave(); } catch (e) {}
+            st.client = null;
+            st.localTracks = [];
+        }
 
-    // ── Winner overlay ────────────────────────────────────────────────────────
-    function showWinnerOverlay(username, amount) {
-        const container = document.getElementById('agora-video-container');
-        const old = document.getElementById('winner-overlay');
-        if (old) old.remove();
+        // ── Seller actions ───────────────────────────────────────────
+        async function triggerCloseAuction(screen) {
+            const url = screen.dataset.closeAuctionUrl;
+            if (!url) return;
+            try { await apiFetch(url, {}); } catch (e) {}
+        }
 
-        const overlay = document.createElement('div');
-        overlay.id = 'winner-overlay';
-        overlay.innerHTML = `
-            <div class="trophy">🏆</div>
-            <p class="text-white text-2xl font-black drop-shadow">${username}</p>
-            <p class="text-yellow-300 text-lg font-bold">${parseFloat(amount).toFixed(2)} MAD</p>
-            <p class="text-white/70 text-sm mt-1">{{ __('Won the auction!') }}</p>
-        `;
-        container.appendChild(overlay);
-
-        setTimeout(() => {
-            overlay.style.transition = 'opacity .8s ease';
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.remove(), 800);
-        }, 10000);
-    }
-
-    // ── Countdown ─────────────────────────────────────────────────────────────
-    let auctionEnding = false;
-
-    async function triggerEndLive() {
-        if (auctionEnding) return;
-        auctionEnding = true;
-        for (const t of localTracks) t.close();
-        if (client) await client.leave();
-        document.getElementById('btn-end-live')?.classList.add('hidden');
-        const res  = await fetch(END_LIVE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } });
-        const data = await res.json();
-        if (data.winner && data.winning_bid) showWinnerOverlay(data.winner, data.winning_bid);
-    }
-
-    function startCountdown(isoString) {
-        countdownEndsAt = isoString;
-        const wrap = document.getElementById('countdown-wrap');
-        wrap.classList.remove('hidden');
-        clearInterval(countdownInterval);
-
-        countdownInterval = setInterval(async () => {
-            const remaining = Math.max(0, Math.round((new Date(countdownEndsAt) - Date.now()) / 1000));
-            document.getElementById('countdown-number').textContent = remaining;
-            const pct = (remaining / 10) * 100;
-            document.getElementById('countdown-ring').setAttribute('stroke-dasharray', `${pct} 100`);
-            if (remaining <= 0) {
-                clearInterval(countdownInterval);
-                wrap.classList.add('hidden');
-                if (IS_SELLER) await triggerEndLive();
+        async function triggerGoLive(screen) {
+            const url = screen.dataset.goLiveUrl;
+            if (!url) return;
+            await apiFetch(url, {});
+            screen.dataset.status = 'live';
+            const st = getState(screen.dataset.liveId);
+            if (st.client && st.localTracks.length) {
+                try { await st.client.publish(st.localTracks); } catch (e) {}
             }
-        }, 500);
-    }
+        }
 
-    if (countdownEndsAt && STATUS === 'live') startCountdown(countdownEndsAt);
+        // ── Bind screen interactions ─────────────────────────────────
+        function bindScreen(screen) {
+            bindPusherChannel(screen);
 
-    // ── Pusher real-time ──────────────────────────────────────────────────────
-    Echo.channel('live.' + LIVE_ID)
-        .listen('BidPlaced', (e) => {
-            // Update bid display
-            const bidEl = document.getElementById('current-bid');
-            bidEl.textContent = parseFloat(e.current_bid).toFixed(2) + ' MAD';
-            bidEl.classList.add('bid-pulse');
-            setTimeout(() => bidEl.classList.remove('bid-pulse'), 400);
+            const cdIso = screen.dataset.countdown;
+            if (cdIso && Date.now() < new Date(cdIso)) startCountdown(screen, cdIso);
 
-            document.getElementById('current-bidder').textContent = e.bidder_username;
-
-            // Update bid input minimum
-            const input = document.getElementById('bid-input');
-            if (input) {
-                input.min   = e.min_next_bid;
-                input.value = e.min_next_bid;
+            // Go Live
+            const goBtn = screen.querySelector('.js-go-live');
+            if (goBtn) {
+                goBtn.addEventListener('click', async () => {
+                    goBtn.disabled = true;
+                    await triggerGoLive(screen);
+                    goBtn.style.display = 'none';
+                });
             }
 
-            // Prepend to bid history
-            const list = document.getElementById('bid-history');
-            const noMsg = document.getElementById('no-bids-msg');
-            if (noMsg) noMsg.remove();
-            const li = document.createElement('li');
-            li.className = 'flex items-center justify-between px-4 py-2.5 bg-yellow-50 transition-colors';
-            li.innerHTML = `<span class="text-sm text-gray-700">${e.bidder_username}</span>
-                            <span class="text-sm font-bold text-gray-900">${parseFloat(e.current_bid).toFixed(2)} MAD</span>`;
-            list.prepend(li);
-            setTimeout(() => li.classList.remove('bg-yellow-50'), 1500);
-
-            startCountdown(e.countdown_ends_at);
-        })
-        .listen('LiveStatusChanged', (e) => {
-            if (e.status === 'live') {
-                document.getElementById('status-badge').innerHTML = `<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mr-1"></span> LIVE`;
-                document.getElementById('status-badge').className = 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600';
-                document.getElementById('video-status-text').textContent = {!! json_encode(__('Connecting...')) !!};
-                if (!IS_SELLER) initAudience();
+            // End Live
+            const endBtn = screen.querySelector('.js-end-live');
+            if (endBtn) {
+                endBtn.addEventListener('click', async () => {
+                    if (!confirm({!! json_encode(__('End this live auction now?')) !!})) return;
+                    endBtn.disabled = true;
+                    try {
+                        await apiFetch(screen.dataset.endLiveUrl, {});
+                        await teardownAgora(screen);
+                        window.location.href = {!! json_encode(route('lives.index')) !!};
+                    } catch (e) { endBtn.disabled = false; }
+                });
             }
-            if (e.status === 'ended') {
-                clearInterval(countdownInterval);
-                document.getElementById('countdown-wrap')?.classList.add('hidden');
-                document.getElementById('status-badge').innerHTML = {!! json_encode(__('Ended')) !!};
-                document.getElementById('status-badge').className = 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500';
-                document.getElementById('btn-end-live')?.classList.add('hidden');
-                if (client && !IS_SELLER) client.leave();
-                if (e.winner_username && e.winning_bid) {
-                    showWinnerOverlay(e.winner_username, e.winning_bid);
+
+            // Close auction
+            const closeAuctionBtn = screen.querySelector('.js-close-auction');
+            if (closeAuctionBtn) {
+                closeAuctionBtn.addEventListener('click', async () => {
+                    closeAuctionBtn.disabled = true;
+                    await triggerCloseAuction(screen);
+                    closeAuctionBtn.disabled = false;
+                });
+            }
+
+            // Like
+            const likeBtn = screen.querySelector('.js-like-btn');
+            if (likeBtn && IS_AUTH) {
+                likeBtn.addEventListener('click', async () => {
+                    spawnHeart(screen);
+                    const res = await apiFetch(screen.dataset.likeUrl, {});
+                    if (res.ok !== undefined) {
+                        const icon = likeBtn.querySelector('.js-heart-icon');
+                        icon.setAttribute('fill', res.liked ? 'currentColor' : 'none');
+                        likeBtn.querySelector('.js-likes-count').textContent = res.likes_count;
+                    }
+                });
+            }
+
+            // Share
+            const shareBtn = screen.querySelector('.js-share-btn');
+            if (shareBtn) {
+                shareBtn.addEventListener('click', () => {
+                    const url = window.location.origin + '/lives/' + screen.dataset.liveId;
+                    if (navigator.share) navigator.share({ url }).catch(() => {});
+                    else { navigator.clipboard?.writeText(url); alert({!! json_encode(__('Link copied!')) !!}); }
+                });
+            }
+
+            // Bid
+            const bidBtn = screen.querySelector('.js-bid-btn');
+            const bidInput = screen.querySelector('.js-bid-input');
+            if (bidBtn && IS_AUTH) {
+                bidBtn.addEventListener('click', async () => {
+                    const amount = parseFloat(bidInput.value);
+                    if (!amount) return;
+                    bidBtn.disabled = true;
+                    try {
+                        const res = await apiFetch(screen.dataset.bidUrl, { amount });
+                        if (!res.ok) alert(res.message || 'Error');
+                        else bidInput.value = '';
+                    } catch (e) {}
+                    bidBtn.disabled = false;
+                });
+                bidInput.addEventListener('keydown', e => { if (e.key === 'Enter') bidBtn.click(); });
+            }
+
+            // Comment
+            const commentInput = screen.querySelector('.js-comment-input');
+            const commentSend = screen.querySelector('.js-comment-send');
+            if (commentSend && IS_AUTH) {
+                const sendComment = async () => {
+                    const content = commentInput.value.trim();
+                    if (!content) return;
+                    commentInput.value = '';
+                    appendComment(screen, {
+                        avatar_url: {!! json_encode(Auth::user()?->avatar_url ?? '') !!},
+                        username: {!! json_encode(Auth::user()?->username ?? '') !!},
+                        content,
+                    });
+                    apiFetch(screen.dataset.commentUrl, { content }).catch(() => {});
+                };
+                commentSend.addEventListener('click', sendComment);
+                commentInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendComment(); });
+            }
+
+            // Unmute
+            const unmuteBtn = screen.querySelector('.js-unmute');
+            if (unmuteBtn) {
+                unmuteBtn.addEventListener('click', () => {
+                    const st = getState(screen.dataset.liveId);
+                    if (st.client) {
+                        st.client.remoteUsers.forEach(u => { try { u.audioTrack?.play(); } catch (e) {} });
+                    }
+                    unmuteBtn.style.display = 'none';
+                });
+            }
+
+            // Product sheet
+            const sheetBtn = screen.querySelector('.js-open-product-sheet');
+            const sheet = screen.querySelector('.js-product-sheet');
+            if (sheetBtn && sheet) {
+                const sheetClose = sheet.querySelector('.js-sheet-close');
+                const sheetConfirm = sheet.querySelector('.js-sheet-confirm');
+
+                sheetBtn.addEventListener('click', () => sheet.classList.add('open'));
+                sheetClose.addEventListener('click', () => sheet.classList.remove('open'));
+
+                sheet.querySelectorAll('.js-sheet-radio').forEach(r => {
+                    r.addEventListener('change', () => {
+                        sheet.querySelectorAll('.js-sheet-card').forEach(c => c.style.borderColor = 'rgba(255,255,255,.15)');
+                        r.closest('label').querySelector('.js-sheet-card').style.borderColor = '#ef4444';
+                    });
+                });
+
+                sheetConfirm.addEventListener('click', async () => {
+                    const checked = sheet.querySelector('.js-sheet-radio:checked');
+                    const bidVal = parseFloat(sheet.querySelector('.js-sheet-bid').value);
+                    if (!checked) { alert({!! json_encode(__('Select a product first.')) !!}); return; }
+                    if (!bidVal || bidVal < 1) { alert({!! json_encode(__('Enter a starting bid.')) !!}); return; }
+                    sheetConfirm.disabled = true;
+                    try {
+                        const res = await apiFetch(screen.dataset.setProductUrl, { product_id: checked.value, starting_bid: bidVal });
+                        if (res.ok) {
+                            sheet.classList.remove('open');
+                            const pi = screen.querySelector('.js-prod-img');
+                            const pn = screen.querySelector('.js-prod-name');
+                            const bd = screen.querySelector('.js-bid-display');
+                            const bn = screen.querySelector('.js-bidder-name');
+                            const pc = screen.querySelector('.js-product-card');
+                            const bidBar = screen.querySelector('.js-bid-bar');
+                            if (pn) pn.textContent = checked.dataset.name;
+                            if (pi) { pi.src = checked.dataset.img; pi.style.display = ''; }
+                            if (bd) bd.textContent = {!! json_encode(__('Start')) !!} + ': ' + bidVal.toFixed(2) + ' MAD';
+                            if (bn) bn.textContent = '';
+                            if (pc) pc.style.display = '';
+                            if (bidBar) bidBar.style.display = 'none'; // seller doesn't bid
+                        } else { alert(res.message || 'Error'); }
+                    } catch (e) {}
+                    sheetConfirm.disabled = false;
+                });
+            }
+        }
+
+        // ── IntersectionObserver ─────────────────────────────────────
+        const initedScreens = new Set();
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(async entry => {
+                const screen = entry.target;
+                const id = screen.dataset.liveId;
+                if (entry.isIntersecting) {
+                    if (!initedScreens.has(id)) {
+                        initedScreens.add(id);
+                        bindScreen(screen);
+                    }
+                    initAgora(screen);
+                } else {
+                    teardownAgora(screen);
                 }
-            }
-        });
-
-    // ── Place Bid ───────────────────────────��─────────────────────────────────
-    document.getElementById('btn-bid')?.addEventListener('click', async () => {
-        const amount = parseFloat(document.getElementById('bid-input').value);
-        const btn    = document.getElementById('btn-bid');
-        btn.disabled = true;
-        btn.textContent = '...';
-        try {
-            const res = await fetch(BID_URL, {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': CSRF, 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ amount })
             });
-            if (res.status === 401) { Livewire.dispatch('open-login-popup'); return; }
-            const data = await res.json();
-            if (!data.ok) alert(data.message ?? 'Error placing bid');
-        } catch (e) { console.error(e); }
-        finally { btn.disabled = false; btn.textContent = {!! json_encode(__('Place Bid')) !!}; }
-    });
+        }, { threshold: 0.6 });
 
-    // ── Seller: Go Live ───────────────────────────────────────────────────────
-    document.getElementById('btn-go-live')?.addEventListener('click', async () => {
-        const btn = document.getElementById('btn-go-live');
-        btn.disabled = true;
-        btn.textContent = '...';
-        try {
-            await fetch(GO_LIVE_URL, { method: 'POST', headers: { 'X-CSRF-TOKEN': CSRF } });
-            if (sellerReady) await client.publish(localTracks);
-            document.getElementById('status-badge').innerHTML =
-                '<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse"></span> LIVE';
-            document.getElementById('status-badge').className =
-                'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600';
-            btn.classList.add('hidden');
-            document.getElementById('btn-end-live')?.classList.remove('hidden');
-        } catch (err) {
-            console.error(err);
-            btn.disabled = false;
-            btn.innerHTML = '<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> ' + {!! json_encode(__('Go Live')) !!};
-        }
-    });
-
-    // ── Seller: End Live ──────────────────────────────────────────────────────
-    document.getElementById('btn-end-live')?.addEventListener('click', async () => {
-        if (!confirm({!! json_encode(__('End this live auction now?')) !!})) return;
-        await triggerEndLive();
-    });
-})();
-}); // DOMContentLoaded
+        document.querySelectorAll('.live-screen').forEach(s => observer.observe(s));
+    })();
+});
 </script>
 @endsection

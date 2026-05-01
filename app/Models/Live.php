@@ -12,12 +12,14 @@ class Live extends Model
         'title',
         'agora_channel',
         'status',
+        'auction_status',
         'starting_bid',
         'current_bid',
         'current_bidder_id',
         'countdown_ends_at',
         'started_at',
         'ended_at',
+        'likes_count',
     ];
 
     protected $casts = [
@@ -46,6 +48,16 @@ class Live extends Model
     public function bids()
     {
         return $this->hasMany(LiveBid::class);
+    }
+
+    public function comments()
+    {
+        return $this->hasMany(LiveComment::class)->latest();
+    }
+
+    public function likes()
+    {
+        return $this->hasMany(LiveLike::class);
     }
 
     public function getMinNextBidAttribute(): float
