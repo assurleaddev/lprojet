@@ -754,6 +754,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // ── IntersectionObserver ─────────────────────────────────────
         const initedScreens = new Set();
+        const feed = document.getElementById('live-feed');
+
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(async entry => {
                 const screen = entry.target;
@@ -768,7 +770,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     teardownAgora(screen);
                 }
             });
-        }, { threshold: 0.6 });
+        }, { root: feed, threshold: 0.5 });
 
         document.querySelectorAll('.live-screen').forEach(s => observer.observe(s));
     })();
