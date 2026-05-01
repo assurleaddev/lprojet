@@ -203,6 +203,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .unmute-btn { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; }
 .unmute-inner { background: rgba(0,0,0,.6); border: 2px solid rgba(255,255,255,.4); border-radius: 50px; color: #fff; padding: 12px 24px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 </style>
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
 @endsection
 
 @section('content')
