@@ -26,7 +26,9 @@ class BroadcastController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
+            'pre_text' => 'nullable|string|max:500',
             'body' => 'required|string|max:2000',
+            'after_text' => 'nullable|string|max:500',
             'image' => 'nullable|image|max:2048',
             'button_label' => 'nullable|string|max:100',
             'button_url' => 'nullable|string|max:500',
@@ -39,7 +41,9 @@ class BroadcastController extends Controller
 
         $broadcast = Broadcast::create([
             'title' => $data['title'],
+            'pre_text' => $data['pre_text'] ?? null,
             'body' => $data['body'],
+            'after_text' => $data['after_text'] ?? null,
             'image_path' => $imagePath,
             'button_label' => $data['button_label'] ?? null,
             'button_url' => $data['button_url'] ?? null,

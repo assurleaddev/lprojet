@@ -53,8 +53,10 @@ class SendBroadcastJob implements ShouldQueue
                         'type' => 'platform_broadcast',
                         'metadata' => [
                             'broadcast_id' => $broadcast->id,
+                            'pre_text' => $broadcast->pre_text,
                             'title' => $broadcast->title,
                             'body' => $broadcast->body,
+                            'after_text' => $broadcast->after_text,
                             'image_path' => $broadcast->image_path,
                             'button_label' => $broadcast->button_label,
                             'button_url' => $broadcast->button_url,

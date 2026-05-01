@@ -8,7 +8,9 @@ class Broadcast extends Model
 {
     protected $fillable = [
         'title',
+        'pre_text',
         'body',
+        'after_text',
         'image_path',
         'button_label',
         'button_url',

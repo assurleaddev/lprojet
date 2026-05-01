@@ -17,6 +17,13 @@
                         @csrf
 
                         <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pre-text <span class="text-gray-400 font-normal">(optional — appears above title)</span></label>
+                            <input type="text" name="pre_text" value="{{ old('pre_text') }}"
+                                class="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-gray-900 focus:border-gray-900 dark:bg-gray-700 dark:text-white"
+                                placeholder="e.g. New feature available">
+                        </div>
+
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Title <span class="text-red-500">*</span></label>
                             <input type="text" name="title" value="{{ old('title') }}"
                                 class="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-gray-900 focus:border-gray-900 dark:bg-gray-700 dark:text-white"
@@ -30,6 +37,13 @@
                                 class="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-gray-900 focus:border-gray-900 dark:bg-gray-700 dark:text-white"
                                 placeholder="Write your message here...">{{ old('body') }}</textarea>
                             @error('body') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">After-text <span class="text-gray-400 font-normal">(optional — appears below body)</span></label>
+                            <input type="text" name="after_text" value="{{ old('after_text') }}"
+                                class="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 text-sm focus:outline-none focus:ring-gray-900 focus:border-gray-900 dark:bg-gray-700 dark:text-white"
+                                placeholder="e.g. Happy selling!">
                         </div>
 
                         <div>
@@ -76,19 +90,21 @@
                     <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-3">Preview</h3>
 
                     <div class="border border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden text-sm">
-                        {{-- Image --}}
                         <div id="preview-image-wrapper" class="hidden">
                             <img id="preview-image" src="" alt="" class="w-full h-36 object-cover">
                         </div>
 
                         <div class="p-4 space-y-2">
                             <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold text-xs shrink-0">P</div>
-                                <span class="font-semibold text-gray-900 dark:text-white text-xs">Platform</span>
+                                <img src="{{ config('settings.site_logo_lite') ?? asset('images/logo/lara-dashboard.png') }}"
+                                    alt="{{ config('app.name') }}" class="w-7 h-7 rounded-full object-cover shrink-0">
+                                <span class="font-semibold text-gray-900 dark:text-white text-xs">{{ config('app.name') }}</span>
                                 <svg class="w-3.5 h-3.5 text-gray-900" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
                             </div>
+                            <p id="preview-pre-text" class="text-xs text-gray-500 italic hidden"></p>
                             <p id="preview-title" class="font-semibold text-gray-900 dark:text-white">Title appears here</p>
                             <p id="preview-body" class="text-gray-600 dark:text-gray-300 text-xs leading-relaxed">Message body appears here...</p>
+                            <p id="preview-after-text" class="text-xs text-gray-500 italic hidden"></p>
                             <div id="preview-btn-wrapper" class="hidden pt-1">
                                 <a id="preview-btn" href="#"
                                     class="inline-block w-full text-center bg-gray-900 text-white text-xs font-medium py-2 px-4 rounded-lg">
@@ -103,41 +119,44 @@
     </div>
 
     <script>
-        const titleInput = document.querySelector('[name="title"]');
-        const bodyInput = document.querySelector('[name="body"]');
-        const btnLabelInput = document.querySelector('[name="button_label"]');
-        const btnUrlInput = document.querySelector('[name="button_url"]');
-        const imageInput = document.querySelector('[name="image"]');
+        const fields = {
+            title:        { input: '[name="title"]',        preview: 'preview-title',      fallback: 'Title appears here' },
+            body:         { input: '[name="body"]',         preview: 'preview-body',       fallback: 'Message body appears here...' },
+            pre_text:     { input: '[name="pre_text"]',     preview: 'preview-pre-text',   fallback: null },
+            after_text:   { input: '[name="after_text"]',   preview: 'preview-after-text', fallback: null },
+        };
 
-        titleInput.addEventListener('input', () => {
-            document.getElementById('preview-title').textContent = titleInput.value || 'Title appears here';
+        Object.values(fields).forEach(({ input, preview, fallback }) => {
+            const el = document.querySelector(input);
+            if (!el) return;
+            el.addEventListener('input', () => {
+                const p = document.getElementById(preview);
+                if (fallback) {
+                    p.textContent = el.value || fallback;
+                } else {
+                    p.textContent = el.value;
+                    p.classList.toggle('hidden', !el.value);
+                }
+            });
         });
-        bodyInput.addEventListener('input', () => {
-            document.getElementById('preview-body').textContent = bodyInput.value || 'Message body appears here...';
-        });
-        btnLabelInput.addEventListener('input', () => {
+
+        document.querySelector('[name="button_label"]').addEventListener('input', function () {
             const wrapper = document.getElementById('preview-btn-wrapper');
-            const btn = document.getElementById('preview-btn');
-            if (btnLabelInput.value) {
-                wrapper.classList.remove('hidden');
-                btn.textContent = btnLabelInput.value;
-            } else {
-                wrapper.classList.add('hidden');
-            }
+            document.getElementById('preview-btn').textContent = this.value;
+            wrapper.classList.toggle('hidden', !this.value);
         });
-        btnUrlInput.addEventListener('input', () => {
-            document.getElementById('preview-btn').href = btnUrlInput.value || '#';
+        document.querySelector('[name="button_url"]').addEventListener('input', function () {
+            document.getElementById('preview-btn').href = this.value || '#';
         });
-        imageInput.addEventListener('change', () => {
-            const file = imageInput.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    document.getElementById('preview-image').src = e.target.result;
-                    document.getElementById('preview-image-wrapper').classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
+        document.querySelector('[name="image"]').addEventListener('change', function () {
+            const file = this.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('preview-image').src = e.target.result;
+                document.getElementById('preview-image-wrapper').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
         });
     </script>
 </x-layouts.backend-layout>
