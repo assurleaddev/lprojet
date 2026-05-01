@@ -30,6 +30,7 @@ class AuctionClosed implements ShouldBroadcast
             'winner_username' => $this->live->currentBidder?->username,
             'winning_bid' => (float) $this->live->current_bid,
             'auction_status' => 'idle',
+            'product_id' => $this->live->product_id,
         ];
     }
 }

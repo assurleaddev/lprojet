@@ -536,6 +536,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 clearInterval(getState(id).countdownTimer);
                 getState(id).auctionEnding = false;
                 showWinner(screen, e.winner_username, e.winning_bid ? parseFloat(e.winning_bid).toFixed(2) : null);
+
+                // Remove the sold product from the seller's product picker sheet
+                if (e.product_id) {
+                    const radio = screen.querySelector('.js-sheet-radio[value="' + e.product_id + '"]');
+                    if (radio) radio.closest('label').remove();
+                }
             });
 
             ch.listen('CommentPosted', (e) => appendComment(screen, e));
@@ -583,7 +589,8 @@ document.addEventListener('DOMContentLoaded', function () {
                         await client.publish([audioTrack, videoTrack]);
                     }
                 } else {
-                    await client.setClientRole('audience');
+                    // audience: ultra-low latency, no publish privileges — browser will NOT request mic/camera
+                    await client.setClientRole('audience', { level: 2 });
                     await client.join(tokenData.app_id, tokenData.channel, tokenData.token, tokenData.uid);
                 }
             } catch (e) { console.error('Agora join error', e); return; }
