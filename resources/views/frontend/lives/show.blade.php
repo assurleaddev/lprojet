@@ -194,21 +194,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 (function () {
-    const LIVE_ID        = {{ $live->id }};
-    const SELLER_ID      = {{ $live->seller_id }};
-    const CURRENT_USER   = {{ auth()->id() ?? 'null' }};
+    const LIVE_ID        = {!! $live->id !!};
+    const SELLER_ID      = {!! $live->seller_id !!};
+    const CURRENT_USER   = {!! auth()->id() ?? 'null' !!};
     const IS_SELLER      = CURRENT_USER === SELLER_ID;
-    const STATUS         = '{{ $live->status }}';
+    const STATUS         = {!! json_encode($live->status) !!};
     const CSRF           = document.querySelector('meta[name="csrf-token"]').content;
-    const TOKEN_URL      = '{{ route('lives.agora-token', $live) }}';
-    const BID_URL        = '{{ route('lives.bid', $live) }}';
-    const GO_LIVE_URL    = '{{ route('lives.go-live', $live) }}';
-    const END_LIVE_URL   = '{{ route('lives.end', $live) }}';
+    const TOKEN_URL      = {!! json_encode(route('lives.agora-token', $live)) !!};
+    const BID_URL        = {!! json_encode(route('lives.bid', $live)) !!};
+    const GO_LIVE_URL    = {!! json_encode(route('lives.go-live', $live)) !!};
+    const END_LIVE_URL   = {!! json_encode(route('lives.end', $live)) !!};
 
     let client, localTracks = [];
     let sellerReady = false;
     let countdownInterval = null;
-    let countdownEndsAt   = {{ $live->countdown_ends_at ? '"' . $live->countdown_ends_at->toISOString() . '"' : 'null' }};
+    let countdownEndsAt   = {!! $live->countdown_ends_at ? json_encode($live->countdown_ends_at->toISOString()) : 'null' !!};
 
     // ── Seller preview: join channel + open camera but don't publish yet ──────
     async function setupSellerPreview() {
@@ -371,13 +371,13 @@ document.addEventListener('DOMContentLoaded', function () {
             if (e.status === 'live') {
                 document.getElementById('status-badge').innerHTML = `<span class="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse mr-1"></span> LIVE`;
                 document.getElementById('status-badge').className = 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-red-100 text-red-600';
-                document.getElementById('video-status-text').textContent = '{{ __('Connecting...') }}';
+                document.getElementById('video-status-text').textContent = {!! json_encode(__('Connecting...')) !!};
                 if (!IS_SELLER) initAudience();
             }
             if (e.status === 'ended') {
                 clearInterval(countdownInterval);
                 document.getElementById('countdown-wrap')?.classList.add('hidden');
-                document.getElementById('status-badge').innerHTML = '{{ __('Ended') }}';
+                document.getElementById('status-badge').innerHTML = {!! json_encode(__('Ended')) !!};
                 document.getElementById('status-badge').className = 'ml-auto flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-gray-100 text-gray-500';
                 document.getElementById('btn-end-live')?.classList.add('hidden');
                 if (client && !IS_SELLER) client.leave();
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await res.json();
             if (!data.ok) alert(data.message ?? 'Error placing bid');
         } catch (e) { console.error(e); }
-        finally { btn.disabled = false; btn.textContent = '{{ __('Place Bid') }}'; }
+        finally { btn.disabled = false; btn.textContent = {!! json_encode(__('Place Bid')) !!}; }
     });
 
     // ── Seller: Go Live ───────────────────────────────────────────────────────
@@ -423,13 +423,13 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (err) {
             console.error(err);
             btn.disabled = false;
-            btn.innerHTML = '<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> {{ __("Go Live") }}';
+            btn.innerHTML = '<span class="w-2 h-2 bg-white rounded-full animate-pulse"></span> ' + {!! json_encode(__('Go Live')) !!};
         }
     });
 
     // ── Seller: End Live ──────────────────────────────────────────────────────
     document.getElementById('btn-end-live')?.addEventListener('click', async () => {
-        if (!confirm('{{ __('End this live auction now?') }}')) return;
+        if (!confirm({!! json_encode(__('End this live auction now?')) !!})) return;
         await triggerEndLive();
     });
 })();
