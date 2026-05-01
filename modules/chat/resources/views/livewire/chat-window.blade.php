@@ -272,6 +272,7 @@
         @if($this->conversation)
             {{-- System Message --}}
             @php $otherUser = $this->conversation->getOtherUser(auth()->user()); @endphp
+            @if(!$otherUser->is_system)
             <div class="flex justify-start mb-6">
                 <div class="flex items-start space-x-3 max-w-lg">
                     @if($otherUser->avatar_id)
@@ -305,6 +306,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             @forelse($messages as $key => $message)
                 {{-- Robust data access & preparation --}}
