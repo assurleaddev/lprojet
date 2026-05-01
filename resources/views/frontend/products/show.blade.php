@@ -56,7 +56,7 @@
             </nav>
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                <div class="lg:col-span-8 relative ">
+                <div class="lg:col-span-8 relative self-start">
                     @php
                         $mediaItems = $product->getMedia('products');
                         $mediaCount = $mediaItems->count();
@@ -153,7 +153,12 @@
                     <div class="p-6 bg-white rounded-lg shadow-sm border border-gray-100">
 
                         <!-- Title -->
-                        <h1 class="text-xl font-medium text-gray-900 leading-snug mb-1">{{ $product->name }}</h1>
+                        <div class="flex items-center gap-2 flex-wrap mb-1">
+                            <h1 class="text-xl font-medium text-gray-900 leading-snug">{{ $product->name }}</h1>
+                            @if($product->created_at->diffInDays() <= 7)
+                                <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700">Nouveau</span>
+                            @endif
+                        </div>
 
                         <!-- Subtitle (Size - Condition - Brand) -->
                         <div class="text-sm text-gray-500 mb-4 flex items-center gap-1">
@@ -406,15 +411,19 @@
                                         $vendorReviews = $product->vendor->receivedReviews()->whereNull('parent_id')->get();
                                         $vendorAvg = $vendorReviews->avg('rating') ?? 0;
                                         $vendorTotal = $vendorReviews->count();
+                                        $vendorSales = \App\Models\Order::where('vendor_id', $product->vendor->id)->where('status', 'completed')->count();
                                     @endphp
-                                    <div class="flex items-center gap-0.5 text-sm">
+                                    <div class="flex items-center gap-1 text-sm">
+                                        @if($vendorTotal > 0)
+                                            <span class="font-semibold text-gray-900 text-xs">{{ number_format($vendorAvg, 1) }}</span>
+                                        @endif
                                         @for ($i = 0; $i < 5; $i++)
                                             <svg class="h-3.5 w-3.5 {{ $i < round($vendorAvg) ? 'text-amber-400' : 'text-gray-300' }}"
                                                 viewBox="0 0 20 20" fill="currentColor">
                                                 <path d="m9.05 2.927 1.3 2.638c.18.365.527.619.93.678l2.91.423c1.014.147 1.419 1.394.685 2.11l-2.104 2.051c-.292.285-.425.695-.356 1.096l.497 2.897c.173 1.006-.883 1.772-1.787 1.298l-2.6-1.366a1.25 1.25 0 0 0-1.164 0l-2.6 1.366c-.904.474-1.96-.292-1.788-1.298l.498-2.897a1.25 1.25 0 0 0-.357-1.096L1.17 8.776c-.733-.716-.327-1.963.686-2.11l2.91-.423a1.25 1.25 0 0 0 .93-.678l1.3-2.638a1.25 1.25 0 0 1 2.254 0Z"/>
                                             </svg>
                                         @endfor
-                                        <span class="text-gray-400 ml-1 text-xs">({{ $vendorTotal }})</span>
+                                        <span class="text-gray-400 text-xs">({{ $vendorTotal }})</span>
                                     </div>
                                 </div>
                             </a>
@@ -448,6 +457,31 @@
                                 </svg>
                                 <span>Vu {{ $product->vendor->last_seen_at ? $product->vendor->last_seen_at->diffForHumans() : 'il y a longtemps' }}</span>
                             </div>
+                            @if($vendorSales > 0)
+                                <div class="flex items-center gap-2 text-gray-600">
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                                    </svg>
+                                    <span>{{ $vendorSales }} vente{{ $vendorSales > 1 ? 's' : '' }}</span>
+                                </div>
+                            @endif
+                            @php
+                                $lastSeen = $product->vendor->last_seen_at;
+                                $responseLabel = null;
+                                if ($lastSeen) {
+                                    $minutesAgo = $lastSeen->diffInMinutes();
+                                    if ($minutesAgo <= 60) $responseLabel = 'Répond rapidement';
+                                    elseif ($minutesAgo <= 1440) $responseLabel = 'Répond généralement le jour même';
+                                }
+                            @endphp
+                            @if($responseLabel)
+                                <div class="flex items-center gap-2 text-green-600">
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                    </svg>
+                                    <span>{{ $responseLabel }}</span>
+                                </div>
+                            @endif
                         </div>
 
                         @php
@@ -472,100 +506,112 @@
             </div>
 
 
-            <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6 md:p-6 bg-white md:bg-transparent">
+            @php
+                $bpPercent = (float) config('settings.buyer_protection_fee_percentage', 5);
+                $bpFixed   = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+            @endphp
+
+            <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6">
                 <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
                     <h2 class="text-lg font-bold text-vinted-gray-900">{{ __("Member's items") }}</h2>
                     <a href="{{ route('search', ['vendor_id' => $product->vendor->id]) }}"
                         class="text-sm font-semibold hover:underline text-gray-900">{{ __('See all') }}</a>
                 </div>
-                <div class="relative w-full md:w-2/3">
-                    <div class="grid grid-cols-2 gap-3 md:flex md:gap-0 md:space-x-4 md:flex-wrap md:overflow-x-auto pb-4 custom-scrollbar">
-                        @forelse ($product->vendor->products as $item)
-                            <div class="w-full md:flex-shrink-0 md:w-40 block relative group">
-                                <a href="{{ route('products.show', $item) }}"
-                                    class="block hover:opacity-80 transition relative">
-                                    <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
-                                        class="w-full h-56 object-cover mb-2 rounded-md">
-
-                                    @php
-                                        $isLiked = auth()->check() && $item->isFavorited();
-                                        $count = $item->favoritedBy()->count();
-                                    @endphp
-                                    @if(auth()->id() !== $item->vendor_id)
-                                        <button type="button"
-                                            class="like-btn absolute bottom-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm transition-transform hover:scale-105 {{ $isLiked ? 'text-red-500' : 'text-gray-400' }}"
-                                            data-product-id="{{ $item->id }}" aria-label="Add to favourites"
-                                            style="height: 32px; width: 32px; bottom: 16px; right: 8px;"
-                                            aria-pressed="{{ $isLiked ? 'true' : 'false' }}">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                                                <path
-                                                    d="M12 21s-7.5-4.46-9.5-8.32C1 8.86 3.42 6 6.5 6c1.74 0 3.41.81 4.5 2.09C12.09 6.81 13.76 6 15.5 6 18.58 6 21 8.86 21.5 12.68 19.5 16.54 12 21 12 21z"
-                                                    fill="currentColor" />
-                                            </svg>
-                                            {{-- Optional: hide count on small cards or show if needed --}}
-                                        </button>
-                                    @endif
-                                </a>
-                                <a href="{{ route('products.show', $item) }}" class="block">
-                                    <p class="font-bold text-sm">{{ $item->price }} MAD</p>
-                                    <p class="text-xs text-vinted-gray-500 truncate">
-                                        {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
-                                    </p>
-                                    <p class="text-xs text-vinted-gray-500 truncate">{{ $product->name }}</p>
-                                </a>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    @forelse ($product->vendor->products->take(6) as $item)
+                        @php
+                            $itemBpFee = ($item->price * $bpPercent / 100) + $bpFixed;
+                            $itemInclTotal = $item->price + $itemBpFee;
+                        @endphp
+                        <div class="grid-item relative">
+                            <div class="used-image-wrapper">
+                                <a href="{{ route('products.show', $item) }}" class="absolute inset-0 z-10 cursor-pointer block"></a>
+                                <img src="{{ $item->getFeaturedImageUrl('preview') }}" class="used-image-content" alt="{{ $item->name }}">
+                                @if($item->status === 'sold')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color:#4fb286">{{ __('Sold') }}</div>
+                                @elseif($item->status === 'reserved')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color:#f59e0b">{{ __('Reserved') }}</div>
+                                @endif
+                                @if(auth()->id() !== $item->vendor_id)
+                                    <button class="fav-badge z-30" aria-label="Favourite"
+                                        data-id="{{ $item->id }}"
+                                        data-url="{{ route('products.favorite', $item) }}">
+                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                            <path d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z"/>
+                                        </svg>
+                                        <span>{{ $item->favoritedBy()->count() }}</span>
+                                    </button>
+                                @endif
                             </div>
-                        @empty
-                            <p class="text-sm text-gray-500">{{ __('No products yet') }}</p>
-                        @endforelse
-                    </div>
+                            <a href="{{ route('products.show', $item) }}" class="block cursor-pointer">
+                                <div class="pt-1.5">
+                                    <p class="brand-line">{{ $item->name }}</p>
+                                    <p class="meta-line">{{ $item->getOptionsSummaryAttribute() }}</p>
+                                    <p class="price-line">{{ $item->price }} MAD</p>
+                                    <div class="incl-line">
+                                        <span>{{ number_format($itemInclTotal, 2) }} MAD incl.</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @empty
+                        <p class="col-span-full text-sm text-gray-500">{{ __('No products yet') }}</p>
+                    @endforelse
                 </div>
             </section>
-            <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6 md:p-6 bg-white md:bg-transparent">
+
+            <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6">
                 <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
                     <h2 class="text-lg font-bold text-vinted-gray-900">{{ __('Similar products') }}</h2>
                     <a href="{{ route('search', ['categories' => [$product->category_id]]) }}"
                         class="text-sm font-semibold hover:underline text-gray-900">{{ __('See all') }}</a>
                 </div>
-                <div class="relative w-full md:w-2/3">
-                    <div class="grid grid-cols-2 gap-3 md:flex md:gap-0 md:space-x-4 md:flex-wrap md:overflow-x-auto pb-4 custom-scrollbar">
-                        @forelse ($similarProducts as $item)
-                            <div class="w-full md:flex-shrink-0 md:w-40 block relative group">
-                                <a href="{{ route('products.show', $item) }}"
-                                    class="block hover:opacity-80 transition relative">
-                                    <img src="{{ $item->getFeaturedImageUrl() }}" alt="Product"
-                                        class="w-full h-56 object-cover mb-2 rounded-md">
-
-                                    @php
-                                        $isLiked = auth()->check() && $item->isFavorited();
-                                        $count = $item->favoritedBy()->count();
-                                    @endphp
-                                    @if(auth()->id() !== $item->vendor_id)
-                                        <button type="button"
-                                            class="like-btn absolute bottom-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm transition-transform hover:scale-105 {{ $isLiked ? 'text-red-500' : 'text-gray-400' }}"
-                                            data-product-id="{{ $item->id }}" aria-label="Add to favourites"
-                                            style="height: 32px; width: 32px; bottom: 16px; right: 8px;"
-                                            aria-pressed="{{ $isLiked ? 'true' : 'false' }}">
-                                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-                                                <path
-                                                    d="M12 21s-7.5-4.46-9.5-8.32C1 8.86 3.42 6 6.5 6c1.74 0 3.41.81 4.5 2.09C12.09 6.81 13.76 6 15.5 6 18.58 6 21 8.86 21.5 12.68 19.5 16.54 12 21 12 21z"
-                                                    fill="currentColor" />
-                                            </svg>
-                                            {{-- Optional: hide count on small cards or show if needed --}}
-                                        </button>
-                                    @endif
-                                </a>
-                                <a href="{{ route('products.show', $item) }}" class="block">
-                                    <p class="font-bold text-sm">{{ $item->price }} MAD</p>
-                                    <p class="text-xs text-vinted-gray-500 truncate">
-                                        {{ $item->options->groupBy('attribute_id')->map(fn($grp) => $grp->pluck('value')->implode(' / '))->implode(' · ') }}
-                                    </p>
-                                    <p class="text-xs text-vinted-gray-500 truncate">{{ $item->name }}</p>
-                                </a>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    @forelse ($similarProducts as $item)
+                        @php
+                            $itemBpFee = ($item->price * $bpPercent / 100) + $bpFixed;
+                            $itemInclTotal = $item->price + $itemBpFee;
+                        @endphp
+                        <div class="grid-item relative">
+                            <div class="used-image-wrapper">
+                                <a href="{{ route('products.show', $item) }}" class="absolute inset-0 z-10 cursor-pointer block"></a>
+                                <img src="{{ $item->getFeaturedImageUrl('preview') }}" class="used-image-content" alt="{{ $item->name }}">
+                                @if($item->status === 'sold')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color:#4fb286">{{ __('Sold') }}</div>
+                                @elseif($item->status === 'reserved')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color:#f59e0b">{{ __('Reserved') }}</div>
+                                @endif
+                                @if(auth()->id() !== $item->vendor_id)
+                                    <button class="fav-badge z-30" aria-label="Favourite"
+                                        data-id="{{ $item->id }}"
+                                        data-url="{{ route('products.favorite', $item) }}">
+                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                            <path d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z"/>
+                                        </svg>
+                                        <span>{{ $item->favoritedBy()->count() }}</span>
+                                    </button>
+                                @endif
                             </div>
-                        @empty
-                            <p class="text-sm text-gray-500">{{ __('No similar products') }}</p>
-                        @endforelse
-                    </div>
+                            <a href="{{ route('products.show', $item) }}" class="block cursor-pointer">
+                                <div class="pt-1.5">
+                                    <p class="brand-line">{{ $item->name }}</p>
+                                    <p class="meta-line">{{ $item->getOptionsSummaryAttribute() }}</p>
+                                    <p class="price-line">{{ $item->price }} MAD</p>
+                                    <div class="incl-line">
+                                        <span>{{ number_format($itemInclTotal, 2) }} MAD incl.</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @empty
+                        <p class="col-span-full text-sm text-gray-500">{{ __('No similar products') }}</p>
+                    @endforelse
                 </div>
             </section>
         </div>
