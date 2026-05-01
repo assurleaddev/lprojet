@@ -234,6 +234,26 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // ── Unmute overlay (browsers block audio autoplay) ────────────────────────
+    let pendingAudioTrack = null;
+
+    function showUnmuteOverlay() {
+        if (document.getElementById('unmute-overlay')) return;
+        const container = document.getElementById('agora-video-container');
+        const btn = document.createElement('button');
+        btn.id = 'unmute-overlay';
+        btn.className = 'absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/70 hover:bg-black/90 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors';
+        btn.innerHTML = `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M3.63 3.63a.996.996 0 000 1.41L7.29 8.7 7 9H4c-.55 0-1 .45-1 1v4c0 .55.45 1 1 1h3l3.29 3.29c.63.63 1.71.18 1.71-.71v-4.17l4.18 4.18c-.49.37-1.02.68-1.6.91-.36.15-.58.53-.58.92 0 .72.73 1.18 1.39.91.8-.33 1.55-.77 2.22-1.31l1.34 1.34a.996.996 0 101.41-1.41L5.05 3.63c-.39-.39-1.02-.39-1.42 0zM19 12c0 .82-.15 1.61-.41 2.34l1.53 1.53c.56-1.17.88-2.48.88-3.87 0-3.83-2.4-7.11-5.78-8.4-.59-.23-1.22.2-1.22.83v.28c0 .35.22.67.55.79C17.02 6.54 19 9.06 19 12zm-8.71-6.29l-.17.17L12 7.76V6.41c0-.89-1.08-1.33-1.71-.7zM16.5 12A4.5 4.5 0 0014 7.97v1.79l2.48 2.48c.01-.08.02-.16.02-.24z"/></svg> {{ __('Tap to unmute') }}`;
+        btn.addEventListener('click', () => {
+            if (pendingAudioTrack) {
+                pendingAudioTrack.play();
+                pendingAudioTrack = null;
+            }
+            btn.remove();
+        });
+        container.appendChild(btn);
+    }
+
     // ── Audience: join and subscribe to host video ────────────────────────────
     async function initAudience() {
         try {
@@ -243,6 +263,11 @@ document.addEventListener('DOMContentLoaded', function () {
             client = AgoraRTC.createClient({ mode: 'live', codec: 'vp8' });
             await client.setClientRole('audience');
             await client.join(data.app_id, data.channel, data.token, data.uid);
+
+            // Handle browsers that block audio autoplay
+            AgoraRTC.onAudioAutoplayFailed = () => {
+                showUnmuteOverlay();
+            };
 
             client.on('user-published', async (user, mediaType) => {
                 await client.subscribe(user, mediaType);
@@ -257,14 +282,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     user.videoTrack.play('remote-video');
                 }
-                if (mediaType === 'audio') user.audioTrack.play();
+                if (mediaType === 'audio') {
+                    try {
+                        user.audioTrack.play();
+                    } catch (e) {
+                        pendingAudioTrack = user.audioTrack;
+                        showUnmuteOverlay();
+                    }
+                }
             });
 
-            client.on('user-unpublished', () => {
-                const el = document.getElementById('remote-video');
-                if (el) el.remove();
-                document.getElementById('video-placeholder').style.display = 'flex';
-                document.getElementById('video-status-text').textContent = 'Host paused the stream...';
+            client.on('user-unpublished', (user, mediaType) => {
+                if (mediaType === 'video') {
+                    const el = document.getElementById('remote-video');
+                    if (el) el.remove();
+                    document.getElementById('video-placeholder').style.display = 'flex';
+                    document.getElementById('video-status-text').textContent = 'Host paused the stream...';
+                }
             });
         } catch (err) {
             console.error('Audience init failed:', err);
