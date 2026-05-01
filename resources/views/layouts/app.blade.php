@@ -420,6 +420,75 @@ $nextTick(() => {
         });
     </script>
 
+    <script>
+        // Global fav-badge handler — works on every page
+        document.addEventListener('click', (e) => {
+            const button = e.target.closest('.fav-badge');
+            if (!button) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const url = button.dataset.url;
+            if (!url) return;
+
+            const svg = button.querySelector('svg');
+            const countSpan = button.querySelector('span');
+            const isLiked = svg.classList.contains('!text-red-500');
+
+            // Optimistic update
+            if (isLiked) {
+                svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                countSpan.textContent = Math.max(0, (parseInt(countSpan.textContent) || 0) - 1);
+            } else {
+                svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                countSpan.textContent = (parseInt(countSpan.textContent) || 0) + 1;
+            }
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(r => {
+                if (r.status === 401) {
+                    // Revert optimistic update
+                    if (isLiked) {
+                        svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                        countSpan.textContent = (parseInt(countSpan.textContent) || 0) + 1;
+                    } else {
+                        svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                        countSpan.textContent = Math.max(0, (parseInt(countSpan.textContent) || 0) - 1);
+                    }
+                    Livewire.dispatch('open-login-popup');
+                    return null;
+                }
+                return r.json();
+            })
+            .then(data => {
+                if (!data) return;
+                if (data.liked) {
+                    svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                } else {
+                    svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                }
+                if (data.count !== undefined) countSpan.textContent = data.count;
+            })
+            .catch(() => {
+                // Revert on network error
+                if (isLiked) {
+                    svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
+                } else {
+                    svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
+                }
+            });
+        });
+    </script>
+
     @if (!empty(config('settings.global_custom_js')))
         <script>
             {!! config('settings.global_custom_js') !!}
