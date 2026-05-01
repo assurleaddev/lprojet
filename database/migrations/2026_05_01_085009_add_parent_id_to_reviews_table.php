@@ -10,8 +10,15 @@ return new class () extends Migration {
      */
     public function up(): void
     {
+        // Drop stale column from any previous failed attempt before re-adding with correct type
+        if (Schema::hasColumn('reviews', 'parent_id')) {
+            Schema::table('reviews', function (Blueprint $table) {
+                $table->dropColumn('parent_id');
+            });
+        }
+
         Schema::table('reviews', function (Blueprint $table) {
-            $table->unsignedBigInteger('parent_id')->nullable()->after('id');
+            $table->unsignedInteger('parent_id')->nullable()->after('id');
             $table->foreign('parent_id')->references('id')->on('reviews')->onDelete('cascade');
         });
     }
