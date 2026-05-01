@@ -187,6 +187,7 @@
         </div>
     </div>
 </div>
+@endsection
 
 @section('after_body')
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
@@ -434,5 +435,4 @@ document.addEventListener('DOMContentLoaded', function () {
 })();
 }); // DOMContentLoaded
 </script>
-@endsection
 @endsection
