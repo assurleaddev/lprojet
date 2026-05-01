@@ -146,6 +146,8 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .comment-item img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; flex-shrink: 0; margin-top: 2px; }
 .comment-bubble { background: rgba(0,0,0,.45); backdrop-filter: blur(4px); border-radius: 12px; padding: 5px 10px; color: #fff; font-size: 12px; line-height: 1.4; }
 .comment-bubble .c-user { font-weight: 700; margin-right: 4px; color: #fde68a; }
+.bid-event { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; animation: slideIn .25s ease; pointer-events: auto; }
+.bid-event-bubble { background: rgba(251,191,36,.2); border: 1px solid rgba(251,191,36,.4); backdrop-filter: blur(4px); border-radius: 12px; padding: 5px 10px; color: #fde68a; font-size: 12px; font-weight: 600; line-height: 1.4; }
 
 /* ── Comment input ── */
 .comment-input-wrap {
@@ -476,6 +478,16 @@ document.addEventListener('DOMContentLoaded', function () {
             while (box.children.length > 80) box.removeChild(box.firstChild);
         }
 
+        function appendBidEvent(screen, username, amount) {
+            const box = screen.querySelector('.js-comments');
+            const div = document.createElement('div');
+            div.className = 'bid-event';
+            div.innerHTML = '<div class="bid-event-bubble">🔨 <strong>' + escHtml(username) + '</strong> {!! json_encode(__('bid')) !!} <strong>' + escHtml(amount) + ' MAD</strong></div>';
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            while (box.children.length > 80) box.removeChild(box.firstChild);
+        }
+
         // ── Floating hearts ──────────────────────────────────────────
         function spawnHeart(screen) {
             const container = screen.querySelector('.js-heart-float');
@@ -504,6 +516,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     bidInput.placeholder = {!! json_encode(__('Min')) !!} + ' ' + parseFloat(e.min_next_bid).toFixed(2) + ' MAD';
                 }
                 startCountdown(screen, e.countdown_ends_at);
+                appendBidEvent(screen, e.bidder_username, parseFloat(e.current_bid).toFixed(2));
             });
 
             ch.listen('AuctionProductChanged', (e) => {
@@ -725,8 +738,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     bidBtn.disabled = true;
                     try {
                         const res = await apiFetch(screen.dataset.bidUrl, { amount });
-                        if (!res.ok) alert(res.message || 'Error');
-                        else bidInput.value = '';
+                        if (!res.ok) { alert(res.message || 'Error'); }
+                        else {
+                            bidInput.value = '';
+                            // Show own bid in comments immediately (server broadcasts to others)
+                            appendBidEvent(screen, {!! json_encode(Auth::user()?->username ?? '') !!}, amount.toFixed(2));
+                        }
                     } catch (e) {}
                     bidBtn.disabled = false;
                 });
