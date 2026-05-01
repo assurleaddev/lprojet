@@ -28,9 +28,9 @@
             <p class="text-gray-300 text-sm mt-1">{{ __('Check back soon or start your own!') }}</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div id="lives-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             @foreach($lives as $live)
-                <a href="{{ route('lives.show', $live) }}" class="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+                <a href="{{ route('lives.show', $live) }}" data-live-id="{{ $live->id }}" class="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                     <div class="relative aspect-video bg-gray-100">
                         @if($live->product)
                             <img src="{{ $live->product->getFeaturedImageUrl('preview') }}"
@@ -45,12 +45,12 @@
 
                         {{-- Status badge --}}
                         @if($live->status === 'live')
-                            <span class="absolute top-2 left-2 flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+                            <span data-badge class="absolute top-2 left-2 flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
                                 <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
                                 LIVE
                             </span>
                         @else
-                            <span class="absolute top-2 left-2 bg-gray-800/70 text-white text-xs font-semibold px-2 py-1 rounded-full">
+                            <span data-badge class="absolute top-2 left-2 bg-gray-800/70 text-white text-xs font-semibold px-2 py-1 rounded-full">
                                 {{ __('Upcoming') }}
                             </span>
                         @endif
@@ -78,4 +78,33 @@
         </div>
     @endif
 </div>
+@endsection
+
+@section('after_body')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-live-id]').forEach(function (card) {
+        const id = card.dataset.liveId;
+        Echo.channel('live.' + id).listen('LiveStatusChanged', function (e) {
+            if (e.status === 'ended') {
+                card.style.transition = 'opacity .4s ease, transform .4s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(.95)';
+                setTimeout(function () {
+                    card.remove();
+                    const grid = document.getElementById('lives-grid');
+                    if (grid && grid.children.length === 0) location.reload();
+                }, 400);
+            }
+            if (e.status === 'live') {
+                const badge = card.querySelector('[data-badge]');
+                if (badge) {
+                    badge.className = 'absolute top-2 left-2 flex items-center gap-1 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full';
+                    badge.innerHTML = '<span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span> LIVE';
+                }
+            }
+        });
+    });
+});
+</script>
 @endsection
