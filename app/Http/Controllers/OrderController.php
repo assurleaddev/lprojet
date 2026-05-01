@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
-use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -13,13 +12,12 @@ class OrderController extends Controller
 
         // Orders where the user is the buyer
         $purchases = Order::where('user_id', $userId)
-            ->with(['product', 'vendor'])
+            ->with(['product', 'vendor', 'items.product'])
             ->latest()
             ->get();
 
-        // Orders where the user is the vendor
         $sales = Order::where('vendor_id', $userId)
-            ->with(['product', 'user'])
+            ->with(['product', 'user', 'items.product'])
             ->latest()
             ->get();
 

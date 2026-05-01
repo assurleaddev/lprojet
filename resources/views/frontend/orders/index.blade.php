@@ -32,19 +32,20 @@
                     <div class="bg-white shadow overflow-hidden sm:rounded-md">
                         <ul role="list" class="divide-y divide-gray-200">
                             @foreach($purchases as $order)
+                                @php $mainProduct = $order->product ?? $order->items->first()?->product; @endphp
                                 <li>
-                                    <a href="{{ route('products.show', $order->product) }}"
+                                    <a href="{{ $mainProduct ? route('products.show', $mainProduct) : '#' }}"
                                         class="block hover:bg-gray-50 transition">
                                         <div class="px-4 py-4 sm:px-6">
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center">
                                                     <div class="flex-shrink-0 h-16 w-16">
                                                         <img class="h-16 w-16 rounded object-cover"
-                                                            src="{{ $order->product->getFeaturedImageUrl('preview') }}" alt="">
+                                                            src="{{ $mainProduct ? $mainProduct->getFeaturedImageUrl('preview') : asset('images/placeholder.png') }}" alt="">
                                                     </div>
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900 truncate">
-                                                            {{ $order->product->name }}</div>
+                                                            {{ $mainProduct->name ?? __('Bundle order') }}</div>
                                                         <div class="flex items-center mt-1">
                                                             <div class="text-sm text-gray-500">
                                                                 {{ __('Bought from') }} <span
@@ -98,20 +99,21 @@
                     <div class="bg-white shadow overflow-hidden sm:rounded-md">
                         <ul role="list" class="divide-y divide-gray-200">
                             @foreach($sales as $order)
+                                @php $mainProduct = $order->product ?? $order->items->first()?->product; @endphp
                                 <li>
                                     <div class="block hover:bg-gray-50 transition">
                                         <div class="px-4 py-4 sm:px-6">
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center">
                                                     <div class="flex-shrink-0 h-16 w-16">
-                                                        <a href="{{ route('products.show', $order->product) }}">
+                                                        <a href="{{ $mainProduct ? route('products.show', $mainProduct) : '#' }}">
                                                             <img class="h-16 w-16 rounded object-cover"
-                                                                src="{{ $order->product->getFeaturedImageUrl('preview') }}" alt="">
+                                                                src="{{ $mainProduct ? $mainProduct->getFeaturedImageUrl('preview') : asset('images/placeholder.png') }}" alt="">
                                                         </a>
                                                     </div>
                                                     <div class="ml-4">
                                                         <div class="text-sm font-medium text-gray-900 truncate">
-                                                            {{ $order->product->name }}</div>
+                                                            {{ $mainProduct->name ?? __('Bundle order') }}</div>
                                                         <div class="flex items-center mt-1">
                                                             <div class="text-sm text-gray-500">
                                                                 {{ __('Sold to') }} <span
