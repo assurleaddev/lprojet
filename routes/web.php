@@ -77,19 +77,21 @@ Route::get('/favorites', [HomeController::class, 'favorites'])->middleware('auth
 Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])->middleware('auth')->name('orders.index');
 
 // Live auctions
-Route::get('/lives', [App\Http\Controllers\LiveController::class, 'index'])->name('lives.index');
-Route::get('/lives/create', [App\Http\Controllers\LiveController::class, 'create'])->middleware('auth')->name('lives.create');
-Route::post('/lives', [App\Http\Controllers\LiveController::class, 'store'])->middleware('auth')->name('lives.store');
-Route::get('/lives/{live}', [App\Http\Controllers\LiveController::class, 'show'])->name('lives.show');
-Route::post('/lives/{live}/go-live', [App\Http\Controllers\LiveController::class, 'goLive'])->middleware('auth')->name('lives.go-live');
-Route::post('/lives/{live}/end', [App\Http\Controllers\LiveController::class, 'endLive'])->middleware('auth')->name('lives.end');
-Route::post('/lives/{live}/bid', [App\Http\Controllers\LiveController::class, 'placeBid'])->middleware('auth')->name('lives.bid');
-Route::post('/lives/{live}/close-auction', [App\Http\Controllers\LiveController::class, 'closeAuction'])->middleware('auth')->name('lives.close-auction');
-Route::post('/lives/{live}/set-product', [App\Http\Controllers\LiveController::class, 'setProduct'])->middleware('auth')->name('lives.set-product');
-Route::post('/lives/{live}/comment', [App\Http\Controllers\LiveController::class, 'postComment'])->middleware('auth')->name('lives.comment');
-Route::post('/lives/{live}/like', [App\Http\Controllers\LiveController::class, 'toggleLike'])->middleware('auth')->name('lives.like');
-Route::get('/lives/{live}/agora-token', [App\Http\Controllers\LiveController::class, 'agoraToken'])->middleware('auth')->name('lives.agora-token');
-Route::post('/lives/{live}/pre-bid', [App\Http\Controllers\LiveController::class, 'preBid'])->middleware('auth')->name('lives.pre-bid');
+Route::middleware('auth')->prefix('lives')->name('lives.')->group(function () {
+    Route::get('/', [App\Http\Controllers\LiveController::class, 'index'])->name('index');
+    Route::get('/create', [App\Http\Controllers\LiveController::class, 'create'])->name('create');
+    Route::post('/', [App\Http\Controllers\LiveController::class, 'store'])->name('store');
+    Route::get('/{live}', [App\Http\Controllers\LiveController::class, 'show'])->name('show');
+    Route::post('/{live}/go-live', [App\Http\Controllers\LiveController::class, 'goLive'])->name('go-live');
+    Route::post('/{live}/end', [App\Http\Controllers\LiveController::class, 'endLive'])->name('end');
+    Route::post('/{live}/bid', [App\Http\Controllers\LiveController::class, 'placeBid'])->name('bid');
+    Route::post('/{live}/close-auction', [App\Http\Controllers\LiveController::class, 'closeAuction'])->name('close-auction');
+    Route::post('/{live}/set-product', [App\Http\Controllers\LiveController::class, 'setProduct'])->name('set-product');
+    Route::post('/{live}/comment', [App\Http\Controllers\LiveController::class, 'postComment'])->name('comment');
+    Route::post('/{live}/like', [App\Http\Controllers\LiveController::class, 'toggleLike'])->name('like');
+    Route::get('/{live}/agora-token', [App\Http\Controllers\LiveController::class, 'agoraToken'])->name('agora-token');
+    Route::post('/{live}/pre-bid', [App\Http\Controllers\LiveController::class, 'preBid'])->name('pre-bid');
+});
 Route::post('/balance/top-up', [App\Http\Controllers\LiveController::class, 'topUpBalance'])->middleware('auth')->name('balance.top-up');
 Route::get('/balance', [App\Http\Controllers\LiveController::class, 'getBalance'])->middleware('auth')->name('balance.get');
 
