@@ -9,7 +9,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class LiveStatusChanged implements ShouldBroadcast
+class LiveLiked implements ShouldBroadcast
 {
     use Dispatchable;
     use InteractsWithSockets;
@@ -21,22 +21,11 @@ class LiveStatusChanged implements ShouldBroadcast
 
     public function broadcastOn(): array
     {
-        $channels = [new Channel('live.' . $this->live->id)];
-
-        if ($this->live->status === 'live') {
-            $channels[] = new Channel('lives-feed');
-        }
-
-        return $channels;
+        return [new Channel('live.' . $this->live->id)];
     }
 
     public function broadcastWith(): array
     {
-        return [
-            'live_id' => $this->live->id,
-            'status' => $this->live->status,
-            'winner_username' => $this->live->currentBidder?->username,
-            'winning_bid' => $this->live->current_bid,
-        ];
+        return ['likes_count' => $this->live->likes_count];
     }
 }

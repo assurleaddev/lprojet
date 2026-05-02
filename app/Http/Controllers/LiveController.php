@@ -6,9 +6,9 @@ use App\Events\AuctionClosed;
 use App\Events\AuctionProductChanged;
 use App\Events\BidPlaced;
 use App\Events\CommentPosted;
+use App\Events\LiveLiked;
 use App\Events\LiveStatusChanged;
 use App\Models\Live;
-use App\Models\LiveLike;
 use App\Models\LivePreBid;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -36,20 +36,29 @@ class LiveController extends Controller
 
     public function show(Live $live)
     {
-        // Load all active/scheduled lives for the scroll feed, starting from the requested one
-        $allLives = Live::with(['seller', 'product'])
-            ->whereIn('status', ['live', 'scheduled'])
-            ->latest()
-            ->get();
+        $user = Auth::user();
 
-        // Put the requested live first
-        $orderedLives = $allLives->sortBy(fn ($l) => $l->id === $live->id ? 0 : 1)->values();
+        // Require at least one shipping address before watching
+        if ($user->addresses()->doesntExist()) {
+            return redirect()->route('settings.postage', [
+                'redirect_to' => route('lives.show', $live),
+            ])->with('info', __('Please add a shipping address before watching a live auction.'));
+        }
+
+        $isSeller = $user->id === $live->seller_id;
+
+        // Sellers only see their own live — no scroll to other lives
+        if ($isSeller) {
+            $orderedLives = collect([$live->load(['seller', 'product'])]);
+        } else {
+            $allLives = Live::with(['seller', 'product'])
+                ->whereIn('status', ['live', 'scheduled'])
+                ->latest()
+                ->get();
+            $orderedLives = $allLives->sortBy(fn ($l) => $l->id === $live->id ? 0 : 1)->values();
+        }
 
         $recentComments = $live->comments()->with('user')->latest()->limit(50)->get()->reverse()->values();
-
-        $hasLiked = Auth::check()
-            ? LiveLike::where('live_id', $live->id)->where('user_id', Auth::id())->exists()
-            : false;
 
         // Seller's approved products (used by seller sheet AND viewer shop)
         $sellerProducts = Product::where('vendor_id', $live->seller_id)
@@ -64,11 +73,52 @@ class LiveController extends Controller
             ->pluck('cnt', 'product_id');
 
         // Current user's existing pre-bids for this live
-        $userPreBids = Auth::check()
-            ? LivePreBid::where('live_id', $live->id)->where('user_id', Auth::id())->pluck('max_amount', 'product_id')
-            : collect();
+        $userPreBids = LivePreBid::where('live_id', $live->id)
+            ->where('user_id', $user->id)
+            ->pluck('max_amount', 'product_id');
 
-        return view('frontend.lives.show', compact('live', 'orderedLives', 'recentComments', 'hasLiked', 'sellerProducts', 'preBidCounts', 'userPreBids'));
+        return view('frontend.lives.show', compact(
+            'live',
+            'orderedLives',
+            'recentComments',
+            'sellerProducts',
+            'preBidCounts',
+            'userPreBids',
+        ));
+    }
+
+    public function fragment(Live $live)
+    {
+        $user = Auth::user();
+        $isSeller = $user->id === $live->seller_id;
+
+        $sellerProducts = Product::where('vendor_id', $live->seller_id)
+            ->where('status', 'approved')
+            ->with('images')
+            ->get();
+
+        $preBidCounts = LivePreBid::where('live_id', $live->id)
+            ->selectRaw('product_id, count(*) as cnt')
+            ->groupBy('product_id')
+            ->pluck('cnt', 'product_id');
+
+        $userPreBids = LivePreBid::where('live_id', $live->id)
+            ->where('user_id', $user->id)
+            ->pluck('max_amount', 'product_id');
+
+        $liveItem = $live->load(['seller', 'product']);
+        $isFirst = false;
+        $recentComments = collect();
+
+        return view('frontend.lives._screen', compact(
+            'liveItem',
+            'isSeller',
+            'isFirst',
+            'sellerProducts',
+            'preBidCounts',
+            'userPreBids',
+            'recentComments',
+        ));
     }
 
     public function create()
@@ -141,6 +191,7 @@ class LiveController extends Controller
         $wallet = app(WalletService::class);
         $balance = $wallet->getBalance($user);
 
+        // Balance must cover the bid amount (funds are held, not debited yet)
         if ($balance < $amount) {
             return response()->json([
                 'ok' => false,
@@ -152,16 +203,6 @@ class LiveController extends Controller
         }
 
         $countdownEndsAt = now()->addSeconds(self::COUNTDOWN_SECONDS);
-
-        $wallet->debit($user, $amount, 'bid', "Bid on live #{$live->id}", (string) $live->id);
-
-        // Refund previous highest bidder if different
-        if ($live->current_bidder_id && $live->current_bidder_id !== $user->id) {
-            $previousBidder = \App\Models\User::find($live->current_bidder_id);
-            if ($previousBidder) {
-                $wallet->credit($previousBidder, (float) $live->current_bid, 'refund', "Outbid refund on live #{$live->id}", (string) $live->id);
-            }
-        }
 
         $live->update([
             'current_bid' => $amount,
@@ -177,7 +218,7 @@ class LiveController extends Controller
             'ok' => true,
             'current_bid' => $amount,
             'countdown_ends_at' => $countdownEndsAt->toISOString(),
-            'balance' => $wallet->getBalance($user),
+            'balance' => $balance,
         ]);
     }
 
@@ -260,14 +301,6 @@ class LiveController extends Controller
         $product = Product::findOrFail($request->product_id);
         abort_if($product->vendor_id !== Auth::id(), 403);
 
-        // Refund current bidder if switching products mid-auction
-        if ($live->auction_status === 'active' && $live->current_bidder_id && $live->current_bid) {
-            $previousBidder = \App\Models\User::find($live->current_bidder_id);
-            if ($previousBidder) {
-                app(WalletService::class)->credit($previousBidder, (float) $live->current_bid, 'refund', "Product changed on live #{$live->id}", (string) $live->id);
-            }
-        }
-
         $live->update([
             'product_id' => $request->product_id,
             'starting_bid' => $request->starting_bid,
@@ -314,8 +347,11 @@ class LiveController extends Controller
         abort_if(! Auth::check(), 401);
 
         $live->increment('likes_count');
+        $live->refresh();
 
-        return response()->json(['ok' => true, 'likes_count' => $live->fresh()->likes_count]);
+        broadcast(new LiveLiked($live))->toOthers();
+
+        return response()->json(['ok' => true, 'likes_count' => $live->likes_count]);
     }
 
     public function agoraToken(Live $live)
@@ -354,6 +390,15 @@ class LiveController extends Controller
                 'status' => 'reserved',
                 'reserved_by_user_id' => $winner->id,
             ]);
+
+            // Debit the winner now that the auction is closed
+            app(WalletService::class)->debit(
+                $winner,
+                (float) $live->current_bid,
+                'purchase',
+                "Won auction on live #{$live->id}",
+                (string) $live->id
+            );
         }
 
         $live->update(['auction_status' => 'idle']);

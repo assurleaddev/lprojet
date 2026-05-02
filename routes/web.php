@@ -90,6 +90,7 @@ Route::middleware('auth')->prefix('lives')->name('lives.')->group(function () {
     Route::post('/{live}/comment', [App\Http\Controllers\LiveController::class, 'postComment'])->name('comment');
     Route::post('/{live}/like', [App\Http\Controllers\LiveController::class, 'toggleLike'])->name('like');
     Route::get('/{live}/agora-token', [App\Http\Controllers\LiveController::class, 'agoraToken'])->name('agora-token');
+    Route::get('/{live}/fragment', [App\Http\Controllers\LiveController::class, 'fragment'])->name('fragment');
     Route::post('/{live}/pre-bid', [App\Http\Controllers\LiveController::class, 'preBid'])->name('pre-bid');
 });
 Route::post('/balance/top-up', [App\Http\Controllers\LiveController::class, 'topUpBalance'])->middleware('auth')->name('balance.top-up');
