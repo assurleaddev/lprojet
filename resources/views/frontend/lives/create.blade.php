@@ -18,8 +18,33 @@
         </div>
     </div>
 
-    <form action="{{ route('lives.store') }}" method="POST" class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
+    <form action="{{ route('lives.store') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
         @csrf
+
+        {{-- Thumbnail --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Thumbnail') }} <span class="text-red-500">*</span></label>
+            <div id="thumb-drop"
+                 class="relative flex flex-col items-center justify-center gap-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:border-gray-500 transition-colors overflow-hidden"
+                 style="aspect-ratio:16/9; background:#f9fafb;">
+                {{-- Preview image --}}
+                <img id="thumb-preview" src="" alt="" class="absolute inset-0 w-full h-full object-cover hidden">
+                {{-- Placeholder --}}
+                <div id="thumb-placeholder" class="flex flex-col items-center gap-2 text-gray-400 z-10">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-sm font-medium text-gray-600">{{ __('Click or drag a photo') }}</p>
+                    <p class="text-xs text-gray-400">{{ __('JPG, PNG, WEBP — max 4 MB') }}</p>
+                </div>
+                {{-- Change overlay shown after selection --}}
+                <div id="thumb-change" class="absolute inset-0 bg-black/40 flex items-center justify-center hidden z-20">
+                    <span class="text-white text-sm font-semibold">{{ __('Change photo') }}</span>
+                </div>
+                <input type="file" id="thumb-input" name="thumbnail" accept="image/*" required class="absolute inset-0 opacity-0 cursor-pointer w-full h-full">
+            </div>
+            @error('thumbnail')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
+        </div>
 
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Title') }} <span class="text-red-500">*</span></label>
@@ -34,6 +59,44 @@
             {{ __('Create Live Room') }}
         </button>
     </form>
+
+    <script>
+    (function () {
+        const input = document.getElementById('thumb-input');
+        const preview = document.getElementById('thumb-preview');
+        const placeholder = document.getElementById('thumb-placeholder');
+        const change = document.getElementById('thumb-change');
+        const drop = document.getElementById('thumb-drop');
+
+        function showPreview(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                placeholder.classList.add('hidden');
+                change.classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        input.addEventListener('change', () => showPreview(input.files[0]));
+
+        drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor = '#111'; });
+        drop.addEventListener('dragleave', () => { drop.style.borderColor = ''; });
+        drop.addEventListener('drop', e => {
+            e.preventDefault();
+            drop.style.borderColor = '';
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                showPreview(file);
+            }
+        });
+    })();
+    </script>
 </div>
 
 <script>

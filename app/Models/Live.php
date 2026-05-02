@@ -10,6 +10,7 @@ class Live extends Model
         'seller_id',
         'product_id',
         'title',
+        'thumbnail',
         'agora_channel',
         'status',
         'auction_status',

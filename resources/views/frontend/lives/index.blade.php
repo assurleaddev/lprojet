@@ -32,9 +32,9 @@
             @foreach($lives as $live)
                 <a href="{{ route('lives.show', $live) }}" data-live-id="{{ $live->id }}" class="group block bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
                     <div class="relative aspect-video bg-gray-100">
-                        @if($live->product)
-                            <img src="{{ $live->product->getFeaturedImageUrl('preview') }}"
-                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="">
+                        @if($live->thumbnail)
+                            <img src="{{ Storage::url($live->thumbnail) }}"
+                                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="{{ $live->title }}">
                         @else
                             <div class="w-full h-full flex items-center justify-center">
                                 <svg class="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

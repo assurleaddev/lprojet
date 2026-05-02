@@ -130,11 +130,15 @@ class LiveController extends Controller
     {
         $request->validate([
             'title' => 'required|string|max:100',
+            'thumbnail' => 'required|image|max:4096',
         ]);
+
+        $path = $request->file('thumbnail')->store('lives/thumbnails', 'public');
 
         $live = Live::create([
             'seller_id' => Auth::id(),
             'title' => $request->title,
+            'thumbnail' => $path,
             'agora_channel' => 'live-' . Str::uuid(),
             'status' => 'scheduled',
             'auction_status' => 'idle',
