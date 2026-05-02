@@ -204,10 +204,51 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .heart { position: absolute; font-size: 22px; animation: floatHeart 1.8s ease-out forwards; }
 @keyframes floatHeart { 0% { opacity:1; transform:translateY(0) scale(.8); } 50% { opacity:1; transform:translateY(-80px) scale(1.1); } 100% { opacity:0; transform:translateY(-180px) scale(.6); } }
 
-/* ── Product sheet ── */
+/* ── Product sheet (seller) ── */
 .product-sheet { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; background: #111; border-radius: 20px 20px 0 0; padding: 20px 16px; transform: translateY(100%); transition: transform .3s ease; max-height: 62dvh; overflow-y: auto; }
 .product-sheet.open { transform: translateY(0); }
 .sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,.22); border-radius: 2px; margin: 0 auto 16px; }
+
+/* ── Viewer shop sheet ── */
+.viewer-shop-sheet { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; background: #1a1a1a; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform .3s ease; max-height: 86dvh; display: flex; flex-direction: column; }
+.viewer-shop-sheet.open { transform: translateY(0); }
+.shop-header { padding: 16px 16px 0; flex-shrink: 0; }
+.shop-search-row { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.07); border-radius: 30px; padding: 10px 16px; margin-bottom: 12px; }
+.shop-search-row svg { flex-shrink: 0; color: rgba(255,255,255,.4); }
+.shop-search-row input { flex: 1; background: transparent; border: none; outline: none; color: #fff; font-size: 14px; }
+.shop-search-row input::placeholder { color: rgba(255,255,255,.35); }
+.shop-close-btn { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.12); border: none; color: rgba(255,255,255,.7); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.shop-filters { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
+.shop-filter-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; color: rgba(255,255,255,.7); font-size: 12px; font-weight: 600; padding: 5px 14px; cursor: pointer; white-space: nowrap; }
+.shop-filter-btn.active { background: #fff; color: #111; border-color: #fff; }
+.shop-count { color: #fff; font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.shop-body { overflow-y: auto; padding: 0 16px 24px; flex: 1; }
+.shop-product-row { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+.shop-product-row:last-child { border-bottom: none; }
+.shop-img-wrap { position: relative; flex-shrink: 0; width: 110px; height: 110px; border-radius: 10px; overflow: hidden; background: #222; }
+.shop-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.shop-bell-badge { position: absolute; bottom: 6px; right: 6px; background: rgba(0,0,0,.7); border-radius: 20px; padding: 3px 8px; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 3px; }
+.shop-product-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.shop-product-name { color: #fff; font-size: 15px; font-weight: 700; }
+.shop-product-price { color: #fff; font-size: 18px; font-weight: 800; }
+.shop-bid-count { color: rgba(255,255,255,.45); font-size: 12px; }
+.shop-pre-bid-btn { margin-top: auto; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; color: #fff; font-size: 13px; font-weight: 700; padding: 9px 20px; cursor: pointer; text-align: center; }
+.shop-pre-bid-btn.placed { background: rgba(251,191,36,.2); border-color: #fbbf24; color: #fbbf24; }
+
+/* ── Pre-bid modal ── */
+.pre-bid-backdrop { position: fixed; inset: 0; z-index: 400; background: rgba(0,0,0,.65); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+.pre-bid-modal { width: 100%; max-width: 480px; background: #1c1c1e; border-radius: 24px 24px 0 0; padding: 28px 20px 36px; color: #fff; animation: sheetUp .3s ease; }
+.pre-bid-title { font-size: 22px; font-weight: 900; text-align: center; margin-bottom: 10px; }
+.pre-bid-desc { font-size: 13px; color: rgba(255,255,255,.55); text-align: center; line-height: 1.5; margin-bottom: 22px; }
+.pre-bid-label { font-size: 14px; font-weight: 800; margin-bottom: 2px; }
+.pre-bid-min { font-size: 12px; color: rgba(255,255,255,.45); margin-bottom: 10px; }
+.pre-bid-input-wrap { background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.15); border-radius: 14px; padding: 14px 18px; font-size: 20px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 4px; margin-bottom: 8px; }
+.pre-bid-input-wrap input { background: transparent; border: none; outline: none; color: #fff; font-size: 20px; font-weight: 700; flex: 1; width: 100%; }
+.pre-bid-input-wrap span { color: rgba(255,255,255,.4); font-size: 16px; }
+.pre-bid-shipping { text-align: center; color: rgba(255,255,255,.4); font-size: 12px; margin-bottom: 18px; }
+.pre-bid-submit { width: 100%; padding: 15px; background: #fff; color: #111; border: none; border-radius: 16px; font-size: 16px; font-weight: 900; cursor: pointer; margin-bottom: 14px; }
+.pre-bid-submit:disabled { opacity: .5; cursor: not-allowed; }
+.pre-bid-note { font-size: 11px; color: rgba(255,255,255,.35); text-align: center; line-height: 1.5; }
 
 /* ── Unmute ── */
 .unmute-btn { position: absolute; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; }
@@ -352,13 +393,13 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
                 <span class="side-label">{{ __('Wallet') }}</span>
             </div>
             @endauth
-            {{-- Shop (seller: open sheet) --}}
-            @if($isSeller && $isFirst)
-            <div class="side-btn js-open-product-sheet">
-                <div class="side-icon-wrap js-shop-icon-wrap" style="font-size:22px;">🛍️</div>
+            {{-- Shop button: seller opens product-sheet, viewers open viewer shop --}}
+            <div class="side-btn {{ $isSeller ? 'js-open-product-sheet' : 'js-open-viewer-shop' }}">
+                <div class="side-icon-wrap js-shop-icon-wrap" style="font-size:22px;position:relative;">🛍️
+                    <span class="side-badge js-shop-count-badge">{{ $sellerProducts->count() }}</span>
+                </div>
                 <span class="side-label">{{ __('Shop') }}</span>
             </div>
-            @endif
         </div>
 
         {{-- Comments --}}
@@ -463,6 +504,53 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
             </div>
         </div>
 
+        {{-- Viewer shop sheet --}}
+        @if(!$isSeller && $isFirst)
+        <div class="viewer-shop-sheet js-viewer-shop-sheet"
+             data-pre-bid-url="{{ route('lives.pre-bid', $liveItem) }}">
+            <div class="shop-header">
+                <div class="sheet-handle"></div>
+                <div class="shop-search-row">
+                    <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/></svg>
+                    <input type="text" placeholder="{{ __('Search shop…') }}" class="js-shop-search-input">
+                    <button class="shop-close-btn js-viewer-shop-close">×</button>
+                </div>
+                <div class="shop-filters">
+                    <button class="shop-filter-btn active">{{ __('All') }}</button>
+                    <button class="shop-filter-btn">{{ __('Auction') }}</button>
+                    <button class="shop-filter-btn">{{ __('Sold') }}</button>
+                </div>
+                <div class="shop-count">{{ __('Products') }} ({{ $sellerProducts->count() }})</div>
+            </div>
+            <div class="shop-body">
+                @foreach($sellerProducts as $sp)
+                @php
+                    $prebidCount = $preBidCounts[$sp->id] ?? 0;
+                    $myPreBid    = $userPreBids[$sp->id] ?? null;
+                @endphp
+                <div class="shop-product-row"
+                     data-product-id="{{ $sp->id }}"
+                     data-product-name="{{ $sp->name }}"
+                     data-min-bid="{{ $sp->price }}"
+                     data-prebid-count="{{ $prebidCount }}">
+                    <div class="shop-img-wrap">
+                        <img src="{{ $sp->getFeaturedImageUrl('preview') }}" alt="">
+                        <div class="shop-bell-badge">🔔 {{ $prebidCount }}</div>
+                    </div>
+                    <div class="shop-product-info">
+                        <span class="shop-product-name">{{ $sp->name }}</span>
+                        <span class="shop-product-price">{{ number_format($sp->price, 2) }} MAD</span>
+                        <span class="shop-bid-count">{{ $prebidCount }} {{ $prebidCount === 1 ? __('bid') : __('bids') }}</span>
+                        <button class="shop-pre-bid-btn js-pre-bid-btn {{ $myPreBid ? 'placed' : '' }}">
+                            {{ $myPreBid ? '✓ ' . number_format($myPreBid, 2) . ' MAD' : __('Pre-Bid') }}
+                        </button>
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
+
         {{-- Product sheet (seller only) --}}
         @if($isSeller && $isFirst)
         <div class="product-sheet js-product-sheet">
@@ -504,6 +592,24 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 </div>{{-- #live-feed-outer --}}
 
 @auth
+{{-- Pre-bid modal --}}
+<div class="pre-bid-backdrop" id="pre-bid-backdrop" style="display:none;">
+    <div class="pre-bid-modal">
+        <div class="pre-bid-title">{{ __('Place your Bid') }}</div>
+        <p class="pre-bid-desc" id="pre-bid-desc"></p>
+        <div class="pre-bid-label">{{ __('Max Bid') }}</div>
+        <div class="pre-bid-min" id="pre-bid-min"></div>
+        <div class="pre-bid-input-wrap">
+            <span>MAD</span>
+            <input type="number" id="pre-bid-amount" min="1" step="1" placeholder="0">
+        </div>
+        <div class="pre-bid-shipping">{{ __('+ Shipping & Tax may apply') }}</div>
+        <button class="pre-bid-submit" id="pre-bid-submit">{{ __('Submit') }}</button>
+        <p class="pre-bid-note">{{ __("Bids are final. You can increase at any time, but cannot reduce or cancel your max bid.") }}</p>
+        <button style="width:100%;background:transparent;border:none;color:rgba(255,255,255,.35);font-size:13px;cursor:pointer;padding:8px;" id="pre-bid-cancel">{{ __('Cancel') }}</button>
+    </div>
+</div>
+
 {{-- Top-up modal --}}
 <div id="topup-backdrop" style="display:none;">
     <div id="topup-modal">
@@ -878,13 +984,23 @@ document.addEventListener('DOMContentLoaded', function () {
             if (IS_AUTH) {
                 let viewerCount = 0;
                 Echo.join('live.' + id)
-                    .here(members => { viewerCount = members.length; updateViewerDisplay(screen, viewerCount); })
-                    .joining(member => {
-                        viewerCount++;
+                    .here(members => {
+                        viewerCount = members.filter(m => !m.is_seller).length;
                         updateViewerDisplay(screen, viewerCount);
-                        appendJoinedEvent(screen, member.username);
                     })
-                    .leaving(() => { viewerCount = Math.max(0, viewerCount - 1); updateViewerDisplay(screen, viewerCount); });
+                    .joining(member => {
+                        if (!member.is_seller) {
+                            viewerCount++;
+                            updateViewerDisplay(screen, viewerCount);
+                            appendJoinedEvent(screen, member.username);
+                        }
+                    })
+                    .leaving(member => {
+                        if (!member.is_seller) {
+                            viewerCount = Math.max(0, viewerCount - 1);
+                            updateViewerDisplay(screen, viewerCount);
+                        }
+                    });
             }
 
             ch.listen('BidPlaced', e => {
@@ -1028,6 +1144,50 @@ document.addEventListener('DOMContentLoaded', function () {
             st.client = null; st.localTracks = [];
         }
 
+        // ── Pre-bid modal ─────────────────────────────────────────────
+        const preBidBackdrop = document.getElementById('pre-bid-backdrop');
+        const preBidAmount   = document.getElementById('pre-bid-amount');
+        const preBidSubmit   = document.getElementById('pre-bid-submit');
+        const preBidCancel   = document.getElementById('pre-bid-cancel');
+        let preBidCallback   = null;
+
+        function openPreBidModal(productId, productName, minBid, url, triggerBtn) {
+            const desc = document.getElementById('pre-bid-desc');
+            const min  = document.getElementById('pre-bid-min');
+            if (desc) desc.textContent = 'You are entering a max bid for ' + productName + '. We\'ll automatically place bids for you up to that amount when this auction runs.';
+            if (min)  min.textContent  = 'Enter a bid of at least ' + minBid.toFixed(2) + ' MAD';
+            if (preBidAmount) { preBidAmount.value = ''; preBidAmount.min = minBid; }
+            if (preBidBackdrop) preBidBackdrop.style.display = 'flex';
+            preBidCallback = async () => {
+                const amount = parseFloat(preBidAmount?.value);
+                if (!amount || amount < minBid) { alert('Enter at least ' + minBid.toFixed(2) + ' MAD'); return; }
+                preBidSubmit.disabled = true;
+                try {
+                    const res = await apiFetch(url, { product_id: productId, max_amount: amount });
+                    if (res.ok) {
+                        if (preBidBackdrop) preBidBackdrop.style.display = 'none';
+                        if (triggerBtn) {
+                            triggerBtn.textContent = '✓ ' + amount.toFixed(2) + ' MAD';
+                            triggerBtn.classList.add('placed');
+                        }
+                        // Update bell badge count
+                        const row = triggerBtn?.closest('.shop-product-row');
+                        if (row) {
+                            const badge = row.querySelector('.shop-bell-badge');
+                            const bidCount = row.querySelector('.shop-bid-count');
+                            if (badge) badge.textContent = '🔔 ' + res.pre_bid_count;
+                            if (bidCount) bidCount.textContent = res.pre_bid_count + ' ' + (res.pre_bid_count === 1 ? 'bid' : 'bids');
+                        }
+                    }
+                } catch (e) {}
+                preBidSubmit.disabled = false;
+            };
+        }
+
+        if (preBidSubmit)  preBidSubmit.addEventListener('click', () => preBidCallback?.());
+        if (preBidCancel)  preBidCancel.addEventListener('click', () => { if (preBidBackdrop) preBidBackdrop.style.display = 'none'; });
+        if (preBidBackdrop) preBidBackdrop.addEventListener('click', e => { if (e.target === preBidBackdrop) preBidBackdrop.style.display = 'none'; });
+
         // ── Bind screen ───────────────────────────────────────────────
         function bindScreen(screen) {
             bindPusherChannel(screen);
@@ -1102,6 +1262,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (st.client) st.client.remoteUsers.forEach(u => { try { u.audioTrack?.play(); } catch (e) {} });
                 unmuteBtn.style.display = 'none';
             });
+
+            // Viewer shop sheet
+            const viewerShopBtn  = screen.querySelector('.js-open-viewer-shop');
+            const viewerSheet    = screen.querySelector('.js-viewer-shop-sheet');
+            if (viewerShopBtn && viewerSheet) {
+                viewerShopBtn.addEventListener('click', () => viewerSheet.classList.add('open'));
+                viewerSheet.querySelector('.js-viewer-shop-close').addEventListener('click', () => viewerSheet.classList.remove('open'));
+                viewerSheet.querySelector('.js-shop-search-input').addEventListener('input', e => {
+                    const q = e.target.value.toLowerCase();
+                    viewerSheet.querySelectorAll('.shop-product-row').forEach(row => {
+                        row.style.display = row.querySelector('.shop-product-name').textContent.toLowerCase().includes(q) ? '' : 'none';
+                    });
+                });
+                viewerSheet.querySelectorAll('.js-pre-bid-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const row = btn.closest('.shop-product-row');
+                        openPreBidModal(row.dataset.productId, row.dataset.productName, parseFloat(row.dataset.minBid), viewerSheet.dataset.preBidUrl, btn);
+                    });
+                });
+            }
 
             // Product sheet
             const sheetBtn     = screen.querySelector('.js-open-product-sheet');

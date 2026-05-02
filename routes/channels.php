@@ -4,7 +4,12 @@ use Illuminate\Support\Facades\Broadcast;
 use Modules\Chat\Models\Conversation;
 
 Broadcast::channel('live.{liveId}', function ($user, $liveId) {
-    return ['id' => $user->id, 'username' => $user->username];
+    $live = \App\Models\Live::find($liveId);
+    return [
+        'id' => $user->id,
+        'username' => $user->username,
+        'is_seller' => $live && $live->seller_id === $user->id,
+    ];
 });
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {

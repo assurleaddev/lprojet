@@ -89,6 +89,7 @@ Route::post('/lives/{live}/set-product', [App\Http\Controllers\LiveController::c
 Route::post('/lives/{live}/comment', [App\Http\Controllers\LiveController::class, 'postComment'])->middleware('auth')->name('lives.comment');
 Route::post('/lives/{live}/like', [App\Http\Controllers\LiveController::class, 'toggleLike'])->middleware('auth')->name('lives.like');
 Route::get('/lives/{live}/agora-token', [App\Http\Controllers\LiveController::class, 'agoraToken'])->middleware('auth')->name('lives.agora-token');
+Route::post('/lives/{live}/pre-bid', [App\Http\Controllers\LiveController::class, 'preBid'])->middleware('auth')->name('lives.pre-bid');
 Route::post('/balance/top-up', [App\Http\Controllers\LiveController::class, 'topUpBalance'])->middleware('auth')->name('balance.top-up');
 Route::get('/balance', [App\Http\Controllers\LiveController::class, 'getBalance'])->middleware('auth')->name('balance.get');
 

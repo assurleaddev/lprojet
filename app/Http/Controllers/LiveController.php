@@ -9,6 +9,7 @@ use App\Events\CommentPosted;
 use App\Events\LiveStatusChanged;
 use App\Models\Live;
 use App\Models\LiveLike;
+use App\Models\LivePreBid;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -50,14 +51,24 @@ class LiveController extends Controller
             ? LiveLike::where('live_id', $live->id)->where('user_id', Auth::id())->exists()
             : false;
 
-        $sellerProducts = Auth::id() === $live->seller_id
-            ? Product::where('vendor_id', Auth::id())
-                ->where('status', 'approved')
-                ->with('images')
-                ->get()
+        // Seller's approved products (used by seller sheet AND viewer shop)
+        $sellerProducts = Product::where('vendor_id', $live->seller_id)
+            ->where('status', 'approved')
+            ->with('images')
+            ->get();
+
+        // Pre-bid counts per product for this live
+        $preBidCounts = LivePreBid::where('live_id', $live->id)
+            ->selectRaw('product_id, count(*) as cnt')
+            ->groupBy('product_id')
+            ->pluck('cnt', 'product_id');
+
+        // Current user's existing pre-bids for this live
+        $userPreBids = Auth::check()
+            ? LivePreBid::where('live_id', $live->id)->where('user_id', Auth::id())->pluck('max_amount', 'product_id')
             : collect();
 
-        return view('frontend.lives.show', compact('live', 'orderedLives', 'recentComments', 'hasLiked', 'sellerProducts'));
+        return view('frontend.lives.show', compact('live', 'orderedLives', 'recentComments', 'hasLiked', 'sellerProducts', 'preBidCounts', 'userPreBids'));
     }
 
     public function create()
@@ -197,6 +208,29 @@ class LiveController extends Controller
         return response()->json([
             'balance' => app(WalletService::class)->getBalance(Auth::user()),
         ]);
+    }
+
+    public function preBid(Request $request, Live $live)
+    {
+        abort_if(! Auth::check(), 401);
+        abort_if($live->seller_id === Auth::id(), 422, 'Seller cannot pre-bid.');
+
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'max_amount' => 'required|numeric|min:1',
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+        abort_if($product->vendor_id !== $live->seller_id, 422);
+
+        LivePreBid::updateOrCreate(
+            ['live_id' => $live->id, 'product_id' => $request->product_id, 'user_id' => Auth::id()],
+            ['max_amount' => $request->max_amount]
+        );
+
+        $count = LivePreBid::where('live_id', $live->id)->where('product_id', $request->product_id)->count();
+
+        return response()->json(['ok' => true, 'pre_bid_count' => $count]);
     }
 
     public function closeAuction(Live $live)
