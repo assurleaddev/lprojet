@@ -106,22 +106,42 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .prod-name { color: #fff; font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .prod-bid  { color: #fbbf24; font-size: 11px; font-weight: 700; }
 
-/* ── Bid bar ── */
-.bid-bar {
+/* ── Swipe-to-bid slider ── */
+.bid-slider {
     position: absolute; bottom: 130px; left: 12px; right: 12px; z-index: 10;
-    display: flex; gap: 8px; align-items: center;
+    height: 54px; border-radius: 27px;
+    background: rgba(255,255,255,.12); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,.2);
+    overflow: hidden; user-select: none; touch-action: none;
 }
-.bid-bar input {
-    flex: 1; background: rgba(255,255,255,.15); backdrop-filter: blur(6px);
-    border: 1px solid rgba(255,255,255,.3); border-radius: 24px;
-    padding: 10px 16px; color: #fff; font-size: 14px; font-weight: 600; outline: none;
+.bid-slider-fill {
+    position: absolute; inset: 0; border-radius: 27px;
+    background: linear-gradient(90deg, rgba(239,68,68,.6) 0%, rgba(239,68,68,.35) 100%);
+    width: 0; transition: width .08s linear;
+    pointer-events: none;
 }
-.bid-bar input::placeholder { color: rgba(255,255,255,.55); }
-.bid-bar button {
-    background: #ef4444; color: #fff; border: none; border-radius: 24px;
-    padding: 10px 20px; font-size: 14px; font-weight: 700; cursor: pointer; white-space: nowrap;
+.bid-slider-thumb {
+    position: absolute; top: 4px; left: 4px;
+    width: 46px; height: 46px; border-radius: 50%;
+    background: #ef4444;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; cursor: grab; will-change: transform;
+    box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    transition: background .2s;
+    flex-shrink: 0;
 }
-.bid-bar button:disabled { opacity: .5; cursor: not-allowed; }
+.bid-slider-thumb:active { cursor: grabbing; }
+.bid-slider-thumb svg { pointer-events: none; }
+.bid-slider-label {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 13px; font-weight: 700;
+    pointer-events: none; padding-left: 56px; padding-right: 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.bid-slider.success .bid-slider-thumb { background: #22c55e; }
+.bid-slider.success .bid-slider-fill { background: rgba(34,197,94,.5); }
+.bid-slider.locked { pointer-events: none; opacity: .7; }
 
 /* ── Countdown ── */
 .countdown-bar {
@@ -365,13 +385,20 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
             </div>
         </div>
 
-        {{-- Bid bar --}}
+        {{-- Swipe-to-bid --}}
         @auth
-        <div class="bid-bar js-bid-bar" style="{{ ($liveItem->auction_status !== 'active' || $isSeller) ? 'display:none;' : '' }}">
-            <input type="number" class="js-bid-input" step="10" min="{{ $liveItem->min_next_bid }}"
-                   placeholder="{{ __('Min') }} {{ number_format($liveItem->min_next_bid, 2) }} MAD">
-            <button class="js-bid-btn">{{ __('Bid') }}</button>
+        @if(!$isSeller)
+        <div class="bid-slider js-bid-bar" style="{{ $liveItem->auction_status !== 'active' ? 'display:none;' : '' }}"
+             data-min-bid="{{ $liveItem->min_next_bid }}">
+            <div class="bid-slider-fill js-slider-fill"></div>
+            <div class="bid-slider-thumb js-slider-thumb">
+                <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                </svg>
+            </div>
+            <div class="bid-slider-label js-slider-label">{{ __('Slide to bid') }} {{ number_format($liveItem->min_next_bid, 2) }} MAD</div>
         </div>
+        @endif
         @endauth
 
         {{-- Comments --}}
@@ -710,6 +737,98 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // ── Floating hearts ──────────────────────────────────────────
+        // ── Swipe-to-bid ─────────────────────────────────────────────
+        function resetSlider(el) {
+            const thumb = el.querySelector('.js-slider-thumb');
+            const fill = el.querySelector('.js-slider-fill');
+            el.classList.remove('success', 'locked');
+            if (thumb) { thumb.style.transition = 'transform .3s ease'; thumb.style.transform = 'translateX(0)'; }
+            if (fill)  { fill.style.transition = 'width .3s ease'; fill.style.width = '0'; }
+            setTimeout(() => {
+                if (thumb) thumb.style.transition = '';
+                if (fill)  fill.style.transition = '';
+            }, 320);
+        }
+
+        function bindSlider(sliderEl, screen) {
+            const thumb = sliderEl.querySelector('.js-slider-thumb');
+            const fill  = sliderEl.querySelector('.js-slider-fill');
+            const label = sliderEl.querySelector('.js-slider-label');
+            let startX = 0, currentX = 0, dragging = false;
+
+            const getTrackWidth = () => sliderEl.offsetWidth - 54; // full track minus thumb width
+
+            const onStart = (e) => {
+                if (sliderEl.classList.contains('locked')) return;
+                dragging = true;
+                startX = (e.touches ? e.touches[0].clientX : e.clientX);
+                thumb.style.transition = 'none';
+                fill.style.transition = 'none';
+            };
+
+            const onMove = (e) => {
+                if (!dragging) return;
+                const x = (e.touches ? e.touches[0].clientX : e.clientX);
+                currentX = Math.max(0, Math.min(x - startX, getTrackWidth()));
+                thumb.style.transform = 'translateX(' + currentX + 'px)';
+                fill.style.width = (currentX + 54) + 'px';
+            };
+
+            const onEnd = async () => {
+                if (!dragging) return;
+                dragging = false;
+                const track = getTrackWidth();
+                if (currentX >= track * 0.85) {
+                    // confirmed — lock and submit
+                    thumb.style.transition = 'transform .15s ease';
+                    fill.style.transition = 'width .15s ease';
+                    thumb.style.transform = 'translateX(' + track + 'px)';
+                    fill.style.width = '100%';
+                    sliderEl.classList.add('locked');
+
+                    const amount = parseFloat(sliderEl.dataset.minBid);
+                    await submitBid(amount, sliderEl, screen, label);
+                } else {
+                    resetSlider(sliderEl);
+                }
+                currentX = 0;
+            };
+
+            thumb.addEventListener('mousedown', onStart);
+            thumb.addEventListener('touchstart', onStart, { passive: true });
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('touchmove', onMove, { passive: true });
+            document.addEventListener('mouseup', onEnd);
+            document.addEventListener('touchend', onEnd);
+        }
+
+        async function submitBid(amount, sliderEl, screen, label) {
+            try {
+                const res = await apiFetch(screen.dataset.bidUrl, { amount });
+                if (res.insufficient_balance) {
+                    resetSlider(sliderEl);
+                    const presets = [300, 500, 1000];
+                    const suggested = presets.find(p => p >= res.shortfall) || Math.ceil(res.shortfall / 100) * 100;
+                    const charged = await showTopupModal(suggested);
+                    if (charged) await submitBid(amount, sliderEl, screen, label);
+                } else if (!res.ok) {
+                    resetSlider(sliderEl);
+                    alert(res.message || 'Error');
+                } else {
+                    if (res.balance !== undefined) updateBalanceChip(res.balance);
+                    appendBidEvent(screen, {!! json_encode(Auth::user()?->username ?? '') !!}, amount.toFixed(2));
+                    sliderEl.classList.add('success');
+                    // Update label to next bid amount and reset after short delay
+                    const nextBid = amount + 10;
+                    if (label) label.textContent = {!! json_encode(__('Slide to bid')) !!} + ' ' + nextBid.toFixed(2) + ' MAD';
+                    sliderEl.dataset.minBid = nextBid;
+                    setTimeout(() => resetSlider(sliderEl), 1200);
+                }
+            } catch (e) {
+                resetSlider(sliderEl);
+            }
+        }
+
         function spawnHeart(screen) {
             const container = screen.querySelector('.js-heart-float');
             const hearts = ['❤️', '🧡', '💛', '💚', '💙', '💜'];
@@ -729,13 +848,12 @@ document.addEventListener('DOMContentLoaded', function () {
             ch.listen('BidPlaced', (e) => {
                 const bidDisplay = screen.querySelector('.js-bid-display');
                 const bidderName = screen.querySelector('.js-bidder-name');
-                const bidInput = screen.querySelector('.js-bid-input');
+                const sliderLabel = screen.querySelector('.js-slider-label');
+                const sliderEl = screen.querySelector('.js-bid-bar');
                 if (bidDisplay) bidDisplay.textContent = parseFloat(e.current_bid).toFixed(2) + ' MAD';
                 if (bidderName) bidderName.textContent = 'by ' + (e.bidder_username || '');
-                if (bidInput) {
-                    bidInput.min = e.min_next_bid;
-                    bidInput.placeholder = {!! json_encode(__('Min')) !!} + ' ' + parseFloat(e.min_next_bid).toFixed(2) + ' MAD';
-                }
+                if (sliderLabel) sliderLabel.textContent = {!! json_encode(__('Slide to bid')) !!} + ' ' + parseFloat(e.min_next_bid).toFixed(2) + ' MAD';
+                if (sliderEl) sliderEl.dataset.minBid = e.min_next_bid;
                 startCountdown(screen, e.countdown_ends_at);
                 appendBidEvent(screen, e.bidder_username, parseFloat(e.current_bid).toFixed(2));
             });
@@ -753,7 +871,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (bd) bd.textContent = {!! json_encode(__('Start')) !!} + ': ' + parseFloat(e.starting_bid).toFixed(2) + ' MAD';
                 if (bn) bn.textContent = '';
                 if (pc) pc.style.display = '';
-                if (bidBar && !isSeller) bidBar.style.display = '';
+                if (bidBar && !isSeller) {
+                    bidBar.style.display = '';
+                    bidBar.dataset.minBid = e.starting_bid;
+                    const lbl = bidBar.querySelector('.js-slider-label');
+                    if (lbl) lbl.textContent = {!! json_encode(__('Slide to bid')) !!} + ' ' + parseFloat(e.starting_bid).toFixed(2) + ' MAD';
+                    resetSlider(bidBar);
+                }
                 screen.dataset.auction = 'active';
                 screen.querySelector('.js-countdown-bar').style.display = 'none';
                 clearInterval(getState(id).countdownTimer);
@@ -949,37 +1073,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            // Bid
-            const bidBtn = screen.querySelector('.js-bid-btn');
-            const bidInput = screen.querySelector('.js-bid-input');
-            if (bidBtn && IS_AUTH) {
-                const placeBid = async (amount) => {
-                    bidBtn.disabled = true;
-                    try {
-                        const res = await apiFetch(screen.dataset.bidUrl, { amount });
-                        if (res.insufficient_balance) {
-                            // Pick the smallest preset that covers the shortfall
-                            const presets = [300, 500, 1000];
-                            const suggested = presets.find(p => p >= res.shortfall) || Math.ceil(res.shortfall / 100) * 100;
-                            const charged = await showTopupModal(suggested);
-                            if (charged) await placeBid(amount); // retry after top-up
-                        } else if (!res.ok) {
-                            alert(res.message || 'Error');
-                        } else {
-                            bidInput.value = '';
-                            if (res.balance !== undefined) updateBalanceChip(res.balance);
-                            appendBidEvent(screen, {!! json_encode(Auth::user()?->username ?? '') !!}, amount.toFixed(2));
-                        }
-                    } catch (e) {}
-                    bidBtn.disabled = false;
-                };
-
-                bidBtn.addEventListener('click', async () => {
-                    const amount = parseFloat(bidInput.value);
-                    if (!amount) return;
-                    await placeBid(amount);
-                });
-                bidInput.addEventListener('keydown', e => { if (e.key === 'Enter') bidBtn.click(); });
+            // Swipe-to-bid
+            const sliderEl = screen.querySelector('.js-bid-bar');
+            if (sliderEl && IS_AUTH) {
+                bindSlider(sliderEl, screen);
             }
 
             // Comment
