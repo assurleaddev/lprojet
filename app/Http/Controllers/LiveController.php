@@ -62,35 +62,22 @@ class LiveController extends Controller
 
     public function create()
     {
-        $products = Product::where('vendor_id', Auth::id())
-            ->where('status', 'approved')
-            ->with('images')
-            ->get();
-
-        return view('frontend.lives.create', compact('products'));
+        return view('frontend.lives.create');
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'title' => 'required|string|max:100',
-            'product_id' => 'nullable|exists:products,id',
-            'starting_bid' => 'required|numeric|min:1',
         ]);
-
-        if ($request->product_id) {
-            $product = Product::findOrFail($request->product_id);
-            abort_if($product->vendor_id !== Auth::id(), 403);
-        }
 
         $live = Live::create([
             'seller_id' => Auth::id(),
-            'product_id' => $request->product_id,
             'title' => $request->title,
             'agora_channel' => 'live-' . Str::uuid(),
             'status' => 'scheduled',
             'auction_status' => 'idle',
-            'starting_bid' => $request->starting_bid,
+            'starting_bid' => 0,
         ]);
 
         return redirect()->route('lives.show', $live);
@@ -238,6 +225,14 @@ class LiveController extends Controller
 
         $product = Product::findOrFail($request->product_id);
         abort_if($product->vendor_id !== Auth::id(), 403);
+
+        // Refund current bidder if switching products mid-auction
+        if ($live->auction_status === 'active' && $live->current_bidder_id && $live->current_bid) {
+            $previousBidder = \App\Models\User::find($live->current_bidder_id);
+            if ($previousBidder) {
+                app(WalletService::class)->credit($previousBidder, (float) $live->current_bid, 'refund', "Product changed on live #{$live->id}", (string) $live->id);
+            }
+        }
 
         $live->update([
             'product_id' => $request->product_id,
