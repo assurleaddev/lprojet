@@ -1,6 +1,6 @@
 <footer class="bg-white border-t border-gray-200 mt-12">
     <div class="max-w-7xl mx-auto px-8 py-16 md:px-12 md:py-20">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-24">
 
             {{-- Brand column --}}
             <div class="md:col-span-1">
@@ -14,7 +14,7 @@
 
             {{-- À Propos column --}}
             <div>
-                <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 mb-6">{{ __('About') }}</h3>
+                <h3 class="text-base font-black uppercase tracking-widest text-gray-900 mb-6">{{ __('About') }}</h3>
                 <ul class="space-y-4">
                     <li><a href="{{ route('faq') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">FAQ</a></li>
                     <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Contact</a></li>
@@ -25,7 +25,7 @@
 
             {{-- Suivez-nous sur column --}}
             <div>
-                <h3 class="text-sm font-black uppercase tracking-widest text-gray-900 mb-6">{{ __('Follow us on') }}</h3>
+                <h3 class="text-base font-black uppercase tracking-widest text-gray-900 mb-6">{{ __('Follow us on') }}</h3>
 
                 {{-- Social icons --}}
                 <div class="flex gap-3 mb-8">
