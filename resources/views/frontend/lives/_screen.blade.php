@@ -249,11 +249,12 @@
             @php
                 $prebidCount = $preBidCounts[$sp->id] ?? 0;
                 $myPreBid    = $userPreBids[$sp->id] ?? null;
+                $preBidMin   = (float) ($sp->pivot->pre_bid_min ?? 1);
             @endphp
             <div class="shop-product-row"
                  data-product-id="{{ $sp->id }}"
                  data-product-name="{{ $sp->name }}"
-                 data-min-bid="{{ $sp->price }}"
+                 data-min-bid="{{ $preBidMin }}"
                  data-prebid-count="{{ $prebidCount }}">
                 <div class="shop-img-wrap">
                     <img src="{{ $sp->getFeaturedImageUrl('preview') }}" alt="">
@@ -263,6 +264,7 @@
                     <span class="shop-product-name">{{ $sp->name }}</span>
                     <span class="shop-product-price">{{ number_format($sp->price, 2) }} MAD</span>
                     <span class="shop-bid-count">{{ $prebidCount }} {{ $prebidCount === 1 ? __('bid') : __('bids') }}</span>
+                    <span class="text-xs" style="color:rgba(255,255,255,.45);">{{ __('Min bid') }}: {{ number_format($preBidMin, 2) }} MAD</span>
                     <button class="shop-pre-bid-btn js-pre-bid-btn {{ $myPreBid ? 'placed' : '' }}">
                         {{ $myPreBid ? '✓ ' . number_format($myPreBid, 2) . ' MAD' : __('Pre-Bid') }}
                     </button>

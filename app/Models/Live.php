@@ -61,6 +61,13 @@ class Live extends Model
         return $this->hasMany(LiveLike::class);
     }
 
+    public function liveProducts(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'live_products')
+            ->withPivot('pre_bid_min')
+            ->withTimestamps();
+    }
+
     public function getMinNextBidAttribute(): float
     {
         $current = $this->current_bid ?? $this->starting_bid;

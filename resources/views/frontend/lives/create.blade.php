@@ -54,6 +54,95 @@
             @error('title')<p class="text-xs text-red-500 mt-1">{{ $message }}</p>@enderror
         </div>
 
+        {{-- Product Selection --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+                {{ __('Products for this Live') }} <span class="text-red-500">*</span>
+            </label>
+            <p class="text-xs text-gray-500 mb-3">{{ __('Select which products will be available for bidding. Set a minimum pre-bid for each.') }}</p>
+
+            @error('product_ids')<p class="text-xs text-red-500 mb-2">{{ $message }}</p>@enderror
+
+            @if($products->isEmpty())
+                <div class="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-400">
+                    {{ __('You have no approved products. Get some products approved first.') }}
+                </div>
+            @else
+                {{-- Search --}}
+                <div class="relative mb-3">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 0 5 11a6 6 0 0 0 12 0z"/>
+                    </svg>
+                    <input type="text" id="product-search" placeholder="{{ __('Search products…') }}"
+                           class="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+                </div>
+
+                {{-- Selection counter --}}
+                <p class="text-xs text-gray-500 mb-2">
+                    <span id="selected-count">0</span> {{ __('product(s) selected') }}
+                </p>
+
+                {{-- Product grid --}}
+                <div id="product-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pr-1">
+                    @foreach($products as $product)
+                        @php $thumb = $product->images->first()?->image_url ?? null; @endphp
+                        <div class="product-card relative rounded-xl border-2 border-gray-200 bg-white cursor-pointer select-none transition-all hover:border-gray-400"
+                             data-product-id="{{ $product->id }}"
+                             data-name="{{ strtolower($product->name) }}">
+
+                            {{-- Checkbox hidden input --}}
+                            <input type="checkbox" name="product_ids[]" value="{{ $product->id }}"
+                                   class="product-checkbox sr-only"
+                                   {{ collect(old('product_ids', []))->contains($product->id) ? 'checked' : '' }}>
+
+                            {{-- Checkmark badge --}}
+                            <div class="check-badge absolute top-2 right-2 w-5 h-5 rounded-full bg-gray-900 text-white items-center justify-center hidden z-10">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            </div>
+
+                            {{-- Thumbnail --}}
+                            <div class="w-full rounded-t-[10px] overflow-hidden bg-gray-100" style="aspect-ratio:1/1">
+                                @if($thumb)
+                                    <img src="{{ $thumb }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center text-gray-300">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </div>
+                                @endif
+                            </div>
+
+                            {{-- Info --}}
+                            <div class="p-2">
+                                <p class="text-xs font-medium text-gray-800 line-clamp-2 leading-tight">{{ $product->name }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ number_format($product->price, 2) }} MAD</p>
+
+                                {{-- Pre-bid minimum input (shown when selected) --}}
+                                <div class="pre-bid-row mt-2 hidden">
+                                    <label class="block text-[10px] text-gray-500 mb-0.5">{{ __('Min pre-bid') }}</label>
+                                    <div class="flex items-center gap-1">
+                                        <input type="number" name="pre_bid_min[{{ $product->id }}]"
+                                               min="1" step="0.01"
+                                               value="{{ old('pre_bid_min.' . $product->id, 1) }}"
+                                               placeholder="1.00"
+                                               class="pre-bid-input w-full border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-gray-900"
+                                               onclick="event.stopPropagation()">
+                                        <span class="text-[10px] text-gray-400 shrink-0">MAD</span>
+                                    </div>
+                                    @error('pre_bid_min.' . $product->id)
+                                        <p class="text-[10px] text-red-500">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+
         <button type="submit"
                 class="w-full py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors">
             {{ __('Create Live Room') }}
@@ -95,6 +184,62 @@
                 showPreview(file);
             }
         });
+    })();
+
+    // Product selection
+    (function () {
+        const cards = document.querySelectorAll('.product-card');
+        const countEl = document.getElementById('selected-count');
+        const searchEl = document.getElementById('product-search');
+
+        function updateCount() {
+            const n = document.querySelectorAll('.product-checkbox:checked').length;
+            if (countEl) countEl.textContent = n;
+        }
+
+        cards.forEach(card => {
+            const cb = card.querySelector('.product-checkbox');
+            const badge = card.querySelector('.check-badge');
+            const preBidRow = card.querySelector('.pre-bid-row');
+            const preBidInput = card.querySelector('.pre-bid-input');
+
+            function setSelected(selected) {
+                cb.checked = selected;
+                if (selected) {
+                    card.classList.add('border-gray-900', 'bg-gray-50');
+                    card.classList.remove('border-gray-200');
+                    badge.classList.remove('hidden');
+                    badge.classList.add('flex');
+                    preBidRow.classList.remove('hidden');
+                    if (preBidInput && !preBidInput.value) preBidInput.value = '1';
+                } else {
+                    card.classList.remove('border-gray-900', 'bg-gray-50');
+                    card.classList.add('border-gray-200');
+                    badge.classList.add('hidden');
+                    badge.classList.remove('flex');
+                    preBidRow.classList.add('hidden');
+                }
+                updateCount();
+            }
+
+            // Restore old() state on page load
+            if (cb.checked) setSelected(true);
+
+            card.addEventListener('click', e => {
+                if (e.target.closest('.pre-bid-row')) return;
+                setSelected(!cb.checked);
+            });
+        });
+
+        if (searchEl) {
+            searchEl.addEventListener('input', () => {
+                const q = searchEl.value.toLowerCase().trim();
+                cards.forEach(card => {
+                    const match = !q || card.dataset.name.includes(q);
+                    card.style.display = match ? '' : 'none';
+                });
+            });
+        }
     })();
     </script>
 </div>
