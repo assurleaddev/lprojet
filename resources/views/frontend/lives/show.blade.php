@@ -341,16 +341,10 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
             </div>
             @if($isSeller)
             <div style="display:flex;gap:6px;align-items:center;">
-                @if($liveItem->status === 'scheduled')
-                    <button class="ctrl-btn go-live-btn js-go-live">{{ __('Go Live') }}</button>
-                @endif
-                @if($liveItem->status === 'live')
-                    @if($liveItem->auction_status === 'active')
-                        <button class="ctrl-btn js-close-auction">{{ __('Close Bid') }}</button>
-                    @endif
-                    <button class="ctrl-btn js-open-product-sheet">🛍 {{ __('Set Product') }}</button>
-                    <button class="ctrl-btn danger js-end-live">{{ __('End') }}</button>
-                @endif
+                <button class="ctrl-btn go-live-btn js-go-live" @if($liveItem->status !== 'scheduled') style="display:none;" @endif>{{ __('Go Live') }}</button>
+                <button class="ctrl-btn js-close-auction" @if($liveItem->auction_status !== 'active') style="display:none;" @endif>{{ __('Close Bid') }}</button>
+                <button class="ctrl-btn js-open-product-sheet" @if($liveItem->status !== 'live') style="display:none;" @endif>🛍 {{ __('Set Product') }}</button>
+                <button class="ctrl-btn danger js-end-live" @if($liveItem->status !== 'live') style="display:none;" @endif>{{ __('End') }}</button>
             </div>
             @endif
         </div>
@@ -570,7 +564,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const TOP_UP_URL = {!! json_encode(route('balance.top-up')) !!};
 
         // ── Balance state ─────────────────────────────────────────────
-        let currentBalance = {!! Auth::check() ? (float) Auth::user()->balance : 0 !!};
+        let currentBalance = {!! Auth::check() ? (float) app(\Modules\Wallet\Services\WalletService::class)->getBalance(Auth::user()) : 0 !!};
 
         function updateBalanceChip(amount) {
             currentBalance = amount;
@@ -661,11 +655,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         async function apiFetch(url, body) {
-            const r = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' },
-                body: JSON.stringify(body),
-            });
+            const headers = { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' };
+            try { const sid = window.Echo?.socketId(); if (sid) headers['X-Socket-ID'] = sid; } catch (e) {}
+            const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
             return r.json();
         }
 
@@ -1002,6 +994,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!url) return;
             await apiFetch(url, {});
             screen.dataset.status = 'live';
+            // Swap seller controls: hide Go Live, show Set Product + End
+            const goBtn = screen.querySelector('.js-go-live');
+            const setProductBtn = screen.querySelector('.js-open-product-sheet');
+            const endBtn = screen.querySelector('.js-end-live');
+            if (goBtn) goBtn.style.display = 'none';
+            if (setProductBtn) setProductBtn.style.display = '';
+            if (endBtn) endBtn.style.display = '';
+            // Update status badge
+            const sellerInfo = screen.querySelector('.seller-info');
+            const badge = sellerInfo?.querySelector('span:last-child');
+            if (badge && badge.textContent.trim() !== 'LIVE') {
+                badge.outerHTML = '<span class="live-badge"><span class="dot"></span> LIVE</span>';
+            }
             const st = getState(screen.dataset.liveId);
             if (st.client && st.localTracks.length) {
                 try { await st.client.publish(st.localTracks); } catch (e) {}
