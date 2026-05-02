@@ -62,9 +62,14 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 @keyframes dotPulse { 0%,100% { opacity:1; } 50% { opacity:.3; } }
 .ltb-upcoming-badge { display: inline-flex; align-items: center; background: rgba(0,0,0,.5); color: rgba(255,255,255,.8); font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
 .ltb-follow-btn {
-    background: #fbbf24; color: #111; border: none; border-radius: 8px;
+    background: #fbbf24; color: #111; border: 1px solid transparent; border-radius: 8px;
     font-size: 12px; font-weight: 800; padding: 5px 14px; cursor: pointer; flex-shrink: 0; white-space: nowrap;
+    transition: background .15s, color .15s, border-color .15s;
 }
+.ltb-follow-btn.following {
+    background: transparent; color: rgba(255,255,255,.8); border-color: rgba(255,255,255,.4);
+}
+.ltb-follow-btn:disabled { opacity: .6; cursor: not-allowed; }
 .ltb-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .ctrl-btn { background: rgba(0,0,0,.5); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,.2); border-radius: 20px; color: #fff; font-size: 11px; font-weight: 700; padding: 5px 11px; cursor: pointer; white-space: nowrap; }
 .ctrl-btn.danger { background: rgba(220,38,38,.75); border-color: transparent; }
@@ -93,6 +98,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .live-sidebar-right {
     position: absolute; right: 10px; bottom: 178px; z-index: 11;
     display: flex; flex-direction: column; align-items: center; gap: 18px;
+    transition: bottom .2s ease;
 }
 .side-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; user-select: none; }
 .side-icon-wrap {
@@ -118,6 +124,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
     max-height: 210px; overflow-y: auto; scrollbar-width: none;
     mask-image: linear-gradient(transparent 0%, black 28%);
     pointer-events: none;
+    transition: bottom .2s ease;
 }
 .live-comments::-webkit-scrollbar { display: none; }
 .comment-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 9px; pointer-events: auto; animation: slideUp .22s ease; }
@@ -134,6 +141,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .comment-input-row {
     position: absolute; bottom: 186px; left: 12px; right: 64px; z-index: 11;
     display: flex; gap: 8px; align-items: center;
+    transition: bottom .2s ease;
 }
 .comment-input-row input {
     flex: 1; background: rgba(255,255,255,.11); backdrop-filter: blur(6px);
@@ -335,7 +343,12 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
                     </div>
                 </div>
                 @if(!$isSeller && Auth::check())
-                    <button class="ltb-follow-btn">{{ __('Follow') }}</button>
+                    @php $isFollowing = Auth::user()->isFollowing($liveItem->seller); @endphp
+                    <button class="ltb-follow-btn js-follow-btn{{ $isFollowing ? ' following' : '' }}"
+                            data-follow-url="{{ route('users.follow.toggle', $liveItem->seller) }}"
+                            data-is-following="{{ $isFollowing ? '1' : '0' }}">
+                        {{ $isFollowing ? __('Following') : __('Follow') }}
+                    </button>
                 @endif
             </div>
             <div class="ltb-right">
@@ -393,13 +406,15 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
                 <span class="side-label">{{ __('Wallet') }}</span>
             </div>
             @endauth
-            {{-- Shop button: seller opens product-sheet, viewers open viewer shop --}}
-            <div class="side-btn {{ $isSeller ? 'js-open-product-sheet' : 'js-open-viewer-shop' }}">
+            {{-- Shop button: viewers only --}}
+            @if(!$isSeller)
+            <div class="side-btn js-open-viewer-shop">
                 <div class="side-icon-wrap js-shop-icon-wrap" style="font-size:22px;position:relative;">🛍️
                     <span class="side-badge js-shop-count-badge">{{ $sellerProducts->count() }}</span>
                 </div>
                 <span class="side-label">{{ __('Shop') }}</span>
             </div>
+            @endif
         </div>
 
         {{-- Comments --}}
@@ -1188,9 +1203,29 @@ document.addEventListener('DOMContentLoaded', function () {
         if (preBidCancel)  preBidCancel.addEventListener('click', () => { if (preBidBackdrop) preBidBackdrop.style.display = 'none'; });
         if (preBidBackdrop) preBidBackdrop.addEventListener('click', e => { if (e.target === preBidBackdrop) preBidBackdrop.style.display = 'none'; });
 
+        // ── Dynamic bottom stack ──────────────────────────────────────
+        function bindBottomStack(screen) {
+            const panel    = screen.querySelector('.bottom-auction-panel');
+            const inputRow = screen.querySelector('.comment-input-row');
+            const comments = screen.querySelector('.live-comments');
+            const sidebar  = screen.querySelector('.live-sidebar-right');
+            if (!panel) return;
+            function update() {
+                const panelH  = panel.offsetHeight;
+                const inputH  = inputRow ? inputRow.offsetHeight : 50;
+                const gap = 8;
+                if (inputRow) inputRow.style.bottom = (panelH + gap) + 'px';
+                if (comments) comments.style.bottom = (panelH + gap + inputH + 4) + 'px';
+                if (sidebar)  sidebar.style.bottom  = (panelH + gap + inputH + 10) + 'px';
+            }
+            update();
+            new ResizeObserver(update).observe(panel);
+        }
+
         // ── Bind screen ───────────────────────────────────────────────
         function bindScreen(screen) {
             bindPusherChannel(screen);
+            bindBottomStack(screen);
             const cdIso = screen.dataset.countdown;
             if (cdIso && Date.now() < new Date(cdIso)) startCountdown(screen, cdIso);
 
@@ -1262,6 +1297,24 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (st.client) st.client.remoteUsers.forEach(u => { try { u.audioTrack?.play(); } catch (e) {} });
                 unmuteBtn.style.display = 'none';
             });
+
+            // Follow / unfollow
+            const followBtn = screen.querySelector('.js-follow-btn');
+            if (followBtn && IS_AUTH) {
+                followBtn.addEventListener('click', async () => {
+                    const url = followBtn.dataset.followUrl;
+                    if (!url) return;
+                    followBtn.disabled = true;
+                    try {
+                        const res = await apiFetch(url, {});
+                        const nowFollowing = res.following;
+                        followBtn.dataset.isFollowing = nowFollowing ? '1' : '0';
+                        followBtn.textContent = nowFollowing ? {!! json_encode(__('Following')) !!} : {!! json_encode(__('Follow')) !!};
+                        followBtn.classList.toggle('following', nowFollowing);
+                    } catch (e) {}
+                    followBtn.disabled = false;
+                });
+            }
 
             // Viewer shop sheet
             const viewerShopBtn  = screen.querySelector('.js-open-viewer-shop');
