@@ -100,7 +100,13 @@
             ])
         </div>
     </div>
-
+    {{-- Income Charts --}}
+    <div class="mt-6">
+        <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{{ __('Revenue') }}</h2>
+        <div class="grid grid-cols-12 gap-4 md:gap-6">
+            @include('backend.pages.dashboard.partials.income-chart')
+        </div>
+    </div>
     <div class="mt-6">
         <div class="grid grid-cols-12 gap-4 md:gap-6">
             <div class="col-span-12">
@@ -126,13 +132,7 @@
         </div>
     </div>
 
-    {{-- Income Charts --}}
-    <div class="mt-6">
-        <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{{ __('Revenue') }}</h2>
-        <div class="grid grid-cols-12 gap-4 md:gap-6">
-            @include('backend.pages.dashboard.partials.income-chart')
-        </div>
-    </div>
+    
 
     {!! Hook::applyFilters(DashboardFilterHook::DASHBOARD_AFTER, '') !!}
 </x-layouts.backend-layout>
