@@ -160,7 +160,7 @@ class LiveController extends Controller
 
         $live->bids()->create(['user_id' => $user->id, 'amount' => $amount]);
 
-        broadcast(new BidPlaced($live, $user, $amount, $countdownEndsAt->toISOString()));
+        broadcast(new BidPlaced($live, $user, $amount, $countdownEndsAt->toISOString()))->toOthers();
 
         return response()->json([
             'ok' => true,
@@ -279,19 +279,9 @@ class LiveController extends Controller
     {
         abort_if(! Auth::check(), 401);
 
-        $existing = LiveLike::where('live_id', $live->id)->where('user_id', Auth::id())->first();
+        $live->increment('likes_count');
 
-        if ($existing) {
-            $existing->delete();
-            $live->decrement('likes_count');
-            $liked = false;
-        } else {
-            LiveLike::create(['live_id' => $live->id, 'user_id' => Auth::id()]);
-            $live->increment('likes_count');
-            $liked = true;
-        }
-
-        return response()->json(['ok' => true, 'liked' => $liked, 'likes_count' => $live->fresh()->likes_count]);
+        return response()->json(['ok' => true, 'likes_count' => $live->fresh()->likes_count]);
     }
 
     public function agoraToken(Live $live)

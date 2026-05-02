@@ -338,6 +338,7 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
                 @else
                     <span style="background:rgba(0,0,0,.5);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px;">{{ __('Upcoming') }}</span>
                 @endif
+                <span class="js-viewer-count" style="display:none;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:2px 7px;color:#fff;font-size:11px;font-weight:600;align-items:center;gap:3px;">👁 0</span>
             </div>
             @if($isSeller)
             <div style="display:flex;gap:6px;align-items:center;">
@@ -677,22 +678,38 @@ document.addEventListener('DOMContentLoaded', function () {
             const st = getState(id);
             const bar = screen.querySelector('.js-countdown-bar');
             const txt = screen.querySelector('.js-countdown-text');
+            const sliderEl = screen.querySelector('.js-bid-bar');
+            const sliderLabel = screen.querySelector('.js-slider-label');
             const isSeller = screen.dataset.isSeller === '1';
             clearInterval(st.countdownTimer);
-            if (!endsAtIso) { bar.style.display = 'none'; return; }
-            bar.style.display = '';
+            if (!endsAtIso) {
+                if (bar) bar.style.display = 'none';
+                if (sliderLabel && sliderEl) sliderLabel.textContent = {!! json_encode(__('Slide to bid')) !!} + ' ' + parseFloat(sliderEl.dataset.minBid || 0).toFixed(2) + ' MAD';
+                return;
+            }
+            // Seller: show the dedicated bar; watchers: show inside the slider
+            if (isSeller) {
+                if (bar) bar.style.display = '';
+            } else {
+                if (bar) bar.style.display = 'none';
+            }
             st.countdownTimer = setInterval(() => {
                 const remaining = Math.round((new Date(endsAtIso) - Date.now()) / 1000);
                 if (remaining <= 0) {
                     clearInterval(st.countdownTimer);
-                    bar.style.display = 'none';
+                    if (bar) bar.style.display = 'none';
+                    if (sliderLabel && sliderEl) sliderLabel.textContent = {!! json_encode(__('Slide to bid')) !!} + ' ' + parseFloat(sliderEl.dataset.minBid || 0).toFixed(2) + ' MAD';
                     if (isSeller && !st.auctionEnding) {
                         st.auctionEnding = true;
                         triggerCloseAuction(screen);
                     }
                     return;
                 }
-                txt.textContent = {!! json_encode(__('Closing in')) !!} + ' ' + remaining + 's';
+                if (isSeller) {
+                    if (txt) txt.textContent = {!! json_encode(__('Closing in')) !!} + ' ' + remaining + 's';
+                } else if (sliderLabel && sliderEl) {
+                    sliderLabel.textContent = '⏱ ' + remaining + 's  ·  ' + {!! json_encode(__('Slide to bid')) !!} + ' ' + parseFloat(sliderEl.dataset.minBid || 0).toFixed(2) + ' MAD';
+                }
             }, 500);
         }
 
@@ -832,10 +849,27 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(() => h.remove(), 1900);
         }
 
+        // ── Viewer count ─────────────────────────────────────────────
+        function updateViewerDisplay(screen, count) {
+            const el = screen.querySelector('.js-viewer-count');
+            if (!el) return;
+            el.textContent = '👁 ' + count;
+            el.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+
         // ── Pusher bindings ──────────────────────────────────────────
         function bindPusherChannel(screen) {
             const id = screen.dataset.liveId;
             const ch = Echo.channel('live.' + id);
+
+            // Presence channel for viewer count (authenticated users only)
+            if (IS_AUTH) {
+                let viewerCount = 0;
+                Echo.join('live.' + id)
+                    .here(members => { viewerCount = members.length; updateViewerDisplay(screen, viewerCount); })
+                    .joining(() => { viewerCount++; updateViewerDisplay(screen, viewerCount); })
+                    .leaving(() => { viewerCount = Math.max(0, viewerCount - 1); updateViewerDisplay(screen, viewerCount); });
+            }
 
             ch.listen('BidPlaced', (e) => {
                 const bidDisplay = screen.querySelector('.js-bid-display');
@@ -1054,17 +1088,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             }
 
-            // Like
+            // Like — TikTok-style: every tap increments, no toggle
             const likeBtn = screen.querySelector('.js-like-btn');
             if (likeBtn && IS_AUTH) {
-                likeBtn.addEventListener('click', async () => {
+                likeBtn.addEventListener('click', () => {
                     spawnHeart(screen);
-                    const res = await apiFetch(screen.dataset.likeUrl, {});
-                    if (res.ok !== undefined) {
-                        const icon = likeBtn.querySelector('.js-heart-icon');
-                        icon.setAttribute('fill', res.liked ? 'currentColor' : 'none');
-                        likeBtn.querySelector('.js-likes-count').textContent = res.likes_count;
-                    }
+                    const countEl = likeBtn.querySelector('.js-likes-count');
+                    if (countEl) countEl.textContent = parseInt(countEl.textContent || '0', 10) + 1;
+                    apiFetch(screen.dataset.likeUrl, {}).catch(() => {});
                 });
             }
 
