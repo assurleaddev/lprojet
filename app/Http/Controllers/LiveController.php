@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\AuctionClosed;
+use App\Notifications\SellerWentLiveNotification;
 use App\Events\AuctionProductChanged;
 use App\Events\BidPlaced;
 use App\Events\CommentPosted;
@@ -170,6 +171,12 @@ class LiveController extends Controller
         $live->update(['status' => 'live', 'started_at' => now()]);
 
         broadcast(new LiveStatusChanged($live))->toOthers();
+
+        // Notify all followers of the seller
+        $live->load('seller');
+        $live->seller->followers()->each(
+            fn ($follower) => $follower->notify(new SellerWentLiveNotification($live))
+        );
 
         return response()->json(['ok' => true]);
     }
