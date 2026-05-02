@@ -285,28 +285,48 @@
     @if($isSeller)
     <div class="product-sheet js-product-sheet">
         <div class="sheet-handle"></div>
-        <p style="color:#fff;font-size:15px;font-weight:700;margin-bottom:12px;">{{ __('Select Product for Auction') }}</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <p class="sheet-title">{{ __('Select Product for Auction') }}</p>
+        <div class="sheet-product-grid">
             @foreach($sellerProducts as $sp)
-            <label style="cursor:pointer;">
+            @php
+                $preBidMin = (float) ($sp->pivot->pre_bid_min ?? 1);
+                $img = $sp->getFeaturedImageUrl('preview');
+            @endphp
+            <label class="sheet-product-label">
                 <input type="radio" name="sheet-product-{{ $liveItem->id }}" value="{{ $sp->id }}"
                        data-name="{{ $sp->name }}" data-price="{{ $sp->price }}"
-                       data-img="{{ $sp->getFeaturedImageUrl('preview') }}"
-                       class="js-sheet-radio" style="display:none;">
-                <div class="js-sheet-card" style="border:2px solid rgba(255,255,255,.15);border-radius:10px;overflow:hidden;transition:border-color .15s;">
-                    <img src="{{ $sp->getFeaturedImageUrl('preview') }}" style="width:100%;height:70px;object-fit:cover;" alt="">
-                    <div style="padding:6px 8px;">
-                        <p style="color:#fff;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $sp->name }}</p>
-                        <p style="color:rgba(255,255,255,.5);font-size:10px;">{{ number_format($sp->price, 2) }} MAD</p>
+                       data-img="{{ $img }}"
+                       data-pre-bid-min="{{ $preBidMin }}"
+                       class="js-sheet-radio sr-only">
+                <div class="js-sheet-card sheet-product-card">
+                    <div class="sheet-card-img-wrap">
+                        @if($img)
+                            <img src="{{ $img }}" alt="{{ $sp->name }}">
+                        @else
+                            <div class="sheet-card-no-img">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                        @endif
+                        <div class="sheet-card-check">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="sheet-card-info">
+                        <p class="sheet-card-name">{{ $sp->name }}</p>
+                        <p class="sheet-card-price">{{ number_format($sp->price, 2) }} MAD</p>
+                        <p class="sheet-card-minbid">{{ __('Min bid') }}: {{ number_format($preBidMin, 2) }} MAD</p>
                     </div>
                 </div>
             </label>
             @endforeach
         </div>
-        <div style="margin-top:14px;display:flex;gap:8px;align-items:center;">
-            <input type="number" class="js-sheet-bid" min="1" step="1" placeholder="{{ __('Starting bid (MAD)') }}"
-                   style="flex:1;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);border-radius:20px;padding:9px 14px;color:#fff;font-size:13px;outline:none;">
-            <button class="js-sheet-confirm" style="background:#ef4444;color:#fff;border:none;border-radius:20px;padding:10px 20px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;">
+        <div class="sheet-bid-row">
+            <input type="number" class="js-sheet-bid sheet-bid-input" min="1" step="1" placeholder="{{ __('Starting bid (MAD)') }}">
+            <button class="js-sheet-confirm sheet-confirm-btn">
                 {{ __('Start Auction') }}
             </button>
         </div>

@@ -213,9 +213,31 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 @keyframes floatHeart { 0% { opacity:1; transform:translateY(0) scale(.8); } 50% { opacity:1; transform:translateY(-80px) scale(1.1); } 100% { opacity:0; transform:translateY(-180px) scale(.6); } }
 
 /* ── Product sheet (seller) ── */
-.product-sheet { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; background: #111; border-radius: 20px 20px 0 0; padding: 20px 16px; transform: translateY(100%); transition: transform .3s ease; max-height: 62dvh; overflow-y: auto; }
+.product-sheet { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; background: #111; border-radius: 20px 20px 0 0; padding: 20px 16px 24px; transform: translateY(100%); transition: transform .3s ease; max-height: 68dvh; overflow-y: auto; }
 .product-sheet.open { transform: translateY(0); }
-.sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,.22); border-radius: 2px; margin: 0 auto 16px; }
+.sheet-handle { width: 36px; height: 4px; background: rgba(255,255,255,.22); border-radius: 2px; margin: 0 auto 14px; }
+.sheet-title { color: #fff; font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.sheet-product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.sheet-product-label { cursor: pointer; display: block; }
+.sheet-product-card { border: 2px solid rgba(255,255,255,.15); border-radius: 12px; overflow: hidden; transition: border-color .15s, background .15s; }
+.sheet-product-label:has(.js-sheet-radio:checked) .sheet-product-card { border-color: #ef4444; background: rgba(239,68,68,.08); }
+.sheet-card-img-wrap { position: relative; width: 100%; aspect-ratio: 1/1; background: #222; overflow: hidden; }
+.sheet-card-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+.sheet-card-no-img { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,.2); }
+.sheet-card-no-img svg { width: 32px; height: 32px; }
+.sheet-card-check { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; display: none; align-items: center; justify-content: center; }
+.sheet-card-check svg { width: 12px; height: 12px; color: #fff; }
+.sheet-product-label:has(.js-sheet-radio:checked) .sheet-card-check { display: flex; }
+.sheet-card-info { padding: 8px 10px 10px; }
+.sheet-card-name { color: #fff; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px; }
+.sheet-card-price { color: rgba(255,255,255,.5); font-size: 11px; }
+.sheet-card-minbid { color: rgba(239,68,68,.8); font-size: 10px; margin-top: 2px; }
+.sheet-bid-row { display: flex; gap: 8px; align-items: center; }
+.sheet-bid-input { flex: 1; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 13px; outline: none; }
+.sheet-bid-input::placeholder { color: rgba(255,255,255,.4); }
+.sheet-bid-input:focus { border-color: rgba(255,255,255,.5); }
+.sheet-confirm-btn { background: #ef4444; color: #fff; border: none; border-radius: 20px; padding: 10px 20px; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; transition: opacity .15s; }
+.sheet-confirm-btn:disabled { opacity: .6; }
 
 /* ── Viewer shop sheet ── */
 .viewer-shop-sheet { position: absolute; bottom: 0; left: 0; right: 0; z-index: 40; background: #1a1a1a; border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform .3s ease; max-height: 86dvh; display: flex; flex-direction: column; }
@@ -1063,15 +1085,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 sheet.querySelector('.js-sheet-close').addEventListener('click', () => sheet.classList.remove('open'));
                 sheet.querySelectorAll('.js-sheet-radio').forEach(r => {
                     r.addEventListener('change', () => {
-                        sheet.querySelectorAll('.js-sheet-card').forEach(c => c.style.borderColor = 'rgba(255,255,255,.15)');
-                        r.closest('label').querySelector('.js-sheet-card').style.borderColor = '#ef4444';
+                        const bidInput = sheet.querySelector('.js-sheet-bid');
+                        if (bidInput && r.dataset.preBidMin) {
+                            bidInput.value = parseFloat(r.dataset.preBidMin).toFixed(2);
+                            bidInput.min = r.dataset.preBidMin;
+                        }
                     });
                 });
                 sheet.querySelector('.js-sheet-confirm').addEventListener('click', async () => {
                     const checked = sheet.querySelector('.js-sheet-radio:checked');
                     const bidVal  = parseFloat(sheet.querySelector('.js-sheet-bid').value);
                     if (!checked) { alert({!! json_encode(__('Select a product first.')) !!}); return; }
-                    if (!bidVal || bidVal < 1) { alert({!! json_encode(__('Enter a starting bid.')) !!}); return; }
+                    const minBid = parseFloat(checked.dataset.preBidMin || 1);
+                    if (!bidVal || bidVal < minBid) { alert({!! json_encode(__('Starting bid must be at least')) !!} + ' ' + minBid.toFixed(2) + ' MAD'); return; }
                     const btn = sheet.querySelector('.js-sheet-confirm');
                     btn.disabled = true;
                     try {
