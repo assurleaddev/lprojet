@@ -13,6 +13,7 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Modules\Wallet\Services\WalletService;
 use Peterujah\Agora\Agora as AgoraClient;
 use Peterujah\Agora\Builders\RtcToken;
 use Peterujah\Agora\Roles;
@@ -139,25 +140,29 @@ class LiveController extends Controller
 
         $amount = (float) $request->amount;
         $user = Auth::user();
+        $wallet = app(WalletService::class);
+        $balance = $wallet->getBalance($user);
 
-        if ((float) $user->balance < $amount) {
+        if ($balance < $amount) {
             return response()->json([
                 'ok' => false,
                 'insufficient_balance' => true,
-                'balance' => (float) $user->balance,
+                'balance' => $balance,
                 'required' => $amount,
-                'shortfall' => round($amount - (float) $user->balance, 2),
+                'shortfall' => round($amount - $balance, 2),
             ], 422);
         }
 
         $countdownEndsAt = now()->addSeconds(self::COUNTDOWN_SECONDS);
 
-        $user->decrement('balance', $amount);
+        $wallet->debit($user, $amount, 'bid', "Bid on live #{$live->id}", (string) $live->id);
 
         // Refund previous highest bidder if different
         if ($live->current_bidder_id && $live->current_bidder_id !== $user->id) {
             $previousBidder = \App\Models\User::find($live->current_bidder_id);
-            $previousBidder?->increment('balance', (float) $live->current_bid);
+            if ($previousBidder) {
+                $wallet->credit($previousBidder, (float) $live->current_bid, 'refund', "Outbid refund on live #{$live->id}", (string) $live->id);
+            }
         }
 
         $live->update([
@@ -174,7 +179,7 @@ class LiveController extends Controller
             'ok' => true,
             'current_bid' => $amount,
             'countdown_ends_at' => $countdownEndsAt->toISOString(),
-            'balance' => (float) $user->fresh()->balance,
+            'balance' => $wallet->getBalance($user),
         ]);
     }
 
@@ -185,15 +190,16 @@ class LiveController extends Controller
         $request->validate(['amount' => 'required|numeric|min:1|max:10000']);
 
         $amount = (float) $request->amount;
+        $wallet = app(WalletService::class);
 
-        // Simulate a short processing delay — fake card charge
+        // Simulate card processing delay
         sleep(1);
 
-        Auth::user()->increment('balance', $amount);
+        $wallet->credit(Auth::user(), $amount, 'deposit', 'Top-up via saved card');
 
         return response()->json([
             'ok' => true,
-            'balance' => (float) Auth::user()->fresh()->balance,
+            'balance' => $wallet->getBalance(Auth::user()),
         ]);
     }
 
@@ -201,7 +207,9 @@ class LiveController extends Controller
     {
         abort_if(! Auth::check(), 401);
 
-        return response()->json(['balance' => (float) Auth::user()->balance]);
+        return response()->json([
+            'balance' => app(WalletService::class)->getBalance(Auth::user()),
+        ]);
     }
 
     public function closeAuction(Live $live)

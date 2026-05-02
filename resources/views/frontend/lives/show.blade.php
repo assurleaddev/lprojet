@@ -211,49 +211,65 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
     background: rgba(0,0,0,.55); backdrop-filter: blur(8px);
     border: 1px solid rgba(255,255,255,.2); border-radius: 20px;
     padding: 6px 12px; color: #fde68a; font-size: 13px; font-weight: 700;
-    display: flex; align-items: center; gap: 5px;
+    display: flex; align-items: center; gap: 5px; cursor: pointer;
     max-width: calc(50% - 8px);
 }
 
-/* ── Charge modal ── */
-#charge-modal-backdrop {
+/* ── Top-up modal ── */
+#topup-backdrop {
     position: fixed; inset: 0; z-index: 300;
     background: rgba(0,0,0,.7); backdrop-filter: blur(4px);
     display: flex; align-items: flex-end; justify-content: center;
 }
-#charge-modal {
+#topup-modal {
     width: 100%; max-width: 480px;
     background: #1a1a1a; border-radius: 24px 24px 0 0;
-    padding: 24px 20px 32px; color: #fff;
+    padding: 24px 20px 36px; color: #fff;
     animation: slideUp .3s ease;
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.charge-title { font-size: 17px; font-weight: 800; margin-bottom: 4px; }
-.charge-sub { font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 20px; }
+.topup-title { font-size: 17px; font-weight: 800; margin-bottom: 2px; }
+.topup-sub { font-size: 13px; color: rgba(255,255,255,.45); margin-bottom: 18px; }
+.topup-current { display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,.06); border-radius:12px; padding:12px 16px; margin-bottom:18px; }
+.topup-current-label { font-size:12px; color:rgba(255,255,255,.5); }
+.topup-current-value { font-size:16px; font-weight:800; color:#fde68a; }
+.topup-presets { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+.topup-preset {
+    background: rgba(255,255,255,.08); border: 2px solid rgba(255,255,255,.12);
+    border-radius: 12px; padding: 12px 6px; text-align: center;
+    color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+    transition: border-color .15s, background .15s;
+}
+.topup-preset.active { border-color: #fbbf24; background: rgba(251,191,36,.15); color: #fbbf24; }
+.topup-custom-wrap { position:relative; margin-bottom:18px; }
+.topup-custom-wrap input {
+    width: 100%; background: rgba(255,255,255,.08);
+    border: 2px solid rgba(255,255,255,.12); border-radius: 12px;
+    padding: 12px 52px 12px 16px; color: #fff; font-size: 15px; font-weight: 600;
+    outline: none; box-sizing: border-box;
+}
+.topup-custom-wrap input:focus { border-color: #fbbf24; }
+.topup-custom-wrap input::placeholder { color: rgba(255,255,255,.35); }
+.topup-custom-unit { position:absolute; right:14px; top:50%; transform:translateY(-50%); color:rgba(255,255,255,.4); font-size:13px; font-weight:600; }
 .fake-card {
     background: linear-gradient(135deg, #1c3f6e 0%, #0f2647 100%);
-    border-radius: 16px; padding: 18px 20px; margin-bottom: 20px;
-    display: flex; flex-direction: column; gap: 12px;
+    border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;
+    display: flex; flex-direction: column; gap: 10px;
 }
-.fake-card-number { font-size: 15px; font-weight: 700; letter-spacing: 3px; color: #fff; }
+.fake-card-number { font-size: 14px; font-weight: 700; letter-spacing: 3px; color: #fff; }
 .fake-card-row { display: flex; justify-content: space-between; align-items: center; }
 .fake-card-label { font-size: 10px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 1px; }
-.fake-card-value { font-size: 13px; font-weight: 600; color: #fff; }
-.fake-card-logo { display: flex; gap: -4px; }
-.fake-card-logo span { width: 24px; height: 24px; border-radius: 50%; display: block; }
-.charge-amount-row { display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,.06); border-radius: 12px; padding: 14px 16px; margin-bottom: 16px; }
-.charge-amount-label { font-size: 13px; color: rgba(255,255,255,.6); }
-.charge-amount-value { font-size: 20px; font-weight: 800; color: #fbbf24; }
-.charge-confirm-btn {
+.fake-card-value { font-size: 12px; font-weight: 600; color: #fff; }
+.topup-confirm-btn {
     width: 100%; padding: 14px; background: #fbbf24; color: #111;
     border: none; border-radius: 14px; font-size: 15px; font-weight: 800;
     cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
     transition: opacity .2s;
 }
-.charge-confirm-btn:disabled { opacity: .6; cursor: not-allowed; }
-.charge-cancel-btn { width: 100%; padding: 12px; background: transparent; color: rgba(255,255,255,.4); border: none; font-size: 14px; cursor: pointer; margin-top: 8px; }
-.spinner { width: 20px; height: 20px; border: 2px solid rgba(0,0,0,.3); border-top-color: #111; border-radius: 50%; animation: spin .7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+.topup-confirm-btn:disabled { opacity: .5; cursor: not-allowed; }
+.topup-cancel-btn { width:100%; padding:11px; background:transparent; color:rgba(255,255,255,.35); border:none; font-size:13px; cursor:pointer; margin-top:6px; }
+.spinner { width:20px; height:20px; border:2px solid rgba(0,0,0,.25); border-top-color:#111; border-radius:50%; animation:spin .7s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
 @endsection
@@ -455,17 +471,35 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 </div>{{-- #live-feed-outer --}}
 
 @auth
-{{-- Balance chip --}}
+{{-- Balance chip (tap to open top-up) --}}
 <div id="balance-chip">
     <svg style="width:14px;height:14px;flex-shrink:0;" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4a2 2 0 00-2 2v1h16V6a2 2 0 00-2-2H4z"/><path fill-rule="evenodd" d="M18 9H2v5a2 2 0 002 2h12a2 2 0 002-2V9zM4 13a1 1 0 011-1h1a1 1 0 110 2H5a1 1 0 01-1-1zm5-1a1 1 0 100 2h1a1 1 0 100-2H9z" clip-rule="evenodd"/></svg>
-    <span id="balance-amount">{{ number_format(Auth::user()->balance, 2) }} MAD</span>
+    <span id="balance-amount">{{ number_format(app(\Modules\Wallet\Services\WalletService::class)->getBalance(Auth::user()), 2) }} MAD</span>
 </div>
 
-{{-- Charge modal --}}
-<div id="charge-modal-backdrop" style="display:none;">
-    <div id="charge-modal">
-        <div class="charge-title">{{ __('Insufficient Balance') }}</div>
-        <p class="charge-sub">{{ __('Top up your balance to place this bid') }}</p>
+{{-- Top-up modal --}}
+<div id="topup-backdrop" style="display:none;">
+    <div id="topup-modal">
+        <div class="topup-title">{{ __('Top Up Wallet') }}</div>
+        <p class="topup-sub">{{ __('Funds go directly to your wallet balance') }}</p>
+
+        <div class="topup-current">
+            <span class="topup-current-label">{{ __('Current wallet balance') }}</span>
+            <span class="topup-current-value" id="topup-current-display">{{ number_format(app(\Modules\Wallet\Services\WalletService::class)->getBalance(Auth::user()), 2) }} MAD</span>
+        </div>
+
+        {{-- Preset amounts --}}
+        <div class="topup-presets">
+            <div class="topup-preset" data-amount="300">300 MAD</div>
+            <div class="topup-preset" data-amount="500">500 MAD</div>
+            <div class="topup-preset" data-amount="1000">1000 MAD</div>
+        </div>
+
+        {{-- Custom amount --}}
+        <div class="topup-custom-wrap">
+            <input type="number" id="topup-custom-input" min="1" max="10000" placeholder="{{ __('Custom amount') }}">
+            <span class="topup-custom-unit">MAD</span>
+        </div>
 
         {{-- Fake saved card --}}
         <div class="fake-card">
@@ -474,9 +508,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
                     <div class="fake-card-label">{{ __('Saved card') }}</div>
                     <div class="fake-card-number">•••• •••• •••• 4242</div>
                 </div>
-                <div style="display:flex;gap:-6px;">
-                    <div style="width:28px;height:28px;border-radius:50%;background:#eb001b;opacity:.9;"></div>
-                    <div style="width:28px;height:28px;border-radius:50%;background:#f79e1b;opacity:.9;margin-left:-8px;"></div>
+                <div style="display:flex;">
+                    <div style="width:26px;height:26px;border-radius:50%;background:#eb001b;opacity:.9;"></div>
+                    <div style="width:26px;height:26px;border-radius:50%;background:#f79e1b;opacity:.9;margin-left:-8px;"></div>
                 </div>
             </div>
             <div class="fake-card-row">
@@ -491,15 +525,10 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
             </div>
         </div>
 
-        <div class="charge-amount-row">
-            <span class="charge-amount-label">{{ __('Amount to charge') }}</span>
-            <span class="charge-amount-value" id="charge-amount-display">— MAD</span>
-        </div>
-
-        <button class="charge-confirm-btn" id="charge-confirm-btn">
-            {{ __('Confirm & Charge') }}
+        <button class="topup-confirm-btn" id="topup-confirm-btn">
+            {{ __('Confirm & Top Up') }}
         </button>
-        <button class="charge-cancel-btn" id="charge-cancel-btn">{{ __('Cancel') }}</button>
+        <button class="topup-cancel-btn" id="topup-cancel-btn">{{ __('Cancel') }}</button>
     </div>
 </div>
 @endauth
@@ -522,50 +551,85 @@ document.addEventListener('DOMContentLoaded', function () {
             if (el) el.textContent = parseFloat(amount).toFixed(2) + ' MAD';
         }
 
-        // ── Charge modal ──────────────────────────────────────────────
-        let chargeResolve = null;
+        // ── Top-up modal ──────────────────────────────────────────────
+        let topupResolve = null;
+        let selectedTopupAmount = 0;
 
-        function showChargeModal(shortfall) {
+        const topupBackdrop = document.getElementById('topup-backdrop');
+        const topupCustomInput = document.getElementById('topup-custom-input');
+        const topupConfirmBtn = document.getElementById('topup-confirm-btn');
+        const topupCancelBtn = document.getElementById('topup-cancel-btn');
+
+        function showTopupModal(suggestedAmount) {
             return new Promise((resolve) => {
-                chargeResolve = resolve;
-                const backdrop = document.getElementById('charge-modal-backdrop');
-                const display = document.getElementById('charge-amount-display');
-                if (display) display.textContent = parseFloat(shortfall).toFixed(2) + ' MAD';
-                if (backdrop) backdrop.style.display = 'flex';
+                topupResolve = resolve;
+                // Pre-select the closest preset or fall back to custom
+                selectedTopupAmount = suggestedAmount || 0;
+                document.querySelectorAll('.topup-preset').forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.amount) === suggestedAmount);
+                });
+                if (topupCustomInput) topupCustomInput.value = '';
+                if (topupBackdrop) topupBackdrop.style.display = 'flex';
             });
         }
 
-        function hideChargeModal() {
-            const backdrop = document.getElementById('charge-modal-backdrop');
-            if (backdrop) backdrop.style.display = 'none';
-            chargeResolve = null;
+        function hideTopupModal() {
+            if (topupBackdrop) topupBackdrop.style.display = 'none';
+            topupResolve = null;
+            selectedTopupAmount = 0;
         }
 
-        const confirmBtn = document.getElementById('charge-confirm-btn');
-        const cancelBtn = document.getElementById('charge-cancel-btn');
+        // Preset selection
+        document.querySelectorAll('.topup-preset').forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectedTopupAmount = parseInt(btn.dataset.amount);
+                document.querySelectorAll('.topup-preset').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (topupCustomInput) topupCustomInput.value = '';
+            });
+        });
 
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', async () => {
-                const shortfall = parseFloat(document.getElementById('charge-amount-display').textContent);
-                confirmBtn.disabled = true;
-                confirmBtn.innerHTML = '<div class="spinner"></div>';
+        // Custom input clears preset selection
+        if (topupCustomInput) {
+            topupCustomInput.addEventListener('input', () => {
+                selectedTopupAmount = parseFloat(topupCustomInput.value) || 0;
+                document.querySelectorAll('.topup-preset').forEach(b => b.classList.remove('active'));
+            });
+        }
+
+        // Balance chip tap opens top-up
+        const balanceChip = document.getElementById('balance-chip');
+        if (balanceChip) {
+            balanceChip.addEventListener('click', () => showTopupModal(0).then(() => {}));
+        }
+
+        if (topupConfirmBtn) {
+            topupConfirmBtn.addEventListener('click', async () => {
+                const amount = selectedTopupAmount || parseFloat(topupCustomInput?.value) || 0;
+                if (!amount || amount < 1) { alert({!! json_encode(__('Select or enter an amount.')) !!}); return; }
+                topupConfirmBtn.disabled = true;
+                topupConfirmBtn.innerHTML = '<div class="spinner"></div>';
                 try {
-                    const res = await apiFetch(TOP_UP_URL, { amount: shortfall });
+                    const res = await apiFetch(TOP_UP_URL, { amount });
                     if (res.ok) {
                         updateBalanceChip(res.balance);
-                        hideChargeModal();
-                        if (chargeResolve) { chargeResolve(true); chargeResolve = null; }
+                        const cur = document.getElementById('topup-current-display');
+                        if (cur) cur.textContent = parseFloat(res.balance).toFixed(2) + ' MAD';
+                        const resolve = topupResolve;
+                        hideTopupModal();
+                        if (resolve) resolve(true);
                     }
                 } catch (e) {}
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = {!! json_encode(__('Confirm & Charge')) !!};
+                topupConfirmBtn.disabled = false;
+                topupConfirmBtn.innerHTML = {!! json_encode(__('Confirm & Top Up')) !!};
             });
         }
 
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => {
-                hideChargeModal();
-                if (chargeResolve) { chargeResolve(false); chargeResolve = null; }
+        if (topupCancelBtn) {
+            topupCancelBtn.addEventListener('click', () => {
+                const resolve = topupResolve;
+                hideTopupModal();
+                if (resolve) resolve(false);
             });
         }
 
@@ -894,9 +958,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     try {
                         const res = await apiFetch(screen.dataset.bidUrl, { amount });
                         if (res.insufficient_balance) {
-                            // Show charge modal and retry after top-up
-                            const charged = await showChargeModal(res.shortfall);
-                            if (charged) await placeBid(amount); // retry
+                            // Pick the smallest preset that covers the shortfall
+                            const presets = [300, 500, 1000];
+                            const suggested = presets.find(p => p >= res.shortfall) || Math.ceil(res.shortfall / 100) * 100;
+                            const charged = await showTopupModal(suggested);
+                            if (charged) await placeBid(amount); // retry after top-up
                         } else if (!res.ok) {
                             alert(res.message || 'Error');
                         } else {

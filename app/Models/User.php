@@ -58,7 +58,6 @@ class User extends Authenticatable
         'verification_code_expires_at',
         'is_system',
         'last_seen_at',
-        'balance',
     ];
 
     /**
@@ -84,7 +83,6 @@ class User extends Authenticatable
         'phone_verification_code_expires_at' => 'datetime',
         'verification_code_expires_at' => 'datetime',
         'last_seen_at' => 'datetime',
-        'balance' => 'decimal:2',
     ];
 
     /**
