@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 py-8">
+<div class="max-w-6xl mx-auto px-4 py-8 min-h-[calc(100vh-theme(spacing.32))]">
 
     <div class="flex items-center justify-between mb-6">
         <div>
