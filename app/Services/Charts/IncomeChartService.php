@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Charts;
+
+use App\Models\Order;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
+class IncomeChartService extends ChartService
+{
+    public function getIncomeData(string $period = 'last_6_months'): array
+    {
+        [$startDate, $endDate] = $this->getDateRange($period);
+
+        $isLessThanMonth = $startDate->diffInMonths($endDate) === 0;
+
+        $format = $isLessThanMonth ? 'd M Y' : 'M Y';
+        $dbFormat = $isLessThanMonth ? 'Y-m-d' : 'Y-m';
+        $intervalMethod = $isLessThanMonth ? 'addDay' : 'addMonth';
+
+        $labels = $this->generateLabels($startDate, $endDate, $format, $intervalMethod);
+
+        $rows = $this->fetchRows($startDate, $endDate, $isLessThanMonth);
+
+        $commission = [];
+        $protection = [];
+        $verification = [];
+        $total = [];
+
+        foreach ($labels as $label) {
+            $key = Carbon::createFromFormat($format, $label)->format($dbFormat);
+            $row = $rows[$key] ?? null;
+
+            $commission[] = $row ? round((float) $row->commission, 2) : 0;
+            $protection[] = $row ? round((float) $row->protection, 2) : 0;
+            $verification[] = $row ? round((float) $row->verification, 2) : 0;
+            $total[] = $row ? round((float) $row->total, 2) : 0;
+        }
+
+        return [
+            'labels' => $labels->values()->toArray(),
+            'commission' => $commission,
+            'protection' => $protection,
+            'verification' => $verification,
+            'total' => $total,
+        ];
+    }
+
+    private function fetchRows(Carbon $startDate, Carbon $endDate, bool $isLessThanMonth): \Illuminate\Support\Collection
+    {
+        $driver = DB::connection()->getDriverName();
+
+        if ($isLessThanMonth) {
+            $dateTrunc = 'DATE(created_at)';
+            $groupKey = 'period';
+        } else {
+            $dateTrunc = $driver === 'sqlite'
+                ? "strftime('%Y-%m', created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m')";
+            $groupKey = 'period';
+        }
+
+        return Order::selectRaw("
+                {$dateTrunc} as period,
+                SUM(platform_commission)  as commission,
+                SUM(buyer_protection_fee) as protection,
+                SUM(verification_fee)     as verification,
+                SUM(platform_commission + buyer_protection_fee + verification_fee) as total
+            ")
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get()
+            ->keyBy('period');
+    }
+}

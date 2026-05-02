@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Charts\IncomeChartService;
 use App\Services\Charts\PostChartService;
 use App\Services\Charts\UserChartService;
 use App\Services\LanguageService;
@@ -18,7 +19,8 @@ class DashboardController extends Controller
     public function __construct(
         private readonly UserChartService $userChartService,
         private readonly LanguageService $languageService,
-        private readonly PostChartService $postChartService
+        private readonly PostChartService $postChartService,
+        private readonly IncomeChartService $incomeChartService
     ) {
     }
 
@@ -52,6 +54,9 @@ class DashboardController extends Controller
                 'user_history_data' => $this->userChartService->getUserHistoryData(),
                 'post_stats' => $this->postChartService->getPostActivityData(
                     request()->get('post_chart_filter_period', 'last_6_months')
+                ),
+                'income_data' => $this->incomeChartService->getIncomeData(
+                    request()->get('income_filter_period', 'last_6_months')
                 ),
                 'breadcrumbs' => [
                     'title' => __('Dashboard'),
