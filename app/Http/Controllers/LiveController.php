@@ -61,7 +61,7 @@ class LiveController extends Controller
         $recentComments = $live->comments()->with('user')->latest()->limit(50)->get()->reverse()->values();
 
         // Only products curated for this live session
-        $sellerProducts = $live->liveProducts()->with('images')->get();
+        $sellerProducts = $live->liveProducts()->get();
 
         // Pre-bid counts per product for this live
         $preBidCounts = LivePreBid::where('live_id', $live->id)
@@ -89,7 +89,7 @@ class LiveController extends Controller
         $user = Auth::user();
         $isSeller = $user->id === $live->seller_id;
 
-        $sellerProducts = $live->liveProducts()->with('images')->get();
+        $sellerProducts = $live->liveProducts()->get();
 
         $preBidCounts = LivePreBid::where('live_id', $live->id)
             ->selectRaw('product_id, count(*) as cnt')
@@ -119,7 +119,6 @@ class LiveController extends Controller
     {
         $products = Product::where('vendor_id', Auth::id())
             ->where('status', 'approved')
-            ->with('images')
             ->get();
 
         return view('frontend.lives.create', compact('products'));
@@ -128,24 +127,24 @@ class LiveController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title'          => 'required|string|max:100',
-            'thumbnail'      => 'required|image|max:4096',
-            'product_ids'    => 'required|array|min:1',
-            'product_ids.*'  => 'exists:products,id',
-            'pre_bid_min'    => 'required|array',
-            'pre_bid_min.*'  => 'numeric|min:1',
+            'title' => 'required|string|max:100',
+            'thumbnail' => 'required|image|max:4096',
+            'product_ids' => 'required|array|min:1',
+            'product_ids.*' => 'exists:products,id',
+            'pre_bid_min' => 'required|array',
+            'pre_bid_min.*' => 'numeric|min:1',
         ]);
 
         $path = $request->file('thumbnail')->store('lives/thumbnails', 'public');
 
         $live = Live::create([
-            'seller_id'     => Auth::id(),
-            'title'         => $request->title,
-            'thumbnail'     => $path,
+            'seller_id' => Auth::id(),
+            'title' => $request->title,
+            'thumbnail' => $path,
             'agora_channel' => 'live-' . Str::uuid(),
-            'status'        => 'scheduled',
+            'status' => 'scheduled',
             'auction_status' => 'idle',
-            'starting_bid'  => 0,
+            'starting_bid' => 0,
         ]);
 
         // Attach selected products with their pre-bid minimums
