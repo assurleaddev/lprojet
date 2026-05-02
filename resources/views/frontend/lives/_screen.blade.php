@@ -203,6 +203,9 @@
             </div>
             <div class="bid-slider-label js-slider-label">{{ __('Slide to bid') }} {{ number_format($liveItem->min_next_bid, 2) }} MAD</div>
         </div>
+        <div class="js-bid-disclaimer bid-disclaimer" style="{{ $liveItem->auction_status !== 'active' ? 'display:none;' : '' }}">
+            ⚠️ {{ __('Bid price excludes shipping & buyer protection fees') }}
+        </div>
         @endif
         @endauth
 
@@ -243,6 +246,9 @@
                 <button class="shop-filter-btn">{{ __('Sold') }}</button>
             </div>
             <div class="shop-count">{{ __('Products') }} ({{ $sellerProducts->count() }})</div>
+            <div class="shop-disclaimer">
+                ⚠️ {{ __('Prices shown exclude shipping & buyer protection fees') }}
+            </div>
         </div>
         <div class="shop-body">
             @foreach($sellerProducts as $sp)

@@ -229,7 +229,9 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .shop-filters { display: flex; gap: 8px; align-items: center; margin-bottom: 14px; }
 .shop-filter-btn { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15); border-radius: 20px; color: rgba(255,255,255,.7); font-size: 12px; font-weight: 600; padding: 5px 14px; cursor: pointer; white-space: nowrap; }
 .shop-filter-btn.active { background: #fff; color: #111; border-color: #fff; }
-.shop-count { color: #fff; font-size: 16px; font-weight: 800; margin-bottom: 4px; }
+.shop-count { color: #fff; font-size: 16px; font-weight: 800; margin-bottom: 6px; }
+.shop-disclaimer { display: flex; align-items: center; gap: 6px; background: rgba(234,179,8,.12); border: 1px solid rgba(234,179,8,.35); border-radius: 8px; padding: 7px 10px; color: rgba(234,179,8,.9); font-size: 11px; font-weight: 600; margin-bottom: 10px; line-height: 1.35; }
+.bid-disclaimer { display: flex; align-items: center; justify-content: center; gap: 5px; background: rgba(234,179,8,.1); border: 1px solid rgba(234,179,8,.3); border-radius: 8px; padding: 6px 12px; color: rgba(234,179,8,.85); font-size: 11px; font-weight: 600; margin-top: 6px; }
 .shop-body { overflow-y: auto; padding: 0 16px 24px; flex: 1; }
 .shop-product-row { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
 .shop-product-row:last-child { border-bottom: none; }
@@ -768,6 +770,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     const lbl = bidBar.querySelector('.js-slider-label');
                     if (lbl) lbl.textContent = {!! json_encode(__('Slide to bid')) !!} + ' ' + parseFloat(e.starting_bid).toFixed(2) + ' MAD';
                     resetSlider(bidBar);
+                    const disc = screen.querySelector('.js-bid-disclaimer');
+                    if (disc) disc.style.display = '';
                 }
                 screen.dataset.auction = 'active';
                 const bar = screen.querySelector('.js-countdown-bar');
@@ -781,6 +785,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 const prodStatus = screen.querySelector('.js-prod-status');
                 const shopWrap   = screen.querySelector('.js-shop-icon-wrap');
                 if (bidBar) bidBar.style.display = 'none';
+                const disc = screen.querySelector('.js-bid-disclaimer');
+                if (disc) disc.style.display = 'none';
                 if (pc) pc.style.display = '';
                 if (prodStatus) { prodStatus.textContent = 'Sold'; prodStatus.className = 'prod-status-tag sold js-prod-status'; }
                 if (shopWrap) { shopWrap.innerHTML = '🛍️'; shopWrap.classList.remove('has-img'); shopWrap.style.fontSize = '22px'; }
