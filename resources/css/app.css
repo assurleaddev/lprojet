@@ -72,3 +72,25 @@
   --text-2xs: 0.625rem;
   /* 10px */
 }
+
+/* ── Live nav badge ── */
+.live-nav-badge {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 1px 4px;
+  border-radius: 4px;
+  line-height: 1.4;
+  animation: live-pulse 1.8s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: .75; transform: scale(0.92); }
+}

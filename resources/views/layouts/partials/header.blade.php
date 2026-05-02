@@ -155,6 +155,21 @@
                                     </div>
                                 </div>
 
+                                @php $activeLivesCount = \App\Models\Live::where('status', 'live')->count(); @endphp
+                                <a href="{{ route('lives.index') }}" class="relative shrink-0 flex items-center md:block group" aria-label="{{ __('Live Auctions') }}">
+                                    <div class="relative">
+                                        {{-- Camera icon --}}
+                                        <svg class="w-6 h-6 text-gray-600 group-hover:text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"/>
+                                        </svg>
+                                        {{-- LIVE badge --}}
+                                        @if($activeLivesCount > 0)
+                                            <span class="live-nav-badge">LIVE</span>
+                                        @endif
+                                    </div>
+                                    <span class="ml-4 font-medium md:hidden">{{ __('Live Auctions') }}</span>
+                                </a>
+
                                 <a href="{{ route('favorites.index') }}" class="text-gray-600 hover:text-black shrink-0 flex items-center md:block" aria-label="Favourites">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
