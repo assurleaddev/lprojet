@@ -47,12 +47,14 @@
         }
 
         /* Base */
-        html,
-        body {
+        html {
             height: 100%;
         }
 
         body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
             font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
             color: var(--ink);
             background: #fff;
@@ -368,7 +370,7 @@ $nextTick(() => {
 
     @include('layouts.partials.header')
 
-    <main class="py-4">
+    <main class="py-4 flex-1">
         @yield('content')
         {{ $slot ?? '' }}
     </main>
