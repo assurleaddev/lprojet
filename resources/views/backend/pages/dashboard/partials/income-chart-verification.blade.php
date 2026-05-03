@@ -10,7 +10,7 @@
                 <iconify-icon icon="heroicons:magnifying-glass-circle" style="color:#ef4444;font-size:20px;"></iconify-icon>
             </span>
         </div>
-        <div id="chart-income-verification" class="h-44"></div>
+        <div id="chart-income-verification" style="height:220px;"></div>
 </div>
 
 <script>

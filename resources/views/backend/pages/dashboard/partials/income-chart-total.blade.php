@@ -10,7 +10,7 @@
                 <iconify-icon icon="heroicons:currency-dollar" style="color:#635BFF;font-size:20px;"></iconify-icon>
             </span>
         </div>
-        <div id="chart-income-total" class="h-44"></div>
+        <div id="chart-income-total" style="height:220px;"></div>
 </div>
 
 <script>

@@ -10,7 +10,7 @@
                 <iconify-icon icon="heroicons:percent-badge" style="color:#22c55e;font-size:20px;"></iconify-icon>
             </span>
         </div>
-        <div id="chart-income-commission" class="h-44"></div>
+        <div id="chart-income-commission" style="height:220px;"></div>
 </div>
 
 <script>

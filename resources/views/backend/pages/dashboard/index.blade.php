@@ -8,7 +8,7 @@
                 return {
                     chart: {
                         type: 'area',
-                        height: '100%',
+                        height: 220,
                         toolbar: { show: false },
                         fontFamily: 'var(--font-sans)',
                         animations: { enabled: true, easing: 'easeinout', speed: 700 },

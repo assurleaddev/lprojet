@@ -10,7 +10,7 @@
                 <iconify-icon icon="heroicons:shield-check" style="color:#f59e0b;font-size:20px;"></iconify-icon>
             </span>
         </div>
-        <div id="chart-income-protection" class="h-44"></div>
+        <div id="chart-income-protection" style="height:220px;"></div>
 </div>
 
 <script>

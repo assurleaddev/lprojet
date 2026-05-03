@@ -17,7 +17,7 @@
         </span>
     </div>
 
-    <div id="chart-order-sources" class="h-52"></div>
+    <div id="chart-order-sources" style="height:220px;"></div>
 
     {{-- Legend --}}
     <div class="flex flex-wrap justify-center gap-4 mt-3">
