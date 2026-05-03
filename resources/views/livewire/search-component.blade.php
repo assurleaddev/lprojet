@@ -208,7 +208,7 @@
                             class="w-full px-3 py-2 mb-2 border border-gray-200 rounded text-sm focus:outline-none focus:border-gray-400" @click.stop>
                         <div class="max-h-64 overflow-y-auto">
                             @foreach($brands as $brand)
-                                <label x-show="search === '' || '{{ strtolower($brand->name) }}'.includes(search.toLowerCase())"
+                                <label x-show="search === '' || @js(strtolower($brand->name)).includes(search.toLowerCase())"
                                     class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
                                     <input type="checkbox" wire:model.live="selectedBrands" value="{{ $brand->id }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
                                     <span class="text-sm">{{ $brand->name }}</span>
