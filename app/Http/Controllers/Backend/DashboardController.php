@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\User;
-use App\Services\Charts\IncomeChartService;
 use App\Services\Charts\PostChartService;
 use App\Services\Charts\UserChartService;
 use App\Services\LanguageService;
@@ -20,7 +19,6 @@ class DashboardController extends Controller
         private readonly UserChartService $userChartService,
         private readonly LanguageService $languageService,
         private readonly PostChartService $postChartService,
-        private readonly IncomeChartService $incomeChartService
     ) {
     }
 
@@ -55,26 +53,6 @@ class DashboardController extends Controller
                 'post_stats' => $this->postChartService->getPostActivityData(
                     request()->get('post_chart_filter_period', 'last_6_months')
                 ),
-                'income_data_total' => $this->incomeChartService->getIncomeData(
-                    request()->get('income_period_total', 'last_6_months')
-                ),
-                'income_period_total' => request()->get('income_period_total', 'last_6_months'),
-                'income_data_commission' => $this->incomeChartService->getIncomeData(
-                    request()->get('income_period_commission', 'last_6_months')
-                ),
-                'income_period_commission' => request()->get('income_period_commission', 'last_6_months'),
-                'income_data_protection' => $this->incomeChartService->getIncomeData(
-                    request()->get('income_period_protection', 'last_6_months')
-                ),
-                'income_period_protection' => request()->get('income_period_protection', 'last_6_months'),
-                'income_data_verification' => $this->incomeChartService->getIncomeData(
-                    request()->get('income_period_verification', 'last_6_months')
-                ),
-                'income_period_verification' => request()->get('income_period_verification', 'last_6_months'),
-                'order_source_data' => $this->incomeChartService->getOrderSourceData(
-                    request()->get('income_period_sources', 'last_6_months')
-                ),
-                'income_period_sources' => request()->get('income_period_sources', 'last_6_months'),
                 'breadcrumbs' => [
                     'title' => __('Dashboard'),
                     'show_home' => false,
