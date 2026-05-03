@@ -30,9 +30,7 @@ class IncomeChartSources extends Component
         $total = $counts['direct'] + $counts['offer'] + $counts['live'];
 
         return view('livewire.admin.income-chart-sources', [
-            'direct' => $counts['direct'],
-            'offer' => $counts['offer'],
-            'live' => $counts['live'],
+            'sources' => $counts,
             'total' => $total,
         ]);
     }

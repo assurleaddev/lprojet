@@ -70,7 +70,7 @@
                              toolbar: { show: false },
                              animations: { enabled: true, easing: 'easeinout', speed: 700 },
                          },
-                         series: [@js($direct), @js($offer), @js($live)],
+                         series: [@js($sources['direct']), @js($sources['offer']), @js($sources['live'])],
                          labels: [@js(__('Direct Checkout')), @js(__('Offer Checkout')), @js(__('Live Auction'))],
                          colors: ['#635BFF', '#f59e0b', '#ef4444'],
                          legend: { show: false },
@@ -130,7 +130,7 @@
             @foreach($rows as $row)
             <div class="flex items-center gap-1.5 text-sm text-gray-500">
                 <span class="w-3 h-3 rounded-full inline-block" style="background:{{ $row['color'] }};"></span>
-                {{ $row['label'] }} — {{ $total ? round($$row['key'] / $total * 100) : 0 }}%
+                {{ $row['label'] }} — {{ $total ? round($sources[$row['key']] / $total * 100) : 0 }}%
             </div>
             @endforeach
         </div>
@@ -142,7 +142,7 @@
         <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">{{ __('Source Breakdown') }}</p>
         @foreach($rows as $row)
         @php
-            $count = $$row['key'];
+            $count = $sources[$row['key']];
             $pct = $total ? round($count / $total * 100) : 0;
         @endphp
         <div>
