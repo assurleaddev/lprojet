@@ -14,28 +14,24 @@ class ActiveListingsChart extends Component
     public function setPeriod(string $period): void
     {
         $this->period = $period;
-        $data = app(ListingChartService::class)->getListingData($this->period);
+        $data = app(ListingChartService::class)->getNetworkValueData($this->period);
         $this->dispatch(
             'active-listings-update',
             labels: $data['labels'],
-            approved: $data['approved'],
-            pending: $data['pending'],
-            sold: $data['sold'],
+            series: $data['series'],
         );
     }
 
     public function render()
     {
-        $service = app(ListingChartService::class);
-        $data = $service->getListingData($this->period);
-        $totals = $service->getTotals($this->period);
+        $data = app(ListingChartService::class)->getNetworkValueData($this->period);
 
         return view('livewire.admin.active-listings-chart', [
             'labels' => $data['labels'],
-            'approved' => $data['approved'],
-            'pending' => $data['pending'],
-            'sold' => $data['sold'],
-            'totals' => $totals,
+            'series' => $data['series'],
+            'total_value' => number_format($data['total_value'], 2),
+            'total_listings' => number_format($data['total_listings']),
+            'per_listing' => number_format($data['per_listing'], 2),
         ]);
     }
 }

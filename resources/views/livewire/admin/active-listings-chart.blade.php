@@ -8,11 +8,6 @@
         'this_year'      => __('This year'),
         'last_year'      => __('Last year'),
     ];
-    $stats = [
-        ['label' => __('Active'),  'key' => 'approved', 'color' => '#22c55e', 'bg' => 'rgba(34,197,94,.12)',  'icon' => 'heroicons:tag'],
-        ['label' => __('Pending'), 'key' => 'pending',  'color' => '#f59e0b', 'bg' => 'rgba(245,158,11,.12)', 'icon' => 'heroicons:clock'],
-        ['label' => __('Sold'),    'key' => 'sold',     'color' => '#635BFF', 'bg' => 'rgba(99,91,255,.12)',  'icon' => 'heroicons:shopping-bag'],
-    ];
 @endphp
 
 <div class="relative rounded-md shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 py-5">
@@ -23,11 +18,15 @@
     </div>
 
     {{-- Header --}}
-    <div class="flex flex-wrap items-start justify-between gap-3 mb-5">
+    <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('Listing Network') }}</p>
-            <p class="text-2xl font-bold text-gray-800 dark:text-white">{{ number_format($totals['total']) }}</p>
-            <p class="text-xs text-gray-400 mt-0.5">{{ __('listings in period') }}</p>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('Active Listing Network Value') }}</p>
+            <p class="text-2xl font-bold text-green-600">{{ $total_value }} MAD</p>
+            <p class="text-xs text-gray-400 mt-0.5">
+                {{ $total_listings }} {{ __('listings') }}
+                &nbsp;·&nbsp;
+                {{ __('avg') }} {{ $per_listing }} MAD
+            </p>
         </div>
         <div class="flex items-center gap-2">
             <div x-data="{ open: false }" class="relative">
@@ -51,20 +50,17 @@
                 </div>
             </div>
             <span class="inline-flex items-center justify-center w-9 h-9 rounded-full" style="background:rgba(34,197,94,.12);">
-                <iconify-icon icon="heroicons:squares-2x2" style="color:#22c55e;font-size:20px;"></iconify-icon>
+                <iconify-icon icon="heroicons:tag" style="color:#22c55e;font-size:20px;"></iconify-icon>
             </span>
         </div>
     </div>
 
-    {{-- Stat pills --}}
-    <div class="flex flex-wrap gap-3 mb-5">
-        @foreach($stats as $s)
-        <div class="flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold" style="background:{{ $s['bg'] }}; color:{{ $s['color'] }};">
-            <iconify-icon icon="{{ $s['icon'] }}" style="font-size:13px;"></iconify-icon>
-            {{ $s['label'] }}: {{ number_format($totals[$s['key']]) }}
-        </div>
-        @endforeach
-    </div>
+    {{-- Formula note --}}
+    <p class="text-xs text-gray-400 mb-4">
+        {{ __('price + buyer protection + shipping') }}
+        &nbsp;·&nbsp;
+        {{ __('approved listings only') }}
+    </p>
 
     {{-- Chart --}}
     <div wire:ignore
@@ -79,11 +75,7 @@
                          fontFamily: 'var(--font-sans)',
                          animations: { enabled: true, easing: 'easeinout', speed: 700 },
                      },
-                     series: [
-                         { name: @js(__('Active')),  data: @js($approved) },
-                         { name: @js(__('Pending')), data: @js($pending)  },
-                         { name: @js(__('Sold')),    data: @js($sold)     },
-                     ],
+                     series: [{ name: @js(__('Network Value')), data: @js($series) }],
                      xaxis: {
                          categories: @js($labels),
                          labels: { style: { colors: '#94a3b8', fontSize: '11px', fontFamily: 'var(--font-sans)' } },
@@ -93,15 +85,15 @@
                      yaxis: {
                          min: 0,
                          labels: {
-                             formatter: v => Math.round(v),
+                             formatter: v => v.toFixed(0) + ' MAD',
                              style: { colors: '#94a3b8', fontSize: '11px', fontFamily: 'var(--font-sans)' },
                          },
                          axisBorder: { show: false },
                          axisTicks: { show: false },
                      },
-                     colors: ['#22c55e', '#f59e0b', '#635BFF'],
+                     colors: ['#22c55e'],
                      stroke: { width: 2.5, curve: 'smooth' },
-                     fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0.02 } },
+                     fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0.02, gradientToColors: ['#22c55e'] } },
                      dataLabels: { enabled: false },
                      markers: { size: 0, hover: { size: 5 } },
                      grid: {
@@ -110,32 +102,19 @@
                          yaxis: { lines: { show: true } },
                          xaxis: { lines: { show: false } },
                      },
-                     legend: {
-                         show: true,
-                         position: 'top',
-                         horizontalAlign: 'right',
-                         fontSize: '12px',
-                         fontFamily: 'var(--font-sans)',
-                         markers: { width: 8, height: 8, radius: 8 },
-                     },
                      tooltip: {
-                         shared: true,
-                         intersect: false,
+                         y: { formatter: v => v.toFixed(2) + ' MAD' },
                          style: { fontSize: '12px', fontFamily: 'var(--font-sans)' },
                      },
                  });
                  this.chart.render();
              },
-             updateChart(labels, approved, pending, sold) {
+             updateChart(labels, series) {
                  this.chart.updateOptions({ xaxis: { categories: labels } }, false, false);
-                 this.chart.updateSeries([
-                     { name: @js(__('Active')),  data: approved },
-                     { name: @js(__('Pending')), data: pending  },
-                     { name: @js(__('Sold')),    data: sold     },
-                 ]);
+                 this.chart.updateSeries([{ name: @js(__('Network Value')), data: series }]);
              }
          }"
-         x-on:active-listings-update.window="updateChart($event.detail.labels, $event.detail.approved, $event.detail.pending, $event.detail.sold)">
+         x-on:active-listings-update.window="updateChart($event.detail.labels, $event.detail.series)">
         <div x-ref="chartEl"></div>
     </div>
 

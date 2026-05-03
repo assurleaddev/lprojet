@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 
 class ListingChartService extends ChartService
 {
-    public function getListingData(string $period = 'last_6_months'): array
+    public function getNetworkValueData(string $period = 'last_6_months'): array
     {
         [$startDate, $endDate] = $this->getDateRange($period);
 
@@ -23,15 +23,21 @@ class ListingChartService extends ChartService
 
         $dateTrunc = $isLessThanMonth
             ? 'DATE(created_at)'
-            : ($driver === 'sqlite' ? "strftime('%Y-%m', created_at)" : "DATE_FORMAT(created_at, '%Y-%m')");
+            : ($driver === 'sqlite'
+                ? "strftime('%Y-%m', created_at)"
+                : "DATE_FORMAT(created_at, '%Y-%m')");
+
+        $protectionPct = (float) config('settings.buyer_protection_fee_percentage', 5);
+        $protectionFixed = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+        $shipping = (float) config('settings.delivery_fee_fixed', 25.00);
 
         $rows = Product::selectRaw("
                 {$dateTrunc} as period,
-                SUM(status = 'approved') as approved,
-                SUM(status = 'pending')  as pending,
-                SUM(status = 'sold')     as sold,
-                COUNT(*)                 as total
+                COUNT(*) as listing_count,
+                SUM(price) as price_sum,
+                SUM(price * (1 + {$protectionPct} / 100.0) + {$protectionFixed} + {$shipping}) as network_value
             ")
+            ->where('status', 'approved')
             ->whereBetween('created_at', [$startDate, $endDate])
             ->groupBy('period')
             ->orderBy('period')
@@ -39,46 +45,26 @@ class ListingChartService extends ChartService
             ->keyBy('period');
 
         $labels = $this->generateLabels($startDate, $endDate, $format, $intervalMethod);
-
-        $approved = [];
-        $pending = [];
-        $sold = [];
+        $series = [];
+        $totalValue = 0;
+        $totalListings = 0;
 
         foreach ($labels as $label) {
             $key = Carbon::createFromFormat($format, $label)->format($dbFormat);
             $row = $rows[$key] ?? null;
+            $val = $row ? round((float) $row->network_value, 2) : 0;
 
-            $approved[] = $row ? (int) $row->approved : 0;
-            $pending[] = $row ? (int) $row->pending : 0;
-            $sold[] = $row ? (int) $row->sold : 0;
+            $series[] = $val;
+            $totalValue += $val;
+            $totalListings += $row ? (int) $row->listing_count : 0;
         }
 
         return [
             'labels' => $labels->values()->toArray(),
-            'approved' => $approved,
-            'pending' => $pending,
-            'sold' => $sold,
-        ];
-    }
-
-    public function getTotals(string $period = 'last_6_months'): array
-    {
-        [$startDate, $endDate] = $this->getDateRange($period);
-
-        $row = Product::whereBetween('created_at', [$startDate, $endDate])
-            ->selectRaw("
-                SUM(status = 'approved') as approved,
-                SUM(status = 'pending')  as pending,
-                SUM(status = 'sold')     as sold,
-                COUNT(*)                 as total
-            ")
-            ->first();
-
-        return [
-            'approved' => (int) ($row->approved ?? 0),
-            'pending' => (int) ($row->pending ?? 0),
-            'sold' => (int) ($row->sold ?? 0),
-            'total' => (int) ($row->total ?? 0),
+            'series' => $series,
+            'total_value' => round($totalValue, 2),
+            'total_listings' => $totalListings,
+            'per_listing' => $totalListings > 0 ? round($totalValue / $totalListings, 2) : 0,
         ];
     }
 }
