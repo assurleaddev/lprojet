@@ -195,23 +195,28 @@
 
             {{-- Brand Filtrer --}}
              @if($brands->isNotEmpty())
-                <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open"
+                <div x-data="{ open: false, search: '', brandNames: @js($brands->pluck('name')->map(fn($n) => strtolower($n))->values()) }" class="relative">
+                    <button @click="open = !open; if(open) $nextTick(() => $refs.brandSearch.focus())"
                         class="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-full hover:bg-gray-50 {{ !empty($selectedBrands) ? 'border-teal-600 ring-1 ring-teal-600' : '' }}">
                         <span>{{ __('Marque') }}</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-50 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto p-2">
-                         <input type="text" placeholder="Search brands..." class="w-full px-3 py-2 mb-2 border rounded text-sm focus:outline-none focus:border-gray-500" @click.stop>
-                         {{-- Ideal place for a computed property for searching brands inside the dropdown, but simpler loop for now --}}
-                         @foreach($brands as $brand)
-                            <label class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
-                                <input type="checkbox" wire:model.live="selectedBrands" value="{{ $brand->id }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
-                                <span class="text-sm">{{ $brand->name }}</span>
-                            </label>
-                         @endforeach
+                    <div x-show="open" @click.away="open = false; search = ''" style="display: none;" class="absolute z-50 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-2">
+                        <input x-ref="brandSearch" type="text" x-model="search" placeholder="{{ __('Search brands...') }}"
+                            class="w-full px-3 py-2 mb-2 border border-gray-200 rounded text-sm focus:outline-none focus:border-gray-400" @click.stop>
+                        <div class="max-h-64 overflow-y-auto">
+                            @foreach($brands as $brand)
+                                <label x-show="search === '' || '{{ strtolower($brand->name) }}'.includes(search.toLowerCase())"
+                                    class="flex items-center p-2 hover:bg-gray-50 rounded cursor-pointer">
+                                    <input type="checkbox" wire:model.live="selectedBrands" value="{{ $brand->id }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
+                                    <span class="text-sm">{{ $brand->name }}</span>
+                                </label>
+                            @endforeach
+                            <p x-show="search !== '' && !brandNames.some(n => n.includes(search.toLowerCase()))"
+                                class="text-xs text-gray-400 text-center py-3">{{ __('No brands found') }}</p>
+                        </div>
                     </div>
                 </div>
             @endif
