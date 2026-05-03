@@ -164,7 +164,7 @@
 
                     <!-- Cropper Modal -->
                     <div x-show="showCropper" style="display: none;"
-                        class="fixed inset-0 z-50 flex items-center justify-center bg-black opacity-75 p-4">
+                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
                         <div class="bg-white rounded-lg p-4 w-full max-w-lg">
                             <h3 class="text-lg font-bold mb-4">{{ __('Crop Profile Picture') }}</h3>
 
