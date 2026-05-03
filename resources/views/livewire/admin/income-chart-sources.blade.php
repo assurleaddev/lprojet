@@ -93,7 +93,7 @@
                                              fontFamily: 'var(--font-sans)',
                                              fontWeight: 600,
                                              color: '#6b7280',
-                                             formatter: () => @js($total).toString(),
+                                             formatter: () => @js((string) $total),
                                          },
                                      },
                                  },
