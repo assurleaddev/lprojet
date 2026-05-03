@@ -163,29 +163,33 @@
                     </div>
 
                     <!-- Cropper Modal -->
-                    <div x-show="showCropper" style="display: none;"
-                        class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4">
-                        <div class="bg-white rounded-lg p-4 w-full max-w-lg">
-                            <h3 class="text-lg font-bold mb-4">{{ __('Crop Profile Picture') }}</h3>
+                    <template x-teleport="body">
+                        <div x-show="showCropper" style="display: none;" class="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                            {{-- Backdrop --}}
+                            <div class="absolute inset-0 bg-black/60" @click="closeCropper"></div>
+                            {{-- Dialog --}}
+                            <div class="relative z-10 bg-white rounded-xl shadow-2xl w-full max-w-lg p-6">
+                                <h3 class="text-lg font-bold mb-4">{{ __('Crop Profile Picture') }}</h3>
 
-                            <div class="mb-4">
-                                <div class="h-96 w-full bg-gray-100 rounded overflow-hidden">
-                                    <img x-ref="cropImage" class="max-w-full" style="display: block; max-width: 100%;">
+                                <div class="mb-4">
+                                    <div class="h-96 w-full bg-gray-100 rounded overflow-hidden">
+                                        <img x-ref="cropImage" class="max-w-full" style="display: block; max-width: 100%;">
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-end gap-3">
+                                    <button type="button" @click="closeCropper"
+                                        class="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                                        {{ __('Cancel') }}
+                                    </button>
+                                    <button type="button" @click="cropAndClose"
+                                        class="px-4 py-2 text-white bg-gray-900 rounded-lg hover:bg-gray-800">
+                                        {{ __('Crop & Save') }}
+                                    </button>
                                 </div>
                             </div>
-
-                            <div class="flex justify-end gap-3">
-                                <button type="button" @click="closeCropper"
-                                    class="px-4 py-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300">
-                                    Cancel
-                                </button>
-                                <button type="button" @click="cropAndClose"
-                                    class="px-4 py-2 text-white bg-gray-900 rounded hover:bg-gray-800">
-                                    {{ __('Crop & Save') }}
-                                </button>
-                            </div>
                         </div>
-                    </div>
+                    </template>
                 </form>
             </div>
         </div>
