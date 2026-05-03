@@ -15,7 +15,6 @@ use App\Models\Media;
 use Spatie\MediaLibrary\MediaCollections\Models\Media as MLib;
 use App\Services\MediaLibraryService;
 
-
 class ProductController extends Controller
 {
     protected $mediaService;
@@ -55,6 +54,8 @@ class ProductController extends Controller
             'brand_id' => 'nullable|exists:brands,id',
             'condition' => 'nullable|string',
             'size' => 'nullable|string',
+            'fabric' => 'nullable|array|max:2',
+            'fabric.*' => 'string|in:Cotton,Polyester,Wool,Silk,Linen,Denim,Leather,Synthetic,Other',
             'images' => 'required|array|min:3|max:7',
             'images.*' => 'exists:media,id',
         ]);
@@ -76,7 +77,7 @@ class ProductController extends Controller
                     }
                 }
             }
-            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
+            $optionIds = array_values(array_filter($optionIds, fn ($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
 
             if ($request->has('images')) {
@@ -150,10 +151,11 @@ class ProductController extends Controller
             'brand_id' => 'nullable|exists:brands,id',
             'condition' => 'nullable|string',
             'size' => 'nullable|string',
+            'fabric' => 'nullable|array|max:2',
+            'fabric.*' => 'string|in:Cotton,Polyester,Wool,Silk,Linen,Denim,Leather,Synthetic,Other',
             'images' => 'required|array|min:3|max:7',
             'images.*' => 'exists:media,id',
         ]);
-
 
         DB::transaction(function () use ($request, $product) {
             $product->fill($request->except('images', 'options'));
@@ -172,10 +174,9 @@ class ProductController extends Controller
                     }
                 }
             }
-            $optionIds = array_values(array_filter($optionIds, fn($id) => is_numeric($id) && $id !== ''));
+            $optionIds = array_values(array_filter($optionIds, fn ($id) => is_numeric($id) && $id !== ''));
             $product->options()->sync($optionIds);
             // Delete all old image records for this product
-
 
             // Handle Featured Image
             if ($request->boolean('remove_featured_image')) {
@@ -190,7 +191,7 @@ class ProductController extends Controller
                 $currentFeatured = $product->getFirstMedia('featured');
 
                 // Only update if it's different
-                if (!$currentFeatured || $currentFeatured->id != $newFeaturedId) {
+                if (! $currentFeatured || $currentFeatured->id != $newFeaturedId) {
                     $product->clearMediaCollection('featured');
                     $this->mediaService->associateExistingMedia(
                         $product,
@@ -208,12 +209,12 @@ class ProductController extends Controller
 
                 // 1. Identify images to remove (present in current, missing in new)
                 $toRemove = array_diff($currentMediaIds, $newImageIds);
-                if (!empty($toRemove)) {
+                if (! empty($toRemove)) {
                     $product->media()->whereIn('id', $toRemove)->delete();
                 }
 
                 // 2. Identify images to add (present in new, missing in current)
-                // Note: We don't filter by 'missing in current' solely because we might want to re-order, 
+                // Note: We don't filter by 'missing in current' solely because we might want to re-order,
                 // but Spatie Media Library doesn't support explicit ordering via simple sync easily without custom 'order_column'.
                 // For now, let's just ensure we associate any that aren't currently associated.
                 // However, since associateExistingMedia typically moves/copies, we must be careful.
@@ -240,7 +241,6 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')
             ->with('success', 'Product updated successfully.');
     }
-
 
     /**
      * Delete a single product image.

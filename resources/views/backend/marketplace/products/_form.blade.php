@@ -165,25 +165,48 @@
                         </div>
                         <div class="w-100 md:w-1/2">
                             <label for="condition" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Condition</label>
+                            @php
+                                $conditionOptions = [
+                                    'new_with_tags'    => 'New with tags',
+                                    'new_without_tags' => 'New without tags',
+                                    'very_good'        => 'Very good',
+                                    'good'             => 'Good',
+                                    'satisfactory'     => 'Satisfactory',
+                                    'heavily_worn'     => 'Heavily worn',
+                                ];
+                                $currentCondition = old('condition', $product->condition ?? '');
+                            @endphp
                             <select id="condition" name="condition" class="form-control">
                                 <option value="">Select condition</option>
-                                @php
-                                    $conditions = [
-                                        'new_with_tags'    => 'New with tags',
-                                        'new_without_tags' => 'New without tags',
-                                        'very_good'        => 'Very good',
-                                        'good'             => 'Good',
-                                        'satisfactory'     => 'Satisfactory',
-                                        'heavily_worn'     => 'Heavily worn',
-                                    ];
-                                @endphp
-                                @foreach($conditions as $value => $label)
-                                    <option value="{{ $value }}" @selected(old('condition', $product->condition ?? '') == $value)>
+                                @foreach($conditionOptions as $val => $label)
+                                    <option value="{{ $val }}" {{ $currentCondition === $val ? 'selected' : '' }}>
                                         {{ $label }}
                                     </option>
                                 @endforeach
                             </select>
-                             @error('condition')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
+                            @error('condition')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
+                        </div>
+                    </div>
+
+                    {{-- Fabric --}}
+                    @php
+                        $fabricOptions  = ['Cotton','Polyester','Wool','Silk','Linen','Denim','Leather','Synthetic','Other'];
+                        $selectedFabrics = old('fabric', $product->fabric ?? []);
+                    @endphp
+                    <div class="mt-4">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Fabric <span class="text-xs text-gray-400">(max 2)</span>
+                        </label>
+                        @error('fabric')<span class="text-red-500 text-sm block mb-1">{{ $message }}</span>@enderror
+                        <div class="grid grid-cols-3 gap-2">
+                            @foreach($fabricOptions as $fab)
+                                <label class="flex items-center gap-2 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 cursor-pointer hover:border-gray-400 transition-colors text-sm text-gray-700 dark:text-gray-300">
+                                    <input type="checkbox" name="fabric[]" value="{{ $fab }}"
+                                        {{ in_array($fab, $selectedFabrics) ? 'checked' : '' }}
+                                        class="rounded border-gray-300 text-blue-600 focus:ring-blue-500">
+                                    {{ $fab }}
+                                </label>
+                            @endforeach
                         </div>
                     </div>
                 </div>
