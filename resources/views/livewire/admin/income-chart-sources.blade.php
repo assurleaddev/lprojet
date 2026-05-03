@@ -65,7 +65,7 @@
                      this.chart = new ApexCharts(this.$refs.chartEl, {
                          chart: {
                              type: 'donut',
-                             height: '100%',
+                             height: 220,
                              fontFamily: 'var(--font-sans)',
                              toolbar: { show: false },
                              animations: { enabled: true, easing: 'easeinout', speed: 700 },
