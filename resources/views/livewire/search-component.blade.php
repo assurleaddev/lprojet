@@ -113,7 +113,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                  </button>
-                  <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                  <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-50 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                        {{-- Header --}}
                         <div class="flex items-center justify-between p-3 border-b border-gray-100 bg-gray-50">
                             <div class="flex items-center gap-2">
@@ -173,7 +173,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto p-4">
+                    <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-50 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg max-h-96 overflow-y-auto p-4">
                          <div class="space-y-4">
                             @foreach($sizeAttributes as $attribute)
                                 <div>
@@ -203,7 +203,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto p-2">
+                    <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-50 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto p-2">
                          <input type="text" placeholder="Search brands..." class="w-full px-3 py-2 mb-2 border rounded text-sm focus:outline-none focus:border-gray-500" @click.stop>
                          {{-- Ideal place for a computed property for searching brands inside the dropdown, but simpler loop for now --}}
                          @foreach($brands as $brand)
@@ -226,7 +226,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                     <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-2">
+                     <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-50 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden p-2">
                          @foreach($conditions as $condition)
                             <label class="flex items-center py-2 px-2 cursor-pointer hover:bg-gray-50 rounded">
                                 <input type="checkbox" wire:model.live="selectedConditions" value="{{ $condition }}" class="rounded text-gray-700 mr-2 border-gray-300 focus:ring-gray-500">
@@ -247,7 +247,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                         </svg>
                     </button>
-                    <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto p-3">
+                    <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-50 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg max-h-80 overflow-y-auto p-3">
                          <div class="grid grid-cols-2 gap-2">
                              @foreach($colorAttribute->options as $option)
                                 <label class="flex items-center cursor-pointer hover:bg-gray-50 p-1 rounded">
@@ -272,7 +272,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
-                 <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-10 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
+                 <div x-show="open" @click.away="open = false" style="display: none;" class="absolute z-50 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
                      <div class="flex items-center gap-2">
                          <div class="flex-1">
                              <label class="text-xs text-gray-500 block mb-1">De</label>
@@ -301,7 +301,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                     </svg>
                 </button>
-                <div x-show="open" @click.away="open = false" style="display: none;" class="absolute right-0 z-10 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
+                <div x-show="open" @click.away="open = false" style="display: none;" class="absolute right-0 z-50 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg">
                     <div class="p-2">
                         <button wire:click="$set('sort', 'newest'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">{{ __('Newest first') }}</button>
                         <button wire:click="$set('sort', 'price_asc'); open=false" class="block w-full text-left px-4 py-2 hover:bg-gray-50 rounded text-sm">Prix : croissant</button>
