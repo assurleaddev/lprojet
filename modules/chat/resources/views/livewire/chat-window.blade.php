@@ -512,15 +512,23 @@
                                         </div>
                                     @endif
 
+                                    @php
+                                        $hasShippableOrder = \App\Models\Order::where('product_id', $this->conversation->product_id)
+                                            ->where('vendor_id', auth()->id())
+                                            ->whereIn('status', ['processing', 'pending'])
+                                            ->exists();
+                                    @endphp
                                     <div class="mt-4 space-y-2">
                                         <a href="{{ $downloadUrl }}" target="_blank"
                                             class="block w-full bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                             Download Shipping Label
                                         </a>
-                                        <button wire:click="markAsShipped" wire:loading.attr="disabled"
-                                            class="block w-full bg-white border border-gray-900 text-gray-900 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
-                                            Mark as Shipped
-                                        </button>
+                                        @if($hasShippableOrder)
+                                            <button wire:click="markAsShipped" wire:loading.attr="disabled"
+                                                class="block w-full bg-white border border-gray-900 text-gray-900 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
+                                                Mark as Shipped
+                                            </button>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -601,7 +609,7 @@
                                             ->latest()
                                             ->first();
 
-                                        $isOrderCompleted = $latestOrder && $latestOrder->status === 'completed';
+                                        $isOrderCompleted = $latestOrder && in_array($latestOrder->status, ['completed', 'cancelled']);
                                     @endphp
 
                                     @if(!$isOrderCompleted)
@@ -657,16 +665,23 @@
                                         </div>
 
                                         @php 
-                                                                                                    $checkoutRoute = route('checkout.offer', ['offer' => $offerId]);
+                                            $checkoutRoute = route('checkout.offer', ['offer' => $offerId]);
                                             $isSold = $this->conversation->product->status === 'sold';
-                                            // Check specifically if this user bought it or just general sold status? 
-                                            // Usually if sold, nobody can buy.
+                                            $isOfferStillValid = in_array($offerStatus, [
+                                                \Modules\Chat\Enums\OfferStatus::Accepted,
+                                                \Modules\Chat\Enums\OfferStatus::AwaitingBuyer,
+                                            ]);
                                         @endphp
 
                                         @if($isSold)
                                             <button disabled
                                                 class="block w-full text-center bg-gray-400 text-white text-sm font-medium py-2 px-4 rounded-md cursor-not-allowed shadow-sm">
                                                 Sold
+                                            </button>
+                                        @elseif(!$isOfferStillValid)
+                                            <button disabled
+                                                class="block w-full text-center bg-gray-300 text-gray-500 text-sm font-medium py-2 px-4 rounded-md cursor-not-allowed shadow-sm">
+                                                Offer Expired
                                             </button>
                                         @else
                                             <a href="{{ $checkoutRoute }}" wire:navigate

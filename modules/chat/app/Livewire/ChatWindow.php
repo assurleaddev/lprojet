@@ -553,6 +553,11 @@ class ChatWindow extends Component
             return;
         }
 
+        if ($this->conversation->product->status === 'approved') {
+            $this->dispatch('toast', message: 'Item is already listed.', type: 'info');
+            return;
+        }
+
         $this->conversation->product->update(['status' => 'approved']);
         $this->dispatch('toast', message: 'Item is now available for sale.', type: 'success');
         $this->loadConversation(app(ChatService::class));
