@@ -48,6 +48,20 @@ class IncomeChartService extends ChartService
         ];
     }
 
+    public function getGlobalIncome(string $period = 'last_6_months'): array
+    {
+        [$startDate, $endDate] = $this->getDateRange($period);
+
+        $row = Order::whereBetween('created_at', [$startDate, $endDate])
+            ->selectRaw('SUM(total_amount) as gross, COUNT(*) as order_count')
+            ->first();
+
+        return [
+            'gross' => round((float) ($row->gross ?? 0), 2),
+            'order_count' => (int) ($row->order_count ?? 0),
+        ];
+    }
+
     public function getOrderSourceData(string $period = 'last_6_months'): array
     {
         [$startDate, $endDate] = $this->getDateRange($period);
