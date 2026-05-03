@@ -1,5 +1,4 @@
-<div class="col-span-12 md:col-span-6">
-    <div class="rounded-md shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 py-5 h-full">
+<div class="rounded-md shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 py-5">
         <div class="flex items-start justify-between mb-4">
             <div>
                 <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">{{ __('Verification Income') }}</p>
@@ -12,7 +11,6 @@
             </span>
         </div>
         <div id="chart-income-verification" class="h-44"></div>
-    </div>
 </div>
 
 <script>
