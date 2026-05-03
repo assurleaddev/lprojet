@@ -22,6 +22,18 @@
                         @endif
                     </div>
 
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl mb-6">
+                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-emerald-100">
+                            <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500 font-medium">{{ __('Store Value') }}</p>
+                            <p class="text-sm font-bold text-gray-900">{{ number_format($storeValue, 2) }} MAD</p>
+                        </div>
+                    </div>
+
                     <button onclick="document.getElementById('withdrawModal').classList.remove('hidden')"
                         class="w-full bg-vinted-teal hover:bg-vinted-teal-dark text-white py-3 px-4 rounded-xl font-bold transition-all transform active:scale-95 shadow-lg shadow-vinted-teal/10">
                         Withdraw Funds

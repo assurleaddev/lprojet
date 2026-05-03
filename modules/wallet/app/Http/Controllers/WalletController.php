@@ -26,7 +26,11 @@ class WalletController extends Controller
         $withdrawalRequests = $wallet->withdrawalRequests()->latest()->paginate(6, ['*'], 'withdraw_page');
         $payoutAccounts = PayoutAccount::where('user_id', $user->id)->get();
 
-        return view('wallet::index', compact('wallet', 'transactions', 'withdrawalRequests', 'payoutAccounts'));
+        $storeValue = \App\Models\Product::where('vendor_id', $user->id)
+            ->where('status', 'approved')
+            ->sum('price');
+
+        return view('wallet::index', compact('wallet', 'transactions', 'withdrawalRequests', 'payoutAccounts', 'storeValue'));
     }
 
     public function requestWithdrawal(Request $request)
