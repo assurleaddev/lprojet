@@ -244,6 +244,12 @@
                                     <span class="text-gray-700">{{ ucwords(str_replace('_', ' ', $product->condition)) }}</span>
                                 </div>
                             @endif
+                            @if(!empty($product->fabric))
+                                <div class="grid grid-cols-2">
+                                    <span class="text-gray-500 font-bold">{{ __('Fabric') }}</span>
+                                    <span class="text-gray-700">{{ implode(', ', $product->fabric) }}</span>
+                                </div>
+                            @endif
                             @if($product->color)
                                 <div class="grid grid-cols-2">
                                     <span class="text-gray-500 font-bold">{{ __('Colour') }}</span>

@@ -26,12 +26,14 @@ class Product extends Model implements HasMedia
         'brand_id',
         'condition',
         'size',
+        'fabric',
     ];
 
     protected function casts(): array
     {
         return [
             'price' => 'decimal:2',
+            'fabric' => 'array',
         ];
     }
 

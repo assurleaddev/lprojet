@@ -50,6 +50,8 @@ class ItemController extends Controller
             'price' => 'required|numeric|min:0',
             'brand_id' => 'nullable|exists:brands,id',
             'condition' => 'nullable|string',
+            'fabric' => 'required|array|min:1|max:2',
+            'fabric.*' => 'required|string|in:Cotton,Polyester,Wool,Silk,Linen,Denim,Leather,Synthetic,Other',
             'images' => 'required|array|min:1',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
@@ -64,6 +66,7 @@ class ItemController extends Controller
                 'category_id' => $request->category_id,
                 'brand_id' => $request->brand_id,
                 'condition' => $request->condition,
+                'fabric' => $request->fabric,
                 'vendor_id' => Auth::id(),
                 'status' => 'pending',
             ]);
@@ -170,6 +173,8 @@ class ItemController extends Controller
             'price' => 'required|numeric|min:0',
             'brand_id' => 'nullable|exists:brands,id',
             'condition' => 'nullable|string',
+            'fabric' => 'required|array|min:1|max:2',
+            'fabric.*' => 'required|string|in:Cotton,Polyester,Wool,Silk,Linen,Denim,Leather,Synthetic,Other',
             'images' => 'nullable|array',
             'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
@@ -183,6 +188,7 @@ class ItemController extends Controller
             $product->category_id = $request->category_id;
             $product->brand_id = $request->brand_id;
             $product->condition = $request->condition;
+            $product->fabric = $request->fabric;
 
             // Only set to pending if new images are uploaded
             $statusChanged = false;

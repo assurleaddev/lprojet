@@ -100,6 +100,26 @@
                     </select>
                 </div>
 
+                <div x-data="{ checked: {{ old('fabric') ? count(old('fabric')) : 0 }} }">
+                    <label class="block font-semibold mb-1">
+                        {{ __('Fabric') }} <span class="text-red-500">*</span>
+                        <span class="text-xs font-normal text-gray-400 ml-1">{{ __('(max 2)') }}</span>
+                    </label>
+                    @error('fabric') <p class="text-red-500 text-xs mb-2">{{ $message }}</p> @enderror
+                    <div class="grid grid-cols-3 gap-2">
+                        @foreach(['Cotton','Polyester','Wool','Silk','Linen','Denim','Leather','Synthetic','Other'] as $fab)
+                            <label class="flex items-center gap-2 border border-gray-200 rounded-lg px-3 py-2 cursor-pointer hover:border-gray-400 transition-colors"
+                                :class="{ 'opacity-40 pointer-events-none': checked >= 2 && !$el.querySelector('input').checked }">
+                                <input type="checkbox" name="fabric[]" value="{{ $fab }}"
+                                    {{ in_array($fab, old('fabric', [])) ? 'checked' : '' }}
+                                    @change="checked = $el.closest('.grid').querySelectorAll('input:checked').length"
+                                    class="rounded border-gray-300 text-gray-700 focus:ring-gray-500">
+                                <span class="text-sm">{{ __($fab) }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
                 <!-- Dynamic Attributes Container -->
                 <div id="dynamic-attributes" class="space-y-6">
                     <!-- Attributes will be injected here -->
