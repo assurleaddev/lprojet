@@ -14,6 +14,12 @@ class GlobalIncomeCard extends Component
     public function setPeriod(string $period): void
     {
         $this->period = $period;
+        $data = app(IncomeChartService::class)->getGlobalIncome($this->period);
+        $this->dispatch(
+            'global-income-update',
+            labels: $data['labels'],
+            series: $data['series'],
+        );
     }
 
     public function render()
@@ -21,6 +27,8 @@ class GlobalIncomeCard extends Component
         $data = app(IncomeChartService::class)->getGlobalIncome($this->period);
 
         return view('livewire.admin.global-income-card', [
+            'labels' => $data['labels'],
+            'series' => $data['series'],
             'gross' => number_format($data['gross'], 2),
             'order_count' => number_format($data['order_count']),
         ]);

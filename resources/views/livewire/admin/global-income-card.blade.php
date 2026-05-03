@@ -17,11 +17,11 @@
         <iconify-icon icon="lucide:loader-2" class="animate-spin" style="font-size:22px;color:#635BFF;"></iconify-icon>
     </div>
 
-    <div class="flex flex-wrap items-center justify-between gap-4">
+    {{-- Header row --}}
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
 
-        {{-- Left: stat --}}
         <div class="flex items-center gap-4">
-            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full" style="background:rgba(99,91,255,.12);">
+            <span class="inline-flex items-center justify-center w-12 h-12 rounded-full shrink-0" style="background:rgba(99,91,255,.12);">
                 <iconify-icon icon="heroicons:banknotes" style="color:#635BFF;font-size:26px;"></iconify-icon>
             </span>
             <div>
@@ -31,7 +31,6 @@
             </div>
         </div>
 
-        {{-- Right: filter --}}
         <div x-data="{ open: false }" class="relative">
             <button @click="open = !open"
                     class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2">
@@ -55,4 +54,25 @@
         </div>
 
     </div>
+
+    {{-- Chart --}}
+    <div wire:ignore
+         x-data="{
+             chart: null,
+             init() {
+                 this.chart = new ApexCharts(
+                     this.$refs.chartEl,
+                     incomeChartOptions(@js($labels), @js($series), '#635BFF', @js(__('Global Volume')))
+                 );
+                 this.chart.render();
+             },
+             updateChart(labels, series) {
+                 this.chart.updateOptions({ xaxis: { categories: labels } }, false, false);
+                 this.chart.updateSeries([{ name: @js(__('Global Volume')), data: series }]);
+             }
+         }"
+         x-on:global-income-update.window="updateChart($event.detail.labels, $event.detail.series)">
+        <div x-ref="chartEl" style="height:180px;"></div>
+    </div>
+
 </div>

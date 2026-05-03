@@ -52,13 +52,44 @@ class IncomeChartService extends ChartService
     {
         [$startDate, $endDate] = $this->getDateRange($period);
 
-        $row = Order::whereBetween('created_at', [$startDate, $endDate])
-            ->selectRaw('SUM(total_amount) as gross, COUNT(*) as order_count')
-            ->first();
+        $isLessThanMonth = $startDate->diffInMonths($endDate) < 1;
+
+        $format = $isLessThanMonth ? 'd M Y' : 'M Y';
+        $dbFormat = $isLessThanMonth ? 'Y-m-d' : 'Y-m';
+        $intervalMethod = $isLessThanMonth ? 'addDay' : 'addMonth';
+        $driver = DB::connection()->getDriverName();
+
+        $dateTrunc = $isLessThanMonth
+            ? 'DATE(created_at)'
+            : ($driver === 'sqlite' ? "strftime('%Y-%m', created_at)" : "DATE_FORMAT(created_at, '%Y-%m')");
+
+        $rows = Order::selectRaw("{$dateTrunc} as period, SUM(total_amount) as gross, COUNT(*) as order_count")
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('period')
+            ->orderBy('period')
+            ->get()
+            ->keyBy('period');
+
+        $labels = $this->generateLabels($startDate, $endDate, $format, $intervalMethod);
+
+        $series = [];
+        $totalGross = 0;
+        $totalOrders = 0;
+
+        foreach ($labels as $label) {
+            $key = Carbon::createFromFormat($format, $label)->format($dbFormat);
+            $row = $rows[$key] ?? null;
+            $val = $row ? round((float) $row->gross, 2) : 0;
+            $series[] = $val;
+            $totalGross += $val;
+            $totalOrders += $row ? (int) $row->order_count : 0;
+        }
 
         return [
-            'gross' => round((float) ($row->gross ?? 0), 2),
-            'order_count' => (int) ($row->order_count ?? 0),
+            'labels' => $labels->values()->toArray(),
+            'series' => $series,
+            'gross' => round($totalGross, 2),
+            'order_count' => $totalOrders,
         ];
     }
 
