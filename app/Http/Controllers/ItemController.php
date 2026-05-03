@@ -38,7 +38,14 @@ class ItemController extends Controller
     public function getAttributes(Category $category)
     {
         $category->load('assignedAttributes.options');
-        return response()->json($category->assignedAttributes->values()->all());
+
+        $attributes = $category->assignedAttributes->values()->map(function ($attr) {
+            return array_merge($attr->toArray(), [
+                'translated_name' => $attr->translated_name,
+            ]);
+        });
+
+        return response()->json($attributes);
     }
 
     public function store(Request $request)

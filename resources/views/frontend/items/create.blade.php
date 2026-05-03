@@ -222,7 +222,7 @@
                         .then(response => response.json())
                         .then(attributes => {
                             attributes.forEach(attr => {
-                                const attrName = attr.name || `Attribute #${attr.id}`;
+                                const attrName = attr.translated_name || attr.name || `Attribute #${attr.id}`;
                                 const div = document.createElement('div');
                                 div.className = 'mb-4';
 
