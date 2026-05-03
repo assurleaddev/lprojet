@@ -29,11 +29,8 @@
                 <h2 class="mb-2 text-xl font-bold text-gray-900 dark:text-white">
                     {{ __('Rejoins le mouvement de la seconde main et vends sans frais !') }}
                 </h2>
-                <p class="hidden mb-8 text-sm text-gray-500 dark:text-gray-400">
-                    {{ __('Join the second-hand movement and sell for free!') }}
-                </p>
 
-                <div class="space-y-3">
+                <div class="space-y-3 mt-6">
                     <!-- Google -->
                     <a href="{{ route('auth.social.redirect', 'google') }}"
                         class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 transition duration-150">
@@ -41,37 +38,31 @@
                         {{ __('Continuer avec Google') }}
                     </a>
 
-                    <!-- Apple -->
-                    <a href="{{ route('auth.social.redirect', 'apple') }}"
-                        class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 transition duration-150">
-                        <svg class="w-5 h-5 mr-3 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.45-1.64 3.98-1.64 1.57 0 3.36.81 4.31 2.37-3.72 1.99-3.08 7.33.65 8.94-.67 1.64-1.59 3.23-2.82 4.41l.05.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                    <!-- Apple — not available -->
+                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.45-1.64 3.98-1.64 1.57 0 3.36.81 4.31 2.37-3.72 1.99-3.08 7.33.65 8.94-.67 1.64-1.59 3.23-2.82 4.41l.05.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                         </svg>
                         {{ __('Continuer avec Apple') }}
-                    </a>
+                    </span>
 
-                    <!-- Facebook -->
-                    <a href="{{ route('auth.social.redirect', 'facebook') }}"
-                        class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 transition duration-150">
-                        <svg class="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    <!-- Facebook — not available -->
+                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                         {{ __('Continuer avec Facebook') }}
-                    </a>
+                    </span>
                 </div>
 
                 <div class="mt-8 space-y-2">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Ou inscris-toi avec') }} <button wire:click="setView('register')"
-                            class="font-medium hover:underline"
-                            class="text-gray-900">{{ __('ton adresse e-mail') }}</button>
+                            class="font-medium text-gray-900 hover:underline">{{ __('ton adresse e-mail') }}</button>
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Tu as déjà un compte ?') }} <button wire:click="setView('login_menu')"
-                            class="font-medium hover:underline"
-                            class="text-gray-900">{{ __('Se connecter') }}</button>
+                            class="font-medium text-gray-900 hover:underline">{{ __('Se connecter') }}</button>
                     </p>
                 </div>
             @endif
@@ -90,36 +81,31 @@
                         {{ __('Continuer avec Google') }}
                     </a>
 
-                    <!-- Apple -->
-                    <a href="{{ route('auth.social.redirect', 'apple') }}"
-                        class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 transition duration-150">
-                        <svg class="w-5 h-5 mr-3 text-black dark:text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.45-1.64 3.98-1.64 1.57 0 3.36.81 4.31 2.37-3.72 1.99-3.08 7.33.65 8.94-.67 1.64-1.59 3.23-2.82 4.41l.05.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                    <!-- Apple — not available -->
+                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.45-1.64 3.98-1.64 1.57 0 3.36.81 4.31 2.37-3.72 1.99-3.08 7.33.65 8.94-.67 1.64-1.59 3.23-2.82 4.41l.05.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
                         </svg>
                         {{ __('Continuer avec Apple') }}
-                    </a>
+                    </span>
 
-                    <!-- Facebook -->
-                    <a href="{{ route('auth.social.redirect', 'facebook') }}"
-                        class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-full hover:bg-gray-50 focus:ring-4 focus:ring-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 transition duration-150">
-                        <svg class="w-5 h-5 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                            <path
-                                d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    <!-- Facebook — not available -->
+                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
+                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                         </svg>
                         {{ __('Continuer avec Facebook') }}
-                    </a>
+                    </span>
                 </div>
 
                 <div class="mt-8 space-y-2">
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Ou connecte-toi avec') }} <button wire:click="setView('login')"
-                            class="font-medium hover:underline text-gray-900">{{ __('ton e-mail') }}</button>
+                            class="font-medium text-gray-900 hover:underline">{{ __('ton e-mail') }}</button>
                     </p>
                     <p class="text-sm text-gray-500 dark:text-gray-400">
                         {{ __('Tu n\'as pas de compte ' . config('app.name') . ' ?') }} <button
-                            wire:click="setView('register')" class="font-medium hover:underline"
-                            class="text-gray-900">{{ __('S\'inscrire') }}</button>
+                            wire:click="setView('register')" class="font-medium text-gray-900 hover:underline">{{ __('S\'inscrire') }}</button>
                     </p>
                 </div>
             @endif
@@ -134,8 +120,8 @@
                     <!-- Username -->
                     <div>
                         <input type="text" wire:model.blur="username"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2"
-                            style="focus-border-color: var(--brand)" placeholder="{{ __('Nom d\'utilisateur') }}">
+                            class="w-full text-base placeholder-gray-400 border-0 border-b border-gray-300 focus:ring-0 focus:outline-none bg-transparent px-0 py-3"
+                            placeholder="{{ __('Nom d\'utilisateur') }}">
                         @error('username') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         <p class="mt-1 text-xs text-gray-500">
                             {{ __('Utilise des lettres, des chiffres ou les deux. Les autres membres verront ce nom sur ton compte.') }}
@@ -145,8 +131,8 @@
                     <!-- Email -->
                     <div>
                         <input type="email" wire:model.blur="email"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2"
-                            style="focus-border-color: var(--brand)" placeholder="{{ __('Email') }}">
+                            class="w-full text-base placeholder-gray-400 border-0 border-b border-gray-300 focus:ring-0 focus:outline-none bg-transparent px-0 py-3"
+                            placeholder="{{ __('E-mail') }}">
                         @error('email') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                         <p class="mt-1 text-xs text-gray-500">
                             {{ __('Saisis l\'adresse e-mail que tu souhaites utiliser.') }}
@@ -156,10 +142,10 @@
                     <!-- Password -->
                     <div class="relative" x-data="{ show: false }">
                         <input :type="show ? 'text' : 'password'" wire:model.blur="password"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 bg-transparent px-0 py-2 pr-10"
-                            style="focus-border-color: var(--brand)" placeholder="{{ __('Mot de passe') }}">
+                            class="w-full text-base placeholder-gray-400 border-0 border-b border-gray-300 focus:ring-0 focus:outline-none bg-transparent px-0 py-3 pr-10"
+                            placeholder="{{ __('Mot de passe') }}">
                         <button type="button" @click="show = !show"
-                            class="absolute right-0 text-gray-400 top-2 hover:text-gray-600">
+                            class="absolute right-0 text-gray-400 top-3 hover:text-gray-600">
                             <iconify-icon :icon="show ? 'heroicons:eye-slash' : 'heroicons:eye'"
                                 class="w-5 h-5"></iconify-icon>
                         </button>
@@ -170,15 +156,14 @@
                     <!-- Checkboxes -->
                     <div class="pt-4 space-y-4">
                         <label class="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" wire:model="newsletter" class="mt-1 border-gray-300 rounded w-5 h-5"
-                                class="text-gray-900">
-                            <span
-                                class="text-sm text-gray-500">{{ __('Je souhaite recevoir par e-mail des offres personnalisées et les dernières mises à jour.') }}</span>
+                            <input type="checkbox" wire:model="newsletter"
+                                class="mt-1 border-gray-300 rounded w-5 h-5 text-gray-900">
+                            <span class="text-sm text-gray-500">{{ __('Je souhaite recevoir par e-mail des offres personnalisées et les dernières mises à jour.') }}</span>
                         </label>
 
                         <label class="flex items-start gap-3 cursor-pointer">
-                            <input type="checkbox" wire:model="terms" class="mt-1 border-gray-300 rounded w-5 h-5"
-                                class="text-gray-900">
+                            <input type="checkbox" wire:model="terms"
+                                class="mt-1 border-gray-300 rounded w-5 h-5 text-gray-900">
                             <span class="text-sm text-gray-500">
                                 {!! __('En t\'inscrivant, tu confirmes que tu acceptes les <a href="#" class="underline text-gray-900">Termes & Conditions</a>, avoir lu la <a href="#" class="underline text-gray-900">Politique de confidentialité</a> et avoir au moins 18 ans.') !!}
                             </span>
@@ -195,8 +180,7 @@
                     </button>
 
                     <div class="mt-4 text-center">
-                        <a href="#" class="text-sm hover:underline"
-                            class="text-gray-900">{{ __('Besoin d\'aide ?') }}</a>
+                        <a href="#" class="text-sm text-gray-900 hover:underline">{{ __('Besoin d\'aide ?') }}</a>
                     </div>
                 </form>
             @endif
@@ -211,7 +195,7 @@
                     <!-- Identifier -->
                     <div>
                         <input type="text" wire:model.blur="login_identifier"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2"
+                            class="w-full text-base placeholder-gray-400 border-0 border-b border-gray-300 focus:ring-0 focus:outline-none bg-transparent px-0 py-3"
                             placeholder="{{ __('Identifiant ou adresse email') }}">
                         @error('login_identifier') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                     </div>
@@ -219,10 +203,10 @@
                     <!-- Password -->
                     <div class="relative" x-data="{ show: false }">
                         <input :type="show ? 'text' : 'password'" wire:model.blur="login_password"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2 pr-10"
+                            class="w-full text-base placeholder-gray-400 border-0 border-b border-gray-300 focus:ring-0 focus:outline-none bg-transparent px-0 py-3 pr-10"
                             placeholder="{{ __('Mot de passe') }}">
                         <button type="button" @click="show = !show"
-                            class="absolute right-0 text-gray-400 top-2 hover:text-gray-600">
+                            class="absolute right-0 text-gray-400 top-3 hover:text-gray-600">
                             <iconify-icon :icon="show ? 'heroicons:eye-slash' : 'heroicons:eye'"
                                 class="w-5 h-5"></iconify-icon>
                         </button>
@@ -239,12 +223,11 @@
 
                     <div class="mt-6 space-y-2 text-center">
                         <div>
-                            <button type="button" wire:click="setView('forgot_password')" class="text-sm hover:underline"
-                                class="text-gray-900">{{ __('Mot de passe oublié ?') }}</button>
+                            <button type="button" wire:click="setView('forgot_password')"
+                                class="text-sm text-gray-900 hover:underline">{{ __('Mot de passe oublié ?') }}</button>
                         </div>
                         <div>
-                            <a href="#" class="text-sm hover:underline"
-                                class="text-gray-900">{{ __('Un problème ?') }}</a>
+                            <a href="#" class="text-sm text-gray-900 hover:underline">{{ __('Un problème ?') }}</a>
                         </div>
                     </div>
                 </form>
@@ -268,7 +251,7 @@
                     <!-- Email -->
                     <div>
                         <input type="email" wire:model.blur="forgot_email"
-                            class="w-full text-base placeholder-gray-500 border-0 border-b border-gray-300 focus:ring-0 focus:border-vinted-teal bg-transparent px-0 py-2"
+                            class="w-full text-base placeholder-gray-400 border-0 border-b border-gray-300 focus:ring-0 focus:outline-none bg-transparent px-0 py-3"
                             placeholder="{{ __('Entre ton adresse email') }}">
                         @error('forgot_email') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                     </div>
@@ -282,8 +265,8 @@
                     </button>
 
                     <div class="mt-4 text-center">
-                        <button type="button" wire:click="setView('login')" class="text-sm hover:underline font-medium"
-                            class="text-gray-900">{{ __('Retour à la connexion') }}</button>
+                        <button type="button" wire:click="setView('login')"
+                            class="text-sm font-medium text-gray-900 hover:underline">{{ __('Retour à la connexion') }}</button>
                     </div>
                 </form>
             @endif
