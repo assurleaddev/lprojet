@@ -3,6 +3,53 @@
         <script>
             var userGrowthData = @json($user_growth_data['data']);
             var userGrowthLabels = @json($user_growth_data['labels']);
+
+            function incomeChartOptions(labels, data, color, name) {
+                return {
+                    chart: {
+                        type: 'area',
+                        height: '100%',
+                        toolbar: { show: false },
+                        fontFamily: 'var(--font-sans)',
+                        animations: { enabled: true, easing: 'easeinout', speed: 700 },
+                    },
+                    series: [{ name: name, data: data }],
+                    xaxis: {
+                        categories: labels,
+                        labels: { style: { colors: '#94a3b8', fontSize: '11px', fontFamily: 'var(--font-sans)' } },
+                        axisBorder: { show: false },
+                        axisTicks: { show: false },
+                    },
+                    yaxis: {
+                        min: 0,
+                        labels: {
+                            formatter: v => v.toFixed(0) + ' MAD',
+                            style: { colors: '#94a3b8', fontSize: '11px', fontFamily: 'var(--font-sans)' },
+                        },
+                        axisBorder: { show: false },
+                        axisTicks: { show: false },
+                    },
+                    stroke: { width: 2.5, curve: 'smooth', colors: [color] },
+                    fill: {
+                        type: 'gradient',
+                        gradient: { opacityFrom: 0.4, opacityTo: 0.02, gradientToColors: [color] },
+                    },
+                    dataLabels: { enabled: false },
+                    markers: { size: 0, hover: { size: 5 } },
+                    grid: {
+                        strokeDashArray: 4,
+                        padding: { left: 8, right: 8, top: 4, bottom: 0 },
+                        yaxis: { lines: { show: true } },
+                        xaxis: { lines: { show: false } },
+                    },
+                    tooltip: {
+                        y: { formatter: v => v.toFixed(2) + ' MAD' },
+                        theme: 'light',
+                        style: { fontSize: '12px', fontFamily: 'var(--font-sans)' },
+                    },
+                    colors: [color],
+                };
+            }
         </script>
     @endsection
 
