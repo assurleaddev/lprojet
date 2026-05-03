@@ -14,7 +14,7 @@ class IncomeChartService extends ChartService
     {
         [$startDate, $endDate] = $this->getDateRange($period);
 
-        $isLessThanMonth = $startDate->diffInMonths($endDate) === 0;
+        $isLessThanMonth = $startDate->diffInMonths($endDate) < 1;
 
         $format = $isLessThanMonth ? 'd M Y' : 'M Y';
         $dbFormat = $isLessThanMonth ? 'Y-m-d' : 'Y-m';
