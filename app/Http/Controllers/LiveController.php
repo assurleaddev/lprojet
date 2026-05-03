@@ -455,6 +455,7 @@ class LiveController extends Controller
                     'address_id' => $winnerAddress?->id,
                     'wants_verification' => false,
                     'verification_fee' => 0,
+                    'source' => 'live',
                 ]);
 
                 // --- Order item + mark product sold ---

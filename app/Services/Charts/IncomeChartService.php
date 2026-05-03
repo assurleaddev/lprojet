@@ -48,6 +48,22 @@ class IncomeChartService extends ChartService
         ];
     }
 
+    public function getOrderSourceData(string $period = 'last_6_months'): array
+    {
+        [$startDate, $endDate] = $this->getDateRange($period);
+
+        $counts = Order::selectRaw('source, COUNT(*) as total')
+            ->whereBetween('created_at', [$startDate, $endDate])
+            ->groupBy('source')
+            ->pluck('total', 'source');
+
+        return [
+            'direct' => (int) ($counts['direct'] ?? 0),
+            'offer' => (int) ($counts['offer'] ?? 0),
+            'live' => (int) ($counts['live'] ?? 0),
+        ];
+    }
+
     private function fetchRows(Carbon $startDate, Carbon $endDate, bool $isLessThanMonth): \Illuminate\Support\Collection
     {
         $driver = DB::connection()->getDriverName();

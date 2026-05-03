@@ -133,6 +133,7 @@ class CheckoutController extends Controller
             'offer_id' => $offer?->id,
             'wants_verification' => $wantsVerification,
             'verification_fee' => $verificationFee,
+            'source' => $offer ? 'offer' : 'direct',
         ]);
 
         if ($paymentMethod === 'cod') {

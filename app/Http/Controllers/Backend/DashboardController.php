@@ -58,6 +58,9 @@ class DashboardController extends Controller
                 'income_data' => $this->incomeChartService->getIncomeData(
                     request()->get('income_filter_period', 'last_6_months')
                 ),
+                'order_source_data' => $this->incomeChartService->getOrderSourceData(
+                    request()->get('income_filter_period', 'last_6_months')
+                ),
                 'breadcrumbs' => [
                     'title' => __('Dashboard'),
                     'show_home' => false,

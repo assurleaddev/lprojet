@@ -28,6 +28,7 @@ class Order extends Model
         'received_at',
         'wants_verification',
         'verification_fee',
+        'source',
     ];
 
     protected $casts = [
