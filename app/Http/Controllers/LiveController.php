@@ -42,6 +42,25 @@ class LiveController extends Controller
     {
         $user = Auth::user();
 
+        // If the live has ended, show the ended screen (no address required)
+        if ($live->status === 'ended') {
+            $live->load(['seller', 'product']);
+            $orderedLives = collect([$live]);
+            $recentComments = collect();
+            $sellerProducts = collect();
+            $preBidCounts = collect();
+            $userPreBids = collect();
+
+            return view('frontend.lives.show', compact(
+                'live',
+                'orderedLives',
+                'recentComments',
+                'sellerProducts',
+                'preBidCounts',
+                'userPreBids',
+            ));
+        }
+
         // Require at least one shipping address before watching
         if ($user->addresses()->doesntExist()) {
             return redirect()->route('settings.postage', [

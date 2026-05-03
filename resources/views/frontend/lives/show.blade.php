@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('before_head')
 <style>
@@ -313,6 +313,73 @@ html, body { height: 100%; margin: 0; overflow: hidden; background: #000; }
 .topup-cancel-btn { width:100%; padding:11px; background:transparent; color:rgba(255,255,255,.35); border:none; font-size:13px; cursor:pointer; margin-top:6px; }
 .spinner { width:20px; height:20px; border:2px solid rgba(0,0,0,.25); border-top-color:#111; border-radius:50%; animation:spin .7s linear infinite; }
 @keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── Live Ended Overlay ── */
+.live-ended-overlay {
+    position: absolute; inset: 0; z-index: 30;
+    display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(180deg, #1c1c1c, #050505);
+}
+.ended-blur-bg {
+    position: absolute; inset: 0; pointer-events: none;
+    background:
+        radial-gradient(circle at 30% 20%, rgba(255, 0, 80, .35), transparent 30%),
+        radial-gradient(circle at 70% 60%, rgba(0, 180, 255, .25), transparent 35%);
+    filter: blur(20px);
+}
+.ended-content {
+    position: relative; z-index: 2;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px; text-align: center; width: 100%; max-width: 340px;
+}
+.ended-avatar-ring {
+    width: 96px; height: 96px; border-radius: 50%;
+    background: linear-gradient(135deg, #ff0050, #00f2ea);
+    padding: 4px; margin-bottom: 18px;
+}
+.ended-avatar-img {
+    width: 100%; height: 100%; border-radius: 50%;
+    object-fit: cover; background: #222;
+}
+.ended-heading {
+    font-size: 26px; font-weight: 900; color: #fff; margin-bottom: 10px;
+}
+.ended-subtitle {
+    color: #ccc; font-size: 15px; margin-bottom: 28px; line-height: 1.4;
+}
+.ended-stats {
+    display: flex; gap: 14px; margin-bottom: 34px;
+}
+.ended-stat {
+    background: rgba(255,255,255,.1); padding: 14px 18px;
+    border-radius: 16px; min-width: 110px; text-align: center;
+}
+.ended-stat strong {
+    display: block; font-size: 20px; font-weight: 800; color: #fff;
+}
+.ended-stat span {
+    font-size: 12px; color: #bbb;
+}
+.ended-btn {
+    width: 100%; border: none; border-radius: 999px;
+    padding: 15px; font-size: 16px; font-weight: 800;
+    cursor: pointer; margin-bottom: 12px;
+    text-align: center; text-decoration: none; display: block;
+    transition: opacity .2s;
+}
+.ended-btn:hover { opacity: .85; }
+.ended-btn-primary {
+    background: #ff0050; color: #fff;
+}
+.ended-btn-primary.following {
+    background: rgba(255,255,255,.12); color: rgba(255,255,255,.8);
+}
+.ended-btn-secondary {
+    background: rgba(255,255,255,.12); color: #fff;
+}
+.ended-thanks {
+    font-size: 13px; color: #aaa; margin-top: 16px;
+}
 </style>
 <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.22.0.js"></script>
 @endsection
@@ -837,9 +904,18 @@ document.addEventListener('DOMContentLoaded', function () {
                     const ltbSub = screen.querySelector('.ltb-sub');
                     if (ltbSub) ltbSub.innerHTML = '<span class="ltb-live-badge"><span class="ltb-live-dot"></span>LIVE</span>';
                 } else if (e.status === 'ended') {
-                    screen.remove();
-                    const feed = document.getElementById('live-feed');
-                    if (feed && feed.children.length === 0) window.location.href = {!! json_encode(route('lives.index')) !!};
+                    screen.dataset.status = 'ended';
+                    // Show the ended overlay
+                    const overlay = screen.querySelector('.js-ended-overlay');
+                    if (overlay) {
+                        overlay.style.display = '';
+                        // Update likes count in the overlay
+                        const likesEl = overlay.querySelector('.js-ended-likes');
+                        const sidebarLikes = screen.querySelector('.js-likes-count');
+                        if (likesEl && sidebarLikes) likesEl.textContent = sidebarLikes.textContent;
+                    }
+                    // Teardown Agora
+                    teardownAgora(screen);
                 }
             });
         }
@@ -999,6 +1075,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (countEl) countEl.textContent = parseInt(countEl.textContent || '0', 10) + 1;
                 apiFetch(screen.dataset.likeUrl, {}).catch(() => {});
             });
+
+            // Ended overlay follow button
+            const endedFollowBtn = screen.querySelector('.js-ended-follow');
+            if (endedFollowBtn) {
+                endedFollowBtn.addEventListener('click', async () => {
+                    endedFollowBtn.disabled = true;
+                    try {
+                        const res = await apiFetch(endedFollowBtn.dataset.followUrl, {});
+                        if (res.following) {
+                            endedFollowBtn.textContent = {!! json_encode(__('Following')) !!};
+                            endedFollowBtn.classList.add('following');
+                        } else {
+                            endedFollowBtn.textContent = {!! json_encode(__('Follow')) !!};
+                            endedFollowBtn.classList.remove('following');
+                        }
+                    } catch (e) {}
+                    endedFollowBtn.disabled = false;
+                });
+            }
 
             // Share
             const shareBtn = screen.querySelector('.js-share-btn');

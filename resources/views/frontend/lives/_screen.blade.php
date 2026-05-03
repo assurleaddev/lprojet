@@ -28,6 +28,37 @@
     {{-- Video --}}
     <div class="live-video-wrap" id="video-wrap-{{ $liveItem->id }}"></div>
 
+    {{-- Ended overlay --}}
+    <div class="live-ended-overlay js-ended-overlay" @if($liveItem->status !== 'ended') style="display:none;" @endif
+         data-seller-username="{{ $liveItem->seller->username }}"
+         data-seller-avatar="{{ $liveItem->seller->avatar_url }}"
+         data-likes="{{ $liveItem->likes_count }}">
+        <div class="ended-blur-bg"></div>
+        <div class="ended-content">
+            <div class="ended-avatar-ring">
+                <img src="{{ $liveItem->seller->avatar_url }}" alt="{{ $liveItem->seller->username }}" class="ended-avatar-img">
+            </div>
+            <h2 class="ended-heading">{{ __('LIVE has ended') }}</h2>
+            <p class="ended-subtitle">@<span class="js-ended-username">{{ $liveItem->seller->username }}</span>{{ __("'s live stream is no longer available") }}</p>
+            <div class="ended-stats">
+                <div class="ended-stat">
+                    <strong class="js-ended-likes">{{ $liveItem->likes_count }}</strong>
+                    <span>{{ __('Likes') }}</span>
+                </div>
+            </div>
+            @if(!$isSeller && Auth::check())
+                @php $isFollowingEnded = Auth::user()->isFollowing($liveItem->seller); @endphp
+                <button class="ended-btn ended-btn-primary js-ended-follow"
+                        data-follow-url="{{ route('users.follow.toggle', $liveItem->seller) }}"
+                        data-is-following="{{ $isFollowingEnded ? '1' : '0' }}">
+                    {{ $isFollowingEnded ? __('Following') : __('Follow') }}
+                </button>
+            @endif
+            <a href="{{ route('lives.index') }}" class="ended-btn ended-btn-secondary">{{ __('Go back') }}</a>
+            <p class="ended-thanks">{{ __('Thanks for watching') }}</p>
+        </div>
+    </div>
+
     {{-- Top bar --}}
     <div class="live-top-bar">
         <div class="ltb-left">
@@ -44,6 +75,8 @@
                 <div class="ltb-sub">
                     @if($liveItem->status === 'live')
                         <span class="ltb-live-badge"><span class="ltb-live-dot"></span>LIVE</span>
+                    @elseif($liveItem->status === 'ended')
+                        <span class="ltb-upcoming-badge">{{ __('Ended') }}</span>
                     @else
                         <span class="ltb-upcoming-badge">{{ __('Upcoming') }}</span>
                     @endif
