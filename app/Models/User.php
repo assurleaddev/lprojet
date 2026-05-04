@@ -288,6 +288,7 @@ class User extends Authenticatable
     public static function getChatNotificationTypes(): array
     {
         return [
+            // Short names stored in database data->type column
             'new_message',
             'offer_received',
             'offer_accepted',
@@ -296,6 +297,13 @@ class User extends Authenticatable
             'item_shipped',
             'order_update',
             'order_completed',
+            // Full class names sent by Laravel Echo in notification.type
+            'App\\Notifications\\NewMessageNotification',
+            'App\\Notifications\\OfferNotification',
+            'App\\Notifications\\ItemSoldNotification',
+            'App\\Notifications\\ItemShippedNotification',
+            'App\\Notifications\\OrderUpdateNotification',
+            'App\\Notifications\\OrderCompletedNotification',
         ];
     }
 
