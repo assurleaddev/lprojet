@@ -605,6 +605,15 @@
                             <div class="used-image-wrapper">
                                 <a href="{{ route('products.show', $item) }}" class="absolute inset-0 z-10 cursor-pointer block"></a>
                                 <img src="{{ $item->getFeaturedImageUrl('preview') }}" class="used-image-content" alt="{{ $item->name }}">
+                                @if(in_array($item->id, $trendingProductIds ?? []))
+                                    <div class="absolute top-2 right-2 z-20 flex items-center gap-1 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none"
+                                         style="background-color:#111827;" title="{{ __('Trending') }}">
+                                        <svg class="w-3 h-3 text-orange-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2C9.5 6 10 9 8 11c-.8-2-2-3.5-2-3.5C4.5 10 3 13 3 15.5 3 19.6 7 23 12 23s9-3.4 9-7.5C21 10 15.5 5.5 12 2zm0 19c-3.3 0-6-2.2-6-5 0-1.5.8-3 2-4 .3 1 .9 2 1.8 2.5C10 12 11 9.5 11 7c2 2.5 2.5 5 1.5 7.5 1-.5 1.8-1.5 2-2.5 1.2 1 2 2.5 2 4C16.5 19.8 15.3 21 12 21z"/>
+                                        </svg>
+                                        <span class="tracking-wide uppercase">{{ __('Trending') }}</span>
+                                    </div>
+                                @endif
                                 @if($item->status === 'sold')
                                     <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color:#4fb286">{{ __('Sold') }}</div>
                                 @elseif($item->status === 'reserved')
@@ -648,23 +657,33 @@
 
             {{-- You Might Like --}}
             @if($youMightLike->isNotEmpty())
-            <section class="shell px-4 md:px-6 py-8">
-                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ __('You Might Like') }}</h2>
-                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+            <section class="mt-4 md:mt-8 px-4 md:px-0 pb-6">
+                <div class="flex justify-between items-center mb-4 pt-4 md:pt-0">
+                    <h2 class="text-lg font-bold text-vinted-gray-900">{{ __('You Might Like') }}</h2>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                     @foreach($youMightLike as $item)
                         @php
-                            $ymlBpPercent = (float) config('settings.buyer_protection_fee_percentage', 5);
-                            $ymlBpFixed   = (float) config('settings.buyer_protection_fee_fixed', 0.70);
-                            $ymlInclTotal = $item->price + ($item->price * $ymlBpPercent / 100) + $ymlBpFixed;
+                            $ymlBpFee     = ($item->price * $bpPercent / 100) + $bpFixed;
+                            $ymlInclTotal = $item->price + $ymlBpFee;
                         @endphp
                         <div class="grid-item relative">
                             <div class="used-image-wrapper">
                                 <a href="{{ route('products.show', $item) }}" class="absolute inset-0 z-10 cursor-pointer block"></a>
                                 <img src="{{ $item->getFeaturedImageUrl('preview') }}" class="used-image-content" alt="{{ $item->name }}">
+                                @if(in_array($item->id, $trendingProductIds ?? []))
+                                    <div class="absolute top-2 right-2 z-20 flex items-center gap-1 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none"
+                                         style="background-color:#111827;" title="{{ __('Trending') }}">
+                                        <svg class="w-3 h-3 text-orange-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 2C9.5 6 10 9 8 11c-.8-2-2-3.5-2-3.5C4.5 10 3 13 3 15.5 3 19.6 7 23 12 23s9-3.4 9-7.5C21 10 15.5 5.5 12 2zm0 19c-3.3 0-6-2.2-6-5 0-1.5.8-3 2-4 .3 1 .9 2 1.8 2.5C10 12 11 9.5 11 7c2 2.5 2.5 5 1.5 7.5 1-.5 1.8-1.5 2-2.5 1.2 1 2 2.5 2 4C16.5 19.8 15.3 21 12 21z"/>
+                                        </svg>
+                                        <span class="tracking-wide uppercase">{{ __('Trending') }}</span>
+                                    </div>
+                                @endif
                                 @if($item->status === 'sold')
-                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color: #4fb286 !important;">{{ __('Sold') }}</div>
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color:#4fb286">{{ __('Sold') }}</div>
                                 @elseif($item->status === 'reserved')
-                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color: #f59e0b !important;">{{ __('Reserved') }}</div>
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color:#f59e0b">{{ __('Reserved') }}</div>
                                 @endif
                                 @if(auth()->id() !== $item->vendor_id)
                                     <button class="fav-badge z-30" aria-label="Favourite" data-id="{{ $item->id }}"

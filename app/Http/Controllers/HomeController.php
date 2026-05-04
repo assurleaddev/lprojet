@@ -194,10 +194,18 @@ class HomeController extends Controller
         $buyerProtectionFixed = (float) config('settings.buyer_protection_fee_fixed', 0.70);
         $protectionFee = ($product->price * $buyerProtectionPercentage / 100) + $buyerProtectionFixed;
 
+        try {
+            $members = \Illuminate\Support\Facades\Redis::smembers('ranking:trending_ids');
+            $trendingProductIds = array_map('intval', $members ?: []);
+        } catch (\Exception) {
+            $trendingProductIds = [];
+        }
+
         return view('frontend.products.show', [
             'product' => $product,
             'similarProducts' => $similarProducts,
             'youMightLike' => $youMightLike,
+            'trendingProductIds' => $trendingProductIds,
             'breadcrumbs' => $breadcrumbs,
             'deliveryFeeFixed' => $deliveryFeeFixed,
             'protectionFee' => $protectionFee,
