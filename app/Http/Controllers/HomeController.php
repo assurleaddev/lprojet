@@ -296,8 +296,12 @@ class HomeController extends Controller
             abort(422, 'You cannot like your own product.');
         }
 
-        // Toggle favorite for the authenticated user
-        $product->toggleFavorite();
+        // Toggle favorite — catch duplicate key from rapid double-clicks
+        try {
+            $product->toggleFavorite();
+        } catch (\Illuminate\Database\UniqueConstraintViolationException $e) {
+            // Concurrent request already inserted the row; treat as favorited
+        }
 
         // New state & fresh total
         $liked = $product->isFavorited();                     // for current user
