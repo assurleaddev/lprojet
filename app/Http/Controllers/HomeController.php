@@ -34,9 +34,8 @@ class HomeController extends Controller
     {
         $initialLoadSize = 25;
         $ajaxLoadSize = 5;
-        $tab = $request->input('tab', 'for_you'); // 'for_you' | 'following'
 
-        $query = $this->buildFeedQuery($tab);
+        $query = $this->buildFeedQuery();
 
         if ($request->ajax()) {
             $currentPage = $request->input('page', 1);
@@ -51,31 +50,15 @@ class HomeController extends Controller
 
         return view('home', [
             'products' => $products,
-            'activeTab' => $tab,
-            'hasFollowing' => Auth::check() && Auth::user()->followings()->exists(),
         ]);
     }
 
-    private function buildFeedQuery(string $tab)
+    private function buildFeedQuery()
     {
         $query = Product::with(['category', 'options'])
             ->where('status', 'approved');
 
-        if ($tab === 'following' && Auth::check()) {
-            $followedIds = Auth::user()->followings()->pluck('followable_id')->toArray();
-
-            if (empty($followedIds)) {
-                // Return an empty query — user follows nobody yet
-                return $query->whereRaw('1 = 0');
-            }
-
-            return $query
-                ->whereIn('vendor_id', $followedIds)
-                ->orderBy('score', 'desc')
-                ->orderBy('created_at', 'desc');
-        }
-
-        // "For You" tab — personalized if authenticated, global score if not
+        // Personalized feed for authenticated users, global score for guests
         if (Auth::check()) {
             $userId = Auth::id();
 

@@ -17,34 +17,11 @@
             </section>
         @endguest
 
-        {{-- Feed Tabs --}}
-        @auth
-        <div class="shell px-4 md:px-6 pt-6">
-            <div class="flex gap-1 border-b border-gray-200 dark:border-gray-700">
-                <a href="?tab=for_you"
-                   class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'for_you' ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400' }}">
-                   {{ __('For You') }}
-                </a>
-                <a href="?tab=following"
-                   class="px-4 py-2 text-sm font-semibold border-b-2 transition-colors {{ $activeTab === 'following' ? 'border-gray-900 text-gray-900 dark:border-white dark:text-white' : 'border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400' }}">
-                   {{ __('Following') }}
-                </a>
-            </div>
-        </div>
-        @endauth
-
         {{-- Product Grid Section with Infinite Scroll --}}
         <section class="shell px-4 md:px-6 py-6 md:py-8">
             <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="product-grid">
                 @include('layouts.partials._product_grid_items', ['products' => $products])
             </div>
-
-            @if($activeTab === 'following' && $products->isEmpty())
-                <div class="text-center py-16">
-                    <p class="text-2xl mb-2">👥</p>
-                    <p class="text-gray-500 font-semibold">{{ __("Follow some sellers to see their latest listings here.") }}</p>
-                </div>
-            @endif
 
             <div id="loading-indicator" style="display: none;" class="col-span-full text-center py-8">
                 <p class="text-gray-600 font-semibold">{{ __('Loading more products...') }}</p>
@@ -90,8 +67,7 @@
 
                 console.log('Fetching page', page);
 
-                const activeTab = new URLSearchParams(window.location.search).get('tab') || 'for_you';
-                fetch(`?tab=${activeTab}&page=${page}`, {
+                fetch(`?page=${page}`, {
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest'
                     }
