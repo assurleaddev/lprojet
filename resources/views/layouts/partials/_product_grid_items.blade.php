@@ -26,9 +26,13 @@
 
             {{-- Trending fire badge --}}
             @if(in_array($product->id, $trendingProductIds ?? []))
-                <div class="absolute top-2 right-2 z-20 flex items-center gap-1 bg-gray-900/90 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none ring-1 ring-white/10"
+                <div class="absolute top-2 right-2 z-20 flex items-center gap-1 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none"
+                     style="background-color: #111827;"
                      title="{{ __('Trending') }}">
-                    🔥 <span class="tracking-wide uppercase">Hot</span>
+                    <svg class="w-3 h-3 text-orange-400 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C9.5 6 10 9 8 11c-.8-2-2-3.5-2-3.5C4.5 10 3 13 3 15.5 3 19.6 7 23 12 23s9-3.4 9-7.5C21 10 15.5 5.5 12 2zm0 19c-3.3 0-6-2.2-6-5 0-1.5.8-3 2-4 .3 1 .9 2 1.8 2.5C10 12 11 9.5 11 7c2 2.5 2.5 5 1.5 7.5 1-.5 1.8-1.5 2-2.5 1.2 1 2 2.5 2 4C16.5 19.8 15.3 21 12 21z"/>
+                    </svg>
+                    <span class="tracking-wide uppercase">{{ __('Trending') }}</span>
                 </div>
             @endif
 
