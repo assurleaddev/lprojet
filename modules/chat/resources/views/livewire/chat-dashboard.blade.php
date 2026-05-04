@@ -5,11 +5,16 @@
             display: flex !important;
             flex-direction: column !important;
             width: 33.333333% !important;
+            height: 100% !important;
+            overflow-y: auto !important;
+            flex-shrink: 0 !important;
         }
         #chat-main {
             display: flex !important;
             flex-direction: column !important;
             width: 66.666667% !important;
+            height: 100% !important;
+            min-height: 0 !important;
         }
     }
 </style>
@@ -24,7 +29,7 @@
 
         {{-- 1. Conversation List (Sidebar) --}}
         <div id="chat-sidebar"
-            class="border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800 flex-shrink-0"
+            class="border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800"
             :class="showChat ? 'hidden' : 'flex flex-col w-full'">
 
             <h2 class="text-lg font-bold p-4 border-b dark:border-gray-700 text-gray-900 flex-shrink-0">{{ __('Inbox') }}</h2>
