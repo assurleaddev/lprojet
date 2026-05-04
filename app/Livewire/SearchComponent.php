@@ -158,18 +158,48 @@ class SearchComponent extends Component
             // Approved filter
             $productsQuery->where('status', 'approved');
 
-            // Search Query
+            // Search Query — with weighted text relevance when a query is present
             if ($this->query) {
-                $productsQuery->where(function ($q) {
-                    $q->where('name', 'like', "%{$this->query}%")
-                        ->orWhere('description', 'like', "%{$this->query}%")
-                        ->orWhereHas('brand', function ($q) {
-                            $q->where('name', 'like', "%{$this->query}%");
+                $q = $this->query;
+
+                $productsQuery->where(function ($w) use ($q) {
+                    $w->where('name', 'like', "%{$q}%")
+                        ->orWhere('description', 'like', "%{$q}%")
+                        ->orWhereHas('brand', function ($b) use ($q) {
+                            $b->where('name', 'like', "%{$q}%");
                         })
-                        ->orWhereHas('category', function ($q) {
-                            $q->where('name', 'like', "%{$this->query}%");
+                        ->orWhereHas('category', function ($c) use ($q) {
+                            $c->where('name', 'like', "%{$q}%");
                         });
                 });
+
+                // Weighted relevance score: exact title > starts-with > contains > brand/category > description
+                $productsQuery->selectRaw("
+                    products.*,
+                    (
+                        CASE WHEN LOWER(products.name) = LOWER(?) THEN 100 ELSE 0 END
+                        + CASE WHEN LOWER(products.name) LIKE LOWER(?) THEN 70 ELSE 0 END
+                        + CASE WHEN LOWER(products.name) LIKE LOWER(?) THEN 50 ELSE 0 END
+                        + CASE WHEN EXISTS (
+                            SELECT 1 FROM brands b
+                            WHERE b.id = products.brand_id
+                              AND LOWER(b.name) LIKE LOWER(?)
+                          ) THEN 30 ELSE 0 END
+                        + CASE WHEN EXISTS (
+                            SELECT 1 FROM categories c
+                            WHERE c.id = products.category_id
+                              AND LOWER(c.name) LIKE LOWER(?)
+                          ) THEN 20 ELSE 0 END
+                        + CASE WHEN LOWER(products.description) LIKE LOWER(?) THEN 10 ELSE 0 END
+                    ) AS relevance_score
+                ", [
+                    $q,
+                    $q . '%',
+                    '%' . $q . '%',
+                    '%' . $q . '%',
+                    '%' . $q . '%',
+                    '%' . $q . '%',
+                ]);
             }
 
             // Categories — include selected categories and all their descendants
@@ -183,13 +213,6 @@ class SearchComponent extends Component
 
             // Brands
             if (! empty($this->selectedBrands)) {
-                // Assuming Brand is a relation or column.
-                // Based on "Brand" model existence, likely a relation or direct column.
-                // Earlier view used $product->brand (string?). Let's check model.
-                // Actually earlier code used $product->brand (property) and "Brand" Model.
-                // If Brand is a model, product likely has brand_id or brand() relation.
-                // SearchController query used `orWhereHas('brand'...)` implying relation.
-                // So filtering by ID is best.
                 $productsQuery->whereIn('brand_id', $this->selectedBrands);
             }
 
@@ -220,13 +243,17 @@ class SearchComponent extends Component
 
             // Sorting
             if ($this->sort === 'newest') {
-                $productsQuery->latest();
+                $productsQuery->orderBy('created_at', 'desc');
             } elseif ($this->sort === 'price_asc') {
                 $productsQuery->orderBy('price', 'asc');
             } elseif ($this->sort === 'price_desc') {
                 $productsQuery->orderBy('price', 'desc');
+            } elseif ($this->query) {
+                // Text search: relevance first, then global score as tiebreaker
+                $productsQuery->orderByRaw('relevance_score DESC, score DESC, created_at DESC');
             } else {
-                $productsQuery->latest(); // Default
+                // Browse without query: rank by global score
+                $productsQuery->orderBy('score', 'desc')->orderBy('created_at', 'desc');
             }
 
             $results = $productsQuery->paginate(20);

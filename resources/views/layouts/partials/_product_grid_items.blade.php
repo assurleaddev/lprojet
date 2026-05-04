@@ -3,7 +3,10 @@
 @forelse ($products as $product)
     <div class="grid-item relative">
         <div class="used-image-wrapper">
-            <a href="{{ route('products.show', $product) }}" class="absolute inset-0 z-10 cursor-pointer block"></a>
+            <a href="{{ route('products.show', $product) }}"
+               class="absolute inset-0 z-10 cursor-pointer block js-product-click"
+               data-product-id="{{ $product->id }}"
+               data-source="{{ request()->routeIs('home') ? 'homepage' : (request()->routeIs('search') ? 'search' : 'browse') }}"></a>
             {{-- For better performance, we'll lazy-load images --}}
             <img data-src="{{ $product->getFeaturedImageUrl('preview') }}"
                 src="{{ $product->getFeaturedImageUrl('preview') }}" class="lazy used-image-content"

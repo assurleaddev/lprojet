@@ -55,6 +55,27 @@ class Order extends Model
             + ($this->platform_commission ?? 0);
     }
 
+    protected static function booted(): void
+    {
+        // Increment orders_count when a non-cancelled order is created
+        static::created(function (Order $order) {
+            if ($order->status !== 'cancelled' && $order->product_id) {
+                \Illuminate\Support\Facades\DB::table('products')
+                    ->where('id', $order->product_id)
+                    ->increment('orders_count');
+            }
+        });
+
+        // Handle cancellations: decrement if order transitions to cancelled
+        static::updated(function (Order $order) {
+            if ($order->wasChanged('status') && $order->status === 'cancelled' && $order->product_id) {
+                \Illuminate\Support\Facades\DB::table('products')
+                    ->where('id', $order->product_id)
+                    ->decrement('orders_count');
+            }
+        });
+    }
+
     // The customer who placed the order
     public function user()
     {

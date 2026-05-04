@@ -2,6 +2,7 @@
 
 namespace App\Console;
 
+use App\Jobs\RecalculateProductScores;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -26,6 +27,9 @@ class Kernel extends ConsoleKernel
     {
         // Schedule the demo database refresh command every 15 minutes in demo mode.
         $schedule->command('demo:refresh-database')->everyFifteenMinutes();
+
+        // Recalculate product ranking scores every hour.
+        $schedule->job(new RecalculateProductScores())->hourly()->withoutOverlapping();
     }
 
     /**

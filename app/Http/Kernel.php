@@ -73,5 +73,6 @@ class Kernel extends HttpKernel
         'recaptcha' => \App\Http\Middleware\VerifyRecaptcha::class,
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
+        'track.product.view' => \App\Http\Middleware\TrackProductView::class,
     ];
 }

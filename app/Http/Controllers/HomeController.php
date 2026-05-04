@@ -47,7 +47,8 @@ class HomeController extends Controller
 
             $products = Product::with(['category', 'options'])
                 ->where('status', 'approved')
-                ->latest()
+                ->orderBy('score', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->skip($offset)
                 ->take($ajaxLoadSize)
                 ->get();
@@ -60,7 +61,8 @@ class HomeController extends Controller
             // Laravel's paginator is fine here for the first load.
             $products = Product::with(['category', 'options'])
                 ->where('status', 'approved')
-                ->latest()
+                ->orderBy('score', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->paginate($initialLoadSize);
 
             return view('home', [
@@ -99,17 +101,9 @@ class HomeController extends Controller
         $similarProducts = Product::where('category_id', $product->category_id)
             ->where('id', '!=', $product->id)
             ->where('status', 'approved')
-            ->with([
-                'vendor',
-                'vendor.products', // This nested eager load might also need filtering if used deeply, but typically similar items card doesn't show deep vendor items
-                'vendor.products.options',
-                'vendor.products.category',
-                'vendor.products.images',
-                'category',
-                'options',
-                'images',
-            ])
-            ->take(20)
+            ->with(['vendor', 'category', 'options', 'images'])
+            ->orderBy('score', 'desc')
+            ->orderBy('created_at', 'desc')
             ->take(20)
             ->get();
 
@@ -207,6 +201,25 @@ class HomeController extends Controller
         ]);
     }
 
+    public function trackClick(Request $request, Product $product): \Illuminate\Http\JsonResponse
+    {
+        $source = $request->input('source', 'homepage');
+
+        \Illuminate\Support\Facades\DB::table('product_clicks')->insert([
+            'product_id' => $product->id,
+            'user_id' => $request->user()?->id,
+            'session_id' => substr(session()->getId(), 0, 64),
+            'source' => $source,
+            'created_at' => now(),
+        ]);
+
+        \Illuminate\Support\Facades\DB::table('products')
+            ->where('id', $product->id)
+            ->increment('clicks_count');
+
+        return response()->json(['ok' => true]);
+    }
+
     public function toggleFavorite(Request $request, Product $product)
     {
         // Prevent self-like
@@ -220,6 +233,12 @@ class HomeController extends Controller
         // New state & fresh total
         $liked = $product->isFavorited();                     // for current user
         $count = $product->favoritedBy()->count();            // total users who favorited
+
+        // Keep denormalized counter in sync
+        $product->timestamps = false;
+        $product->favorites_count = $count;
+        $product->save();
+        $product->timestamps = true;
 
         if ($liked) {
             try {

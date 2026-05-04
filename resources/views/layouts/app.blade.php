@@ -491,6 +491,26 @@ $nextTick(() => {
         });
     </script>
 
+    <script>
+        // Product click beacon — fires when a product card link is clicked
+        document.addEventListener('click', function (e) {
+            const link = e.target.closest('.js-product-click');
+            if (!link) return;
+
+            const productId = link.dataset.productId;
+            const source    = link.dataset.source || 'homepage';
+            const csrf      = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+
+            // Use sendBeacon so the request completes even if the page navigates away
+            const url  = '/products/' + productId + '/click';
+            const body = JSON.stringify({ source, _token: csrf });
+            const blob = new Blob([body], { type: 'application/json' });
+            navigator.sendBeacon
+                ? navigator.sendBeacon(url, blob)
+                : fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf }, body, keepalive: true });
+        });
+    </script>
+
     @if (!empty(config('settings.global_custom_js')))
         <script>
             {!! config('settings.global_custom_js') !!}

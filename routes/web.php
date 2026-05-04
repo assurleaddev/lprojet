@@ -60,8 +60,9 @@ Route::post('/items/{product}/unreserve', [App\Http\Controllers\ItemController::
 Route::post('/items/{product}/hide', [App\Http\Controllers\ItemController::class, 'hide'])->middleware('auth')->name('items.hide');
 Route::post('/items/{product}/unhide', [App\Http\Controllers\ItemController::class, 'unhide'])->middleware('auth')->name('items.unhide');
 Route::get('/items/categories/{category}/attributes', [App\Http\Controllers\ItemController::class, 'getAttributes'])->name('items.attributes');
-Route::get('items/{product}', [HomeController::class, 'show'])->name('products.show');
+Route::get('items/{product}', [HomeController::class, 'show'])->middleware('track.product.view')->name('products.show');
 Route::get('member/{user}', [HomeController::class, 'member_profile'])->name('vendor.show');
+Route::post('/products/{product}/click', [HomeController::class, 'trackClick'])->name('products.click');
 Route::post('/products/{product}/favorite', [HomeController::class, 'toggleFavorite'])
     ->middleware('auth')
     ->name('products.favorite');
