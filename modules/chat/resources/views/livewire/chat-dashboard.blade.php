@@ -1,16 +1,14 @@
 <div class="max-w-7xl mx-auto md:px-4 md:py-6"
-    x-data="{ showChat: false, isMobile: window.innerWidth < 768 }"
-    x-init="
-        const urlHasId = new URLSearchParams(window.location.search).has('id');
-        showChat = urlHasId || !isMobile;
-        window.addEventListener('resize', () => { isMobile = window.innerWidth < 768; });
-    "
+    x-data="{ showChat: false }"
+    x-init="showChat = (window.innerWidth >= 768) || new URLSearchParams(window.location.search).has('id')"
     @conversation-selected.window="showChat = true"
     @back-to-inbox.window="showChat = false">
 
     <div class="flex h-[100dvh] md:h-[calc(100vh-theme(spacing.32))] overflow-hidden bg-white dark:bg-gray-800 md:rounded-lg md:shadow-sm md:border md:border-gray-200 dark:border-gray-700">
 
         {{-- 1. Conversation List (Sidebar) --}}
+        {{-- Mobile: full-width, hidden when chat is open --}}
+        {{-- Desktop: always visible, 1/3 width --}}
         <div class="w-full md:w-1/3 border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800 flex-shrink-0"
             :class="showChat ? 'hidden md:flex md:flex-col' : 'flex flex-col'">
 
@@ -92,6 +90,8 @@
         </div>
 
         {{-- 2. Chat Window --}}
+        {{-- Mobile: full-width, hidden until conversation selected --}}
+        {{-- Desktop: always visible, 2/3 width --}}
         <div class="w-full md:w-2/3 flex flex-col bg-gray-50 dark:bg-gray-900"
             :class="showChat ? 'flex' : 'hidden md:flex'"
             x-data="{ lastRefresh: 0 }"
