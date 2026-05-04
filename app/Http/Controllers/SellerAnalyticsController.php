@@ -15,8 +15,11 @@ class SellerAnalyticsController extends Controller
         $userId = Auth::id();
 
         $products = Product::where('vendor_id', $userId)
+            ->where('status', '!=', 'sold')
             ->select('id', 'name', 'status', 'price', 'views_count', 'clicks_count', 'favorites_count', 'orders_count', 'score', 'created_at')
+            ->orderByRaw("CASE WHEN status = 'approved' THEN 0 ELSE 1 END")
             ->orderByDesc('views_count')
+            ->with('media')
             ->get();
 
         $totals = [

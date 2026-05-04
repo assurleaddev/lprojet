@@ -31,16 +31,19 @@
 
         {{-- Product List --}}
         <div class="lg:col-span-1">
-            <h2 class="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">{{ __('Your Listings') }}</h2>
+            <h2 class="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">{{ __('My Listings') }}</h2>
             <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
                 @forelse($products as $product)
                     <a href="{{ route('seller.analytics', ['product_id' => $product->id]) }}"
                        class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors {{ $selectedProduct?->id === $product->id ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
+                        <img src="{{ $product->getFirstMediaUrl('products', 'thumb') ?: $product->getFeaturedImageUrl('thumb') ?: asset('images/placeholder.png') }}"
+                             alt="{{ $product->name }}"
+                             class="w-10 h-10 rounded-lg object-cover shrink-0 border border-gray-100 dark:border-gray-600">
                         <div class="flex-1 min-w-0">
                             <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ $product->name }}</p>
                             <p class="text-xs text-gray-400">{{ number_format($product->price) }} MAD
                                 &middot;
-                                <span class="@if($product->status === 'approved') text-green-500 @elseif($product->status === 'sold') text-blue-500 @else text-gray-400 @endif">
+                                <span class="@if($product->status === 'approved') text-green-500 @else text-gray-400 @endif">
                                     {{ __($product->status) }}
                                 </span>
                             </p>
