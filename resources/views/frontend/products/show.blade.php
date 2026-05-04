@@ -557,7 +557,7 @@
                                     <button class="fav-badge z-30" aria-label="Favourite"
                                         data-id="{{ $item->id }}"
                                         data-url="{{ route('products.favorite', $item) }}">
-                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }}">
                                             <path d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z"/>
                                         </svg>
                                         <span>{{ $item->favoritedBy()->count() }}</span>
@@ -623,7 +623,7 @@
                                     <button class="fav-badge z-30" aria-label="Favourite"
                                         data-id="{{ $item->id }}"
                                         data-url="{{ route('products.favorite', $item) }}">
-                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }}">
                                             <path d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z"/>
                                         </svg>
                                         <span>{{ $item->favoritedBy()->count() }}</span>
@@ -688,7 +688,7 @@
                                 @if(auth()->id() !== $item->vendor_id)
                                     <button class="fav-badge z-30" aria-label="Favourite" data-id="{{ $item->id }}"
                                         data-url="{{ route('products.favorite', $item) }}">
-                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }}">
                                             <path d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z"/>
                                         </svg>
                                         <span>{{ $item->favoritedBy()->count() }}</span>
