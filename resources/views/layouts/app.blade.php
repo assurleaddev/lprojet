@@ -431,6 +431,9 @@ $nextTick(() => {
             e.preventDefault();
             e.stopPropagation();
 
+            // Block re-clicks while request is in-flight
+            if (button.dataset.pending === '1') return;
+
             const url = button.dataset.url;
             if (!url) return;
 
@@ -438,7 +441,7 @@ $nextTick(() => {
             const countSpan = button.querySelector('span');
             const isLiked = svg.classList.contains('!text-red-500');
 
-            // Optimistic update
+            // 1. Color immediately before the request
             if (isLiked) {
                 svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
                 countSpan.textContent = Math.max(0, (parseInt(countSpan.textContent) || 0) - 1);
@@ -447,6 +450,10 @@ $nextTick(() => {
                 countSpan.textContent = (parseInt(countSpan.textContent) || 0) + 1;
             }
 
+            // 2. Lock the button
+            button.dataset.pending = '1';
+
+            // 3. Send the request
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -473,6 +480,7 @@ $nextTick(() => {
             })
             .then(data => {
                 if (!data) return;
+                // Sync UI with server truth
                 if (data.liked) {
                     svg.classList.add('!text-red-500', '!fill-current', '!stroke-current');
                 } else {
@@ -487,6 +495,10 @@ $nextTick(() => {
                 } else {
                     svg.classList.remove('!text-red-500', '!fill-current', '!stroke-current');
                 }
+            })
+            .finally(() => {
+                // Unlock button
+                button.dataset.pending = '0';
             });
         });
     </script>
