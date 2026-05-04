@@ -1,5 +1,10 @@
 <div class="max-w-7xl mx-auto md:px-4 md:py-6"
-    x-data="{ showChat: {{ $selectedConversationId ? 'true' : 'false' }} }"
+    x-data="{ showChat: false, isMobile: window.innerWidth < 768 }"
+    x-init="
+        const urlHasId = new URLSearchParams(window.location.search).has('id');
+        showChat = urlHasId || !isMobile;
+        window.addEventListener('resize', () => { isMobile = window.innerWidth < 768; });
+    "
     @conversation-selected.window="showChat = true"
     @back-to-inbox.window="showChat = false">
 
