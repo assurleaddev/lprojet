@@ -26,9 +26,9 @@
 
             {{-- Trending fire badge --}}
             @if(in_array($product->id, $trendingProductIds ?? []))
-                <div class="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm text-[11px] font-bold px-1.5 py-0.5 rounded-md shadow-sm pointer-events-none"
+                <div class="absolute top-2 right-2 z-20 flex items-center gap-1 bg-gray-900/90 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-lg pointer-events-none ring-1 ring-white/10"
                      title="{{ __('Trending') }}">
-                    🔥
+                    🔥 <span class="tracking-wide uppercase">Hot</span>
                 </div>
             @endif
 
