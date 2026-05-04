@@ -70,26 +70,27 @@ class UpdateTrendingProducts implements ShouldQueue
             ->sortDesc()
             ->take(self::TRENDING_LIMIT);
 
-        $pipeline = Redis::pipeline();
-        $pipeline->del('ranking:trending', 'ranking:trending_ids');
-
         $zArgs = [];
         foreach ($top as $id => $score) {
             $zArgs[] = $score;
             $zArgs[] = (string) $id;
         }
-        if (! empty($zArgs)) {
-            $pipeline->zadd('ranking:trending', ...$zArgs);
-        }
 
         $ids = $top->keys()->map(fn ($id) => (string) $id)->toArray();
-        if (! empty($ids)) {
-            $pipeline->sadd('ranking:trending_ids', ...$ids);
-        }
 
-        $pipeline->expire('ranking:trending', self::TTL_SECONDS);
-        $pipeline->expire('ranking:trending_ids', self::TTL_SECONDS);
+        Redis::pipeline(function ($pipe) use ($zArgs, $ids) {
+            $pipe->del('ranking:trending', 'ranking:trending_ids');
 
-        $pipeline->execute();
+            if (! empty($zArgs)) {
+                $pipe->zadd('ranking:trending', ...$zArgs);
+            }
+
+            if (! empty($ids)) {
+                $pipe->sadd('ranking:trending_ids', ...$ids);
+            }
+
+            $pipe->expire('ranking:trending', self::TTL_SECONDS);
+            $pipe->expire('ranking:trending_ids', self::TTL_SECONDS);
+        });
     }
 }
