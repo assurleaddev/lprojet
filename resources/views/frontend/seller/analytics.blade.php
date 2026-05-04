@@ -3,7 +3,7 @@
 @section('title', __('My Analytics'))
 
 @section('content')
-<main class="shell px-4 md:px-6 py-8 max-w-6xl mx-auto">
+<main class="shell px-4 md:px-6 py-6 max-w-6xl mx-auto flex flex-col" style="height: calc(100vh - var(--header-h, 80px)); overflow: hidden;">
 
     <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">{{ __('My Analytics') }}</h1>
 
@@ -27,12 +27,12 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 min-h-0">
 
         {{-- Product List --}}
-        <div class="lg:col-span-1">
-            <h2 class="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3">{{ __('My Listings') }}</h2>
-            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-hidden">
+        <div class="lg:col-span-1 flex flex-col min-h-0">
+            <h2 class="text-sm font-bold uppercase tracking-wide text-gray-500 mb-3 shrink-0">{{ __('My Listings') }}</h2>
+            <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 overflow-y-auto flex-1 min-h-0">
                 @forelse($products as $product)
                     <a href="{{ route('seller.analytics', ['product_id' => $product->id]) }}"
                        class="flex items-center gap-3 px-4 py-3 border-b border-gray-50 dark:border-gray-700 last:border-0 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors {{ $selectedProduct?->id === $product->id ? 'bg-gray-50 dark:bg-gray-700' : '' }}">
@@ -63,7 +63,7 @@
         </div>
 
         {{-- Chart Panel --}}
-        <div class="lg:col-span-2">
+        <div class="lg:col-span-2 overflow-y-auto min-h-0">
             @if($selectedProduct && $chartData)
                 <div class="flex items-center justify-between mb-3">
                     <h2 class="text-sm font-bold uppercase tracking-wide text-gray-500">{{ $selectedProduct->name }}</h2>
@@ -116,6 +116,12 @@
     </div>
 
 </main>
+<script>
+    (function() {
+        var h = document.getElementById('main-header');
+        if (h) document.documentElement.style.setProperty('--header-h', h.offsetHeight + 'px');
+    })();
+</script>
 @endsection
 
 @if($selectedProduct && $chartData)
