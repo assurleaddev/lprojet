@@ -1,29 +1,29 @@
-<style>
-    /* Desktop: force sidebar + chat side-by-side, immune to Alpine toggling */
-    @media (min-width: 768px) {
-        #chat-sidebar {
-            display: flex !important;
-            flex-direction: column !important;
-            width: 33.333333% !important;
-            height: 100% !important;
-            overflow-y: auto !important;
-            flex-shrink: 0 !important;
-        }
-        #chat-main {
-            display: flex !important;
-            flex-direction: column !important;
-            width: 66.666667% !important;
-            height: 100% !important;
-            min-height: 0 !important;
-        }
-    }
-</style>
-
 <div class="max-w-7xl mx-auto md:px-4 md:py-6"
     x-data="{ showChat: false }"
     x-init="if (new URLSearchParams(window.location.search).has('id')) showChat = true"
     @conversation-selected.window="showChat = true"
     @back-to-inbox.window="showChat = false">
+
+    <style>
+        /* Desktop: force sidebar + chat side-by-side, immune to Alpine toggling */
+        @media (min-width: 768px) {
+            #chat-sidebar {
+                display: flex !important;
+                flex-direction: column !important;
+                width: 33.333333% !important;
+                height: 100% !important;
+                overflow-y: auto !important;
+                flex-shrink: 0 !important;
+            }
+            #chat-main {
+                display: flex !important;
+                flex-direction: column !important;
+                width: 66.666667% !important;
+                height: 100% !important;
+                min-height: 0 !important;
+            }
+        }
+    </style>
 
     <div class="flex h-[100dvh] md:h-[calc(100vh-theme(spacing.32))] overflow-hidden bg-white dark:bg-gray-800 md:rounded-lg md:shadow-sm md:border md:border-gray-200 dark:border-gray-700">
 
