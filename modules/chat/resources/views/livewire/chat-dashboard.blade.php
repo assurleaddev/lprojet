@@ -1,6 +1,5 @@
 <div class="max-w-7xl mx-auto md:px-4 md:py-6"
     x-data="{ showChat: false }"
-    x-init="if (new URLSearchParams(window.location.search).has('id')) showChat = true"
     @conversation-selected.window="showChat = true"
     @back-to-inbox.window="showChat = false">
 

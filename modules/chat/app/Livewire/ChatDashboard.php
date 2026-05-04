@@ -8,7 +8,6 @@ use Modules\Chat\Models\Conversation; // Ensure correct import for your Conversa
 use Illuminate\Database\Eloquent\Collection; // Make sure Eloquent Collection is imported
 use Illuminate\Support\Facades\Auth; // Import Auth facade
 
-use Livewire\Attributes\Url; // Import Url attribute
 use Livewire\Attributes\Layout; // Import Layout attribute
 use Illuminate\Support\Facades\Log; // Import Log facade
 
@@ -16,10 +15,9 @@ use Illuminate\Support\Facades\Log; // Import Log facade
 class ChatDashboard extends Component
 {
     /**
-     * The currently selected conversation ID, synced with the URL.
+     * The currently selected conversation ID.
      * @var int|null
      */
-    #[Url(as: 'id')]
     public ?int $selectedConversationId = null;
 
     /**
