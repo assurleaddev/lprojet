@@ -1,3 +1,19 @@
+<style>
+    /* Desktop: force sidebar + chat side-by-side, immune to Alpine toggling */
+    @media (min-width: 768px) {
+        #chat-sidebar {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 33.333333% !important;
+        }
+        #chat-main {
+            display: flex !important;
+            flex-direction: column !important;
+            width: 66.666667% !important;
+        }
+    }
+</style>
+
 <div class="max-w-7xl mx-auto md:px-4 md:py-6"
     x-data="{ showChat: false }"
     x-init="if (new URLSearchParams(window.location.search).has('id')) showChat = true"
@@ -7,9 +23,8 @@
     <div class="flex h-[100dvh] md:h-[calc(100vh-theme(spacing.32))] overflow-hidden bg-white dark:bg-gray-800 md:rounded-lg md:shadow-sm md:border md:border-gray-200 dark:border-gray-700">
 
         {{-- 1. Conversation List (Sidebar) --}}
-        {{-- Mobile: full-width, hidden when chat is open --}}
-        {{-- Desktop: always visible, 1/3 width --}}
-        <div class="md:!flex md:!flex-col md:!w-1/3 border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800 flex-shrink-0"
+        <div id="chat-sidebar"
+            class="border-r border-gray-200 dark:border-gray-700 overflow-y-auto bg-white dark:bg-gray-800 flex-shrink-0"
             :class="showChat ? 'hidden' : 'flex flex-col w-full'">
 
             <h2 class="text-lg font-bold p-4 border-b dark:border-gray-700 text-gray-900 flex-shrink-0">{{ __('Inbox') }}</h2>
@@ -90,9 +105,8 @@
         </div>
 
         {{-- 2. Chat Window --}}
-        {{-- Mobile: full-width, hidden until conversation selected --}}
-        {{-- Desktop: always visible, 2/3 width --}}
-        <div class="md:!flex md:!flex-col md:!w-2/3 bg-gray-50 dark:bg-gray-900"
+        <div id="chat-main"
+            class="bg-gray-50 dark:bg-gray-900"
             :class="showChat ? 'flex flex-col w-full' : 'hidden'"
             x-data="{ lastRefresh: 0 }"
             x-init="() => {
