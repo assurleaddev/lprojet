@@ -157,25 +157,27 @@ class HomeController extends Controller
             ->get();
 
         // Collaborative filtering: products co-favorited by users who also liked this one
-        $youMightLike = Product::query()
-            ->select('products.*', DB::raw('COUNT(*) as co_fav_count'))
-            ->join('favorites as f2', function ($join) {
-                $join->on('products.id', '=', 'f2.favoriteable_id')
-                     ->where('f2.favoriteable_type', 'App\\Models\\Product');
-            })
+        $coFavCounts = DB::table('favorites as f2')
+            ->select('f2.favoriteable_id', DB::raw('COUNT(*) as co_fav_count'))
+            ->where('f2.favoriteable_type', 'App\\Models\\Product')
+            ->where('f2.favoriteable_id', '!=', $product->id)
             ->whereIn('f2.user_id', function ($sub) use ($product) {
                 $sub->select('user_id')
                     ->from('favorites')
                     ->where('favoriteable_id', $product->id)
                     ->where('favoriteable_type', 'App\\Models\\Product');
             })
-            ->where('products.id', '!=', $product->id)
-            ->where('products.status', 'approved')
-            ->with(['category', 'options'])
-            ->groupBy('products.id')
+            ->groupBy('f2.favoriteable_id')
             ->orderByDesc('co_fav_count')
             ->take(8)
-            ->get();
+            ->pluck('co_fav_count', 'favoriteable_id');
+
+        $youMightLike = Product::whereIn('id', $coFavCounts->keys())
+            ->where('status', 'approved')
+            ->with(['category', 'options'])
+            ->get()
+            ->sortByDesc(fn ($p) => $coFavCounts[$p->id] ?? 0)
+            ->values();
 
         // Build Breadcrumbs
         $breadcrumbs = [];
