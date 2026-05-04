@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 
 class NotificationController extends Controller
@@ -17,7 +18,11 @@ class NotificationController extends Controller
 
     public function markAllRead()
     {
-        Auth::user()->unreadNotifications->markAsRead();
+        Auth::user()->unreadNotifications()
+            ->whereNotIn('data->type', User::getChatNotificationTypes())
+            ->get()
+            ->markAsRead();
+
         return back()->with('success', 'All notifications marked as read.');
     }
 

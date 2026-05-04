@@ -9,6 +9,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['web', 'auth'])->prefix('chat')->group(function () {
+    Route::get('/unread-count', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
+
     // Use the component directly as an invokable action for full-page Livewire components
     // We explicitly reference the full class.
 

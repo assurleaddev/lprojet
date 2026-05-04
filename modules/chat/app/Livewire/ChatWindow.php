@@ -160,6 +160,7 @@ class ChatWindow extends Component
             // Mark messages as read and delivered BEFORE loading to ensure correct status in the array
             $chatService->markAsRead($conversation, $user);
             $chatService->markAsDelivered($conversation, $user);
+            $this->dispatch('chat-messages-read');
 
             // Re-fetch conversation to get updated timestamps in messages
             $conversation->refresh();

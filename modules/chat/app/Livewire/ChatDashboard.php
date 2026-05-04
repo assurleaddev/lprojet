@@ -71,6 +71,7 @@ class ChatDashboard extends Component
         // Initial mark as read if selected
         if ($this->selectedConversation) {
             $chatService->markAsRead($this->selectedConversation, Auth::user());
+            $this->dispatch('chat-messages-read');
         }
     }
 
@@ -92,6 +93,7 @@ class ChatDashboard extends Component
 
         if ($this->selectedConversation) {
             app(ChatService::class)->markAsRead($this->selectedConversation, Auth::user());
+            $this->dispatch('chat-messages-read');
         }
     }
 

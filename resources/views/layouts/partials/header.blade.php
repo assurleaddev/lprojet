@@ -45,7 +45,7 @@
                 @if (Auth::check())
                                 <a href="{{ route('chat.dashboard') }}" class="text-gray-600 hover:text-black relative shrink-0 flex items-center md:block"
                                     aria-label="Messages" x-data="{
-                                                                                                            msgCount: {{ auth()->user()->unreadMessagesCount() + auth()->user()->unreadChatNotificationsCount() }},
+                                                                                                            msgCount: {{ auth()->user()->unreadMessagesCount() }},
                                                                                                             chatTypes: {{ \Illuminate\Support\Js::from(\App\Models\User::getChatNotificationTypes()) }},
                                                                                                             init() {
                                                                                                                 if (typeof Echo !== 'undefined') {
@@ -56,6 +56,11 @@
                                                                                                                             }
                                                                                                                         });
                                                                                                                 }
+                                                                                                                window.addEventListener('chat-messages-read', () => {
+                                                                                                                    fetch('/chat/unread-count', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                                                                                                                        .then(r => r.json())
+                                                                                                                        .then(data => { this.msgCount = data.count; });
+                                                                                                                });
                                                                                                             }
                                                                                                         }">
                                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

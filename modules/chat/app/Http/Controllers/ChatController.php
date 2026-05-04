@@ -31,6 +31,16 @@ class ChatController extends Controller
         return redirect()->route('chat.dashboard', ['id' => $conversation->id]);
     }
     /**
+     * Return the current unread message count for the authenticated user.
+     */
+    public function unreadCount(Request $request)
+    {
+        return response()->json([
+            'count' => $request->user()->unreadMessagesCount(),
+        ]);
+    }
+
+    /**
      * Display a listing of the resource.
      */
     public function index()
