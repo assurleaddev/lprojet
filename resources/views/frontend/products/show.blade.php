@@ -953,6 +953,11 @@
                 @endauth
             </div>
         @endif
+
+    {{-- Make-offer modal must live outside the md:hidden wrapper so it is present on all screen sizes --}}
+    @if(!auth()->check() || auth()->id() !== $product->vendor_id)
+        @livewire('chat::make-offer-modal')
+    @endif
     </main>
 @endsection
 

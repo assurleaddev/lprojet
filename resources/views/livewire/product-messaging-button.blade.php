@@ -29,6 +29,5 @@
         </div>
     @endauth
 
-    {{-- Include the MakeOfferModal component (it will be hidden initially) --}}
-    @livewire('chat::make-offer-modal')
+
 </div>
