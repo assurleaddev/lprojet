@@ -98,8 +98,8 @@
                 @endif
 
                 {{-- Line Chart --}}
-                <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5" style="height: 320px;">
-                    <canvas id="analyticsChart" wire:ignore style="width:100%; height:100%;"></canvas>
+                <div wire:ignore class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-5 relative" style="height: 320px;">
+                    <canvas id="analyticsChart"></canvas>
                 </div>
             @else
                 <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 flex items-center justify-center h-64">
@@ -112,30 +112,21 @@
 
 @script
 <script>
-    // Load Chart.js once
-    if (!window.Chart) {
-        let s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
-        s.onload = () => initChart();
-        document.head.appendChild(s);
-    } else {
-        initChart();
-    }
-
     let chartInstance = null;
 
-    function initChart() {
-        const canvas = document.getElementById('analyticsChart');
-        if (!canvas) return;
-
-        @if($chartData)
-            buildChart(@json($chartData));
-        @endif
+    function ensureChartJs() {
+        return new Promise((resolve) => {
+            if (window.Chart) return resolve();
+            const s = document.createElement('script');
+            s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+            s.onload = resolve;
+            document.head.appendChild(s);
+        });
     }
 
     function buildChart(data) {
         const canvas = document.getElementById('analyticsChart');
-        if (!canvas) return;
+        if (!canvas || !data) return;
 
         if (chartInstance) {
             chartInstance.destroy();
@@ -148,7 +139,7 @@
                 labels: data.labels,
                 datasets: [
                     {
-                        label: @json(__('Views')),
+                        label: 'Views',
                         data: data.views,
                         borderColor: '#3b82f6',
                         backgroundColor: 'rgba(59,130,246,0.08)',
@@ -158,7 +149,7 @@
                         fill: true,
                     },
                     {
-                        label: @json(__('Clicks')),
+                        label: 'Clicks',
                         data: data.clicks,
                         borderColor: '#a855f7',
                         backgroundColor: 'rgba(168,85,247,0.08)',
@@ -168,7 +159,7 @@
                         fill: true,
                     },
                     {
-                        label: @json(__('Likes')),
+                        label: 'Likes',
                         data: data.likes,
                         borderColor: '#ef4444',
                         backgroundColor: 'rgba(239,68,68,0.08)',
@@ -195,9 +186,20 @@
         });
     }
 
+    // Initial chart render
+    ensureChartJs().then(() => {
+        const initial = $wire.get('__chartDataForJs');
+        if (!initial) {
+            // Fallback: ask the server for chart data
+            $wire.call('getInitialChartData').then(data => {
+                if (data) buildChart(data);
+            });
+        }
+    });
+
+    // Listen for product selection changes
     $wire.on('chart-data-updated', (event) => {
-        // Small delay to allow DOM to settle after Livewire morph
-        setTimeout(() => buildChart(event.chartData), 50);
+        ensureChartJs().then(() => buildChart(event.chartData));
     });
 </script>
 @endscript

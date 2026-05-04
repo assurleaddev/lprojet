@@ -21,6 +21,16 @@ class SellerAnalytics extends Component
             ->value('id');
 
         $this->selectedProductId = $product_id ?? $firstProduct;
+
+        // Dispatch initial chart data for JS
+        if ($this->selectedProductId) {
+            $this->dispatch('chart-data-updated', chartData: $this->getChartData($this->selectedProductId));
+        }
+    }
+
+    public function getInitialChartData(): ?array
+    {
+        return $this->selectedProductId ? $this->getChartData($this->selectedProductId) : null;
     }
 
     public function selectProduct(int $id)
