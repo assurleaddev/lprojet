@@ -206,6 +206,8 @@
                                             <span class="text-gray-500">{{ number_format(auth()->user()->wallet?->balance ?? 0, 2) }}
                                                 MAD</span>
                                         </a>
+                                        <a href="{{ route('seller.analytics') }}"
+                                            class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('Analytics') }}</a>
                                         <a href="{{ route('orders.index') }}"
                                             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">{{ __('My orders') }}</a>
                                         <div class="border-t border-gray-100 my-1"></div>
