@@ -24,6 +24,14 @@
                 </div>
             @endif
 
+            {{-- Trending fire badge --}}
+            @if(in_array($product->id, $trendingProductIds ?? []))
+                <div class="absolute top-1.5 right-1.5 z-20 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm text-[11px] font-bold px-1.5 py-0.5 rounded-md shadow-sm pointer-events-none"
+                     title="{{ __('Trending') }}">
+                    🔥
+                </div>
+            @endif
+
             @if($product->status === 'sold')
                 <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20"
                     style="background-color: #4fb286 !important;">

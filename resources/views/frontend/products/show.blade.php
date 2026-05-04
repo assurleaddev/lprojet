@@ -645,6 +645,55 @@
                     @endforelse
                 </div>
             </section>
+
+            {{-- You Might Like --}}
+            @if($youMightLike->isNotEmpty())
+            <section class="shell px-4 md:px-6 py-8">
+                <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">{{ __('You Might Like') }}</h2>
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+                    @foreach($youMightLike as $item)
+                        @php
+                            $ymlBpPercent = (float) config('settings.buyer_protection_fee_percentage', 5);
+                            $ymlBpFixed   = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+                            $ymlInclTotal = $item->price + ($item->price * $ymlBpPercent / 100) + $ymlBpFixed;
+                        @endphp
+                        <div class="grid-item relative">
+                            <div class="used-image-wrapper">
+                                <a href="{{ route('products.show', $item) }}" class="absolute inset-0 z-10 cursor-pointer block"></a>
+                                <img src="{{ $item->getFeaturedImageUrl('preview') }}" class="used-image-content" alt="{{ $item->name }}">
+                                @if($item->status === 'sold')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color: #4fb286 !important;">{{ __('Sold') }}</div>
+                                @elseif($item->status === 'reserved')
+                                    <div class="absolute bottom-0 left-0 right-0 text-white text-[11px] font-bold px-3 py-1.5 z-20" style="background-color: #f59e0b !important;">{{ __('Reserved') }}</div>
+                                @endif
+                                @if(auth()->id() !== $item->vendor_id)
+                                    <button class="fav-badge z-30" aria-label="Favourite" data-id="{{ $item->id }}"
+                                        data-url="{{ route('products.favorite', $item) }}">
+                                        <svg viewBox="0 0 24 24" class="{{ $item->isFavorited() ? '!text-red-500 !fill-current !stroke-current' : '' }} transition-colors">
+                                            <path d="M12 21s-7.2-4.2-9.3-8.4C1.3 10.1 2.1 6.9 4.8 5.7c1.8-.8 3.9-.3 5.2 1.1L12 8.8l2-2c1.3-1.4 3.4-1.9 5.2-1.1 2.7 1.2 3.5 4.4 2.1 6.9C19.2 16.8 12 21 12 21z"/>
+                                        </svg>
+                                        <span>{{ $item->favoritedBy()->count() }}</span>
+                                    </button>
+                                @endif
+                            </div>
+                            <a href="{{ route('products.show', $item) }}" class="block cursor-pointer">
+                                <div class="pt-1.5">
+                                    <p class="brand-line">{{ $item->name }}</p>
+                                    <p class="meta-line">{{ $item->getOptionsSummaryAttribute() }}</p>
+                                    <p class="price-line">{{ $item->price }} MAD</p>
+                                    <div class="incl-line">
+                                        <span>{{ number_format($ymlInclTotal, 2) }} MAD incl.</span>
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    @endforeach
+                </div>
+            </section>
+            @endif
         </div>
         @include('frontend.products._image_modal')
 

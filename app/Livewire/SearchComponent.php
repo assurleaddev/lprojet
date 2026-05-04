@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\UserInterest;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Models\Category;
 use App\Models\Attribute;
 use App\Models\Brand;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class SearchComponent extends Component
@@ -155,6 +157,23 @@ class SearchComponent extends Component
         } else {
             $productsQuery = Product::query()->with(['category', 'options.attribute']);
 
+            // Build personalization boost SQL once for reuse in SELECT + ORDER BY
+            $personalBoostSql = null;
+            if (Auth::check()) {
+                $uid = Auth::id();
+                $topCatIds = UserInterest::where('user_id', $uid)->whereNotNull('category_id')
+                    ->orderByDesc('interest_score')->take(5)->pluck('category_id')->toArray();
+                $topBrandIds = UserInterest::where('user_id', $uid)->whereNotNull('brand_id')
+                    ->orderByDesc('interest_score')->take(5)->pluck('brand_id')->toArray();
+
+                if (! empty($topCatIds) || ! empty($topBrandIds)) {
+                    $catIn = implode(',', array_map('intval', $topCatIds ?: [0]));
+                    $brandIn = implode(',', array_map('intval', $topBrandIds ?: [0]));
+                    $personalBoostSql = "(CASE WHEN products.category_id IN ({$catIn}) THEN 5 ELSE 0 END
+                        + CASE WHEN products.brand_id IN ({$brandIn}) THEN 3 ELSE 0 END)";
+                }
+            }
+
             // Approved filter
             $productsQuery->where('status', 'approved');
 
@@ -200,6 +219,10 @@ class SearchComponent extends Component
                     '%' . $q . '%',
                     '%' . $q . '%',
                 ]);
+
+                if ($personalBoostSql) {
+                    $productsQuery->selectRaw("{$personalBoostSql} AS personalization_boost");
+                }
             }
 
             // Categories — include selected categories and all their descendants
@@ -249,11 +272,19 @@ class SearchComponent extends Component
             } elseif ($this->sort === 'price_desc') {
                 $productsQuery->orderBy('price', 'desc');
             } elseif ($this->query) {
-                // Text search: relevance first, then global score as tiebreaker
-                $productsQuery->orderByRaw('relevance_score DESC, score DESC, created_at DESC');
+                // Text search: relevance + personalization first, then global score as tiebreaker
+                $order = $personalBoostSql
+                    ? 'relevance_score + personalization_boost DESC, score DESC, created_at DESC'
+                    : 'relevance_score DESC, score DESC, created_at DESC';
+                $productsQuery->orderByRaw($order);
             } else {
-                // Browse without query: rank by global score
-                $productsQuery->orderBy('score', 'desc')->orderBy('created_at', 'desc');
+                // Browse without query: rank by global score + personalization
+                if ($personalBoostSql) {
+                    $productsQuery->selectRaw("products.*, {$personalBoostSql} AS personalization_boost")
+                        ->orderByRaw('score + personalization_boost DESC, created_at DESC');
+                } else {
+                    $productsQuery->orderBy('score', 'desc')->orderBy('created_at', 'desc');
+                }
             }
 
             $results = $productsQuery->paginate(20);

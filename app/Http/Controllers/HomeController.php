@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\UserInterest;
 use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\User;
 use Modules\Chat\Models\Offer;
 use Modules\Chat\Enums\OfferStatus;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
@@ -30,45 +32,92 @@ class HomeController extends Controller
      */
     public function index(Request $request)
     {
-        // Define your page sizes
         $initialLoadSize = 25;
         $ajaxLoadSize = 5;
+        $tab = $request->input('tab', 'for_you'); // 'for_you' | 'following'
+
+        $query = $this->buildFeedQuery($tab);
 
         if ($request->ajax()) {
-            // --- AJAX Request Logic ---
-
-            // Get the page number requested by the JavaScript
             $currentPage = $request->input('page', 1);
-
-            // Manually calculate how many products to skip.
-            // This is the key to preventing overlap.
-            // Formula: initial size + (number of AJAX loads * ajax size)
             $offset = $initialLoadSize + (($currentPage - 2) * $ajaxLoadSize);
 
-            $products = Product::with(['category', 'options'])
-                ->where('status', 'approved')
-                ->orderBy('score', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->skip($offset)
-                ->take($ajaxLoadSize)
-                ->get();
+            $products = $query->skip($offset)->take($ajaxLoadSize)->get();
 
             return view('layouts.partials._product_grid_items', ['products' => $products])->render();
-
-        } else {
-            // --- Initial Page Load Logic ---
-
-            // Laravel's paginator is fine here for the first load.
-            $products = Product::with(['category', 'options'])
-                ->where('status', 'approved')
-                ->orderBy('score', 'desc')
-                ->orderBy('created_at', 'desc')
-                ->paginate($initialLoadSize);
-
-            return view('home', [
-                'products' => $products,
-            ]);
         }
+
+        $products = $query->paginate($initialLoadSize);
+
+        return view('home', [
+            'products' => $products,
+            'activeTab' => $tab,
+            'hasFollowing' => Auth::check() && Auth::user()->followings()->exists(),
+        ]);
+    }
+
+    private function buildFeedQuery(string $tab)
+    {
+        $query = Product::with(['category', 'options'])
+            ->where('status', 'approved');
+
+        if ($tab === 'following' && Auth::check()) {
+            $followedIds = Auth::user()->followings()->pluck('followable_id')->toArray();
+
+            if (empty($followedIds)) {
+                // Return an empty query — user follows nobody yet
+                return $query->whereRaw('1 = 0');
+            }
+
+            return $query
+                ->whereIn('vendor_id', $followedIds)
+                ->orderBy('score', 'desc')
+                ->orderBy('created_at', 'desc');
+        }
+
+        // "For You" tab — personalized if authenticated, global score if not
+        if (Auth::check()) {
+            $userId = Auth::id();
+
+            $topCategories = UserInterest::where('user_id', $userId)
+                ->whereNotNull('category_id')
+                ->orderBy('interest_score', 'desc')
+                ->take(5)
+                ->pluck('interest_score', 'category_id');
+
+            $topBrands = UserInterest::where('user_id', $userId)
+                ->whereNotNull('brand_id')
+                ->orderBy('interest_score', 'desc')
+                ->take(5)
+                ->pluck('interest_score', 'brand_id');
+
+            $followedIds = Auth::user()->followings()->pluck('followable_id')->toArray();
+
+            if ($topCategories->isNotEmpty() || $topBrands->isNotEmpty() || ! empty($followedIds)) {
+                // Build CASE WHEN boosts inline — avoids a separate subquery
+                $catIds = $topCategories->keys()->toArray();
+                $brandIds = $topBrands->keys()->toArray();
+
+                $catIn = implode(',', array_map('intval', $catIds ?: [0]));
+                $brandIn = implode(',', array_map('intval', $brandIds ?: [0]));
+                $sellerIn = implode(',', array_map('intval', $followedIds ?: [0]));
+
+                $query->selectRaw("
+                    products.*,
+                    (
+                        score
+                        + CASE WHEN category_id IN ({$catIn}) THEN 2 ELSE 0 END
+                        + CASE WHEN brand_id    IN ({$brandIn}) THEN 1.5 ELSE 0 END
+                        + CASE WHEN vendor_id   IN ({$sellerIn}) THEN 3 ELSE 0 END
+                    ) AS personalized_score
+                ")->orderByRaw('personalized_score DESC, created_at DESC');
+
+                return $query;
+            }
+        }
+
+        // Default: global score
+        return $query->orderBy('score', 'desc')->orderBy('created_at', 'desc');
     }
 
     public function show(Product $product)
@@ -107,6 +156,27 @@ class HomeController extends Controller
             ->take(20)
             ->get();
 
+        // Collaborative filtering: products co-favorited by users who also liked this one
+        $youMightLike = Product::query()
+            ->select('products.*', DB::raw('COUNT(*) as co_fav_count'))
+            ->join('favorites as f2', function ($join) {
+                $join->on('products.id', '=', 'f2.favoriteable_id')
+                     ->where('f2.favoriteable_type', 'App\\Models\\Product');
+            })
+            ->whereIn('f2.user_id', function ($sub) use ($product) {
+                $sub->select('user_id')
+                    ->from('favorites')
+                    ->where('favoriteable_id', $product->id)
+                    ->where('favoriteable_type', 'App\\Models\\Product');
+            })
+            ->where('products.id', '!=', $product->id)
+            ->where('products.status', 'approved')
+            ->with(['category', 'options'])
+            ->groupBy('products.id')
+            ->orderByDesc('co_fav_count')
+            ->take(8)
+            ->get();
+
         // Build Breadcrumbs
         $breadcrumbs = [];
         $currentCategory = $product->category;
@@ -125,6 +195,7 @@ class HomeController extends Controller
         return view('frontend.products.show', [
             'product' => $product,
             'similarProducts' => $similarProducts,
+            'youMightLike' => $youMightLike,
             'breadcrumbs' => $breadcrumbs,
             'deliveryFeeFixed' => $deliveryFeeFixed,
             'protectionFee' => $protectionFee,

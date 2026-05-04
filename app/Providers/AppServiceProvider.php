@@ -9,9 +9,11 @@ use App\Support\Facades\Hook;
 use Dedoc\Scramble\Scramble;
 use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
+use App\View\Composers\ProductGridComposer;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -44,6 +46,9 @@ class AppServiceProvider extends ServiceProvider
         \Digikraaft\ReviewRating\Models\Review::observe(\App\Observers\ReviewObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \Illuminate\Pagination\Paginator::useTailwind();
+
+        // Inject trending product IDs (from Redis) into every render of the product grid partial
+        View::composer('layouts.partials._product_grid_items', ProductGridComposer::class);
 
         // Handle "/" route redirection.
         // if (
