@@ -49,6 +49,8 @@ Route::get('/twilio-verify-test', [App\Http\Controllers\TwilioVerifyTestControll
 Route::post('/twilio-verify-test/send', [App\Http\Controllers\TwilioVerifyTestController::class, 'sendCode'])->name('twilio.test.send');
 Route::post('/twilio-verify-test/check', [App\Http\Controllers\TwilioVerifyTestController::class, 'checkCode'])->name('twilio.test.check');
 
+Route::get('/seller/analytics', [App\Http\Controllers\SellerAnalyticsController::class, 'index'])->middleware('auth')->name('seller.analytics');
+
 Route::get('/items/new', [App\Http\Controllers\ItemController::class, 'create'])->middleware('auth')->name('items.create');
 Route::post('/items', [App\Http\Controllers\ItemController::class, 'store'])->middleware('auth')->name('items.store');
 Route::get('/items/{product}/edit', [App\Http\Controllers\ItemController::class, 'edit'])->middleware('auth')->name('items.edit');
