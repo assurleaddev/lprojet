@@ -267,6 +267,11 @@ class HomeController extends Controller
 
     public function trackClick(Request $request, Product $product): \Illuminate\Http\JsonResponse
     {
+        // Skip tracking for the product owner
+        if ($request->user()?->id === $product->vendor_id) {
+            return response()->json(['ok' => true]);
+        }
+
         $source = $request->input('source', 'homepage');
 
         \Illuminate\Support\Facades\DB::table('product_clicks')->insert([

@@ -21,7 +21,7 @@ class TrackProductView
         if ($request->isMethod('GET') && ! $request->ajax()) {
             $product = $request->route('product');
 
-            if ($product && is_object($product) && isset($product->id)) {
+            if ($product && is_object($product) && isset($product->id) && $request->user()?->id !== $product->vendor_id) {
                 $source = $request->query('source', 'direct');
 
                 DB::table('product_views')->insert([
