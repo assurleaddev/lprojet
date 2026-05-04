@@ -71,7 +71,7 @@
                 </div>
 
                 {{-- Mini stat row for selected product --}}
-                <div class="grid grid-cols-4 gap-3 mb-5">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-5">
                     @foreach([
                         ['label' => __('Views'),  'value' => $selectedProduct->views_count,     'color' => 'text-blue-500'],
                         ['label' => __('Clicks'),  'value' => $selectedProduct->clicks_count,    'color' => 'text-purple-500'],
