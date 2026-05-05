@@ -576,12 +576,20 @@ class ChatWindow extends Component
         $this->showShippingModal = true;
     }
 
-    public function confirmShipped(ChatService $chatService): void
+    public function confirmShipped(ChatService $chatService, \App\Services\TrackingService $trackingService): void
     {
         $this->validate([
             'shippingCarrier' => 'required|string',
             'shippingTrackingCode' => 'nullable|string|max:100',
         ]);
+
+        if ($this->shippingTrackingCode) {
+            if (! $trackingService->verify($this->shippingCarrier, $this->shippingTrackingCode)) {
+                $this->addError('shippingTrackingCode', __('Tracking code not found with the selected carrier. Please check and try again.'));
+
+                return;
+            }
+        }
 
         $offerIds = $this->conversation->messages()
             ->whereNotNull('offer_id')

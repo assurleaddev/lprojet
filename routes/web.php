@@ -129,6 +129,10 @@ Route::get('/checkout/offer/{offer}', [HomeController::class, 'offerCheckout'])
     ->middleware('auth')
     ->name('checkout.offer');
 
+Route::get('/orders/{order}/track', [App\Http\Controllers\TrackingController::class, 'show'])
+    ->middleware('auth')
+    ->name('orders.track');
+
 Route::post('/notifications/mark-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])
     ->middleware('auth')
     ->name('notifications.mark-read');

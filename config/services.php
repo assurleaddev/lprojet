@@ -56,6 +56,8 @@ return [
         'key' => env('OPENAI_API_KEY'),
     ],
 
+    'tawssil_proxy' => env('TAWSSIL_PROXY_URL'),
+
     'twilio' => [
         'sid' => env('TWILIO_SID'),
         'auth_token' => env('TWILIO_AUTH_TOKEN', env('TWILIO_TOKEN')),
