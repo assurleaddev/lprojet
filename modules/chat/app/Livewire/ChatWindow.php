@@ -110,6 +110,13 @@ class ChatWindow extends Component
     public string $shippingCarrier = '';
     public string $shippingTrackingCode = '';
 
+    // Tracking modal
+    public bool $showTrackingModal = false;
+    public bool $trackingLoading = false;
+    public ?string $trackingError = null;
+    public array $trackingEvents = [];
+    public array $trackingInfo = [];
+
     // Cancellation Features
     public bool $showDetailsSidebar = false;
     public bool $showCancellationModal = false;
@@ -567,6 +574,37 @@ class ChatWindow extends Component
         $this->conversation->product->update(['status' => 'approved']);
         $this->dispatch('toast', message: 'Item is now available for sale.', type: 'success');
         $this->loadConversation(app(ChatService::class));
+    }
+
+    public function openTrackingModal(\App\Services\TrackingService $trackingService): void
+    {
+        $this->trackingEvents = [];
+        $this->trackingInfo = [];
+        $this->trackingError = null;
+        $this->showTrackingModal = true;
+
+        $buyerId = auth()->id() === $this->conversation->product->vendor_id
+            ? ($this->conversation->user_one_id === auth()->id() ? $this->conversation->user_two_id : $this->conversation->user_one_id)
+            : auth()->id();
+
+        $order = \App\Models\Order::where('product_id', $this->conversation->product_id)
+            ->where('user_id', $buyerId)
+            ->whereNotNull('carrier')
+            ->whereNotNull('tracking_code')
+            ->latest()
+            ->first();
+
+        if (! $order) {
+            $this->trackingError = __('No tracking information available yet.');
+
+            return;
+        }
+
+        $result = $trackingService->track($order->carrier, $order->tracking_code);
+
+        $this->trackingEvents = $result['events'];
+        $this->trackingInfo = $result['info'];
+        $this->trackingError = $result['error'];
     }
 
     public function openShippingModal(): void

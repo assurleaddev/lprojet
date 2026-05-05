@@ -619,14 +619,15 @@
                                     @endphp
 
                                     @if(isset($latestOrder) && $latestOrder->carrier && $latestOrder->tracking_code)
-                                        <a href="{{ route('orders.track', $latestOrder) }}"
+                                        <button wire:click="openTrackingModal" wire:loading.attr="disabled"
                                             class="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                     d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/>
                                             </svg>
-                                            {{ __('Track my order') }}
-                                        </a>
+                                            <span wire:loading.remove wire:target="openTrackingModal">{{ __('Track my order') }}</span>
+                                            <span wire:loading wire:target="openTrackingModal">{{ __('Loading…') }}</span>
+                                        </button>
                                     @endif
 
                                     @if(!$isOrderCompleted)
@@ -1376,6 +1377,109 @@
     </div>
 
     {{-- Cancellation Reason Modal --}}
+    {{-- Tracking Modal --}}
+    <div x-data="{ show: @entangle('showTrackingModal') }" x-show="show" x-on:keydown.escape.window="show = false"
+        style="display: none;" class="fixed inset-0 z-[200] overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-end sm:items-center justify-center min-h-screen px-4 pb-0 sm:pb-4">
+            <div x-show="show"
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                @click="show = false"
+                class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+
+            <div x-show="show"
+                x-transition:enter="ease-out duration-200"
+                x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                class="relative bg-white dark:bg-gray-800 rounded-t-2xl sm:rounded-2xl shadow-xl w-full sm:max-w-md max-h-[80vh] flex flex-col">
+
+                {{-- Header --}}
+                <div class="flex items-center justify-between px-5 py-4 border-b dark:border-gray-700 flex-shrink-0">
+                    <h3 class="text-base font-bold text-gray-900 dark:text-white">{{ __('Order tracking') }}</h3>
+                    <button @click="show = false" class="text-gray-400 hover:text-gray-600">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {{-- Scrollable body --}}
+                <div class="overflow-y-auto flex-1 px-5 py-4">
+
+                    @if($trackingError)
+                        <div class="bg-red-50 border border-red-200 text-red-700 rounded-lg p-4 text-sm">
+                            {{ $trackingError }}
+                        </div>
+
+                    @else
+
+                        {{-- Info chips --}}
+                        @if(!empty($trackingInfo) && array_filter($trackingInfo))
+                            <div class="grid grid-cols-2 gap-2 mb-5">
+                                @foreach([
+                                    'current_status' => __('Status'),
+                                    'last_update'    => __('Last update'),
+                                    'destination'    => __('Destination'),
+                                    'receipt'        => __('Tracking #'),
+                                ] as $key => $label)
+                                    @if(!empty($trackingInfo[$key]))
+                                        <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">{{ $label }}</p>
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-white leading-tight">{{ $trackingInfo[$key] }}</p>
+                                        </div>
+                                    @endif
+                                @endforeach
+                            </div>
+                        @endif
+
+                        {{-- Timeline --}}
+                        @if(!empty($trackingEvents))
+                            <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-4">{{ __('Tracking history') }}</p>
+                            <div class="relative">
+                                @foreach($trackingEvents as $event)
+                                    <div class="relative flex gap-3 {{ !$loop->last ? 'pb-6' : '' }}">
+                                        @if(!$loop->last)
+                                            <div class="absolute left-[10px] top-5 bottom-0 w-[2px] bg-teal-200"></div>
+                                        @endif
+                                        <div class="relative z-10 flex h-5 w-5 items-center justify-center rounded-full border-2 border-teal-500 bg-white shrink-0 mt-0.5">
+                                            @if($loop->first)
+                                                <div class="h-2.5 w-2.5 rounded-full bg-teal-500"></div>
+                                            @else
+                                                <svg class="h-3 w-3 text-teal-500" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                                </svg>
+                                            @endif
+                                        </div>
+                                        <div class="flex-1">
+                                            <p class="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
+                                                {{ $event['status'] ?: $event['step'] }}
+                                            </p>
+                                            @if(!empty($event['date']))
+                                                <p class="text-xs text-gray-400 mt-0.5">{{ $event['date'] }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-sm text-gray-400 text-center py-6">{{ __('No tracking events yet. Check back soon.') }}</p>
+                        @endif
+
+                    @endif
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-5 py-4 border-t dark:border-gray-700 flex-shrink-0">
+                    <button @click="show = false"
+                        class="w-full py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        {{ __('Close') }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div x-data="{ show: @entangle('showCancellationModal') }" x-show="show" x-on:keydown.escape.window="show = false"
         style="display: none;" class="fixed inset-0 z-[200] overflow-y-auto" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen px-4">
