@@ -600,7 +600,25 @@ class ChatWindow extends Component
             return;
         }
 
+        // Serve from DB cache when checked within the last hour
+        $isFresh = $order->tracking_checked_at && $order->tracking_checked_at->gt(now()->subHour());
+
+        if ($isFresh && ! empty($order->tracking_events)) {
+            $this->trackingEvents = $order->tracking_events;
+            $this->trackingInfo = $order->tracking_info ?? [];
+
+            return;
+        }
+
         $result = $trackingService->track($order->carrier, $order->tracking_code);
+
+        if (empty($result['error'])) {
+            $order->update([
+                'tracking_events' => $result['events'],
+                'tracking_info' => $result['info'],
+                'tracking_checked_at' => now(),
+            ]);
+        }
 
         $this->trackingEvents = $result['events'];
         $this->trackingInfo = $result['info'];
@@ -621,8 +639,12 @@ class ChatWindow extends Component
             'shippingTrackingCode' => 'nullable|string|max:100',
         ]);
 
+        $trackingResult = null;
+
         if ($this->shippingTrackingCode) {
-            if (! $trackingService->verify($this->shippingCarrier, $this->shippingTrackingCode)) {
+            $trackingResult = $trackingService->track($this->shippingCarrier, $this->shippingTrackingCode);
+
+            if (! empty($trackingResult['error']) || empty($trackingResult['events'])) {
                 $this->addError('shippingTrackingCode', __('Tracking code not found with the selected carrier. Please check and try again.'));
 
                 return;
@@ -654,11 +676,19 @@ class ChatWindow extends Component
             return;
         }
 
-        $order->update([
+        $updateData = [
             'status' => 'shipped',
             'carrier' => $this->shippingCarrier,
             'tracking_code' => $this->shippingTrackingCode ?: null,
-        ]);
+        ];
+
+        if ($trackingResult && empty($trackingResult['error'])) {
+            $updateData['tracking_events'] = $trackingResult['events'];
+            $updateData['tracking_info'] = $trackingResult['info'];
+            $updateData['tracking_checked_at'] = now();
+        }
+
+        $order->update($updateData);
 
         $chatService->sendItemShippedMessage($this->conversation, Auth::user(), $order);
 

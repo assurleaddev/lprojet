@@ -27,6 +27,9 @@ class Order extends Model
         'offer_id',
         'carrier',
         'tracking_code',
+        'tracking_events',
+        'tracking_info',
+        'tracking_checked_at',
         'received_at',
         'wants_verification',
         'verification_fee',
@@ -35,8 +38,11 @@ class Order extends Model
 
     protected $casts = [
         'received_at' => 'datetime',
+        'tracking_checked_at' => 'datetime',
         'wants_verification' => 'boolean',
         'verification_fee' => 'decimal:2',
+        'tracking_events' => 'array',
+        'tracking_info' => 'array',
     ];
 
     /**

@@ -5,7 +5,9 @@ namespace App\Console;
 use App\Jobs\RecalculateProductScores;
 use App\Jobs\RecalculateSellerScores;
 use App\Jobs\RebuildUserInterests;
+use App\Jobs\RefreshOrderTracking;
 use App\Jobs\UpdateTrendingProducts;
+use App\Models\Order;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -42,6 +44,23 @@ class Kernel extends ConsoleKernel
 
         // Recalculate seller reputation scores every night at 03:00.
         $schedule->job(new RecalculateSellerScores())->dailyAt('03:00')->withoutOverlapping();
+
+        // Refresh tracking data for all active shipped orders every hour.
+        $schedule->call(function () {
+            Order::where('status', 'shipped')
+                ->whereNotNull('carrier')
+                ->whereNotNull('tracking_code')
+                ->where(function ($q) {
+                    $q->whereNull('tracking_checked_at')
+                        ->orWhere('tracking_checked_at', '<', now()->subHour());
+                })
+                ->select('id')
+                ->chunk(50, function ($orders) {
+                    foreach ($orders as $order) {
+                        RefreshOrderTracking::dispatch($order->id);
+                    }
+                });
+        })->hourly()->name('refresh-order-tracking')->withoutOverlapping();
     }
 
     /**
