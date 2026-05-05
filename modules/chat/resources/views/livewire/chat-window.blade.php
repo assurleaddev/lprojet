@@ -530,7 +530,7 @@
                                             Download Shipping Label
                                         </a>
                                         @if($hasShippableOrder)
-                                            <button wire:click="markAsShipped" wire:loading.attr="disabled"
+                                            <button wire:click="openShippingModal" wire:loading.attr="disabled"
                                                 class="block w-full bg-white border border-gray-900 text-gray-900 hover:bg-gray-50 text-sm font-medium py-2 px-4 rounded-md transition-colors shadow-sm">
                                                 Mark as Shipped
                                             </button>
@@ -1059,6 +1059,58 @@
                         class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-gray-900 text-base font-medium text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 sm:col-start-2 sm:text-sm">
                         <span wire:loading.remove wire:target="confirmReception">Confirm Received</span>
                         <span wire:loading wire:target="confirmReception">Processing...</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- Shipping Modal --}}
+    <div x-data="{ show: @entangle('showShippingModal') }" x-show="show" x-on:keydown.escape.window="show = false"
+        style="display:none;" class="fixed inset-0 z-[100] overflow-y-auto" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen px-4">
+            {{-- Backdrop --}}
+            <div class="fixed inset-0 bg-black/50 transition-opacity" @click="show = false"></div>
+
+            <div class="relative bg-white rounded-xl shadow-xl w-full max-w-sm mx-auto p-6 z-10">
+                <h3 class="text-base font-bold text-gray-900 mb-4">{{ __('Shipping details') }}</h3>
+
+                {{-- Carrier --}}
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Carrier') }} <span class="text-red-500">*</span></label>
+                    <select wire:model="shippingCarrier"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+                        <option value="">{{ __('Select a carrier') }}</option>
+                        <option value="tawsil">Tawsil</option>
+                        <option value="ozon_express">Ozon Express</option>
+                        <option value="sendit">Sendit</option>
+                    </select>
+                    @error('shippingCarrier')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Tracking code --}}
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">{{ __('Tracking code') }} <span class="text-gray-400 font-normal">({{ __('optional') }})</span></label>
+                    <input type="text" wire:model="shippingTrackingCode"
+                        placeholder="e.g. TW123456789MA"
+                        class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900">
+                    @error('shippingTrackingCode')
+                        <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                {{-- Actions --}}
+                <div class="flex gap-3">
+                    <button type="button" @click="show = false"
+                        class="flex-1 py-2.5 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                        {{ __('Cancel') }}
+                    </button>
+                    <button type="button" wire:click="confirmShipped" wire:loading.attr="disabled"
+                        class="flex-1 py-2.5 bg-gray-900 rounded-lg text-sm font-bold text-white hover:bg-gray-800 transition-colors disabled:opacity-60">
+                        <span wire:loading.remove wire:target="confirmShipped">{{ __('Confirm') }}</span>
+                        <span wire:loading wire:target="confirmShipped">{{ __('Saving…') }}</span>
                     </button>
                 </div>
             </div>

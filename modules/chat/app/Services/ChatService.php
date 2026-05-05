@@ -434,10 +434,19 @@ class ChatService
     public function sendItemShippedMessage(Conversation $conversation, User $seller, Order $order): Message
     {
         $productName = $order->product ? $order->product->name : 'your bundle';
+        $carrierLabels = [
+            'tawsil' => 'Tawsil',
+            'ozon_express' => 'Ozon Express',
+            'sendit' => 'Sendit',
+        ];
+        $carrierName = $carrierLabels[$order->carrier] ?? $order->carrier;
+        $trackingPart = $order->tracking_code ? " Tracking code: {$order->tracking_code}." : '';
         $body = sprintf(
-            "Item Shipped! %s has shipped %s. The package is on its way.",
+            "Item Shipped! %s has shipped %s via %s.%s The package is on its way.",
             $seller->full_name,
-            $productName
+            $productName,
+            $carrierName,
+            $trackingPart
         );
 
         $message = $conversation->messages()->create([

@@ -105,6 +105,11 @@ class ChatWindow extends Component
     public string $parcelSize = 'm'; // Default to medium for bundles
     public ?int $offerToConfirmId = null;
 
+    // Shipping modal
+    public bool $showShippingModal = false;
+    public string $shippingCarrier = '';
+    public string $shippingTrackingCode = '';
+
     // Cancellation Features
     public bool $showDetailsSidebar = false;
     public bool $showCancellationModal = false;
@@ -564,8 +569,20 @@ class ChatWindow extends Component
         $this->loadConversation(app(ChatService::class));
     }
 
-    public function markAsShipped(ChatService $chatService)
+    public function openShippingModal(): void
     {
+        $this->shippingCarrier = '';
+        $this->shippingTrackingCode = '';
+        $this->showShippingModal = true;
+    }
+
+    public function confirmShipped(ChatService $chatService): void
+    {
+        $this->validate([
+            'shippingCarrier' => 'required|string',
+            'shippingTrackingCode' => 'nullable|string|max:100',
+        ]);
+
         $offerIds = $this->conversation->messages()
             ->whereNotNull('offer_id')
             ->pluck('offer_id')
@@ -578,7 +595,6 @@ class ChatWindow extends Component
                 if ($this->conversation->product_id) {
                     $query->where('product_id', $this->conversation->product_id);
                 }
-
                 if (! empty($offerIds)) {
                     $query->orWhereIn('offer_id', $offerIds);
                 }
@@ -588,14 +604,19 @@ class ChatWindow extends Component
 
         if (! $order) {
             $this->dispatch('notify', message: 'No processing or pending order found to ship.', type: 'error');
+            $this->showShippingModal = false;
             return;
         }
 
-        $order->update(['status' => 'shipped']);
+        $order->update([
+            'status' => 'shipped',
+            'carrier' => $this->shippingCarrier,
+            'tracking_code' => $this->shippingTrackingCode ?: null,
+        ]);
 
-        // Send structured message
         $chatService->sendItemShippedMessage($this->conversation, Auth::user(), $order);
 
+        $this->showShippingModal = false;
         $this->dispatch('notify', message: 'Order marked as shipped.', type: 'success');
         $this->loadConversation($chatService);
     }

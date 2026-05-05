@@ -25,6 +25,8 @@ class Order extends Model
         'address_id',
         'shipping_option_id',
         'offer_id',
+        'carrier',
+        'tracking_code',
         'received_at',
         'wants_verification',
         'verification_fee',
