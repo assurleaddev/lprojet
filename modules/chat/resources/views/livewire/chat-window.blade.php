@@ -1096,6 +1096,7 @@
                         <option value="tawsil">Tawsil</option>
                         <option value="ozon_express">Ozon Express</option>
                         <option value="sendit">Sendit</option>
+                        <option value="ortalog">Ortalog</option>
                     </select>
                     @error('shippingCarrier')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>

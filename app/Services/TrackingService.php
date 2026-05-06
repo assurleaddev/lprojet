@@ -15,6 +15,7 @@ class TrackingService
         'tawsil' => 'Tawssil',
         'ozon_express' => 'Ozon Express',
         'sendit' => 'Sendit',
+        'ortalog' => 'Ortalog',
     ];
 
     /**
@@ -43,6 +44,7 @@ class TrackingService
             'tawsil' => $this->trackTawssil($code),
             'ozon_express' => $this->trackOzon($code),
             'sendit' => $this->trackSendit($code),
+            'ortalog' => $this->trackOrtalog($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -303,6 +305,69 @@ class TrackingService
         }
 
         return [$events, $info];
+    }
+
+    // ─── Ortalog ─────────────────────────────────────────────────────────────────
+
+    private function trackOrtalog(string $barcode): array
+    {
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'User-Agent' => self::USER_AGENT,
+                'Accept' => '*/*',
+                'Accept-Language' => 'en-US,en;q=0.9,fr;q=0.8',
+                'Referer' => 'https://www.ortalog.ma/',
+            ])->get('https://www.ortalog.ma/action', [
+                'action' => 'track',
+                'num' => $barcode,
+            ]);
+
+        $json = $response->json();
+
+        if (empty($json['success']) || empty($json['SuiviTable'])) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        $events = $this->parseOrtalog($json['SuiviTable']);
+
+        if (empty($events)) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => $events[count($events) - 1]['date'] ?? '',
+            'current_status' => $events[count($events) - 1]['status'] ?? '',
+            'destination' => '',
+            'amount' => '',
+            'phone' => '',
+        ];
+
+        return ['error' => null, 'events' => $events, 'info' => $info];
+    }
+
+    private function parseOrtalog(string $html): array
+    {
+        $doc = $this->parseHtml($html);
+        $xpath = new \DOMXPath($doc);
+        $events = [];
+
+        foreach ($xpath->query('//tbody/tr') as $row) {
+            $cells = $xpath->query('./td', $row);
+            if ($cells->length < 3) {
+                continue;
+            }
+
+            $statusSpan = $xpath->query('.//span', $cells->item(1))->item(0);
+            $status = $statusSpan ? trim($statusSpan->textContent) : trim($cells->item(1)->textContent);
+            $date = trim($cells->item(2)->textContent);
+
+            if ($status || $date) {
+                $events[] = ['step' => 'Ortalog', 'status' => $status, 'date' => $date];
+            }
+        }
+
+        return $events;
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
