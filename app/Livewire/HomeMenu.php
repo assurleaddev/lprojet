@@ -11,18 +11,17 @@ class HomeMenu extends Component
         $categories = \App\Models\Category::whereNull('parent_id')
             ->with([
                 'children' => function ($q) {
-                    // Ensure we get necessary fields and order
                     $q->orderBy('name');
                 },
                 'children.children' => function ($q) {
                     $q->orderBy('name');
-                }
+                },
             ])
-            ->orderBy('name')
+            ->orderBy('order')
             ->get();
 
         return view('livewire.home-menu', [
-            'categories' => $categories
+            'categories' => $categories,
         ]);
     }
 }
