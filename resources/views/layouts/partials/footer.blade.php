@@ -53,9 +53,9 @@
 
                 {{-- Help links --}}
                 <ul class="space-y-3">
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('Need help?') }}</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('How to sell?') }}</a></li>
-                    <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('How to buy?') }}</a></li>
+                    <li><a href="{{ route('need-help') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('Need help?') }}</a></li>
+                    <li><a href="{{ route('how-to-sell') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('How to sell?') }}</a></li>
+                    <li><a href="{{ route('how-to-buy') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">{{ __('How to buy?') }}</a></li>
                 </ul>
             </div>
 
