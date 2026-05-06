@@ -84,7 +84,7 @@
     </div>
 
     {{-- ✨ BANNER LOGIC: Insert a banner after every 20th product ✨ --}}
-    @if ($loop->iteration > 0 && $loop->iteration % 15 == 0)
+    @if ($loop->iteration > 0 && $loop->iteration % 16 == 0)
         <div class="col-span-full bg-[#f6f2ff] rounded-lg p-8 min-h-[150px] h-[300px] flex flex-col items-start justify-between bannner"
             style="background-repeat:no-repeat;background-position:right center;background-size:cover;background-image: url('{{ asset('images/home/banner.png') }}')">
             <h2 class="text-xl md:text-2xl font-bold mb-4">{{ __('Earn money from your homeware') }}</h2>
