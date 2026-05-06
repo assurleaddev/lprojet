@@ -1412,7 +1412,12 @@
 
                         {{-- Header --}}
                         <div class="px-4 sm:px-6 flex items-center justify-between border-b pb-4 pt-6 dark:border-gray-700 flex-shrink-0">
-                            <h2 class="text-lg font-medium text-gray-900 dark:text-white">{{ __('Order tracking') }}</h2>
+                            <div>
+                                <h2 class="text-lg font-medium text-gray-900 dark:text-white">{{ __('Order tracking') }}</h2>
+                                @if($trackingCarrier)
+                                    <p class="text-xs text-gray-400 mt-0.5">{{ $trackingCarrier }}</p>
+                                @endif
+                            </div>
                             <button @click="show = false" class="text-gray-400 hover:text-gray-500">
                                 <span class="sr-only">{{ __('Close panel') }}</span>
                                 <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

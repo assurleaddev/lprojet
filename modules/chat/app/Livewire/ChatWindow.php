@@ -116,6 +116,7 @@ class ChatWindow extends Component
     public ?string $trackingError = null;
     public array $trackingEvents = [];
     public array $trackingInfo = [];
+    public ?string $trackingCarrier = null;
 
     // Cancellation Features
     public bool $showDetailsSidebar = false;
@@ -581,6 +582,7 @@ class ChatWindow extends Component
         $this->trackingEvents = [];
         $this->trackingInfo = [];
         $this->trackingError = null;
+        $this->trackingCarrier = null;
         $this->showTrackingModal = true;
 
         $buyerId = auth()->id() === $this->conversation->product->vendor_id
@@ -599,6 +601,8 @@ class ChatWindow extends Component
 
             return;
         }
+
+        $this->trackingCarrier = \App\Services\TrackingService::CARRIER_LABELS[$order->carrier] ?? $order->carrier;
 
         // Serve from DB cache when checked within the last hour
         $isFresh = $order->tracking_checked_at && $order->tracking_checked_at->gt(now()->subHour());
