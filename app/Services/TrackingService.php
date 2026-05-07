@@ -16,6 +16,7 @@ class TrackingService
         'ozon_express' => 'Ozon Express',
         'sendit' => 'Sendit',
         'ortalog' => 'Ortalog',
+        'nearya' => 'Nearya',
     ];
 
     /**
@@ -45,6 +46,7 @@ class TrackingService
             'ozon_express' => $this->trackOzon($code),
             'sendit' => $this->trackSendit($code),
             'ortalog' => $this->trackOrtalog($code),
+            'nearya' => $this->trackNearya($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -368,6 +370,54 @@ class TrackingService
         }
 
         return $events;
+    }
+
+    // ─── Nearya ──────────────────────────────────────────────────────────────────
+
+    private function trackNearya(string $barcode): array
+    {
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => 'application/json, text/plain, */*',
+                'User-Agent' => self::USER_AGENT,
+                'Origin' => 'https://nearya.express',
+                'Referer' => 'https://nearya.express/',
+            ])->get('https://nearya.express/api/docParcelStatus/public', [
+                'cab' => $barcode,
+            ]);
+
+        $json = $response->json();
+
+        if (($json['status'] ?? '') !== 'success' || empty($json['data']['docsParcelStatus'])) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        $statuses = $json['data']['docsParcelStatus'];
+
+        // Sort by ordre ascending (API may not always return sorted)
+        usort($statuses, fn ($a, $b) => ($a['status']['ordre'] ?? 0) <=> ($b['status']['ordre'] ?? 0));
+
+        $events = array_map(fn ($item) => [
+            'step' => 'Nearya',
+            'status' => $item['status']['name'] ?? '',
+            'date' => isset($item['createdAt'])
+                ? date('Y-m-d H:i', strtotime($item['createdAt']))
+                : '',
+        ], $statuses);
+
+        $parcel = $statuses[0]['parcel'] ?? [];
+        $last = end($statuses);
+
+        $info = [
+            'receipt' => $parcel['cab'] ?? $barcode,
+            'last_update' => isset($last['createdAt']) ? date('Y-m-d H:i', strtotime($last['createdAt'])) : '',
+            'current_status' => $last['status']['name'] ?? '',
+            'destination' => $parcel['recipientAddress'] ?? '',
+            'amount' => isset($parcel['price']) ? $parcel['price'].' MAD' : '',
+            'phone' => '',
+        ];
+
+        return ['error' => null, 'events' => $events, 'info' => $info];
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
