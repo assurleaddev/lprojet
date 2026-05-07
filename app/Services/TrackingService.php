@@ -17,6 +17,7 @@ class TrackingService
         'sendit' => 'Sendit',
         'ortalog' => 'Ortalog',
         'nearya' => 'Nearya',
+        'ameex' => 'Ameex',
     ];
 
     /**
@@ -47,6 +48,7 @@ class TrackingService
             'sendit' => $this->trackSendit($code),
             'ortalog' => $this->trackOrtalog($code),
             'nearya' => $this->trackNearya($code),
+            'ameex' => $this->trackAmeex($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -418,6 +420,51 @@ class TrackingService
         ];
 
         return ['error' => null, 'events' => $events, 'info' => $info];
+    }
+
+    // ─── Ameex ───────────────────────────────────────────────────────────────────
+
+    private function trackAmeex(string $barcode): array
+    {
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => '*/*',
+                'User-Agent' => self::USER_AGENT,
+                'Origin' => 'https://ameex.ma',
+                'Referer' => 'https://ameex.ma/',
+            ])->get('https://api.ameex.app/web/Tracking', [
+                'ParcelCode' => $barcode,
+            ]);
+
+        $json = $response->json();
+
+        if (($json['api']['type'] ?? '') !== 'success' || empty($json['api']['tracking'])) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        // tracking is a keyed object — sort entries by their numeric key (represents order)
+        $tracking = $json['api']['tracking'];
+        ksort($tracking, SORT_NUMERIC);
+
+        $events = array_map(fn ($item) => [
+            'step' => $item['city_name'] ?? $item['hub_name'] ?? 'Ameex',
+            'status' => $item['statut_name'] ?? '',
+            'date' => $item['time_str'] ?? '',
+        ], $tracking);
+
+        $last = end($tracking);
+        $first = reset($tracking);
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => $last['time_str'] ?? '',
+            'current_status' => $last['statut_name'] ?? '',
+            'destination' => $last['city_name'] ?? $last['hub_name'] ?? '',
+            'amount' => '',
+            'phone' => '',
+        ];
+
+        return ['error' => null, 'events' => array_values($events), 'info' => $info];
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
