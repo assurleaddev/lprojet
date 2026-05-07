@@ -400,6 +400,16 @@ $nextTick(() => {
     @endif
 
     <script>
+        document.addEventListener('livewire:init', function () {
+            Livewire.hook('request', ({ fail }) => {
+                if (fail && fail.status === 419) {
+                    window.location.href = '/?login_required=1';
+                }
+            });
+        });
+    </script>
+
+    <script>
         function itemListedModal(initialProduct) {
             return {
                 show: initialProduct !== null,

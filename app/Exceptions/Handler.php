@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\Mailer\Exception\TransportException;
 use Throwable;
@@ -38,6 +39,11 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $exception)
     {
+        // Redirect expired sessions to home with login popup (frontend only)
+        if ($exception instanceof TokenMismatchException && ! $request->is('admin/*') && ! $request->is('admin')) {
+            return redirect()->route('home', ['login_required' => 1]);
+        }
+
         // Catch mail/SMTP transport errors globally — log silently and show a toast
         if ($exception instanceof TransportException) {
             Log::error('Mail transport error: ' . $exception->getMessage());
