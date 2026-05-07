@@ -25,13 +25,7 @@ class AdminRedirectMiddleware
             }
 
             if (! Auth::check()) {
-                $disableRedirect = config('settings.disable_default_admin_redirect', '0') === '1';
-
-                if ($disableRedirect) {
-                    abort(403, __('Unauthorized access'));
-                }
-
-                return redirect()->route('admin.login');
+                return redirect()->route('home', ['login_required' => 1]);
             }
         }
 
