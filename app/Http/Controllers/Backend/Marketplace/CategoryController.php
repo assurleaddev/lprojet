@@ -82,16 +82,19 @@ class CategoryController extends Controller
                 }),
             ],
             'parent_id' => 'nullable|exists:categories,id',
+            'name_fr' => 'nullable|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'attributes' => 'nullable|array',
             'icon' => 'nullable|string',
             'icon_image' => 'nullable|image|max:2048',
-
         ]);
 
         $category = Category::create([
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'parent_id' => $request->parent_id,
+            'name_fr' => $request->name_fr ?: null,
+            'name_ar' => $request->name_ar ?: null,
         ]);
 
         // Sync the selected attributes with the new category
@@ -130,6 +133,8 @@ class CategoryController extends Controller
                 })->ignore($category->id),
             ],
             'parent_id' => 'nullable|exists:categories,id',
+            'name_fr' => 'nullable|string|max:255',
+            'name_ar' => 'nullable|string|max:255',
             'attributes' => 'nullable|array',
             'icon' => 'nullable|string',
             'icon_image' => 'nullable|image|max:2048',
@@ -139,6 +144,8 @@ class CategoryController extends Controller
             'name' => $request->name,
             'slug' => Str::slug($request->name),
             'parent_id' => $request->parent_id,
+            'name_fr' => $request->name_fr ?: null,
+            'name_ar' => $request->name_ar ?: null,
         ]);
 
         // Sync the selected attributes

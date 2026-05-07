@@ -1,10 +1,24 @@
 <div class="p-6">
     <div class="mb-4">
-        <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category Name</label>
+        <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category Name <span class="text-xs text-gray-400">(English)</span></label>
         <input type="text" id="name" name="name" value="{{ old('name', $category->name ?? '') }}"
             class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white"
             required>
         @error('name')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
+    </div>
+
+    <div class="mb-4">
+        <label for="name_fr" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category Name <span class="text-xs text-gray-400">(Français)</span></label>
+        <input type="text" id="name_fr" name="name_fr" value="{{ old('name_fr', $category->name_fr ?? '') }}"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+        @error('name_fr')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
+    </div>
+
+    <div class="mb-4">
+        <label for="name_ar" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Category Name <span class="text-xs text-gray-400">(العربية)</span></label>
+        <input type="text" id="name_ar" name="name_ar" value="{{ old('name_ar', $category->name_ar ?? '') }}" dir="rtl"
+            class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white">
+        @error('name_ar')<span class="text-red-500 text-sm">{{ $message }}</span>@enderror
     </div>
 
     <div class="mb-4">
