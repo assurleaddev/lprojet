@@ -438,6 +438,10 @@ class ChatService
             'tawsil' => 'Tawsil',
             'ozon_express' => 'Ozon Express',
             'sendit' => 'Sendit',
+            'ortalog' => 'Ortalog',
+            'nearya' => 'Nearya',
+            'ameex' => 'Ameex',
+            'cathedis' => 'Cathedis',
         ];
         $carrierName = $carrierLabels[$order->carrier] ?? $order->carrier;
         $trackingPart = $order->tracking_code ? " Tracking code: {$order->tracking_code}." : '';

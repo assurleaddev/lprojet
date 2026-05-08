@@ -18,6 +18,7 @@ class TrackingService
         'ortalog' => 'Ortalog',
         'nearya' => 'Nearya',
         'ameex' => 'Ameex',
+        'cathedis' => 'Cathedis',
     ];
 
     /**
@@ -49,6 +50,7 @@ class TrackingService
             'ortalog' => $this->trackOrtalog($code),
             'nearya' => $this->trackNearya($code),
             'ameex' => $this->trackAmeex($code),
+            'cathedis' => $this->trackCathedis($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -465,6 +467,84 @@ class TrackingService
         ];
 
         return ['error' => null, 'events' => array_values($events), 'info' => $info];
+    }
+
+    // ─── Cathedis ────────────────────────────────────────────────────────────────
+
+    private const CATHEDIS_LABELS = [
+        'CREATED' => 'Colis crée',
+        'COLLECTED' => 'Colis collecté',
+        'IN_PROGRESS' => 'Colis en cours de traitement',
+        'IN_DELIVERING' => 'Colis en cours de livraison',
+        'DELIVERED' => 'Colis livré',
+    ];
+
+    private function trackCathedis(string $barcode): array
+    {
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => 'application/json, text/plain, */*',
+                'User-Agent' => self::USER_AGENT,
+                'Origin' => 'https://www.cathedis.ma',
+                'Referer' => 'https://www.cathedis.ma/tracker/index.php?track_number=',
+            ])->post("https://www.cathedis.ma/delivery/deliverySteps.php?delivery={$barcode}");
+
+        $json = $response->json();
+
+        $rawSteps = $json['data'][0]['values']['steps'] ?? [];
+
+        if (empty($rawSteps)) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        $receivedCodes = array_column($rawSteps, 'description');
+
+        // Build a complete timeline activating only the steps returned by the API
+        $events = [];
+        foreach (self::CATHEDIS_LABELS as $code => $label) {
+            $found = null;
+            foreach ($rawSteps as $step) {
+                if (($step['description'] ?? '') === $code) {
+                    $found = $step;
+                    break;
+                }
+            }
+
+            if ($found) {
+                $date = $found['actionDate'] ?? $found['createdOn'] ?? null;
+                $events[] = [
+                    'step' => $found['city']['fullName'] ?? $found['city']['name'] ?? 'Cathedis',
+                    'status' => $label,
+                    'date' => $date ? date('Y-m-d H:i', strtotime($date)) : '',
+                    'active' => true,
+                ];
+            } else {
+                $events[] = [
+                    'step' => 'Cathedis',
+                    'status' => $label,
+                    'date' => '',
+                    'active' => false,
+                ];
+            }
+        }
+
+        $lastRaw = end($rawSteps);
+        $lastCode = $lastRaw['description'] ?? '';
+        $lastDate = $lastRaw['actionDate'] ?? $lastRaw['createdOn'] ?? null;
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => $lastDate ? date('Y-m-d H:i', strtotime($lastDate)) : '',
+            'current_status' => self::CATHEDIS_LABELS[$lastCode] ?? $lastCode,
+            'destination' => $lastRaw['city']['fullName'] ?? $lastRaw['city']['name'] ?? '',
+            'amount' => '',
+            'phone' => '',
+        ];
+
+        // Filter events to only active ones for the standard events array used in chat
+        $activeEvents = array_values(array_filter($events, fn ($e) => $e['active']));
+
+        return ['error' => null, 'events' => $activeEvents, 'info' => $info, 'timeline' => $events];
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
