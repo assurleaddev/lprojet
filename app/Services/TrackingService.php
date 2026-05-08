@@ -21,6 +21,7 @@ class TrackingService
         'cathedis' => 'Cathedis',
         'speedaf' => 'Speedaf',
         'amana' => 'Amana',
+        'olivraison' => 'Olivraison',
     ];
 
     /**
@@ -55,6 +56,7 @@ class TrackingService
             'cathedis' => $this->trackCathedis($code),
             'speedaf' => $this->trackSpeedaf($code),
             'amana' => $this->trackAmana($code),
+            'olivraison' => $this->trackOlivraison($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -614,6 +616,87 @@ class TrackingService
         }
 
         return 'Speedaf';
+    }
+
+    // ─── Olivraison ──────────────────────────────────────────────────────────────
+
+    private const OLIVRAISON_LABELS = [
+        'CREATED' => 'Colis créé',
+        'CONFIRMED' => 'Colis confirmé',
+        'PICKUP' => 'Ramassage planifié',
+        'PICKEDUP' => 'Colis ramassé',
+        'INHOUSE' => 'En entrepôt',
+        'ENROUTE' => 'En route',
+        'TRANSIT' => 'En transit',
+        'ASSIGN' => 'Assigné au livreur',
+        'DELIVERED' => 'Colis livré',
+        'RETURN' => 'Retour en cours',
+        'RETURNED' => 'Retourné',
+        'CANCELLED' => 'Annulé',
+    ];
+
+    // Statuses to skip in the public timeline (internal ops / call logs)
+    private const OLIVRAISON_SKIP = ['whatsapp', 'OUTGOING_CALL', 'ASSIGN'];
+
+    private function trackOlivraison(string $barcode): array
+    {
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => '*/*',
+                'User-Agent' => self::USER_AGENT,
+                'Content-Type' => 'application/json',
+                'Origin' => 'https://www.olivraison.com',
+                'Referer' => "https://www.olivraison.com/fr/tracking?tracking-id={$barcode}",
+            ])->post('https://www.olivraison.com/api/track', [
+                'id' => $barcode,
+            ]);
+
+        $json = $response->json();
+
+        $history = $json['data']['packageHistory']['history'] ?? [];
+
+        if (empty($history)) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        $events = [];
+        foreach ($history as $item) {
+            $code = trim($item['status'] ?? '');
+
+            if (in_array($code, self::OLIVRAISON_SKIP, true)) {
+                continue;
+            }
+
+            $label = self::OLIVRAISON_LABELS[$code] ?? $code;
+            $date = isset($item['updateAt'])
+                ? date('Y-m-d H:i', (int) ($item['updateAt'] / 1000))
+                : '';
+
+            // Extract hub name from msg when present (e.g. "Colis en route vers Hub Temara")
+            $step = 'Olivraison';
+            if (! empty($item['msg']) && preg_match('/Hub\s+\S+/i', $item['msg'], $m)) {
+                $step = $m[0];
+            }
+
+            $events[] = ['step' => $step, 'status' => $label, 'date' => $date];
+        }
+
+        if (empty($events)) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        $last = end($events);
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => $last['date'],
+            'current_status' => $last['status'],
+            'destination' => $last['step'] !== 'Olivraison' ? $last['step'] : '',
+            'amount' => '',
+            'phone' => '',
+        ];
+
+        return ['error' => null, 'events' => $events, 'info' => $info];
     }
 
     // ─── Amana (Barid Al Maghreb) ─────────────────────────────────────────────────

@@ -1102,6 +1102,7 @@
                         <option value="cathedis">Cathedis</option>
                         <option value="speedaf">Speedaf</option>
                         <option value="amana">Amana</option>
+                        <option value="olivraison">Olivraison</option>
                     </select>
                     @error('shippingCarrier')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
