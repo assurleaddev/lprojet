@@ -1100,6 +1100,7 @@
                         <option value="nearya">Nearya</option>
                         <option value="ameex">Ameex</option>
                         <option value="cathedis">Cathedis</option>
+                        <option value="speedaf">Speedaf</option>
                     </select>
                     @error('shippingCarrier')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>

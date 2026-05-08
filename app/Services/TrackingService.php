@@ -19,6 +19,7 @@ class TrackingService
         'nearya' => 'Nearya',
         'ameex' => 'Ameex',
         'cathedis' => 'Cathedis',
+        'speedaf' => 'Speedaf',
     ];
 
     /**
@@ -51,6 +52,7 @@ class TrackingService
             'nearya' => $this->trackNearya($code),
             'ameex' => $this->trackAmeex($code),
             'cathedis' => $this->trackCathedis($code),
+            'speedaf' => $this->trackSpeedaf($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -545,6 +547,71 @@ class TrackingService
         $activeEvents = array_values(array_filter($events, fn ($e) => $e['active']));
 
         return ['error' => null, 'events' => $activeEvents, 'info' => $info, 'timeline' => $events];
+    }
+
+    // ─── Speedaf ─────────────────────────────────────────────────────────────────
+
+    private function trackSpeedaf(string $barcode): array
+    {
+        // Infer country code from tracking number prefix (e.g. "MA020..." → "MA")
+        $prefix = strtoupper(substr($barcode, 0, 2));
+        $countryCode = ctype_alpha($prefix) ? $prefix : 'MA';
+
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => 'application/json, text/plain, */*',
+                'User-Agent' => self::USER_AGENT,
+                'Content-Type' => 'application/json;charset=UTF-8',
+                'Origin' => 'https://speedaf.com',
+                'Referer' => 'https://speedaf.com/',
+                'countryCode' => $countryCode,
+                'lang' => 'en_US',
+            ])->post('https://speedaf.com/publicservice/v1/api/express/track/listExpressTrack', [
+                'mailNoList' => [$barcode],
+            ]);
+
+        $json = $response->json();
+
+        if (empty($json['success']) || empty($json['data'][0]['tracks'])) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        // API returns newest first — reverse to chronological order
+        $tracks = array_reverse($json['data'][0]['tracks']);
+
+        $events = array_map(fn ($track) => [
+            'step' => $this->extractSpeedafLocation($track['msgEng'] ?? '', $track['msgFre'] ?? ''),
+            'status' => $track['actionName'] ?? '',
+            'date' => $track['time'] ?? '',
+        ], $tracks);
+
+        $last = end($tracks);
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => $last['time'] ?? '',
+            'current_status' => $last['actionName'] ?? '',
+            'destination' => $this->extractSpeedafLocation($last['msgEng'] ?? '', $last['msgFre'] ?? ''),
+            'amount' => '',
+            'phone' => '',
+        ];
+
+        return ['error' => null, 'events' => $events, 'info' => $info];
+    }
+
+    private function extractSpeedafLocation(string ...$messages): string
+    {
+        foreach ($messages as $msg) {
+            if (preg_match_all('/【([^】]+)】/', $msg, $matches)) {
+                foreach ($matches[1] as $candidate) {
+                    if (str_starts_with($candidate, 'HUB') || str_starts_with($candidate, 'DC-') || str_starts_with($candidate, 'DC ')) {
+                        return $candidate;
+                    }
+                }
+            }
+        }
+
+        return 'Speedaf';
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
