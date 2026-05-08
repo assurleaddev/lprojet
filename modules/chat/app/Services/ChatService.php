@@ -443,6 +443,7 @@ class ChatService
             'ameex' => 'Ameex',
             'cathedis' => 'Cathedis',
             'speedaf' => 'Speedaf',
+            'amana' => 'Amana',
         ];
         $carrierName = $carrierLabels[$order->carrier] ?? $order->carrier;
         $trackingPart = $order->tracking_code ? " Tracking code: {$order->tracking_code}." : '';

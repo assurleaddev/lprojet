@@ -20,6 +20,7 @@ class TrackingService
         'ameex' => 'Ameex',
         'cathedis' => 'Cathedis',
         'speedaf' => 'Speedaf',
+        'amana' => 'Amana',
     ];
 
     /**
@@ -53,6 +54,7 @@ class TrackingService
             'ameex' => $this->trackAmeex($code),
             'cathedis' => $this->trackCathedis($code),
             'speedaf' => $this->trackSpeedaf($code),
+            'amana' => $this->trackAmana($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -612,6 +614,107 @@ class TrackingService
         }
 
         return 'Speedaf';
+    }
+
+    // ─── Amana (Barid Al Maghreb) ─────────────────────────────────────────────────
+
+    private function trackAmana(string $barcode): array
+    {
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => '*/*',
+                'User-Agent' => self::USER_AGENT,
+                'X-Requested-With' => 'XMLHttpRequest',
+                'Referer' => 'https://bam-tracking.barid.ma/',
+            ])->get('https://bam-tracking.barid.ma/Tracking/Search', [
+                'trackingCode' => $barcode,
+                '_' => (int) (microtime(true) * 1000),
+            ]);
+
+        $json = $response->json();
+
+        if (empty($json['OperationSuccess']) || empty($json['Html'])) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        [$events, $info] = $this->parseAmana($json['Html'], $barcode);
+
+        if (empty($events)) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        return ['error' => null, 'events' => $events, 'info' => $info];
+    }
+
+    private function parseAmana(string $html, string $barcode): array
+    {
+        $doc = $this->parseHtml($html);
+        $xpath = new \DOMXPath($doc);
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => '',
+            'current_status' => '',
+            'destination' => '',
+            'amount' => '',
+            'phone' => '',
+        ];
+
+        $posEl = $xpath->query("//*[contains(@class,'lblCurrentPosition')]")->item(0);
+        if ($posEl) {
+            $info['destination'] = trim($posEl->textContent);
+        }
+
+        $amountEl = $xpath->query("//*[contains(@class,'lblMttCrbt')]")->item(0);
+        if ($amountEl) {
+            $info['amount'] = trim($amountEl->textContent);
+        }
+
+        // Timeline is rendered newest-first (bullet N … 1); reverse to chronological
+        $events = [];
+        foreach ($xpath->query("//ul[contains(@class,'timeline')]/li") as $li) {
+            $dateEl = $xpath->query(".//*[contains(@class,'container_date')]", $li)->item(0);
+            $timeEl = $xpath->query(".//*[contains(@class,'container_time')]", $li)->item(0);
+            $descEl = $xpath->query(".//*[contains(@class,'mt-3') and contains(@class,'mb-5')]", $li)->item(0);
+
+            $date = $dateEl ? trim($dateEl->textContent) : '';
+            $time = $timeEl ? trim($timeEl->textContent) : '';
+
+            $location = 'Amana';
+            $status = '';
+
+            if ($descEl) {
+                $boldEl = $xpath->query('.//b', $descEl)->item(0);
+                if ($boldEl) {
+                    $location = trim($boldEl->textContent);
+                    $status = trim(str_replace($boldEl->textContent, '', $descEl->textContent));
+                    $status = trim(preg_replace('/\s+/', ' ', $status));
+                } else {
+                    $status = trim(preg_replace('/\s+/', ' ', $descEl->textContent));
+                }
+            }
+
+            if ($status || $date) {
+                $events[] = [
+                    'step' => $location,
+                    'status' => $status,
+                    'date' => trim("$date $time"),
+                ];
+            }
+        }
+
+        $events = array_reverse($events);
+
+        if ($events) {
+            $last = end($events);
+            $info['last_update'] = $last['date'];
+            $info['current_status'] = $last['status'];
+            if (! $info['destination']) {
+                $info['destination'] = $last['step'];
+            }
+        }
+
+        return [$events, $info];
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────────
