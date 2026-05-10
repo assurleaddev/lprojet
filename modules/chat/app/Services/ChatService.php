@@ -446,6 +446,7 @@ class ChatService
             'amana' => 'Amana',
             'olivraison' => 'Olivraison',
             'coliaty' => 'Coliaty',
+            'digylog' => 'Digylog',
         ];
         $carrierName = $carrierLabels[$order->carrier] ?? $order->carrier;
         $trackingPart = $order->tracking_code ? " Tracking code: {$order->tracking_code}." : '';

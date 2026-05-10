@@ -23,6 +23,7 @@ class TrackingService
         'amana' => 'Amana',
         'olivraison' => 'Olivraison',
         'coliaty' => 'Coliaty',
+        'digylog' => 'Digylog',
     ];
 
     /**
@@ -59,6 +60,7 @@ class TrackingService
             'amana' => $this->trackAmana($code),
             'olivraison' => $this->trackOlivraison($code),
             'coliaty' => $this->trackColiaty($code),
+            'digylog' => $this->trackDigylog($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -618,6 +620,109 @@ class TrackingService
         }
 
         return 'Speedaf';
+    }
+
+    // ─── Digylog ─────────────────────────────────────────────────────────────────
+
+    private function trackDigylog(string $barcode): array
+    {
+        // Step 1 — fetch the tracking page to extract the Fusion Form nonce
+        $page = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'User-Agent' => self::USER_AGENT,
+            ])->get('https://www.digylog.com/suivi-de-colis/');
+
+        $pageHtml = $page->body();
+
+        // Extract form ID and nonce from the hidden input field
+        // Handles both attribute orders: name then value, or value then name
+        if (! preg_match('/name=["\']fusion-form-nonce-(\d+)["\'][^>]*value=["\']([^"\']+)["\']|value=["\']([^"\']+)["\'][^>]*name=["\']fusion-form-nonce-(\d+)["\']/', $pageHtml, $m)) {
+            return ['error' => 'Service Digylog indisponible.', 'events' => [], 'info' => []];
+        }
+
+        $formId = $m[1] ?: $m[4];
+        $nonce = $m[2] ?: $m[3];
+
+        // Step 2 — submit the tracking code via GET (matches browser behaviour)
+        $response = Http::withOptions(['timeout' => 30, 'allow_redirects' => true])
+            ->withHeaders([
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'User-Agent' => self::USER_AGENT,
+                'Referer' => 'https://www.digylog.com/',
+            ])->get('https://www.digylog.com/suivi-de-colis/', [
+                'tracking' => $barcode,
+                'form_notices' => "fusion-notices-{$formId}",
+                "fusion-form-nonce-{$formId}" => $nonce,
+            ]);
+
+        [$events, $info] = $this->parseDigylog($response->body(), $barcode);
+
+        if (empty($events)) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        return ['error' => null, 'events' => $events, 'info' => $info];
+    }
+
+    private function parseDigylog(string $html, string $barcode): array
+    {
+        $doc = $this->parseHtml($html);
+        $xpath = new \DOMXPath($doc);
+
+        $events = [];
+
+        // Tracking history is rendered in a <table> using DataTables;
+        // rows contain: date | status | location (order may vary)
+        foreach ($xpath->query('//table//tbody/tr') as $row) {
+            $cells = $xpath->query('./td', $row);
+
+            if ($cells->length < 2) {
+                continue;
+            }
+
+            $texts = [];
+            for ($i = 0; $i < $cells->length; $i++) {
+                $texts[] = trim(preg_replace('/\s+/', ' ', $cells->item($i)->textContent));
+            }
+
+            // Skip header-like rows that leaked into tbody
+            if (empty(array_filter($texts))) {
+                continue;
+            }
+
+            // Heuristic: first cell that matches a date pattern is the date,
+            // remaining cells are status and location
+            $date = '';
+            $rest = [];
+            foreach ($texts as $text) {
+                if ($date === '' && preg_match('/\d{2}[\/-]\d{2}[\/-]\d{4}|\d{4}-\d{2}-\d{2}/', $text)) {
+                    $date = $text;
+                } else {
+                    $rest[] = $text;
+                }
+            }
+
+            $status = $rest[0] ?? implode(' — ', array_filter($texts));
+            $step = $rest[1] ?? 'Digylog';
+
+            if ($status) {
+                $events[] = ['step' => $step ?: 'Digylog', 'status' => $status, 'date' => $date];
+            }
+        }
+
+        $last = end($events);
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => $last['date'] ?? '',
+            'current_status' => $last['status'] ?? '',
+            'destination' => $last['step'] !== 'Digylog' ? ($last['step'] ?? '') : '',
+            'amount' => '',
+            'phone' => '',
+        ];
+
+        return [$events, $info];
     }
 
     // ─── Coliaty ─────────────────────────────────────────────────────────────────

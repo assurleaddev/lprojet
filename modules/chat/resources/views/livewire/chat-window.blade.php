@@ -1104,6 +1104,7 @@
                         <option value="amana">Amana</option>
                         <option value="olivraison">Olivraison</option>
                         <option value="coliaty">Coliaty</option>
+                        <option value="digylog">Digylog</option>
                     </select>
                     @error('shippingCarrier')
                         <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
