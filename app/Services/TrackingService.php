@@ -22,6 +22,7 @@ class TrackingService
         'speedaf' => 'Speedaf',
         'amana' => 'Amana',
         'olivraison' => 'Olivraison',
+        'coliaty' => 'Coliaty',
     ];
 
     /**
@@ -57,6 +58,7 @@ class TrackingService
             'speedaf' => $this->trackSpeedaf($code),
             'amana' => $this->trackAmana($code),
             'olivraison' => $this->trackOlivraison($code),
+            'coliaty' => $this->trackColiaty($code),
             default => ['error' => 'Unsupported carrier.', 'events' => [], 'info' => []],
         };
     }
@@ -616,6 +618,50 @@ class TrackingService
         }
 
         return 'Speedaf';
+    }
+
+    // ─── Coliaty ─────────────────────────────────────────────────────────────────
+
+    private function trackColiaty(string $barcode): array
+    {
+        $response = Http::withOptions(['timeout' => 30])
+            ->withHeaders([
+                'Accept' => 'application/json, text/plain, */*',
+                'User-Agent' => self::USER_AGENT,
+                'Origin' => 'https://coliaty.com',
+                'Referer' => 'https://coliaty.com/',
+                'Accept-Language' => 'en-US,en;q=0.9,fr;q=0.8',
+            ])->get("https://cx-endpoint.coliaty.com/api/v1/public/parcel/track/{$barcode}");
+
+        $json = $response->json();
+
+        if (empty($json['success']) || empty($json['data']['timeline'])) {
+            return ['error' => 'Numéro de suivi invalide ou introuvable.', 'events' => [], 'info' => []];
+        }
+
+        $data = $json['data'];
+
+        // Timeline is newest-first — reverse to chronological
+        $timeline = array_reverse($data['timeline']);
+
+        $events = array_map(fn ($item) => [
+            'step' => $data['parcel_city'] ?? 'Coliaty',
+            'status' => $item['status_label'] ?? $item['status_code'] ?? '',
+            'date' => $item['date'] ?? '',
+        ], $timeline);
+
+        $current = $data['current_status'] ?? [];
+
+        $info = [
+            'receipt' => $barcode,
+            'last_update' => $data['timeline'][0]['date'] ?? '',
+            'current_status' => $current['label'] ?? '',
+            'destination' => $data['parcel_city'] ?? '',
+            'amount' => isset($data['price']) ? $data['price'].' MAD' : '',
+            'phone' => '',
+        ];
+
+        return ['error' => null, 'events' => $events, 'info' => $info];
     }
 
     // ─── Olivraison ──────────────────────────────────────────────────────────────
