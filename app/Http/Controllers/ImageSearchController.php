@@ -21,7 +21,10 @@ class ImageSearchController extends Controller
                 ? __('The image search is warming up. Please try again in a moment.')
                 : __('Could not analyze the image. Please try again.');
 
-            return response()->json(['error' => $message], 422);
+            return response()->json([
+                'error' => $message,
+                'hf_debug' => $result['debug'] ?? null,
+            ], 422);
         }
 
         $params = ['type' => 'product'];

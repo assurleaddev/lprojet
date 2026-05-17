@@ -19,19 +19,19 @@ class ImageSearchService
         }
 
         $labelMap = $categories->mapWithKeys(fn ($cat) => [$cat->name => $cat->id]);
-
-        $imageBytes = file_get_contents($image->getRealPath());
-        $mimeType = $image->getMimeType() ?: 'image/jpeg';
-
-        // Send raw binary image with candidate_labels in query string
         $labels = $labelMap->keys()->values()->toArray();
-        $queryString = http_build_query(['candidate_labels' => implode(',', $labels)]);
 
+        $base64 = base64_encode(file_get_contents($image->getRealPath()));
+
+        // HF Inference API: JSON body with plain base64 + parameters.candidate_labels
         $response = Http::withToken(config('services.huggingface.token'))
-            ->withHeaders(['Content-Type' => $mimeType])
-            ->withBody($imageBytes, $mimeType)
             ->timeout(30)
-            ->post('https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32?' . $queryString);
+            ->post('https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32', [
+                'inputs' => $base64,
+                'parameters' => [
+                    'candidate_labels' => $labels,
+                ],
+            ]);
 
         if ($response->status() === 503) {
             return ['error' => 'model_loading'];
@@ -41,12 +41,22 @@ class ImageSearchService
             Log::warning('HuggingFace image search failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
+                'labels_sent' => $labels,
             ]);
 
-            return ['error' => 'api_error'];
+            return [
+                'error' => 'api_error',
+                'debug' => app()->isLocal() ? $response->body() : null,
+            ];
         }
 
-        $results = collect($response->json())->sortByDesc('score');
+        $json = $response->json();
+
+        // HF returns either a flat array [{'score':..,'label':..}] or nested
+        $results = collect(is_array($json[0] ?? null) ? $json : [$json])
+            ->flatten(1)
+            ->sortByDesc('score');
+
         $top = $results->first();
 
         if (! $top || ($top['score'] ?? 0) < 0.05) {
