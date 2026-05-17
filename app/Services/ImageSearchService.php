@@ -25,6 +25,7 @@ class ImageSearchService
 
         // HF Inference API: JSON body with plain base64 + parameters.candidate_labels
         $response = Http::withToken(config('services.huggingface.token'))
+            ->when(app()->isLocal(), fn ($http) => $http->withoutVerifying())
             ->timeout(30)
             ->post('https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32', [
                 'inputs' => $base64,
