@@ -56,6 +56,10 @@ return [
         'key' => env('OPENAI_API_KEY'),
     ],
 
+    'huggingface' => [
+        'token' => env('HUGGING_FACE_TOKEN'),
+    ],
+
     'tawssil_proxy' => env('TAWSSIL_PROXY_URL'),
 
     'twilio' => [

@@ -149,6 +149,7 @@ Route::get('/notifications/{id}/read', [App\Http\Controllers\NotificationControl
     ->name('notifications.read');
 
 Route::get('/search/suggestions', [App\Http\Controllers\SearchController::class, 'suggestions'])->name('search.suggestions');
+Route::post('/search/image', [App\Http\Controllers\ImageSearchController::class, 'search'])->name('search.image');
 Route::get('/search', App\Livewire\SearchComponent::class)->name('search');
 
 Route::get('/settings/profile', [App\Http\Controllers\SettingsController::class, 'profile'])
