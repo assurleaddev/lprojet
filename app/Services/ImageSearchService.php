@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 
 class ImageSearchService
 {
+    private const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+
     public function analyze(UploadedFile $image): array
     {
         $base64 = base64_encode(file_get_contents($image->getRealPath()));
@@ -23,23 +25,21 @@ class ImageSearchService
             . "Reply with ONLY a JSON object: "
             . '{\"query\": \"<2-4 word description e.g. blue dress, white sneakers>\", \"category\": \"<best matching category from the list or null>\"}';
 
-        $response = Http::withToken(config('services.openai.key'))
+        $response = Http::withQueryParameters(['key' => config('services.gemini.key')])
             ->when(app()->isLocal(), fn ($http) => $http->withoutVerifying())
             ->timeout(30)
-            ->post('https://api.openai.com/v1/chat/completions', [
-                'model' => 'gpt-4o-mini',
-                'max_tokens' => 100,
-                'messages' => [[
-                    'role' => 'user',
-                    'content' => [
-                        ['type' => 'image_url', 'image_url' => ['url' => "data:{$mimeType};base64,{$base64}", 'detail' => 'low']],
-                        ['type' => 'text', 'text' => $prompt],
+            ->post(self::GEMINI_URL, [
+                'contents' => [[
+                    'parts' => [
+                        ['inline_data' => ['mime_type' => $mimeType, 'data' => $base64]],
+                        ['text' => $prompt],
                     ],
                 ]],
+                'generationConfig' => ['temperature' => 0, 'maxOutputTokens' => 100],
             ]);
 
         if (! $response->successful()) {
-            Log::warning('OpenAI image search failed', [
+            Log::warning('Gemini image search failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -47,7 +47,7 @@ class ImageSearchService
             return ['error' => 'api_error', 'debug' => app()->isLocal() ? $response->body() : null];
         }
 
-        $text = $response->json('choices.0.message.content');
+        $text = $response->json('candidates.0.content.parts.0.text');
 
         if (! $text) {
             return ['error' => 'no_match'];
