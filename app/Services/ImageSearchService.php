@@ -6,33 +6,24 @@ use App\Models\Category;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class ImageSearchService
 {
+    // BLIP image captioning — reliably available on HF free Inference API
+    private const MODEL_URL = 'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base';
+
     public function analyze(UploadedFile $image): array
     {
-        // Use only top-level categories to keep the label list manageable
-        $categories = Category::whereNull('parent_id')->get(['id', 'name']);
+        $imageBytes = file_get_contents($image->getRealPath());
+        $mimeType = $image->getMimeType() ?: 'image/jpeg';
 
-        if ($categories->isEmpty()) {
-            $categories = Category::limit(30)->get(['id', 'name']);
-        }
-
-        $labelMap = $categories->mapWithKeys(fn ($cat) => [$cat->name => $cat->id]);
-        $labels = $labelMap->keys()->values()->toArray();
-
-        $base64 = base64_encode(file_get_contents($image->getRealPath()));
-
-        // HF Inference API: JSON body with plain base64 + parameters.candidate_labels
         $response = Http::withToken(config('services.huggingface.token'))
+            ->withHeaders(['Content-Type' => $mimeType])
+            ->withBody($imageBytes, $mimeType)
             ->when(app()->isLocal(), fn ($http) => $http->withoutVerifying())
             ->timeout(30)
-            ->post('https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32', [
-                'inputs' => $base64,
-                'parameters' => [
-                    'candidate_labels' => $labels,
-                ],
-            ]);
+            ->post(self::MODEL_URL);
 
         if ($response->status() === 503) {
             return ['error' => 'model_loading'];
@@ -42,35 +33,35 @@ class ImageSearchService
             Log::warning('HuggingFace image search failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
-                'labels_sent' => $labels,
             ]);
 
-            return [
-                'error' => 'api_error',
-                'debug' => app()->isLocal() ? $response->body() : null,
-            ];
+            return ['error' => 'api_error', 'debug' => app()->isLocal() ? $response->body() : null];
         }
 
         $json = $response->json();
 
-        // HF returns either a flat array [{'score':..,'label':..}] or nested
-        $results = collect(is_array($json[0] ?? null) ? $json : [$json])
-            ->flatten(1)
-            ->sortByDesc('score');
+        // BLIP returns [{"generated_text": "a woman wearing a blue dress"}]
+        $caption = $json[0]['generated_text'] ?? null;
 
-        $top = $results->first();
-
-        if (! $top || ($top['score'] ?? 0) < 0.05) {
+        if (! $caption) {
             return ['error' => 'no_match'];
         }
 
-        $detectedLabel = $top['label'];
-        $categoryId = $labelMap->get($detectedLabel);
+        // Try to match the caption against our category names
+        $categories = Category::whereNull('parent_id')->get(['id', 'name']);
+        $matchedCategory = null;
+
+        foreach ($categories as $category) {
+            if (Str::contains(strtolower($caption), strtolower($category->name))) {
+                $matchedCategory = $category;
+                break;
+            }
+        }
 
         return [
-            'detected' => $detectedLabel,
-            'category_id' => $categoryId,
-            'confidence' => $top['score'],
+            'detected' => $caption,
+            'category_id' => $matchedCategory?->id,
+            'confidence' => 1.0,
         ];
     }
 }
