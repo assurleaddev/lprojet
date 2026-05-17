@@ -10,12 +10,21 @@ use Illuminate\Support\Str;
 
 class ImageSearchService
 {
-    private const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+    private const UPLOAD_URL = 'https://generativelanguage.googleapis.com/upload/v1beta/files';
+
+    private const GENERATE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
     public function analyze(UploadedFile $image): array
     {
-        $base64 = base64_encode(file_get_contents($image->getRealPath()));
+        $apiKey = config('services.gemini.key');
+        $imageBytes = file_get_contents($image->getRealPath());
         $mimeType = $image->getMimeType() ?: 'image/jpeg';
+
+        $fileUri = $this->uploadToFilesApi($apiKey, $imageBytes, $mimeType);
+
+        if (! $fileUri) {
+            return ['error' => 'api_error'];
+        }
 
         $categories = Category::whereNull('parent_id')->get(['id', 'name']);
         $categoryList = $categories->pluck('name')->implode(', ');
@@ -25,13 +34,13 @@ class ImageSearchService
             . "Reply with ONLY a JSON object: "
             . '{\"query\": \"<2-4 word description e.g. blue dress, white sneakers>\", \"category\": \"<best matching category from the list or null>\"}';
 
-        $response = Http::withQueryParameters(['key' => config('services.gemini.key')])
+        $response = Http::withQueryParameters(['key' => $apiKey])
             ->when(app()->isLocal(), fn ($http) => $http->withoutVerifying())
             ->timeout(30)
-            ->post(self::GEMINI_URL, [
+            ->post(self::GENERATE_URL, [
                 'contents' => [[
                     'parts' => [
-                        ['inline_data' => ['mime_type' => $mimeType, 'data' => $base64]],
+                        ['file_data' => ['mime_type' => $mimeType, 'file_uri' => $fileUri]],
                         ['text' => $prompt],
                     ],
                 ]],
@@ -39,7 +48,7 @@ class ImageSearchService
             ]);
 
         if (! $response->successful()) {
-            Log::warning('Gemini image search failed', [
+            Log::warning('Gemini generateContent failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -71,5 +80,37 @@ class ImageSearchService
             'category_id' => $matchedCategory?->id,
             'confidence' => 1.0,
         ];
+    }
+
+    private function uploadToFilesApi(string $apiKey, string $imageBytes, string $mimeType): ?string
+    {
+        $boundary = 'boundary_' . bin2hex(random_bytes(8));
+        $metadata = json_encode(['file' => ['displayName' => 'search_image']]);
+
+        $body = "--{$boundary}\r\n"
+            . "Content-Type: application/json; charset=utf-8\r\n\r\n"
+            . $metadata . "\r\n"
+            . "--{$boundary}\r\n"
+            . "Content-Type: {$mimeType}\r\n\r\n"
+            . $imageBytes . "\r\n"
+            . "--{$boundary}--";
+
+        $response = Http::withQueryParameters(['key' => $apiKey])
+            ->withHeaders(['X-Goog-Upload-Protocol' => 'multipart'])
+            ->withBody($body, "multipart/related; boundary={$boundary}")
+            ->when(app()->isLocal(), fn ($http) => $http->withoutVerifying())
+            ->timeout(30)
+            ->post(self::UPLOAD_URL);
+
+        if (! $response->successful()) {
+            Log::warning('Gemini Files API upload failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
+            return null;
+        }
+
+        return $response->json('file.uri');
     }
 }
