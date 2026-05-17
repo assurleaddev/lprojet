@@ -5,34 +5,44 @@ namespace App\Services;
 use App\Models\Category;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ImageSearchService
 {
     public function analyze(UploadedFile $image): array
     {
-        $categories = Category::all(['id', 'name']);
+        // Use only top-level categories to keep the label list manageable
+        $categories = Category::whereNull('parent_id')->get(['id', 'name']);
 
-        $labelMap = $categories->mapWithKeys(function ($cat) {
-            return ["a photo of {$cat->name}" => $cat->id];
-        });
+        if ($categories->isEmpty()) {
+            $categories = Category::limit(30)->get(['id', 'name']);
+        }
 
-        $base64 = base64_encode(file_get_contents($image->getRealPath()));
+        $labelMap = $categories->mapWithKeys(fn ($cat) => [$cat->name => $cat->id]);
+
+        $imageBytes = file_get_contents($image->getRealPath());
         $mimeType = $image->getMimeType() ?: 'image/jpeg';
 
+        // Send raw binary image with candidate_labels in query string
+        $labels = $labelMap->keys()->values()->toArray();
+        $queryString = http_build_query(['candidate_labels' => implode(',', $labels)]);
+
         $response = Http::withToken(config('services.huggingface.token'))
+            ->withHeaders(['Content-Type' => $mimeType])
+            ->withBody($imageBytes, $mimeType)
             ->timeout(30)
-            ->post('https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32', [
-                'inputs' => "data:{$mimeType};base64,{$base64}",
-                'parameters' => [
-                    'candidate_labels' => $labelMap->keys()->values()->toArray(),
-                ],
-            ]);
+            ->post('https://api-inference.huggingface.co/models/openai/clip-vit-base-patch32?' . $queryString);
 
         if ($response->status() === 503) {
             return ['error' => 'model_loading'];
         }
 
         if (! $response->successful()) {
+            Log::warning('HuggingFace image search failed', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+
             return ['error' => 'api_error'];
         }
 
@@ -45,10 +55,9 @@ class ImageSearchService
 
         $detectedLabel = $top['label'];
         $categoryId = $labelMap->get($detectedLabel);
-        $cleanLabel = str_replace('a photo of ', '', $detectedLabel);
 
         return [
-            'detected' => $cleanLabel,
+            'detected' => $detectedLabel,
             'category_id' => $categoryId,
             'confidence' => $top['score'],
         ];
