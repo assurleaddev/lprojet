@@ -60,6 +60,10 @@ return [
         'token' => env('HUGGING_FACE_TOKEN'),
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+    ],
+
     'tawssil_proxy' => env('TAWSSIL_PROXY_URL'),
 
     'twilio' => [

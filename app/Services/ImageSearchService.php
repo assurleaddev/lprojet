@@ -10,27 +10,37 @@ use Illuminate\Support\Str;
 
 class ImageSearchService
 {
-    // BLIP image captioning — reliably available on HF free Inference API
-    private const MODEL_URL = 'https://api-inference.huggingface.co/models/Salesforce/blip-image-captioning-base';
+    private const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
     public function analyze(UploadedFile $image): array
     {
-        $imageBytes = file_get_contents($image->getRealPath());
+        $base64 = base64_encode(file_get_contents($image->getRealPath()));
         $mimeType = $image->getMimeType() ?: 'image/jpeg';
 
-        $response = Http::withToken(config('services.huggingface.token'))
-            ->withHeaders(['Content-Type' => $mimeType])
-            ->withBody($imageBytes, $mimeType)
+        $categories = Category::whereNull('parent_id')->get(['id', 'name']);
+        $categoryList = $categories->pluck('name')->implode(', ');
+
+        $prompt = "You are a fashion search assistant. Look at this clothing/fashion image and identify what it shows. "
+            . "The available categories are: {$categoryList}. "
+            . "Reply with ONLY a JSON object in this exact format: "
+            . '{\"query\": \"<2-4 word description like blue dress or white sneakers>\", \"category\": \"<best matching category name from the list or null>\"} '
+            . 'No explanation, just the JSON.';
+
+        $response = Http::withQueryParameters(['key' => config('services.gemini.key')])
             ->when(app()->isLocal(), fn ($http) => $http->withoutVerifying())
             ->timeout(30)
-            ->post(self::MODEL_URL);
-
-        if ($response->status() === 503) {
-            return ['error' => 'model_loading'];
-        }
+            ->post(self::GEMINI_URL, [
+                'contents' => [[
+                    'parts' => [
+                        ['inline_data' => ['mime_type' => $mimeType, 'data' => $base64]],
+                        ['text' => $prompt],
+                    ],
+                ]],
+                'generationConfig' => ['temperature' => 0, 'maxOutputTokens' => 100],
+            ]);
 
         if (! $response->successful()) {
-            Log::warning('HuggingFace image search failed', [
+            Log::warning('Gemini image search failed', [
                 'status' => $response->status(),
                 'body' => $response->body(),
             ]);
@@ -38,28 +48,29 @@ class ImageSearchService
             return ['error' => 'api_error', 'debug' => app()->isLocal() ? $response->body() : null];
         }
 
-        $json = $response->json();
+        $text = $response->json('candidates.0.content.parts.0.text');
 
-        // BLIP returns [{"generated_text": "a woman wearing a blue dress"}]
-        $caption = $json[0]['generated_text'] ?? null;
-
-        if (! $caption) {
+        if (! $text) {
             return ['error' => 'no_match'];
         }
 
-        // Try to match the caption against our category names
-        $categories = Category::whereNull('parent_id')->get(['id', 'name']);
-        $matchedCategory = null;
+        // Strip markdown code fences if Gemini wraps the JSON
+        $text = trim(preg_replace('/^```(?:json)?\s*|\s*```$/i', '', trim($text)));
 
-        foreach ($categories as $category) {
-            if (Str::contains(strtolower($caption), strtolower($category->name))) {
-                $matchedCategory = $category;
-                break;
-            }
+        $parsed = json_decode($text, true);
+        $query = $parsed['query'] ?? null;
+        $categoryName = $parsed['category'] ?? null;
+
+        if (! $query) {
+            return ['error' => 'no_match'];
         }
 
+        $matchedCategory = $categoryName
+            ? $categories->first(fn ($c) => Str::lower($c->name) === Str::lower($categoryName))
+            : null;
+
         return [
-            'detected' => $caption,
+            'detected' => $query,
             'category_id' => $matchedCategory?->id,
             'confidence' => 1.0,
         ];
