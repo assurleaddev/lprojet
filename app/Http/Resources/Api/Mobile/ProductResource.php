@@ -7,6 +7,22 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductResource extends JsonResource
 {
+    private function resolveFeaturedImage(): ?string
+    {
+        $featured = $this->getFirstMedia('featured');
+        if ($featured) {
+            return $featured->hasGeneratedConversion('preview')
+                ? $featured->getUrl('preview')
+                : $featured->getUrl();
+        }
+
+        $first = $this->getFirstMedia('products');
+
+        return $first
+            ? ($first->hasGeneratedConversion('preview') ? $first->getUrl('preview') : $first->getUrl())
+            : null;
+    }
+
     public function toArray(Request $request): array
     {
         return [
@@ -31,9 +47,9 @@ class ProductResource extends JsonResource
             ]),
             'images' => $this->getMedia('products')->map(fn ($m) => [
                 'url' => $m->getUrl(),
-                'preview_url' => $m->getUrl('preview'),
+                'preview_url' => $m->hasGeneratedConversion('preview') ? $m->getUrl('preview') : $m->getUrl(),
             ])->values(),
-            'featured_image' => $this->getFeaturedImageUrl('preview'),
+            'featured_image' => $this->resolveFeaturedImage(),
             'is_favorited' => $this->when(
                 $request->user(),
                 fn () => $this->isFavoritedBy($request->user())
