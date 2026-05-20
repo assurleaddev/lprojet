@@ -11,7 +11,17 @@
       "Read(//c/Users/benou/Desktop/**)",
       "Bash(git commit *)",
       "Bash(git push *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\benou\\\\Documents\\\\lprojet\\\\VintedClone\" -Recurse)",
+      "Bash(Select-Object -Property FullName)",
+      "Bash(ConvertTo-Csv -NoTypeInformation)",
+      "Bash(Out-String)",
+      "Bash(flutter pub *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter build *)",
+      "Bash(flutter doctor *)",
+      "Bash(flutter devices *)",
+      "Bash(Get-Content storage/logs/laravel.log -Tail 40)"
     ]
   }
 }

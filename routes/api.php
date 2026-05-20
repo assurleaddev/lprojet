@@ -3,6 +3,8 @@
 use App\Http\Controllers\Api\ActionLogController;
 use App\Http\Controllers\Api\AiContentController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Mobile\CategoryController as MobileCategoryController;
+use App\Http\Controllers\Api\Mobile\ProductController as MobileProductController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostController;
@@ -37,8 +39,23 @@ Route::get('/translations/{lang}', function (string $lang) {
     return response()->json($translations);
 });
 
+// Mobile API routes
+Route::prefix('mobile')->group(function () {
+    // Public: browse products and categories
+    Route::get('/products', [MobileProductController::class, 'index']);
+    Route::get('/products/{id}', [MobileProductController::class, 'show']);
+    Route::get('/categories', [MobileCategoryController::class, 'index']);
+    Route::get('/categories/{id}', [MobileCategoryController::class, 'show']);
+
+    // Authenticated: sell
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/products', [MobileProductController::class, 'store']);
+    });
+});
+
 // Authentication routes
 Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 
     Route::middleware('auth:sanctum')->group(function () {
