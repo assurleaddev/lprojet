@@ -70,6 +70,69 @@ class InboxController extends Controller
         return response()->json(['data' => $notifications]);
     }
 
+    public function messages(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $conversation = Conversation::query()
+            ->where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_one_id', $user->id)->orWhere('user_two_id', $user->id);
+            })
+            ->firstOrFail();
+
+        // Mark messages from the other user as read
+        $conversation->messages()
+            ->where('user_id', '!=', $user->id)
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+
+        $messages = $conversation->messages()
+            ->with('user')
+            ->orderBy('created_at')
+            ->get()
+            ->map(fn ($m) => [
+                'id' => $m->id,
+                'body' => $m->body,
+                'is_mine' => $m->user_id === $user->id,
+                'created_at' => $m->created_at->toISOString(),
+                'sent_at' => $m->created_at->diffForHumans(),
+            ]);
+
+        return response()->json(['data' => $messages]);
+    }
+
+    public function sendMessage(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+
+        $conversation = Conversation::query()
+            ->where('id', $id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_one_id', $user->id)->orWhere('user_two_id', $user->id);
+            })
+            ->firstOrFail();
+
+        $request->validate(['body' => ['required', 'string', 'max:2000']]);
+
+        $message = $conversation->messages()->create([
+            'user_id' => $user->id,
+            'body' => $request->body,
+        ]);
+
+        $conversation->update(['last_message_at' => now()]);
+
+        return response()->json([
+            'data' => [
+                'id' => $message->id,
+                'body' => $message->body,
+                'is_mine' => true,
+                'created_at' => $message->created_at->toISOString(),
+                'sent_at' => $message->created_at->diffForHumans(),
+            ],
+        ], 201);
+    }
+
     public function markNotificationsRead(Request $request): JsonResponse
     {
         $request->user()->unreadNotifications()->update(['read_at' => now()]);

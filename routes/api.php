@@ -52,6 +52,8 @@ Route::prefix('mobile')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/products', [MobileProductController::class, 'store']);
         Route::get('/conversations', [MobileInboxController::class, 'conversations']);
+        Route::get('/conversations/{id}/messages', [MobileInboxController::class, 'messages']);
+        Route::post('/conversations/{id}/messages', [MobileInboxController::class, 'sendMessage']);
         Route::get('/notifications', [MobileInboxController::class, 'notifications']);
         Route::post('/notifications/read', [MobileInboxController::class, 'markNotificationsRead']);
     });
