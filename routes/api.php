@@ -48,6 +48,7 @@ Route::prefix('mobile')->group(function () {
     Route::get('/products/{id}', [MobileProductController::class, 'show']);
     Route::get('/categories', [MobileCategoryController::class, 'index']);
     Route::get('/categories/{id}', [MobileCategoryController::class, 'show']);
+    Route::get('/categories/{id}/attributes', [MobileCategoryController::class, 'attributes']);
 
     // Authenticated: sell + inbox
     Route::middleware('auth:sanctum')->group(function () {

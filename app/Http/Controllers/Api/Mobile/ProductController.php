@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Mobile\ProductResource;
 use App\Models\Category;
+use App\Models\Option;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -44,6 +45,17 @@ class ProductController extends Controller
 
         if ($condition = $request->query('condition')) {
             $query->where('condition', $condition);
+        }
+
+        if ($optionIdsStr = $request->query('option_ids')) {
+            $optionIds = array_filter(array_map('intval', explode(',', $optionIdsStr)));
+            if (! empty($optionIds)) {
+                $grouped = Option::whereIn('id', $optionIds)->get()->groupBy('attribute_id');
+                foreach ($grouped as $attrOptionIds) {
+                    $ids = $attrOptionIds->pluck('id')->toArray();
+                    $query->whereHas('options', fn ($q) => $q->whereIn('options.id', $ids));
+                }
+            }
         }
 
         $sortBy = $request->query('sort', 'newest');
