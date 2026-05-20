@@ -11,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class AuthController extends ApiController
 {
@@ -32,6 +33,7 @@ class AuthController extends ApiController
             'last_name' => $request->last_name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'username' => Str::slug($request->first_name . $request->last_name) . '_' . uniqid(),
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
