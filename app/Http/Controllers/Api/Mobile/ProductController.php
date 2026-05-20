@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Mobile\ProductResource;
+use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,7 +26,12 @@ class ProductController extends Controller
         }
 
         if ($categoryId = $request->query('category_id')) {
-            $query->where('category_id', $categoryId);
+            if ($request->boolean('include_subcategories')) {
+                $ids = $this->descendantIds((int) $categoryId);
+                $query->whereIn('category_id', $ids);
+            } else {
+                $query->where('category_id', $categoryId);
+            }
         }
 
         if ($minPrice = $request->query('min_price')) {
@@ -90,5 +96,16 @@ class ProductController extends Controller
         $product->load(['vendor', 'category', 'brand']);
 
         return response()->json(new ProductResource($product), 201);
+    }
+
+    private function descendantIds(int $categoryId): array
+    {
+        $ids = [$categoryId];
+        $children = Category::where('parent_id', $categoryId)->pluck('id');
+        foreach ($children as $childId) {
+            $ids = array_merge($ids, $this->descendantIds($childId));
+        }
+
+        return $ids;
     }
 }
