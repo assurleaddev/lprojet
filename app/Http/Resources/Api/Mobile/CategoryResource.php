@@ -15,7 +15,7 @@ class CategoryResource extends JsonResource
             'slug' => $this->slug,
             'parent_id' => $this->parent_id,
             'image_url' => $this->getFirstMediaUrl('default') ?: null,
-            'children' => CategoryResource::collection($this->whenLoaded('children')),
+            'children' => CategoryResource::collection($this->whenLoaded('allChildren')),
         ];
     }
 }

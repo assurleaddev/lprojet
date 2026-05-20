@@ -12,7 +12,7 @@ class CategoryController extends Controller
     public function index(): AnonymousResourceCollection
     {
         $categories = Category::whereNull('parent_id')
-            ->with('children')
+            ->with('allChildren')
             ->orderBy('order')
             ->get();
 
@@ -21,7 +21,7 @@ class CategoryController extends Controller
 
     public function show(int $id): CategoryResource
     {
-        $category = Category::with('children')->findOrFail($id);
+        $category = Category::with('allChildren')->findOrFail($id);
 
         return new CategoryResource($category);
     }

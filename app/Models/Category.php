@@ -32,6 +32,13 @@ class Category extends Model implements HasMedia
     {
         return $this->hasMany(Category::class, 'parent_id');
     }
+
+    public function allChildren()
+    {
+        return $this->hasMany(Category::class, 'parent_id')
+            ->with('allChildren')
+            ->orderBy('order');
+    }
     public function parent()
     {
         return $this->belongsTo(Category::class, 'parent_id');
