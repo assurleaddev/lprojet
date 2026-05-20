@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\AiContentController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Mobile\CategoryController as MobileCategoryController;
 use App\Http\Controllers\Api\Mobile\InboxController as MobileInboxController;
+use App\Http\Controllers\Api\Mobile\OfferOrderController as MobileOfferOrderController;
 use App\Http\Controllers\Api\Mobile\ProductController as MobileProductController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\PermissionController;
@@ -56,6 +57,15 @@ Route::prefix('mobile')->group(function () {
         Route::post('/conversations/{id}/messages', [MobileInboxController::class, 'sendMessage']);
         Route::get('/notifications', [MobileInboxController::class, 'notifications']);
         Route::post('/notifications/read', [MobileInboxController::class, 'markNotificationsRead']);
+
+        // Offer actions
+        Route::post('/offers/{id}/accept', [MobileOfferOrderController::class, 'acceptOffer']);
+        Route::post('/offers/{id}/reject', [MobileOfferOrderController::class, 'rejectOffer']);
+        Route::post('/offers/{id}/withdraw', [MobileOfferOrderController::class, 'withdrawOffer']);
+
+        // Order actions
+        Route::post('/orders/{id}/ship', [MobileOfferOrderController::class, 'shipOrder']);
+        Route::post('/orders/{id}/receive', [MobileOfferOrderController::class, 'receiveOrder']);
     });
 });
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Chat\Models\Conversation;
@@ -81,23 +82,72 @@ class InboxController extends Controller
             })
             ->firstOrFail();
 
-        // Mark messages from the other user as read
         $conversation->messages()
             ->where('user_id', '!=', $user->id)
             ->whereNull('read_at')
             ->update(['read_at' => now()]);
 
+        // Find the active order for this conversation (for messages without offer_id)
+        $activeOrder = Order::query()
+            ->whereHas('offer', fn ($q) => $q->where('conversation_id', $conversation->id))
+            ->latest()
+            ->first();
+
         $messages = $conversation->messages()
-            ->with('user')
+            ->with(['offer.product.media', 'offer.order'])
             ->orderBy('created_at')
             ->get()
-            ->map(fn ($m) => [
-                'id' => $m->id,
-                'body' => $m->body,
-                'is_mine' => $m->user_id === $user->id,
-                'created_at' => $m->created_at->toISOString(),
-                'sent_at' => $m->created_at->diffForHumans(),
-            ]);
+            ->map(function ($m) use ($user, $activeOrder) {
+                $offer = $m->offer;
+                $order = $offer?->order ?? $activeOrder;
+
+                $offerData = null;
+                if ($offer) {
+                    $product = $offer->product;
+                    $image = $product?->getFirstMediaUrl('featured', 'preview')
+                        ?: $product?->getFirstMediaUrl('products', 'preview')
+                        ?: $product?->getFirstMediaUrl('featured')
+                        ?: $product?->getFirstMediaUrl('products');
+
+                    $offerData = [
+                        'id' => $offer->id,
+                        'price' => (float) $offer->offer_price,
+                        'status' => $offer->status->value,
+                        'is_buyer' => $offer->buyer_id === $user->id,
+                        'is_seller' => $offer->seller_id === $user->id,
+                        'product_title' => $product?->name,
+                        'product_image' => $image,
+                        'rejection_reason' => $offer->rejection_reason,
+                        'expires_at' => $offer->expires_at?->toISOString(),
+                    ];
+                }
+
+                $orderData = null;
+                if ($order) {
+                    $orderData = [
+                        'id' => $order->id,
+                        'status' => $order->status,
+                        'carrier' => $order->carrier,
+                        'tracking_code' => $order->tracking_code,
+                        'amount' => (float) $order->amount,
+                        'payout_amount' => (float) $order->payout_amount,
+                        'is_buyer' => $order->user_id === $user->id,
+                        'is_seller' => $order->vendor_id === $user->id,
+                    ];
+                }
+
+                return [
+                    'id' => $m->id,
+                    'type' => $m->type ?? 'text',
+                    'body' => $m->body,
+                    'is_mine' => $m->user_id === $user->id,
+                    'created_at' => $m->created_at->toISOString(),
+                    'sent_at' => $m->created_at->diffForHumans(),
+                    'metadata' => $m->metadata,
+                    'offer' => $offerData,
+                    'order' => $orderData,
+                ];
+            });
 
         return response()->json(['data' => $messages]);
     }
