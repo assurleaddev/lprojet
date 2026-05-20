@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ActionLogController;
 use App\Http\Controllers\Api\AiContentController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Mobile\CategoryController as MobileCategoryController;
+use App\Http\Controllers\Api\Mobile\InboxController as MobileInboxController;
 use App\Http\Controllers\Api\Mobile\ProductController as MobileProductController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\PermissionController;
@@ -47,9 +48,12 @@ Route::prefix('mobile')->group(function () {
     Route::get('/categories', [MobileCategoryController::class, 'index']);
     Route::get('/categories/{id}', [MobileCategoryController::class, 'show']);
 
-    // Authenticated: sell
+    // Authenticated: sell + inbox
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/products', [MobileProductController::class, 'store']);
+        Route::get('/conversations', [MobileInboxController::class, 'conversations']);
+        Route::get('/notifications', [MobileInboxController::class, 'notifications']);
+        Route::post('/notifications/read', [MobileInboxController::class, 'markNotificationsRead']);
     });
 });
 
