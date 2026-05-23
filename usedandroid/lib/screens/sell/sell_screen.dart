@@ -165,15 +165,6 @@ class _SellScreenState extends State<SellScreen> {
               ],
               const SizedBox(height: 16),
               _Section(
-                title: 'Taille (optionnel)',
-                child: TextFormField(
-                  decoration: const InputDecoration(hintText: 'Ex: S, M, 38'),
-                  onChanged: (v) =>
-                      provider.setSize(v.isEmpty ? null : v),
-                ),
-              ),
-              const SizedBox(height: 16),
-              _Section(
                 title: 'Prix (DZD)',
                 child: TextFormField(
                   decoration: const InputDecoration(hintText: '0'),
