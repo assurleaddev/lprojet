@@ -2,9 +2,20 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import '../../data/mock_data.dart';
 import '../../providers/sell_item_provider.dart';
+import '../../services/category_service.dart';
+import '../../services/product_service.dart';
 import '../../theme/app_colors.dart';
+
+// API condition value → display label
+const _conditionOptions = [
+  ('new_with_tags', 'Neuf avec étiquette'),
+  ('new_without_tags', 'Neuf sans étiquette'),
+  ('very_good', 'Très bon état'),
+  ('good', 'Bon état'),
+  ('satisfactory', 'État satisfaisant'),
+  ('heavily_worn', 'Très usagé'),
+];
 
 class SellScreen extends StatefulWidget {
   const SellScreen({super.key});
@@ -15,14 +26,49 @@ class SellScreen extends StatefulWidget {
 
 class _SellScreenState extends State<SellScreen> {
   final _picker = ImagePicker();
+  bool _submitting = false;
 
   Future<void> _pickImages(SellItemProvider provider) async {
     final files = await _picker.pickMultiImage();
-    if (files.length + provider.images.length > 5) {
-      return;
-    }
-    for (final f in files) {
+    final remaining = 5 - provider.images.length;
+    for (final f in files.take(remaining)) {
       provider.addImage(File(f.path));
+    }
+  }
+
+  Future<void> _submit(SellItemProvider provider) async {
+    setState(() => _submitting = true);
+    try {
+      await ProductService().createProduct(
+        name: provider.title,
+        description: provider.description.isEmpty ? null : provider.description,
+        price: provider.price!,
+        categoryId: provider.categoryId!,
+        condition: provider.condition,
+        size: provider.size,
+        optionIds: provider.allOptionIds,
+        images: provider.images,
+      );
+      if (mounted) {
+        provider.reset();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Article publié avec succès !'),
+            backgroundColor: AppColors.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -35,28 +81,45 @@ class _SellScreenState extends State<SellScreen> {
           appBar: AppBar(
             title: const Text('Vendre un article'),
             actions: [
-              TextButton(
-                onPressed: provider.canSubmit ? () => _submit(context, provider) : null,
-                child: Text(
-                  'Publier',
-                  style: TextStyle(
-                    color: provider.canSubmit ? AppColors.primary : AppColors.textSecondary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 16,
+              if (_submitting)
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.primary),
+                  ),
+                )
+              else
+                TextButton(
+                  onPressed:
+                      provider.canSubmit ? () => _submit(provider) : null,
+                  child: Text(
+                    'Publier',
+                    style: TextStyle(
+                      color: provider.canSubmit
+                          ? AppColors.primary
+                          : AppColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           body: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              _PhotosSection(provider: provider, onAdd: () => _pickImages(provider)),
+              _PhotosSection(
+                  provider: provider,
+                  onAdd: () => _pickImages(provider)),
               const SizedBox(height: 24),
               _Section(
                 title: 'Titre',
                 child: TextFormField(
-                  decoration: const InputDecoration(hintText: 'Ex: Robe fleurie Zara taille S'),
+                  decoration: const InputDecoration(
+                      hintText: 'Ex: Robe fleurie Zara taille S'),
                   onChanged: provider.setTitle,
                 ),
               ),
@@ -64,7 +127,8 @@ class _SellScreenState extends State<SellScreen> {
               _Section(
                 title: 'Description',
                 child: TextFormField(
-                  decoration: const InputDecoration(hintText: 'Décrivez votre article...'),
+                  decoration: const InputDecoration(
+                      hintText: 'Décrivez votre article...'),
                   maxLines: 4,
                   onChanged: provider.setDescription,
                 ),
@@ -79,17 +143,42 @@ class _SellScreenState extends State<SellScreen> {
                 title: 'État',
                 child: _ConditionPicker(provider: provider),
               ),
+              // dynamic attributes for selected category
+              if (provider.loadingAttributes) ...[
+                const SizedBox(height: 16),
+                const Center(child: CircularProgressIndicator()),
+              ] else ...[
+                for (final attr in provider.attributes) ...[
+                  const SizedBox(height: 16),
+                  _Section(
+                    title: attr.name,
+                    child: _AttributePicker(
+                      attribute: attr,
+                      selectedOptionId:
+                          provider.selectedOptionIds[attr.id],
+                      onSelect: (optId) =>
+                          provider.setOption(attr.id, optId),
+                      onClear: () => provider.clearOption(attr.id),
+                    ),
+                  ),
+                ],
+              ],
               const SizedBox(height: 16),
               _Section(
-                title: 'Taille',
-                child: _SizePicker(provider: provider),
+                title: 'Taille (optionnel)',
+                child: TextFormField(
+                  decoration: const InputDecoration(hintText: 'Ex: S, M, 38'),
+                  onChanged: (v) =>
+                      provider.setSize(v.isEmpty ? null : v),
+                ),
               ),
               const SizedBox(height: 16),
               _Section(
                 title: 'Prix (DZD)',
                 child: TextFormField(
                   decoration: const InputDecoration(hintText: '0'),
-                  keyboardType: TextInputType.number,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   onChanged: (v) {
                     final parsed = double.tryParse(v);
                     if (parsed != null) provider.setPrice(parsed);
@@ -103,14 +192,9 @@ class _SellScreenState extends State<SellScreen> {
       ),
     );
   }
-
-  void _submit(BuildContext context, SellItemProvider provider) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Article publié avec succès !'), backgroundColor: AppColors.primary),
-    );
-    provider.reset();
-  }
 }
+
+// ── photos ────────────────────────────────────────────────────────────────────
 
 class _PhotosSection extends StatelessWidget {
   final SellItemProvider provider;
@@ -123,9 +207,11 @@ class _PhotosSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Photos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        const Text('Photos',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        const Text('Ajoutez jusqu\'à 5 photos', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        const Text("Ajoutez jusqu'à 5 photos",
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
         const SizedBox(height: 12),
         SizedBox(
           height: 100,
@@ -163,7 +249,8 @@ class _PhotoThumb extends StatelessWidget {
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
-            image: DecorationImage(image: FileImage(file), fit: BoxFit.cover),
+            image: DecorationImage(
+                image: FileImage(file), fit: BoxFit.cover),
           ),
         ),
         Positioned(
@@ -173,8 +260,10 @@ class _PhotoThumb extends StatelessWidget {
             onTap: onRemove,
             child: Container(
               padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-              child: const Icon(Icons.close, size: 14, color: Colors.white),
+              decoration: const BoxDecoration(
+                  color: Colors.black54, shape: BoxShape.circle),
+              child:
+                  const Icon(Icons.close, size: 14, color: Colors.white),
             ),
           ),
         ),
@@ -203,15 +292,20 @@ class _AddPhotoButton extends StatelessWidget {
         child: const Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary, size: 28),
+            Icon(Icons.add_photo_alternate_outlined,
+                color: AppColors.primary, size: 28),
             SizedBox(height: 4),
-            Text('Ajouter', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+            Text('Ajouter',
+                style: TextStyle(
+                    fontSize: 11, color: AppColors.textSecondary)),
           ],
         ),
       ),
     );
   }
 }
+
+// ── category picker ───────────────────────────────────────────────────────────
 
 class _CategoryPicker extends StatelessWidget {
   final SellItemProvider provider;
@@ -221,9 +315,10 @@ class _CategoryPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => _showCategorySheet(context, provider),
+      onTap: () => _openCategorySheet(context),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        padding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
           color: AppColors.inputFill,
           borderRadius: BorderRadius.circular(12),
@@ -232,101 +327,264 @@ class _CategoryPicker extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                provider.categoryName ?? 'Sélectionner une catégorie',
+                provider.categoryPath ?? 'Sélectionner une catégorie',
                 style: TextStyle(
-                  color: provider.categoryName != null ? AppColors.textPrimary : AppColors.textSecondary,
+                  color: provider.categoryPath != null
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary,
                   fontSize: 15,
                 ),
               ),
             ),
-            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+            const Icon(Icons.chevron_right,
+                color: AppColors.textSecondary),
           ],
         ),
       ),
     );
   }
 
-  void _showCategorySheet(BuildContext context, SellItemProvider provider) {
+  void _openCategorySheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
-      builder: (_) => ListView.separated(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        itemCount: rootCategories.length,
-        separatorBuilder: (_, __) => const Divider(height: 1, indent: 16),
-        itemBuilder: (ctx, i) {
-          final cat = rootCategories[i];
-          return ListTile(
-            leading: Text(cat.icon ?? '', style: const TextStyle(fontSize: 22)),
-            title: Text(cat.name),
-            onTap: () {
-              provider.setCategory(cat.id, cat.name);
-              Navigator.of(ctx).pop();
-            },
-          );
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (_) => _CategoryDrillSheet(
+        onSelected: (cat, path) {
+          provider.setCategory(cat.id, path);
+          Navigator.pop(context);
         },
       ),
     );
   }
 }
 
+class _CategoryDrillSheet extends StatefulWidget {
+  final void Function(ApiCategory cat, String path) onSelected;
+
+  const _CategoryDrillSheet({required this.onSelected});
+
+  @override
+  State<_CategoryDrillSheet> createState() => _CategoryDrillSheetState();
+}
+
+class _CategoryDrillSheetState extends State<_CategoryDrillSheet> {
+  // navigation stack: list of (categories, title)
+  final List<(List<ApiCategory>, String)> _stack = [];
+  bool _loading = true;
+  String? _error;
+
+  // breadcrumb path labels
+  final List<String> _pathLabels = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoot();
+  }
+
+  Future<void> _loadRoot() async {
+    try {
+      final cats = await CategoryService().getRootCategories();
+      if (mounted) {
+        setState(() {
+          _stack.add((cats, 'Catégorie'));
+          _loading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() { _error = 'Erreur de chargement'; _loading = false; });
+    }
+  }
+
+  void _push(ApiCategory cat) {
+    if (cat.children.isEmpty) {
+      // leaf — select it
+      final path = [..._pathLabels, cat.name].join(' › ');
+      widget.onSelected(cat, path);
+      return;
+    }
+    setState(() {
+      _pathLabels.add(cat.name);
+      _stack.add((cat.children, cat.name));
+    });
+  }
+
+  void _pop() {
+    if (_stack.length <= 1) return;
+    setState(() {
+      _stack.removeLast();
+      _pathLabels.removeLast();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.6,
+      maxChildSize: 0.92,
+      builder: (_, controller) {
+        if (_loading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (_error != null) {
+          return Center(child: Text(_error!));
+        }
+
+        final (categories, title) = _stack.last;
+
+        return Column(
+          children: [
+            const SizedBox(height: 8),
+            Center(
+              child: Container(
+                width: 36, height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            // header
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  if (_stack.length > 1)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: _pop,
+                    )
+                  else
+                    const SizedBox(width: 48),
+                  Expanded(
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+            ),
+            if (_pathLabels.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(
+                  _pathLabels.join(' › '),
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ),
+            const Divider(height: 1),
+            Expanded(
+              child: ListView.separated(
+                controller: controller,
+                itemCount: categories.length,
+                separatorBuilder: (_, __) =>
+                    const Divider(height: 1, indent: 16),
+                itemBuilder: (_, i) {
+                  final cat = categories[i];
+                  return ListTile(
+                    title: Text(cat.name,
+                        style: const TextStyle(fontSize: 15)),
+                    trailing: cat.children.isNotEmpty
+                        ? const Icon(Icons.chevron_right,
+                            color: AppColors.textSecondary)
+                        : const Icon(Icons.check_circle_outline,
+                            color: AppColors.textSecondary, size: 18),
+                    onTap: () => _push(cat),
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ── condition picker ──────────────────────────────────────────────────────────
+
 class _ConditionPicker extends StatelessWidget {
   final SellItemProvider provider;
 
   const _ConditionPicker({required this.provider});
 
-  static const _conditions = [
-    'Neuf avec étiquette',
-    'Neuf sans étiquette',
-    'Très bon état',
-    'Bon état',
-    'État satisfaisant',
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _conditions.map((c) {
-        final selected = provider.condition == c;
+      children: _conditionOptions.map((opt) {
+        final (value, label) = opt;
+        final selected = provider.condition == value;
         return ChoiceChip(
-          label: Text(c),
+          label: Text(label),
           selected: selected,
-          onSelected: (_) => provider.setCondition(c),
+          onSelected: (_) => provider.setCondition(value),
           selectedColor: AppColors.primary,
-          labelStyle: TextStyle(color: selected ? Colors.white : AppColors.textPrimary, fontSize: 12),
+          labelStyle: TextStyle(
+            color: selected ? Colors.white : AppColors.textPrimary,
+            fontSize: 12,
+          ),
         );
       }).toList(),
     );
   }
 }
 
-class _SizePicker extends StatelessWidget {
-  final SellItemProvider provider;
+// ── attribute picker ──────────────────────────────────────────────────────────
 
-  const _SizePicker({required this.provider});
+class _AttributePicker extends StatelessWidget {
+  final ApiAttribute attribute;
+  final int? selectedOptionId;
+  final ValueChanged<int> onSelect;
+  final VoidCallback onClear;
 
-  static const _sizes = ['XXS', 'XS', 'S', 'M', 'L', 'XL', 'XXL', '36', '37', '38', '39', '40', '41', '42'];
+  const _AttributePicker({
+    required this.attribute,
+    this.selectedOptionId,
+    required this.onSelect,
+    required this.onClear,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Wrap(
       spacing: 8,
       runSpacing: 8,
-      children: _sizes.map((s) {
-        final selected = provider.size == s;
+      children: attribute.options.map((opt) {
+        final selected = selectedOptionId == opt.id;
         return ChoiceChip(
-          label: Text(s),
+          label: Text(opt.value),
           selected: selected,
-          onSelected: (_) => provider.setSize(s),
+          onSelected: (_) {
+            if (selected) {
+              onClear();
+            } else {
+              onSelect(opt.id);
+            }
+          },
           selectedColor: AppColors.primary,
-          labelStyle: TextStyle(color: selected ? Colors.white : AppColors.textPrimary, fontSize: 12),
+          labelStyle: TextStyle(
+            color: selected ? Colors.white : AppColors.textPrimary,
+            fontSize: 12,
+          ),
         );
       }).toList(),
     );
   }
 }
+
+// ── section wrapper ───────────────────────────────────────────────────────────
 
 class _Section extends StatelessWidget {
   final String title;
@@ -339,7 +597,9 @@ class _Section extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+        Text(title,
+            style: const TextStyle(
+                fontSize: 15, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         child,
       ],

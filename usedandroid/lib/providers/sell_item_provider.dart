@@ -1,16 +1,21 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import '../services/category_service.dart';
 
 class SellItemProvider extends ChangeNotifier {
   List<File> images = [];
   String title = '';
   String description = '';
-  String? categoryId;
-  String? categoryName;
+  int? categoryId;
+  String? categoryPath;
   double? price;
   String condition = '';
   String? size;
-  String parcelSize = 'S';
+
+  List<ApiAttribute> attributes = [];
+  bool loadingAttributes = false;
+  // attribute_id → selected option_id (single select per attribute)
+  Map<int, int> selectedOptionIds = {};
 
   bool get canSubmit =>
       images.isNotEmpty &&
@@ -18,6 +23,8 @@ class SellItemProvider extends ChangeNotifier {
       categoryId != null &&
       price != null &&
       condition.isNotEmpty;
+
+  List<int> get allOptionIds => selectedOptionIds.values.toList();
 
   void addImage(File file) {
     images = [...images, file];
@@ -39,12 +46,6 @@ class SellItemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setCategory(String id, String name) {
-    categoryId = id;
-    categoryName = name;
-    notifyListeners();
-  }
-
   void setPrice(double v) {
     price = v;
     notifyListeners();
@@ -55,13 +56,42 @@ class SellItemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setSize(String v) {
+  void setSize(String? v) {
     size = v;
     notifyListeners();
   }
 
-  void setParcelSize(String v) {
-    parcelSize = v;
+  void setCategory(int id, String path) {
+    categoryId = id;
+    categoryPath = path;
+    selectedOptionIds = {};
+    attributes = [];
+    notifyListeners();
+    _loadAttributes(id);
+  }
+
+  void setOption(int attributeId, int optionId) {
+    selectedOptionIds = {...selectedOptionIds, attributeId: optionId};
+    notifyListeners();
+  }
+
+  void clearOption(int attributeId) {
+    final updated = Map<int, int>.from(selectedOptionIds);
+    updated.remove(attributeId);
+    selectedOptionIds = updated;
+    notifyListeners();
+  }
+
+  Future<void> _loadAttributes(int catId) async {
+    loadingAttributes = true;
+    notifyListeners();
+    try {
+      final attrs = await CategoryService().getCategoryAttributes(catId);
+      attributes = attrs.where((a) => a.options.isNotEmpty).toList();
+    } catch (_) {
+      attributes = [];
+    }
+    loadingAttributes = false;
     notifyListeners();
   }
 
@@ -70,11 +100,13 @@ class SellItemProvider extends ChangeNotifier {
     title = '';
     description = '';
     categoryId = null;
-    categoryName = null;
+    categoryPath = null;
     price = null;
     condition = '';
     size = null;
-    parcelSize = 'S';
+    attributes = [];
+    selectedOptionIds = {};
+    loadingAttributes = false;
     notifyListeners();
   }
 }

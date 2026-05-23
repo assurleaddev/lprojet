@@ -127,6 +127,7 @@ class ProductService {
     String? description,
     String? size,
     int? brandId,
+    List<int> optionIds = const [],
     List<File> images = const [],
   }) async {
     final formData = FormData.fromMap({
@@ -139,10 +140,14 @@ class ProductService {
       if (brandId != null) 'brand_id': brandId,
     });
 
-    for (int i = 0; i < images.length; i++) {
+    for (final id in optionIds) {
+      formData.fields.add(MapEntry('options[]', id.toString()));
+    }
+
+    for (final image in images) {
       formData.files.add(MapEntry(
         'images[]',
-        await MultipartFile.fromFile(images[i].path),
+        await MultipartFile.fromFile(image.path),
       ));
     }
 
