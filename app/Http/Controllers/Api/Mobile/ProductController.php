@@ -91,13 +91,19 @@ class ProductController extends Controller
             'brand_id' => ['nullable', 'exists:brands,id'],
             'images' => ['nullable', 'array', 'max:5'],
             'images.*' => ['image', 'max:5120'],
+            'options' => ['nullable', 'array'],
+            'options.*' => ['integer', 'exists:options,id'],
         ]);
 
         $product = Product::create([
-            ...$validated,
+            ...collect($validated)->except('options', 'images')->toArray(),
             'vendor_id' => $request->user()->id,
             'status' => 'pending',
         ]);
+
+        if (! empty($validated['options'])) {
+            $product->options()->sync($validated['options']);
+        }
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
