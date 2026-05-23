@@ -541,7 +541,7 @@ class _ConditionPicker extends StatelessWidget {
   }
 }
 
-// ── attribute picker ──────────────────────────────────────────────────────────
+// ── attribute picker (dropdown) ───────────────────────────────────────────────
 
 class _AttributePicker extends StatelessWidget {
   final ApiAttribute attribute;
@@ -558,28 +558,54 @@ class _AttributePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: attribute.options.map((opt) {
-        final selected = selectedOptionId == opt.id;
-        return ChoiceChip(
-          label: Text(opt.value),
-          selected: selected,
-          onSelected: (_) {
-            if (selected) {
+    final currentValue = selectedOptionId?.toString();
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: AppColors.inputFill,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: selectedOptionId != null
+              ? AppColors.primary
+              : Colors.transparent,
+        ),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: currentValue,
+          hint: Text(
+            'Sélectionner ${attribute.name.toLowerCase()}',
+            style: const TextStyle(
+                color: AppColors.textSecondary, fontSize: 15),
+          ),
+          isExpanded: true,
+          icon: const Icon(Icons.keyboard_arrow_down,
+              color: AppColors.textSecondary),
+          style: const TextStyle(
+              color: AppColors.textPrimary, fontSize: 15),
+          items: [
+            const DropdownMenuItem<String>(
+              value: null,
+              child: Text('—',
+                  style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ...attribute.options.map(
+              (opt) => DropdownMenuItem<String>(
+                value: opt.id.toString(),
+                child: Text(opt.value),
+              ),
+            ),
+          ],
+          onChanged: (val) {
+            if (val == null) {
               onClear();
             } else {
-              onSelect(opt.id);
+              onSelect(int.parse(val));
             }
           },
-          selectedColor: AppColors.primary,
-          labelStyle: TextStyle(
-            color: selected ? Colors.white : AppColors.textPrimary,
-            fontSize: 12,
-          ),
-        );
-      }).toList(),
+        ),
+      ),
     );
   }
 }
