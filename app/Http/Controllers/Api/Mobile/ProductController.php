@@ -101,7 +101,7 @@ class ProductController extends Controller
             'status' => 'pending',
         ]);
 
-        if (! empty($validated['options'])) {
+        if (! empty($validated['options'] ?? [])) {
             $product->options()->sync($validated['options']);
         }
 
