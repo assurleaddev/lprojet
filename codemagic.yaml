@@ -1,6 +1,6 @@
 workflows:
-  ios-release:
-    name: iOS Release (TestFlight)
+  ios-device:
+    name: iOS Device Build
     max_build_duration: 60
     instance_type: mac_mini_m2
     environment:
@@ -8,15 +8,14 @@ workflows:
       xcode: latest
       cocoapods: default
       ios_signing:
-        distribution_type: app_store
+        distribution_type: ad_hoc
         bundle_identifier: com.usedis.usedandroid
     working_directory: usedandroid
     scripts:
       - name: Install dependencies
         script: flutter pub get
       - name: Build iOS
-        script: |
-          flutter build ios --release --no-codesign
+        script: flutter build ios --release --no-codesign
       - name: Build IPA
         script: |
           xcode-project use-profiles
@@ -25,26 +24,3 @@ workflows:
             --scheme Runner
     artifacts:
       - build/ios/ipa/*.ipa
-      - /tmp/xcodebuild_logs/*.log
-      - flutter_drive.log
-    publishing:
-      app_store_connect:
-        api_key: $APP_STORE_CONNECT_PRIVATE_KEY
-        key_id: $APP_STORE_CONNECT_KEY_IDENTIFIER
-        issuer_id: $APP_STORE_CONNECT_ISSUER_ID
-        submit_to_testflight: true
-
-  android-debug:
-    name: Android Debug APK
-    max_build_duration: 30
-    instance_type: linux_x2
-    environment:
-      flutter: 3.44.0
-    working_directory: usedandroid
-    scripts:
-      - name: Install dependencies
-        script: flutter pub get
-      - name: Build APK
-        script: flutter build apk --debug
-    artifacts:
-      - build/app/outputs/apk/debug/app-debug.apk
