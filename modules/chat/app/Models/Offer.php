@@ -2,11 +2,13 @@
 
 namespace Modules\Chat\Models;
 
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Models\User; // Your main User model
-use App\Models\Product; // Your main Product model
-use Modules\Chat\Enums\OfferStatus; // Import Enum
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Modules\Chat\Enums\OfferStatus;
 
 class Offer extends Model
 {
@@ -54,5 +56,10 @@ class Offer extends Model
     public function items()
     {
         return $this->hasMany(OfferItem::class);
+    }
+
+    public function order(): HasOne
+    {
+        return $this->hasOne(Order::class, 'offer_id');
     }
 }

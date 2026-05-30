@@ -107,7 +107,11 @@ class ProductController extends Controller
 
         if ($request->hasFile('images')) {
             foreach ($request->file('images') as $image) {
-                $product->addMedia($image)->toMediaCollection('products');
+                try {
+                    $product->addMedia($image)->toMediaCollection('products');
+                } catch (\Exception $e) {
+                    \Log::warning('Media upload failed for product '.$product->id.': '.$e->getMessage());
+                }
             }
         }
 
