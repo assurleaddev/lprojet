@@ -21,7 +21,20 @@
       "Bash(flutter build *)",
       "Bash(flutter doctor *)",
       "Bash(flutter devices *)",
-      "Bash(Get-Content storage/logs/laravel.log -Tail 40)"
+      "Bash(Get-Content storage/logs/laravel.log -Tail 40)",
+      "Bash(xargs ls -lart)",
+      "Bash(curl -s -X POST https://usedis.com/api/auth/login -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"test@test.com\\\\\",\\\\\"password\\\\\":\\\\\"password\\\\\"}\")",
+      "Bash(curl -s -X POST https://usedis.com/api/auth/register -H \"Content-Type: application/json\" -H \"Accept: application/json\" -d \"{\\\\\"first_name\\\\\":\\\\\"Test\\\\\",\\\\\"last_name\\\\\":\\\\\"User\\\\\",\\\\\"email\\\\\":\\\\\"test@test.com\\\\\",\\\\\"password\\\\\":\\\\\"password123\\\\\",\\\\\"password_confirmation\\\\\":\\\\\"password123\\\\\"}\")",
+      "Bash(vendor/bin/pint --dirty app/Http/Controllers/Api/Auth/AuthController.php)",
+      "Bash(vendor/bin/pint --dirty app/Http/Controllers/Api/Mobile/InboxController.php routes/api.php)",
+      "Bash(vendor/bin/pint --dirty app/Http/Controllers/Api/Mobile/InboxController.php app/Http/Controllers/Api/Mobile/OfferOrderController.php Modules/Chat/app/Models/Offer.php routes/api.php)",
+      "Bash(del tinker_q2.php)",
+      "Bash(vendor/bin/pint --dirty app/Models/Category.php app/Http/Controllers/Api/Mobile/CategoryController.php app/Http/Resources/Api/Mobile/CategoryResource.php)",
+      "Bash(dart analyze *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\benou\\\\Documents\\\\lprojet\\\\app\\\\Http\\\\Controllers\" -Recurse -Filter \"*ttribute*\" -ErrorAction SilentlyContinue)",
+      "Bash(git checkout *)",
+      "Bash(git cherry-pick *)",
+      "Bash(git stash *)"
     ]
   }
 }
