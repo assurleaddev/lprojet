@@ -276,6 +276,8 @@ class MediaLibraryService
                         try {
                             return $item->getUrl() === $mediaUrlOrId;
                         } catch (\Exception $e) {
+                            Log::warning("Unable to resolve URL for media #{$item->id} while matching: " . $e->getMessage());
+
                             return false;
                         }
                     });

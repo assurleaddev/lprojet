@@ -356,7 +356,12 @@ class SettingsController extends Controller
                 $message->to($request->new_email)->subject('Verify Email Change');
             });
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Email change mail failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Email change mail failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'exception' => $e,
+            ]);
+
+            return back()->with('error', 'We could not send the verification code. Please try again later.');
         }
 
         return back()->with('email_verification_sent', true)->with('success', 'Verification code sent to new email.');
@@ -405,7 +410,12 @@ class SettingsController extends Controller
                     $message->to($user->email)->subject('Verify 2FA Enable');
                 });
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('2FA mail failed: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('2FA mail failed: ' . $e->getMessage(), [
+                    'user_id' => $user->id,
+                    'exception' => $e,
+                ]);
+
+                return back()->with('error', 'We could not send the verification code. Please try again later.');
             }
 
             return back()->with('2fa_verification_needed', true);

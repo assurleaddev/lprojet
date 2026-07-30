@@ -42,7 +42,8 @@
                         this.optimisticMessages = this.optimisticMessages.filter(m => m.id !== tempId);
                     }, 500);
                 }
-            }).catch(() => {
+            }).catch((error) => {
+                console.error('Failed to send message', error);
                 if (tempId) {
                     const msg = this.optimisticMessages.find(m => m.id === tempId);
                     if (msg) msg.status = 'failed';

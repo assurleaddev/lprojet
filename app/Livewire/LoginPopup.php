@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class LoginPopup extends Component
@@ -67,7 +68,13 @@ class LoginPopup extends Component
         try {
             $user->notify(new \App\Notifications\SendVerificationCode($code));
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('SendVerificationCode failed: ' . $e->getMessage());
+            Log::error('SendVerificationCode failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'exception' => $e,
+            ]);
+
+            return redirect()->route('verify-email')
+                ->with('error', __("Nous n'avons pas pu envoyer votre code de vérification. Veuillez en demander un nouveau."));
         }
 
         return redirect()->route('verify-email');

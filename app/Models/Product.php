@@ -45,7 +45,11 @@ class Product extends Model implements HasMedia
                     try {
                         $user->notify(new \App\Notifications\PriceChangeNotification($product, $product->getOriginal('price'), $product->price));
                     } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('PriceChangeNotification failed: ' . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::error('PriceChangeNotification failed: ' . $e->getMessage(), [
+                            'product_id' => $product->id,
+                            'user_id' => $user->id ?? null,
+                            'exception' => $e,
+                        ]);
                     }
                 }
             }
@@ -55,7 +59,11 @@ class Product extends Model implements HasMedia
                     try {
                         $follower->notify(new \App\Notifications\NewProductNotification($product));
                     } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('NewProductNotification failed: ' . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::error('NewProductNotification failed: ' . $e->getMessage(), [
+                            'product_id' => $product->id,
+                            'follower_id' => $follower->id ?? null,
+                            'exception' => $e,
+                        ]);
                     }
                 }
             }
@@ -67,7 +75,11 @@ class Product extends Model implements HasMedia
                     try {
                         $follower->notify(new \App\Notifications\NewProductNotification($product));
                     } catch (\Exception $e) {
-                        \Illuminate\Support\Facades\Log::error('NewProductNotification failed: ' . $e->getMessage());
+                        \Illuminate\Support\Facades\Log::error('NewProductNotification failed: ' . $e->getMessage(), [
+                            'product_id' => $product->id,
+                            'follower_id' => $follower->id ?? null,
+                            'exception' => $e,
+                        ]);
                     }
                 }
             }

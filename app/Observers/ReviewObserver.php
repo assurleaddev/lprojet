@@ -18,7 +18,10 @@ class ReviewObserver
                 try {
                     $vendor->notify(new \App\Notifications\ReviewReceivedNotification($review->author, $review->rating));
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('ReviewReceivedNotification failed: ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::error('ReviewReceivedNotification failed: ' . $e->getMessage(), [
+                        'review_id' => $review->id,
+                        'exception' => $e,
+                    ]);
                 }
             }
         } elseif ($review->model_type === 'App\Models\Product') {
@@ -27,7 +30,10 @@ class ReviewObserver
                 try {
                     $product->vendor->notify(new \App\Notifications\ReviewReceivedNotification($review->author, $review->rating));
                 } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('ReviewReceivedNotification failed: ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::error('ReviewReceivedNotification failed: ' . $e->getMessage(), [
+                        'review_id' => $review->id,
+                        'exception' => $e,
+                    ]);
                 }
             }
         }

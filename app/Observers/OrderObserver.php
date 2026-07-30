@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\Order;
+use Illuminate\Support\Facades\Log;
 use Modules\Wallet\Services\WalletService;
 
 class OrderObserver
@@ -47,7 +48,13 @@ class OrderObserver
                 try {
                     $this->walletService->releasePendingFunds($order->vendor, $order->payout_amount, 'Order #' . $order->id);
                 } catch (\Exception $e) {
-                    \Log::error("OrderObserver: Error releasing funds for Order #{$order->id}: " . $e->getMessage());
+                    Log::error("OrderObserver: Error releasing funds for Order #{$order->id}: " . $e->getMessage(), [
+                        'order_id' => $order->id,
+                        'vendor_id' => $order->vendor_id,
+                        'payout_amount' => $order->payout_amount,
+                    ]);
+
+                    report($e);
                 }
             }
         }
@@ -62,7 +69,12 @@ class OrderObserver
                     try {
                         $this->walletService->refundOrder($order);
                     } catch (\Exception $e) {
-                        \Log::error("OrderObserver: Error refunding Order #{$order->id}: " . $e->getMessage());
+                        Log::error("OrderObserver: Error refunding Order #{$order->id}: " . $e->getMessage(), [
+                            'order_id' => $order->id,
+                            'user_id' => $order->user_id,
+                        ]);
+
+                        report($e);
                     }
                 }
 

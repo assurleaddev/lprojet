@@ -180,7 +180,10 @@ class HomeController extends Controller
         try {
             $members = \Illuminate\Support\Facades\Redis::smembers('ranking:trending_ids');
             $trendingProductIds = array_map('intval', $members ?: []);
-        } catch (\Exception) {
+        } catch (\Exception $e) {
+            // Redis unavailable — degrade gracefully, no trending badges shown
+            \Illuminate\Support\Facades\Log::warning('Unable to read trending products from Redis: ' . $e->getMessage());
+
             $trendingProductIds = [];
         }
 
@@ -317,7 +320,10 @@ class HomeController extends Controller
             try {
                 $product->vendor->notify(new \App\Notifications\ProductLikedNotification(Auth::user(), $product));
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('ProductLikedNotification failed: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('ProductLikedNotification failed: ' . $e->getMessage(), [
+                    'product_id' => $product->id,
+                    'exception' => $e,
+                ]);
             }
         }
 
@@ -341,7 +347,9 @@ class HomeController extends Controller
             try {
                 $user->notify(new \App\Notifications\NewFollowerNotification($me));
             } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('NewFollowerNotification failed: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('NewFollowerNotification failed: ' . $e->getMessage(), [
+                    'exception' => $e,
+                ]);
             }
         }
 

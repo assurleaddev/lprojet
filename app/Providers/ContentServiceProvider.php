@@ -6,6 +6,7 @@ use App\Enums\Hooks\ContentActionHook;
 use App\Services\Content\ContentService;
 use App\Support\Facades\Hook;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
@@ -32,8 +33,10 @@ class ContentServiceProvider extends ServiceProvider
             // Register default taxonomies.
             $this->registerDefaultTaxonomies();
         } catch (QueryException $e) {
-            // Handle database connection issues or other query-related errors
-            // Just exit gracefully for now.
+            // Database is unavailable or not migrated yet (e.g. during install or CI),
+            // so default post types / taxonomies cannot be registered.
+            Log::warning('Skipped registering default content types: ' . $e->getMessage());
+
             return;
         }
     }

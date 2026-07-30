@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class VerifyEmail extends Component
@@ -49,6 +50,11 @@ class VerifyEmail extends Component
             $this->message = __('Un nouveau code a été envoyé.');
             $this->code = ''; // Clear input
         } catch (\Exception $e) {
+            Log::error('SendVerificationCode failed: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'exception' => $e,
+            ]);
+
             $this->message = __('Erreur lors de l\'envoi de l\'e-mail.');
         }
     }

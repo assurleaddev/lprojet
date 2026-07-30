@@ -11,6 +11,7 @@ use Dedoc\Scramble\Support\Generator\OpenApi;
 use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use App\View\Composers\ProductGridComposer;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -90,8 +91,9 @@ class AppServiceProvider extends ServiceProvider
                 }
             }
         } catch (\Exception $e) {
-            // Skip loading settings if database connection fails
-            // This prevents errors during package discovery in CI environment
+            // Skip loading settings if database connection fails.
+            // This prevents errors during package discovery in CI environment.
+            Log::warning('Unable to load settings into config: ' . $e->getMessage());
         }
 
         // Only allowed people can view the pulse.
