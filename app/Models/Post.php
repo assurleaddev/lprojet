@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Services\Content\ContentService;
 use App\Services\Content\PostType;
+use App\Concerns\HasFeaturedImage;
 use App\Concerns\QueryBuilderTrait;
 use App\Concerns\HasMedia;
 use App\Enums\PostStatus;
@@ -20,13 +21,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[ObservedBy([PostObserver::class])]
 class Post extends Model implements SpatieHasMedia
 {
     use HasFactory;
+    use HasFeaturedImage;
     use QueryBuilderTrait;
     use HasMedia;
 
@@ -201,9 +202,7 @@ class Post extends Model implements SpatieHasMedia
      */
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('featured')
-            ->singleFile()
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+        $this->addFeaturedImageCollection();
 
         $this->addMediaCollection('gallery')
             ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
@@ -214,47 +213,7 @@ class Post extends Model implements SpatieHasMedia
      */
     public function registerMediaConversions(?Media $media = null): void
     {
-        // Preview conversion for admin interface
-        $this->addMediaConversion('preview')
-            ->fit(Fit::Contain, 300, 300);
-
-        // Thumbnail for featured images
-        $this->addMediaConversion('thumb')
-            ->width(200)
-            ->height(200)
-            ->sharpen(10);
-
-        // Medium size for content display
-        $this->addMediaConversion('medium')
-            ->width(500)
-            ->height(500);
-
-        // Large size for detailed view
-        $this->addMediaConversion('large')
-            ->width(1000)
-            ->height(1000);
-    }
-
-    /**
-     * Get the featured image URL
-     */
-    public function getFeaturedImageUrl(string $conversion = ''): ?string
-    {
-        $media = $this->getFirstMedia('featured');
-
-        if (! $media) {
-            return null;
-        }
-
-        return $conversion ? $media->getUrl($conversion) : $media->getUrl();
-    }
-
-    /**
-     * Check if post has featured image
-     */
-    public function hasFeaturedImage(): bool
-    {
-        return $this->hasMedia('featured');
+        $this->registerFeaturedImageConversions();
     }
 
     /**

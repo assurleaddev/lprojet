@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class NewProductNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     /**
      * Create a new notification instance.
@@ -26,19 +28,7 @@ class NewProductNotification extends Notification implements ShouldBroadcast, Sh
 
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        // Check if user wants notifications for new items
-        if ($notifiable->getMeta('notify_new_items', '1') !== '1') {
-            return [];
-        }
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable, preferenceKey: 'notify_new_items');
     }
 
     public function toBroadcast($notifiable)
