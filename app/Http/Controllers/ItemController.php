@@ -95,6 +95,10 @@ class ItemController extends Controller
             // Handle Duplicate Images (for Repost feature)
             if ($request->has('duplicate_images') && is_array($request->duplicate_images)) {
                 foreach ($request->duplicate_images as $index => $imageUrl) {
+                    if (! $this->isOwnMediaUrl($imageUrl)) {
+                        continue;
+                    }
+
                     try {
                         if ($index === 0) {
                             $product->addMediaFromUrl($imageUrl)->toMediaCollection('featured');
@@ -144,6 +148,24 @@ class ItemController extends Controller
             DB::rollBack();
             return back()->withInput()->with('error', 'Error listing item: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Only images already hosted by this application may be copied when reposting,
+     * so user input cannot make the server fetch arbitrary (internal) URLs.
+     */
+    private function isOwnMediaUrl(mixed $url): bool
+    {
+        if (! is_string($url) || ! filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $host = parse_url($url, PHP_URL_HOST);
+        $scheme = parse_url($url, PHP_URL_SCHEME);
+
+        return in_array($scheme, ['http', 'https'], true)
+            && $host !== null
+            && strcasecmp($host, (string) parse_url(config('app.url'), PHP_URL_HOST)) === 0;
     }
 
     public function edit(Product $product)

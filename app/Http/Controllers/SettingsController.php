@@ -441,7 +441,11 @@ class SettingsController extends Controller
 
     public function logoutSession($id)
     {
-        \Illuminate\Support\Facades\DB::table('sessions')->where('id', $id)->delete();
+        \Illuminate\Support\Facades\DB::table('sessions')
+            ->where('id', $id)
+            ->where('user_id', Auth::id())
+            ->delete();
+
         return back()->with('success', 'Session logged out.');
     }
 

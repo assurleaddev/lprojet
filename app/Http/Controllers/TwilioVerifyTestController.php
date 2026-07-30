@@ -7,20 +7,18 @@ use Twilio\Rest\Client;
 
 class TwilioVerifyTestController extends Controller
 {
+    public function __construct()
+    {
+        // Development-only helper: never expose SMS sending outside local environments.
+        abort_unless(app()->environment('local'), 404);
+    }
+
     protected function getTwilioClient(): Client
     {
-        $client = new Client(
+        return new Client(
             config('services.twilio.sid'),
             config('services.twilio.auth_token')
         );
-
-        // Fix for local SSL certificate issues
-        $client->setHttpClient(new \Twilio\Http\CurlClient([
-            CURLOPT_SSL_VERIFYHOST => 0,
-            CURLOPT_SSL_VERIFYPEER => 0,
-        ]));
-
-        return $client;
     }
 
     public function index()
