@@ -3,6 +3,7 @@
 namespace Modules\Wallet\Services;
 
 use App\Models\User;
+use Modules\Wallet\Exceptions\InsufficientFundsException;
 use Modules\Wallet\Models\Wallet;
 use Modules\Wallet\Models\Transaction;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,7 @@ class WalletService
     {
         return DB::transaction(function () use ($wallet, $amount, $type, $description, $referenceId) {
             if ($wallet->balance < $amount) {
-                throw new \Exception("Insufficient balance.");
+                throw new InsufficientFundsException('Insufficient balance.');
             }
 
             $wallet->balance -= $amount;
@@ -151,7 +152,7 @@ class WalletService
 
             if ($wallet->pending_balance < $amount) {
                 // Should not happen in normal flow, but good to check
-                throw new \Exception("Insufficient pending balance.");
+                throw new InsufficientFundsException('Insufficient pending balance.');
             }
 
             $wallet->pending_balance -= $amount;

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use ReflectionClass;
 use Spatie\QueryBuilder\QueryBuilder;
 
@@ -233,6 +234,7 @@ trait HasDatatableGenerator
             }
         } catch (\Exception $e) {
             // Fallback for different database types or connection issues
+            Log::debug("Unable to resolve column type for [{$column}], defaulting to string: " . $e->getMessage());
         }
 
         return 'string';

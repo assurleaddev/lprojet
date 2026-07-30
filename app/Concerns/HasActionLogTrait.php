@@ -7,6 +7,7 @@ namespace App\Concerns;
 use App\Enums\ActionType;
 use App\Models\ActionLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 trait HasActionLogTrait
 {
@@ -89,6 +90,12 @@ trait HasActionLogTrait
 
             return $actionLog;
         } catch (\Exception $e) {
+            Log::error('Failed to store action log: ' . $e->getMessage(), [
+                'type' => $type->value,
+                'title' => $title,
+                'exception' => $e,
+            ]);
+
             return null;
         }
     }

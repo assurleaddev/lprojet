@@ -538,8 +538,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         const resolve = topupResolve;
                         hideTopupModal();
                         if (resolve) resolve(true);
+                    } else {
+                        alert(res.message || {!! json_encode(__('Top up failed. Please try again.')) !!});
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error('Top up failed', e);
+                    alert({!! json_encode(__('Top up failed. Please try again.')) !!});
+                }
                 topupConfirmBtn.disabled = false;
                 topupConfirmBtn.innerHTML = {!! json_encode(__('Confirm & Top Up')) !!};
             });
@@ -550,7 +555,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         async function apiFetch(url, body) {
             const headers = { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' };
-            try { const sid = window.Echo?.socketId(); if (sid) headers['X-Socket-ID'] = sid; } catch (e) {}
+            try { const sid = window.Echo?.socketId(); if (sid) headers['X-Socket-ID'] = sid; } catch (e) { console.debug('Echo socket id unavailable', e); }
             const r = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
             return r.json();
         }
@@ -781,13 +786,18 @@ document.addEventListener('DOMContentLoaded', function () {
             const ltbSub = screen.querySelector('.ltb-sub');
             if (ltbSub) ltbSub.innerHTML = '<span class="ltb-live-badge"><span class="ltb-live-dot"></span>LIVE</span>';
             const st = getState(screen.dataset.liveId);
-            if (st.client && st.localTracks.length) try { await st.client.publish(st.localTracks); } catch (e) {}
+            if (st.client && st.localTracks.length) try { await st.client.publish(st.localTracks); } catch (e) { console.error('Failed to publish local tracks', e); }
         }
 
         async function triggerCloseAuction(screen) {
             const url = screen.dataset.closeAuctionUrl;
             if (!url) return;
-            try { await apiFetch(url, {}); } catch (e) {}
+            try {
+                const res = await apiFetch(url, {});
+                if (res && res.ok === false) console.error('Close auction rejected', res.message);
+            } catch (e) {
+                console.error('Failed to close auction', e);
+            }
         }
 
         // ── Pusher + presence ─────────────────────────────────────────
@@ -971,8 +981,8 @@ document.addEventListener('DOMContentLoaded', function () {
             const id = screen.dataset.liveId;
             const st = getState(id);
             if (!st.client) return;
-            st.localTracks.forEach(t => { try { t.stop(); t.close(); } catch (e) {} });
-            try { await st.client.leave(); } catch (e) {}
+            st.localTracks.forEach(t => { try { t.stop(); t.close(); } catch (e) { console.warn('Failed to stop local track', e); } });
+            try { await st.client.leave(); } catch (e) { console.warn('Failed to leave Agora channel', e); }
             st.client = null; st.localTracks = [];
         }
 
@@ -1010,8 +1020,13 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (badge) badge.textContent = '🔔 ' + res.pre_bid_count;
                             if (bidCount) bidCount.textContent = res.pre_bid_count + ' ' + (res.pre_bid_count === 1 ? 'bid' : 'bids');
                         }
+                    } else {
+                        alert(res.message || {!! json_encode(__('We could not place your bid. Please try again.')) !!});
                     }
-                } catch (e) {}
+                } catch (e) {
+                    console.error('Pre-bid failed', e);
+                    alert({!! json_encode(__('We could not place your bid. Please try again.')) !!});
+                }
                 preBidSubmit.disabled = false;
             };
         }
@@ -1090,7 +1105,9 @@ document.addEventListener('DOMContentLoaded', function () {
                             endedFollowBtn.textContent = {!! json_encode(__('Follow')) !!};
                             endedFollowBtn.classList.remove('following');
                         }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error('Follow request failed', e);
+                    }
                     endedFollowBtn.disabled = false;
                 });
             }
@@ -1130,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const unmuteBtn = screen.querySelector('.js-unmute');
             if (unmuteBtn) unmuteBtn.addEventListener('click', () => {
                 const st = getState(screen.dataset.liveId);
-                if (st.client) st.client.remoteUsers.forEach(u => { try { u.audioTrack?.play(); } catch (e) {} });
+                if (st.client) st.client.remoteUsers.forEach(u => { try { u.audioTrack?.play(); } catch (e) { console.warn('Unable to play remote audio track', e); } });
                 unmuteBtn.style.display = 'none';
             });
 
@@ -1147,7 +1164,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         followBtn.dataset.isFollowing = nowFollowing ? '1' : '0';
                         followBtn.textContent = nowFollowing ? {!! json_encode(__('Following')) !!} : {!! json_encode(__('Follow')) !!};
                         followBtn.classList.toggle('following', nowFollowing);
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error('Follow request failed', e);
+                    }
                     followBtn.disabled = false;
                 });
             }
@@ -1217,7 +1236,10 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (bidBar) bidBar.style.display = 'none';
                             setBottomActive(screen);
                         } else { alert(res.message || 'Error'); }
-                    } catch (e) {}
+                    } catch (e) {
+                        console.error('Failed to set live product', e);
+                        alert({!! json_encode(__('Something went wrong. Please try again.')) !!});
+                    }
                     btn.disabled = false;
                 });
             }
@@ -1263,7 +1285,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 observer.observe(newScreen);
                 bindScreen(newScreen);
                 bindBottomStack(newScreen);
-            } catch (e) {}
+            } catch (e) {
+                console.error('Failed to load more lives', e);
+            }
         });
     })();
 });

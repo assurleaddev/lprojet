@@ -9,6 +9,9 @@ use App\Models\Product;
 use App\Models\Order;
 use Modules\Chat\Models\Offer;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Modules\Wallet\Exceptions\InsufficientFundsException;
 
 class CheckoutController extends Controller
 {
@@ -102,68 +105,104 @@ class CheckoutController extends Controller
         // Vendor Payout = Item Price - Commission
         $vendorPayout = $amount - $platformCommission;
 
-        if ($paymentMethod === 'wallet') {
-            try {
-                $this->walletService->payToEscrow($user, $vendor, $totalAmount, $vendorPayout, 'Order #' . time(), $platformRevenue);
-            } catch (\Exception $e) {
-                return back()->with('error', $e->getMessage());
-            }
-        } elseif ($paymentMethod === 'card') {
-            $vendorWallet = $this->walletService->getWallet($vendor);
-            $vendorWallet->pending_balance += $vendorPayout;
-            $vendorWallet->save();
-        }
+        // Money movement, order creation and stock updates must succeed or fail together,
+        // otherwise a buyer can be debited for an order that was never created.
+        try {
+            $order = DB::transaction(function () use (
+                $user,
+                $vendor,
+                $products,
+                $offer,
+                $request,
+                $paymentMethod,
+                $amount,
+                $shippingCost,
+                $buyerProtectionFee,
+                $platformCommission,
+                $totalAmount,
+                $platformRevenue,
+                $vendorPayout,
+                $parcelSize,
+                $wantsVerification,
+                $verificationFee
+            ) {
+                if ($paymentMethod === 'wallet') {
+                    $this->walletService->payToEscrow($user, $vendor, $totalAmount, $vendorPayout, 'Order #' . time(), $platformRevenue);
+                } elseif ($paymentMethod === 'card') {
+                    $vendorWallet = $this->walletService->getWallet($vendor);
+                    $vendorWallet->pending_balance += $vendorPayout;
+                    $vendorWallet->save();
+                }
 
-        // Create Order
-        $order = Order::create([
-            'user_id' => $user->id,
-            'product_id' => $products->count() === 1 ? $products->first()->id : null,
-            'vendor_id' => $vendor->id,
-            'amount' => $amount, // Item price
-            'shipping_cost' => $shippingCost,
-            'buyer_protection_fee' => $buyerProtectionFee,
-            'platform_commission' => $platformCommission,
-            'total_amount' => $totalAmount,
-            'status' => 'processing',
-            'parcel_size' => $parcelSize,
-            'delivery_receipt_path' => null,
-            'payment_method' => $paymentMethod,
-            'address_id' => $request->address_id,
-            'shipping_option_id' => $request->shipping_option_id ?? null,
-            'offer_id' => $offer?->id,
-            'wants_verification' => $wantsVerification,
-            'verification_fee' => $verificationFee,
-            'source' => $offer ? 'offer' : 'direct',
-        ]);
+                // Create Order
+                $order = Order::create([
+                    'user_id' => $user->id,
+                    'product_id' => $products->count() === 1 ? $products->first()->id : null,
+                    'vendor_id' => $vendor->id,
+                    'amount' => $amount, // Item price
+                    'shipping_cost' => $shippingCost,
+                    'buyer_protection_fee' => $buyerProtectionFee,
+                    'platform_commission' => $platformCommission,
+                    'total_amount' => $totalAmount,
+                    'status' => $paymentMethod === 'cod' ? 'pending' : 'processing',
+                    'parcel_size' => $parcelSize,
+                    'delivery_receipt_path' => null,
+                    'payment_method' => $paymentMethod,
+                    'address_id' => $request->address_id,
+                    'shipping_option_id' => $request->shipping_option_id ?? null,
+                    'offer_id' => $offer?->id,
+                    'wants_verification' => $wantsVerification,
+                    'verification_fee' => $verificationFee,
+                    'source' => $offer ? 'offer' : 'direct',
+                ]);
 
-        if ($paymentMethod === 'cod') {
-            $order->status = 'pending';
-            $order->save();
-        }
+                // Create Order Items
+                foreach ($products as $p) {
+                    $order->items()->create([
+                        'product_id' => $p->id,
+                        'price' => $products->count() === 1 ? $amount : $p->price, // For bundles, we use product price (total maps to offer)
+                    ]);
 
-        // Create Order Items
-        foreach ($products as $p) {
-            $order->items()->create([
-                'product_id' => $p->id,
-                'price' => $products->count() === 1 ? $amount : $p->price, // For bundles, we use product price (total maps to offer)
+                    // Mark product as sold
+                    $p->update(['status' => 'sold']);
+                }
+
+                return $order;
+            });
+        } catch (InsufficientFundsException $e) {
+            return back()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            Log::error('Checkout failed: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'vendor_id' => $vendor->id,
+                'payment_method' => $paymentMethod,
+                'offer_id' => $offer?->id,
+                'exception' => $e,
             ]);
 
-            // Mark product as sold
-            $p->update(['status' => 'sold']);
+            return back()->with('error', 'We could not complete your order. No payment was taken, please try again.');
         }
 
-        // 1. Notify Vendor via Chat
-        $chatService = app(\Modules\Chat\Services\ChatService::class);
+        // 1. Notify Vendor via Chat. The order is already paid for at this point, so a
+        // messaging failure must not fail the checkout.
+        try {
+            $chatService = app(\Modules\Chat\Services\ChatService::class);
 
-        // Ensure conversation exists (use the first product for conversation context if bundle)
-        $mainProduct = $products->first();
-        $conversation = $chatService->getOrCreateConversation($user, $vendor, $mainProduct);
+            // Ensure conversation exists (use the first product for conversation context if bundle)
+            $mainProduct = $products->first();
+            $conversation = $chatService->getOrCreateConversation($user, $vendor, $mainProduct);
 
-        // Send "Item Sold" message
-        $chatService->sendItemSoldMessage($conversation, $user, $order, $offer?->id);
+            // Send "Item Sold" message
+            $chatService->sendItemSoldMessage($conversation, $user, $order, $offer?->id);
 
-        // Send "Order Placed" message
-        $chatService->sendOrderPlacedMessage($conversation, $user, $order, $offer?->id);
+            // Send "Order Placed" message
+            $chatService->sendOrderPlacedMessage($conversation, $user, $order, $offer?->id);
+        } catch (\Throwable $e) {
+            Log::error("Checkout chat notifications failed for Order #{$order->id}: " . $e->getMessage(), [
+                'order_id' => $order->id,
+                'exception' => $e,
+            ]);
+        }
 
         // 3. Redirect to Thank You Page
         return redirect()->route('checkout.thank-you');

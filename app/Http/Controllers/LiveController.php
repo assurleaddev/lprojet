@@ -16,8 +16,10 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Chat\Services\ChatService;
+use Modules\Wallet\Exceptions\InsufficientFundsException;
 use Modules\Wallet\Services\WalletService;
 use Peterujah\Agora\Agora as AgoraClient;
 use Peterujah\Agora\Builders\RtcToken;
@@ -205,9 +207,18 @@ class LiveController extends Controller
         abort_if($live->seller_id !== Auth::id(), 403);
         abort_if($live->status !== 'live', 422);
 
-        // Close any active auction first
+        // Close any active auction first. A failing checkout must not prevent the live
+        // from being ended, but it must be recorded instead of disappearing.
         if ($live->auction_status === 'active' && $live->current_bidder_id) {
-            $this->closeAuctionInternal($live);
+            try {
+                $this->closeAuctionInternal($live);
+            } catch (\Throwable $e) {
+                Log::error("Failed to close auction for live #{$live->id} while ending it: " . $e->getMessage(), [
+                    'live_id' => $live->id,
+                    'winner_id' => $live->current_bidder_id,
+                    'exception' => $e,
+                ]);
+            }
         }
 
         $live->update(['status' => 'ended', 'ended_at' => now()]);
@@ -323,7 +334,14 @@ class LiveController extends Controller
         abort_if($live->seller_id !== Auth::id(), 403);
         abort_if($live->auction_status !== 'active', 422);
 
-        $winner = $this->closeAuctionInternal($live);
+        try {
+            $winner = $this->closeAuctionInternal($live);
+        } catch (InsufficientFundsException $e) {
+            return response()->json([
+                'ok' => false,
+                'message' => __('The winning bidder does not have enough funds. The auction is still open.'),
+            ], 422);
+        }
 
         return response()->json([
             'ok' => true,
@@ -426,6 +444,9 @@ class LiveController extends Controller
         ]);
     }
 
+    /**
+     * @throws \Modules\Wallet\Exceptions\InsufficientFundsException When the winner cannot pay for the item.
+     */
     private function closeAuctionInternal(Live $live): ?object
     {
         $winner = $live->currentBidder;

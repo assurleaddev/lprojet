@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -33,7 +34,11 @@ class SocialAuthController extends Controller
         try {
             $socialUser = Socialite::driver($provider)->user();
         } catch (\Exception $e) {
-            \Log::error('Socialite Error: ' . $e->getMessage());
+            Log::error('Socialite Error: ' . $e->getMessage(), [
+                'provider' => $provider,
+                'exception' => $e,
+            ]);
+
             return redirect()->route('login')->with('error', 'Unable to login using ' . $provider . '. Please try again.');
         }
 
@@ -96,9 +101,13 @@ class SocialAuthController extends Controller
 
                 return redirect()->route('home');
             } catch (\Exception $e) {
-                dd($e->getMessage());
-                // \Log::error('Social Login Error: ' . $e->getMessage());
-                // return redirect()->route('login')->with('error', 'Unable to create account. Please try again.');
+                Log::error('Social login account creation failed: ' . $e->getMessage(), [
+                    'provider' => $provider,
+                    'email' => $socialUser->getEmail(),
+                    'exception' => $e,
+                ]);
+
+                return redirect()->route('login')->with('error', __('Unable to create account. Please try again.'));
             }
         }
     }

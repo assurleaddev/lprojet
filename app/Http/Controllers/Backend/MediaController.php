@@ -11,6 +11,7 @@ use App\Http\Requests\Backend\MediaUploadRequest;
 use App\Models\Media;
 use App\Services\MediaLibraryService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class MediaController extends Controller
 {
@@ -63,6 +64,8 @@ class MediaController extends Controller
                     $item->thumb_url = $item->hasGeneratedConversion('thumb') ? $item->getUrl('thumb') : $item->getUrl();
                 }
             } catch (\Exception $e) {
+                Log::warning("Unable to resolve media URL for media #{$item->id}: " . $e->getMessage());
+
                 $item->url = asset('storage/media/' . $item->file_name);
                 $item->thumb_url = $item->url;
             }
@@ -121,6 +124,8 @@ class MediaController extends Controller
                 'error_type' => 'validation_failed',
             ], 422);
         } catch (\Exception $e) {
+            Log::error('Media upload failed: ' . $e->getMessage(), ['exception' => $e]);
+
             return response()->json([
                 'success' => false,
                 'message' => __('Upload failed: :error', ['error' => $e->getMessage()]),
@@ -177,6 +182,8 @@ class MediaController extends Controller
                     $thumbnailUrl = $item->hasGeneratedConversion('thumb') ? $item->getUrl('thumb') : $item->getUrl();
                 }
             } catch (\Exception $e) {
+                Log::warning("Unable to resolve media URL for media #{$item->id}: " . $e->getMessage());
+
                 $url = asset('storage/media/' . $item->file_name);
                 $thumbnailUrl = $url;
             }

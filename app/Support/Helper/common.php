@@ -105,6 +105,8 @@ if (! function_exists('get_setting')) {
         try {
             return invoke_setting('getSetting', $optionName) ?? $default;
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Failed to read setting [{$optionName}], falling back to default: " . $e->getMessage());
+
             return $default;
         }
     }

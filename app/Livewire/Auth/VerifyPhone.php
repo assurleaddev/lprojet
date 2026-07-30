@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Auth;
 
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class VerifyPhone extends Component
@@ -44,7 +45,7 @@ class VerifyPhone extends Component
 
             $to = $this->country_code . $this->phone_number;
 
-            \Illuminate\Support\Facades\Log::info("Attempting to send SMS. SID: " . substr($sid, 0, 5) . "..., From: $from, To: $to");
+            Log::info("Attempting to send SMS. SID: " . substr((string) $sid, 0, 5) . "..., From: $from, To: $to");
 
             if ($sid && $token && $from) {
                 $client = new \Twilio\Rest\Client($sid, $token);
@@ -60,12 +61,23 @@ class VerifyPhone extends Component
                         'body' => "Votre code de vérification est : {$code}",
                     ]
                 );
-                \Illuminate\Support\Facades\Log::info("SMS Sent Successfully. SID: " . $message->sid);
+                Log::info("SMS Sent Successfully. SID: " . $message->sid);
             } else {
-                \Illuminate\Support\Facades\Log::warning("Twilio credentials missing in config.");
+                Log::warning("Twilio credentials missing in config.");
+
+                $this->addError('phone_number', __("L'envoi du SMS est indisponible pour le moment. Veuillez réessayer plus tard."));
+
+                return null;
             }
         } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Twilio SMS Error: " . $e->getMessage());
+            Log::error("Twilio SMS Error: " . $e->getMessage(), [
+                'user_id' => $user->id,
+                'exception' => $e,
+            ]);
+
+            $this->addError('phone_number', __("Nous n'avons pas pu envoyer le SMS. Veuillez vérifier votre numéro et réessayer."));
+
+            return null;
         }
 
         return redirect()->route('auth.verify_phone_code');
