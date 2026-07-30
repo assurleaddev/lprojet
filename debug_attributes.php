@@ -1,8 +1,0 @@
-<?php
-$c = App\Models\Category::find(117);
-while ($c) {
-    echo "Category: {$c->name} ({$c->id})\n";
-    echo "Attributes: " . $c->assignedAttributes->pluck('name')->join(', ') . "\n";
-    echo "---\n";
-    $c = $c->parent;
-}

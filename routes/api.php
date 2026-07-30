@@ -30,6 +30,10 @@ use Illuminate\Support\Facades\Route;
 
 // Public API endpoints
 Route::get('/translations/{lang}', function (string $lang) {
+    if (! preg_match('/^[a-z]{2}(?:[_-][A-Za-z]{2,4})?$/', $lang)) {
+        return response()->json(['error' => 'Language not found'], 404);
+    }
+
     $path = resource_path("lang/{$lang}.json");
 
     if (! file_exists($path)) {

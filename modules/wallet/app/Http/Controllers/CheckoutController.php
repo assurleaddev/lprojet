@@ -38,6 +38,11 @@ class CheckoutController extends Controller
 
         if ($request->offer_id) {
             $offer = Offer::with(['items.product', 'product', 'seller'])->find($request->offer_id);
+
+            if (! $offer || $offer->buyer_id !== $user->id) {
+                abort(403);
+            }
+
             $amount = $offer->offer_price;
             $vendor = $offer->seller;
             $parcelSize = $offer->parcel_size;

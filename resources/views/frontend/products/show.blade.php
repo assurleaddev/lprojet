@@ -267,7 +267,7 @@
                         <!-- Description -->
                         <div class="mb-5">
                             <div class="text-sm text-gray-700 leading-relaxed mb-2 prose prose-sm max-w-none">
-                                {!! $product->description !!}
+                                {!! nl2br(e($product->description)) !!}
                             </div>
                             <button class="text-sm hover:underline flex items-center gap-1 text-gray-900">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

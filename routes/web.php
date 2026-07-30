@@ -47,10 +47,12 @@ Route::get('/how-to-sell', fn () => view('frontend.pages.how-to-sell'))->name('h
 Route::get('/how-to-buy', fn () => view('frontend.pages.how-to-buy'))->name('how-to-buy');
 Route::get('/need-help', fn () => view('frontend.pages.need-help'))->name('need-help');
 
-// Twilio Verify Test
-Route::get('/twilio-verify-test', [App\Http\Controllers\TwilioVerifyTestController::class, 'index'])->name('twilio.test');
-Route::post('/twilio-verify-test/send', [App\Http\Controllers\TwilioVerifyTestController::class, 'sendCode'])->name('twilio.test.send');
-Route::post('/twilio-verify-test/check', [App\Http\Controllers\TwilioVerifyTestController::class, 'checkCode'])->name('twilio.test.check');
+// Twilio Verify Test (local development only, see controller)
+Route::middleware(['auth', 'throttle:5,1'])->group(function () {
+    Route::get('/twilio-verify-test', [App\Http\Controllers\TwilioVerifyTestController::class, 'index'])->name('twilio.test');
+    Route::post('/twilio-verify-test/send', [App\Http\Controllers\TwilioVerifyTestController::class, 'sendCode'])->name('twilio.test.send');
+    Route::post('/twilio-verify-test/check', [App\Http\Controllers\TwilioVerifyTestController::class, 'checkCode'])->name('twilio.test.check');
+});
 
 Route::get('/seller/analytics', [App\Http\Controllers\SellerAnalyticsController::class, 'index'])->middleware('auth')->name('seller.analytics');
 
@@ -341,7 +343,7 @@ Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['auth'
     Route::put('/update-additional', [ProfileController::class, 'updateAdditional'])->name('update.additional');
 });
 
-Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch');
+Route::get('/locale/{lang}', [LocaleController::class, 'switch'])->name('locale.switch')->where('lang', '[a-zA-Z_-]+');
 Route::get('/screenshot-login/{email}', [ScreenshotGeneratorLoginController::class, 'login'])->middleware('web')->name('screenshot.login');
 Route::get('/demo-preview', fn () => view('demo.preview'))->name('demo.preview');
 
