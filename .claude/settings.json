@@ -34,7 +34,11 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\benou\\\\Documents\\\\lprojet\\\\app\\\\Http\\\\Controllers\" -Recurse -Filter \"*ttribute*\" -ErrorAction SilentlyContinue)",
       "Bash(git checkout *)",
       "Bash(git cherry-pick *)",
-      "Bash(git stash *)"
+      "Bash(git stash *)",
+      "Bash(python -c \"import weasyprint; print\\('weasyprint ok'\\)\")",
+      "Bash(python -c \"import pdfkit; print\\('pdfkit ok'\\)\")",
+      "Bash(pip list *)",
+      "Bash(node generate_pdf_temp.mjs)"
     ]
   }
 }
