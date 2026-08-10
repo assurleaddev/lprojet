@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -104,8 +105,10 @@ class _ConversationsList extends StatelessWidget {
     return RefreshIndicator(
       onRefresh: onRefresh,
       child: ListView.separated(
+        padding: const EdgeInsets.symmetric(vertical: 4),
         itemCount: conversations.length,
-        separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
+        separatorBuilder: (_, __) =>
+            const Divider(height: 1, thickness: 1, indent: 84, color: AppColors.border),
         itemBuilder: (_, i) => _ConversationTile(conv: conversations[i]),
       ),
     );
@@ -120,52 +123,120 @@ class _ConversationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final unread = conv.unreadCount > 0;
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: AppColors.inputFill,
-        backgroundImage: conv.otherUserAvatar != null
-            ? NetworkImage(conv.otherUserAvatar!)
-            : null,
-        child: conv.otherUserAvatar == null
-            ? Text(conv.otherUserName.isNotEmpty ? conv.otherUserName[0].toUpperCase() : '?',
-                style: const TextStyle(fontWeight: FontWeight.w600))
-            : null,
-      ),
-      title: Text(
-        conv.otherUserName,
-        style: TextStyle(fontWeight: unread ? FontWeight.w700 : FontWeight.w500),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (conv.productTitle != null)
-            Text(conv.productTitle!, style: const TextStyle(fontSize: 11, color: AppColors.primary)),
-          if (conv.lastMessageBody != null)
-            Text(
-              conv.lastMessageIsMine ? 'Vous: ${conv.lastMessageBody}' : conv.lastMessageBody!,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: unread ? AppColors.textPrimary : AppColors.textSecondary, fontSize: 13),
-            ),
-        ],
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (conv.lastMessageTime != null)
-            Text(conv.lastMessageTime!, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-          if (unread) ...[
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(10)),
-              child: Text('${conv.unreadCount}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-            ),
-          ],
-        ],
-      ),
+    final preview = conv.lastMessageBody == null
+        ? null
+        : (conv.lastMessageIsMine ? 'Vous : ${conv.lastMessageBody}' : conv.lastMessageBody!);
+
+    return InkWell(
       onTap: () => context.push('/inbox/conversation/${conv.id}', extra: conv),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+        child: Row(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: CircleAvatar(
+                radius: 26,
+                backgroundColor: AppColors.inputFill,
+                backgroundImage:
+                    conv.otherUserAvatar != null ? CachedNetworkImageProvider(conv.otherUserAvatar!) : null,
+                child: conv.otherUserAvatar == null
+                    ? Text(
+                        conv.otherUserName.isNotEmpty ? conv.otherUserName[0].toUpperCase() : '?',
+                        style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary),
+                      )
+                    : null,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          conv.otherUserName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: unread ? FontWeight.w800 : FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      if (conv.lastMessageTime != null)
+                        Text(
+                          conv.lastMessageTime!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: unread ? AppColors.primary : AppColors.textSecondary,
+                            fontWeight: unread ? FontWeight.w600 : FontWeight.w400,
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (conv.productTitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      conv.productTitle!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                  if (preview != null) ...[
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            preview,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 13,
+                              height: 1.2,
+                              color: unread ? AppColors.textPrimary : AppColors.textSecondary,
+                              fontWeight: unread ? FontWeight.w600 : FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                        if (unread)
+                          Container(
+                            margin: const EdgeInsets.only(left: 6),
+                            width: 9,
+                            height: 9,
+                            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                          ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (conv.productImage != null) ...[
+              const SizedBox(width: 12),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CachedNetworkImage(
+                  imageUrl: conv.productImage!,
+                  width: 52,
+                  height: 52,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(width: 52, height: 52, color: AppColors.inputFill),
+                  errorWidget: (_, __, ___) => Container(width: 52, height: 52, color: AppColors.inputFill),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

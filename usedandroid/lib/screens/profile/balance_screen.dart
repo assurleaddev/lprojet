@@ -27,7 +27,7 @@ class BalanceScreen extends StatelessWidget {
                 const Text('Solde disponible', style: TextStyle(color: Colors.white70, fontSize: 14)),
                 const SizedBox(height: 8),
                 const Text(
-                  '0,00 DZD',
+                  '0,00 MAD',
                   style: TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),

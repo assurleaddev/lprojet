@@ -6,6 +6,7 @@ import '../screens/inbox/inbox_screen.dart';
 import '../screens/listing/listing_detail_screen.dart';
 import '../screens/profile/balance_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/my_listings_screen.dart';
 import '../screens/profile/orders_screen.dart';
 import '../screens/profile/profile_screen.dart';
 import '../screens/profile/settings_screen.dart';
@@ -65,6 +66,16 @@ final appRouter = GoRouter(
               GoRoute(path: 'settings', builder: (_, __) => const SettingsScreen()),
               GoRoute(path: 'balance', builder: (_, __) => const BalanceScreen()),
               GoRoute(path: 'orders', builder: (_, __) => const OrdersScreen()),
+              GoRoute(
+                path: 'my-listings',
+                builder: (_, __) => const MyListingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    builder: (_, state) => SellScreen(product: state.extra as ApiProduct),
+                  ),
+                ],
+              ),
             ],
           ),
         ]),

@@ -1,7 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../config/app_config.dart';
 import '../services/product_service.dart';
 import '../theme/app_colors.dart';
+import 'retry_network_image.dart';
 
 class ApiItemCard extends StatefulWidget {
   final ApiProduct product;
@@ -43,12 +44,13 @@ class _ApiItemCardState extends State<ApiItemCard> {
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                     child: imageUrl.isNotEmpty
-                        ? CachedNetworkImage(
+                        ? RetryNetworkImage(
                             imageUrl: imageUrl,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: AppColors.inputFill),
-                            errorWidget: (_, __, ___) => _Placeholder(),
+                            maxRetries: AppConfig.imageMaxRetries,
+                            placeholder: Container(color: AppColors.inputFill),
+                            errorWidget: _Placeholder(),
                           )
                         : _Placeholder(),
                   ),
@@ -97,7 +99,7 @@ class _ApiItemCardState extends State<ApiItemCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${widget.product.price.toStringAsFixed(0)} DZD',
+                        '${widget.product.price.toStringAsFixed(0)} MAD',
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
                       ),
                       if (widget.product.size != null)

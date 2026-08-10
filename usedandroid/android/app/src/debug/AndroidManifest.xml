@@ -4,4 +4,8 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug-only: allow cleartext HTTP so the emulator can reach the local
+         `php artisan serve` over http://10.0.2.2:8000. Merged into debug builds
+         ONLY — release builds never permit cleartext. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

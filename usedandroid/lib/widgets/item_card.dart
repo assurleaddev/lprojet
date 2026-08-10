@@ -103,7 +103,7 @@ class _ItemCardState extends State<ItemCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        '${widget.item.price.toStringAsFixed(0)} DZD',
+                        '${widget.item.price.toStringAsFixed(0)} MAD',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,

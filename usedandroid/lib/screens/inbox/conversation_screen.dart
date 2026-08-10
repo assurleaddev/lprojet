@@ -1,8 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../services/inbox_service.dart';
 import '../../theme/app_colors.dart';
+import '../checkout/checkout_screen.dart';
 
 // ── carriers ──────────────────────────────────────────────────────────────────
 
@@ -208,6 +210,72 @@ class _ConversationScreenState extends State<ConversationScreen> {
     );
   }
 
+  Future<void> _checkout(int offerId, double itemPrice) async {
+    final done = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => CheckoutScreen(offerId: offerId)),
+    );
+    if (done == true) _load();
+  }
+
+  void _counterOffer(int offerId, double currentOffer) {
+    final ctrl = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 20, right: 20, top: 20,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Faire une contre-offre',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 4),
+            Text('Offre de l\'acheteur : ${currentOffer.toStringAsFixed(2)} MAD',
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            const SizedBox(height: 16),
+            TextField(
+              controller: ctrl,
+              autofocus: true,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+              decoration: const InputDecoration(
+                labelText: 'Votre contre-offre',
+                suffixText: 'MAD',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
+                onPressed: () {
+                  final price = double.tryParse(ctrl.text.trim().replaceAll(',', '.'));
+                  if (price == null || price <= 0) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(content: Text('Entrez un montant valide.')),
+                    );
+                    return;
+                  }
+                  Navigator.pop(ctx);
+                  _runAction(() => _service.counterOffer(offerId, price));
+                },
+                child: const Text('Envoyer la contre-offre'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _shipOrder(int orderId) {
     String? selectedCarrier;
     final trackingCtrl = TextEditingController();
@@ -305,23 +373,29 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Widget build(BuildContext context) {
     final conv = widget.conversation;
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5),
+      backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         titleSpacing: 0,
         title: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.inputFill,
-              backgroundImage: conv.otherUserAvatar != null
-                  ? NetworkImage(conv.otherUserAvatar!)
-                  : null,
-              child: conv.otherUserAvatar == null
-                  ? Text(
-                      conv.otherUserName.isNotEmpty ? conv.otherUserName[0].toUpperCase() : '?',
-                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    )
-                  : null,
+            Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.border),
+              ),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: AppColors.inputFill,
+                backgroundImage: conv.otherUserAvatar != null
+                    ? CachedNetworkImageProvider(conv.otherUserAvatar!)
+                    : null,
+                child: conv.otherUserAvatar == null
+                    ? Text(
+                        conv.otherUserName.isNotEmpty ? conv.otherUserName[0].toUpperCase() : '?',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primary),
+                      )
+                    : null,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -350,6 +424,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
       ),
       body: Column(
         children: [
+          if (conv.productTitle != null) _ProductHeader(conv: conv),
           Expanded(child: _buildMessageList()),
           _buildInputBar(),
         ],
@@ -392,13 +467,27 @@ class _ConversationScreenState extends State<ConversationScreen> {
         itemCount: _messages.length,
         itemBuilder: (_, i) {
           final msg = _messages[i];
-          final showTime = i == 0 ||
-              _messages[i].createdAt.substring(0, 16) !=
-                  _messages[i - 1].createdAt.substring(0, 16);
+          final prev = i > 0 ? _messages[i - 1] : null;
+          final next = i < _messages.length - 1 ? _messages[i + 1] : null;
+          final showDate = prev == null || _dayKey(msg) != _dayKey(prev);
+          final isText = msg.type == 'text';
+          // group consecutive text bubbles from the same sender
+          final grouped = isText &&
+              !showDate &&
+              prev != null &&
+              prev.type == 'text' &&
+              prev.isMine == msg.isMine;
+          // only show the timestamp on the last bubble of a same-minute group
+          final showTime = !(isText &&
+              next != null &&
+              next.type == 'text' &&
+              next.isMine == msg.isMine &&
+              _minuteKey(next) == _minuteKey(msg));
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (showTime && i > 0) _TimeLabel(label: msg.sentAt),
-              _buildMessage(msg),
+              if (showDate) _DateSeparator(iso: msg.createdAt),
+              _buildMessage(msg, grouped: grouped, showTime: showTime),
             ],
           );
         },
@@ -406,15 +495,18 @@ class _ConversationScreenState extends State<ConversationScreen> {
     );
   }
 
-  Widget _buildMessage(ApiMessage msg) {
-    debugPrint('[MSG] type="${msg.type}" offer=${msg.offer?.id} order=${msg.order?.id}');
+  String _dayKey(ApiMessage m) => m.createdAt.length >= 10 ? m.createdAt.substring(0, 10) : m.createdAt;
+  String _minuteKey(ApiMessage m) => m.createdAt.length >= 16 ? m.createdAt.substring(0, 16) : m.createdAt;
+
+  Widget _buildMessage(ApiMessage msg, {bool grouped = false, bool showTime = true}) {
     switch (msg.type) {
       case 'offer_made':
       case 'offer_countered':
         return _OfferCard(
           msg: msg,
-          onAccept: msg.offer != null && msg.offer!.isSeller &&
-                  (msg.offer!.isPending || msg.offer!.isAwaitingBuyer)
+          onAccept: msg.offer != null &&
+                  ((msg.offer!.isSeller && msg.offer!.isPending) ||
+                      (msg.offer!.isBuyer && msg.offer!.isAwaitingBuyer))
               ? () => _acceptOffer(msg.offer!.id)
               : null,
           onReject: msg.offer != null &&
@@ -424,6 +516,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
               : null,
           onWithdraw: msg.offer != null && msg.offer!.isBuyer && msg.offer!.isPending
               ? () => _withdrawOffer(msg.offer!.id)
+              : null,
+          onCounter: msg.offer != null &&
+                  msg.type == 'offer_made' &&
+                  msg.offer!.isSeller &&
+                  msg.offer!.isPending
+              ? () => _counterOffer(msg.offer!.id, msg.offer!.price)
               : null,
         );
 
@@ -455,7 +553,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
         );
 
       case 'offer_checkout_prompt':
-        return _CheckoutPromptCard(msg: msg);
+        return _CheckoutPromptCard(
+          msg: msg,
+          onCheckout: msg.offer != null && msg.offer!.isBuyer && msg.offer!.isAccepted
+              ? () => _checkout(msg.offer!.id, msg.offer!.price)
+              : null,
+        );
 
       case 'product_reserved':
         return _StatusCard(
@@ -498,13 +601,16 @@ class _ConversationScreenState extends State<ConversationScreen> {
         return _OrderCancelledCard(msg: msg);
 
       default:
-        return _MessageBubble(message: msg);
+        return _MessageBubble(message: msg, grouped: grouped, showTime: showTime);
     }
   }
 
   Widget _buildInputBar() {
     return Container(
-      color: AppColors.surface,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
       padding: EdgeInsets.only(
         left: 12,
         right: 8,
@@ -544,14 +650,68 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         height: 24,
                         child: CircularProgressIndicator(strokeWidth: 2)),
                   )
-                : IconButton(
-                    onPressed: _send,
-                    icon: const Icon(Icons.send_rounded),
-                    color: AppColors.primary,
-                    iconSize: 28,
+                : GestureDetector(
+                    onTap: _send,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
+                      child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                    ),
                   ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── pinned product header ──────────────────────────────────────────────────────
+
+class _ProductHeader extends StatelessWidget {
+  final ApiConversation conv;
+  const _ProductHeader({required this.conv});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: conv.productImage != null
+                ? CachedNetworkImage(
+                    imageUrl: conv.productImage!,
+                    width: 40,
+                    height: 40,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(width: 40, height: 40, color: AppColors.inputFill),
+                    errorWidget: (_, __, ___) => Container(
+                      width: 40, height: 40, color: AppColors.inputFill,
+                      child: const Icon(Icons.image_not_supported, size: 18, color: AppColors.textSecondary),
+                    ),
+                  )
+                : Container(
+                    width: 40, height: 40, color: AppColors.inputFill,
+                    child: const Icon(Icons.shopping_bag_outlined, size: 18, color: AppColors.textSecondary),
+                  ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              conv.productTitle ?? '',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
+        ],
       ),
     );
   }
@@ -561,29 +721,33 @@ class _ConversationScreenState extends State<ConversationScreen> {
 
 class _MessageBubble extends StatelessWidget {
   final ApiMessage message;
-  const _MessageBubble({required this.message});
+  final bool grouped; // consecutive same-sender bubble → tighter spacing
+  final bool showTime; // hide timestamp on non-last bubble of a minute group
+
+  const _MessageBubble({required this.message, this.grouped = false, this.showTime = true});
+
+  static const _received = Color(0xFFEFF1F3);
 
   @override
   Widget build(BuildContext context) {
     final isMine = message.isMine;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: EdgeInsets.only(top: grouped ? 2 : 5, bottom: 1),
       child: Row(
         mainAxisAlignment: isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
         children: [
           Flexible(
             child: Container(
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
               decoration: BoxDecoration(
-                color: isMine ? AppColors.primary : AppColors.surface,
+                color: isMine ? AppColors.primary : _received,
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(isMine ? 18 : 4),
-                  bottomRight: Radius.circular(isMine ? 4 : 18),
+                  topLeft: Radius.circular(!isMine && grouped ? 6 : 20),
+                  topRight: Radius.circular(isMine && grouped ? 6 : 20),
+                  bottomLeft: Radius.circular(isMine ? 20 : 6),
+                  bottomRight: Radius.circular(isMine ? 6 : 20),
                 ),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.06), blurRadius: 4)],
               ),
               child: Column(
                 crossAxisAlignment:
@@ -597,14 +761,16 @@ class _MessageBubble extends StatelessWidget {
                       height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    message.sentAt,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: isMine ? Colors.white.withOpacity(0.7) : AppColors.textSecondary,
+                  if (showTime) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      message.sentAt,
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: isMine ? Colors.white.withValues(alpha: 0.75) : AppColors.textSecondary,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -622,8 +788,15 @@ class _OfferCard extends StatelessWidget {
   final VoidCallback? onAccept;
   final VoidCallback? onReject;
   final VoidCallback? onWithdraw;
+  final VoidCallback? onCounter;
 
-  const _OfferCard({required this.msg, this.onAccept, this.onReject, this.onWithdraw});
+  const _OfferCard({
+    required this.msg,
+    this.onAccept,
+    this.onReject,
+    this.onWithdraw,
+    this.onCounter,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -708,7 +881,7 @@ class _OfferCard extends StatelessWidget {
               ],
             ),
             // action buttons — only when offer is still active
-            if (onAccept != null || onReject != null || onWithdraw != null) ...[
+            if (onAccept != null || onReject != null || onWithdraw != null || onCounter != null) ...[
               const SizedBox(height: 14),
               const Divider(height: 1),
               const SizedBox(height: 10),
@@ -736,6 +909,21 @@ class _OfferCard extends StatelessWidget {
                       ),
                   ],
                 ),
+              if (onCounter != null) ...[
+                if (onAccept != null || onReject != null) const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onCounter,
+                    icon: const Icon(Icons.swap_horiz, size: 18),
+                    label: const Text('Contre-offre'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+              ],
               if (onWithdraw != null)
                 SizedBox(
                   width: double.infinity,
@@ -777,7 +965,8 @@ class _OfferCard extends StatelessWidget {
 
 class _CheckoutPromptCard extends StatelessWidget {
   final ApiMessage msg;
-  const _CheckoutPromptCard({required this.msg});
+  final VoidCallback? onCheckout;
+  const _CheckoutPromptCard({required this.msg, this.onCheckout});
 
   @override
   Widget build(BuildContext context) {
@@ -820,10 +1009,25 @@ class _CheckoutPromptCard extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             isBuyer
-                ? 'Finalisez votre achat sur le site web.'
-                : 'L\'acheteur doit finaliser le paiement sur le site.',
+                ? 'Finalisez votre achat pour valider la commande.'
+                : 'L\'acheteur doit finaliser le paiement.',
             style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
           ),
+          if (onCheckout != null) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onCheckout,
+                icon: const Icon(Icons.shopping_bag_outlined, size: 18),
+                label: const Text('Payer maintenant'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.greenBadge,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+          ],
           _Timestamp(sentAt: msg.sentAt),
         ],
       ),
@@ -1148,23 +1352,41 @@ class _Timestamp extends StatelessWidget {
   }
 }
 
-class _TimeLabel extends StatelessWidget {
-  final String label;
-  const _TimeLabel({required this.label});
+class _DateSeparator extends StatelessWidget {
+  final String iso;
+  const _DateSeparator({required this.iso});
+
+  static const _months = [
+    'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
+    'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+  ];
+
+  String get _label {
+    final d = DateTime.tryParse(iso)?.toLocal();
+    if (d == null) return '';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final that = DateTime(d.year, d.month, d.day);
+    final diff = today.difference(that).inDays;
+    if (diff == 0) return "Aujourd'hui";
+    if (diff == 1) return 'Hier';
+    final label = '${d.day} ${_months[d.month - 1]}';
+    return d.year == now.year ? label : '$label ${d.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.08),
+            color: AppColors.inputFill,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Text(label,
-              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+          child: Text(_label,
+              style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
         ),
       ),
     );

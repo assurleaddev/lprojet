@@ -5,6 +5,7 @@ class ApiConversation {
   final String otherUserName;
   final String? otherUserAvatar;
   final String? productTitle;
+  final String? productImage;
   final String? lastMessageBody;
   final String? lastMessageTime;
   final bool lastMessageIsMine;
@@ -15,6 +16,7 @@ class ApiConversation {
     required this.otherUserName,
     this.otherUserAvatar,
     this.productTitle,
+    this.productImage,
     this.lastMessageBody,
     this.lastMessageTime,
     this.lastMessageIsMine = false,
@@ -24,11 +26,13 @@ class ApiConversation {
   factory ApiConversation.fromJson(Map<String, dynamic> json) {
     final other = json['other_user'] as Map<String, dynamic>;
     final last = json['last_message'] as Map<String, dynamic>?;
+    final product = json['product'] as Map<String, dynamic>?;
     return ApiConversation(
       id: json['id'],
       otherUserName: other['name'] ?? '',
-      otherUserAvatar: other['avatar_url'],
-      productTitle: (json['product'] as Map<String, dynamic>?)?['title'],
+      otherUserAvatar: other['avatar_url'] != null ? ApiClient.fixImageUrl(other['avatar_url']) : null,
+      productTitle: product?['title'],
+      productImage: product?['image'] != null ? ApiClient.fixImageUrl(product!['image']) : null,
       lastMessageBody: last?['body'],
       lastMessageTime: last?['sent_at'],
       lastMessageIsMine: last?['is_mine'] ?? false,
@@ -185,6 +189,12 @@ class InboxService {
     return (response.data['data'] as List).map((j) => ApiConversation.fromJson(j)).toList();
   }
 
+  /// Start (or reuse) a conversation with a product's seller.
+  Future<ApiConversation> startConversation(int productId) async {
+    final response = await _client.dio.post('/mobile/conversations', data: {'product_id': productId});
+    return ApiConversation.fromJson(response.data);
+  }
+
   Future<List<ApiMessage>> getMessages(int conversationId) async {
     final response = await _client.dio.get('/mobile/conversations/$conversationId/messages');
     return (response.data['data'] as List).map((j) => ApiMessage.fromJson(j)).toList();
@@ -198,8 +208,42 @@ class InboxService {
     return ApiMessage.fromJson(response.data['data']);
   }
 
+  /// Buyer makes (or updates) an offer on a product.
+  /// Returns the created/updated offer id and the conversation it lives in.
+  Future<({int offerId, int conversationId})> createOffer(int productId, double price) async {
+    final response = await _client.dio.post('/mobile/offers', data: {
+      'product_id': productId,
+      'offer_price': price,
+    });
+    return (
+      offerId: response.data['offer_id'] as int,
+      conversationId: response.data['conversation_id'] as int,
+    );
+  }
+
   Future<void> acceptOffer(int offerId) async {
     await _client.dio.post('/mobile/offers/$offerId/accept');
+  }
+
+  /// Seller sends a counter offer against the buyer's pending offer.
+  Future<void> counterOffer(int offerId, double price) async {
+    await _client.dio.post('/mobile/offers/$offerId/counter', data: {'offer_price': price});
+  }
+
+  /// Buyer pays for an accepted offer (wallet escrow) — creates the order.
+  Future<void> checkout(int offerId) async {
+    await _client.dio.post('/mobile/checkout', data: {
+      'offer_id': offerId,
+      'payment_method': 'wallet',
+    });
+  }
+
+  /// Direct "buy now" purchase of a product (no prior offer).
+  Future<void> checkoutProduct(int productId) async {
+    await _client.dio.post('/mobile/checkout', data: {
+      'product_id': productId,
+      'payment_method': 'wallet',
+    });
   }
 
   Future<void> rejectOffer(int offerId, {String? reason}) async {
