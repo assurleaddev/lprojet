@@ -36,36 +36,42 @@ class VerifyPhone extends Component
         $user->phone_verification_code_expires_at = now()->addMinutes(10);
         $user->save();
 
-        // Send verification code via SMS (Alphanumeric Sender ID)
-        try {
-            $sid = config('services.twilio.sid');
-            $token = config('services.twilio.token');
-            $from = config('services.twilio.from'); // Set TWILIO_FROM=Used in .env
+        // Deliver the code: prefer WhatsApp (1Confirmed) when configured,
+        // otherwise fall back to Twilio SMS.
+        $to = $this->country_code . $this->phone_number;
+        $oneConfirmed = app(\App\Services\OneConfirmedService::class);
 
-            $to = $this->country_code . $this->phone_number;
+        if ($oneConfirmed->enabled()) {
+            $oneConfirmed->sendOtp($to, $code);
+        } else {
+            try {
+                $sid = config('services.twilio.sid');
+                $token = config('services.twilio.token');
+                $from = config('services.twilio.from'); // Set TWILIO_FROM=Used in .env
 
-            \Illuminate\Support\Facades\Log::info("Attempting to send SMS. SID: " . substr($sid, 0, 5) . "..., From: $from, To: $to");
+                \Illuminate\Support\Facades\Log::info("Attempting to send SMS. SID: " . substr((string) $sid, 0, 5) . "..., From: $from, To: $to");
 
-            if ($sid && $token && $from) {
-                $client = new \Twilio\Rest\Client($sid, $token);
-                $client->setHttpClient(new \Twilio\Http\CurlClient([
-                    CURLOPT_SSL_VERIFYHOST => 0,
-                    CURLOPT_SSL_VERIFYPEER => 0,
-                ]));
+                if ($sid && $token && $from) {
+                    $client = new \Twilio\Rest\Client($sid, $token);
+                    $client->setHttpClient(new \Twilio\Http\CurlClient([
+                        CURLOPT_SSL_VERIFYHOST => 0,
+                        CURLOPT_SSL_VERIFYPEER => 0,
+                    ]));
 
-                $message = $client->messages->create(
-                    $to,
-                    [
-                        'from' => $from,
-                        'body' => "Votre code de vérification est : {$code}",
-                    ]
-                );
-                \Illuminate\Support\Facades\Log::info("SMS Sent Successfully. SID: " . $message->sid);
-            } else {
-                \Illuminate\Support\Facades\Log::warning("Twilio credentials missing in config.");
+                    $message = $client->messages->create(
+                        $to,
+                        [
+                            'from' => $from,
+                            'body' => "Votre code de vérification est : {$code}",
+                        ]
+                    );
+                    \Illuminate\Support\Facades\Log::info("SMS Sent Successfully. SID: " . $message->sid);
+                } else {
+                    \Illuminate\Support\Facades\Log::warning("Twilio credentials missing in config.");
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error("Twilio SMS Error: " . $e->getMessage());
             }
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error("Twilio SMS Error: " . $e->getMessage());
         }
 
         return redirect()->route('auth.verify_phone_code');

@@ -7,6 +7,7 @@ namespace App\Concerns;
 use App\Enums\ActionType;
 use App\Models\ActionLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 trait HasActionLogTrait
 {
@@ -83,13 +84,34 @@ trait HasActionLogTrait
             $actionLog = ActionLog::create([
                 'type' => $type->value,
                 'title' => $title,
-                'action_by' => $data['action_by'] ?? Auth::id(), // Store the user's ID who triggered the action
-                'data' => json_encode($data), // Store the action data as JSON
+                'action_by' => $data['action_by'] ?? Auth::id(),
+                'ip' => app()->runningInConsole() ? null : request()->ip(),
+                'data' => json_encode($this->sanitizeLogData($data)),
             ]);
 
             return $actionLog;
         } catch (\Exception $e) {
+            Log::error('ActionLog failed', ['error' => $e->getMessage()]);
+
             return null;
         }
+    }
+
+    private function sanitizeLogData(array $data): array
+    {
+        $sensitive = [
+            'password', 'password_confirmation', 'current_password',
+            'token', 'access_token', 'secret', 'api_key', 'pin', 'cvv', 'card_number',
+        ];
+
+        foreach ($data as $key => $value) {
+            if (in_array(strtolower((string) $key), $sensitive, true)) {
+                $data[$key] = '[REDACTED]';
+            } elseif (is_array($value)) {
+                $data[$key] = $this->sanitizeLogData($value);
+            }
+        }
+
+        return $data;
     }
 }

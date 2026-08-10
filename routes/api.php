@@ -4,9 +4,11 @@ use App\Http\Controllers\Api\ActionLogController;
 use App\Http\Controllers\Api\AiContentController;
 use App\Http\Controllers\Api\Auth\AuthController;
 use App\Http\Controllers\Api\Mobile\CategoryController as MobileCategoryController;
+use App\Http\Controllers\Api\Mobile\CheckoutController as MobileCheckoutController;
 use App\Http\Controllers\Api\Mobile\InboxController as MobileInboxController;
 use App\Http\Controllers\Api\Mobile\OfferOrderController as MobileOfferOrderController;
 use App\Http\Controllers\Api\Mobile\ProductController as MobileProductController;
+use App\Http\Controllers\Api\Mobile\ProfileController as MobileProfileController;
 use App\Http\Controllers\Api\ModuleController;
 use App\Http\Controllers\Api\PermissionController;
 use App\Http\Controllers\Api\PostController;
@@ -46,13 +48,28 @@ Route::prefix('mobile')->group(function () {
     // Public: browse products and categories
     Route::get('/products', [MobileProductController::class, 'index']);
     Route::get('/products/{id}', [MobileProductController::class, 'show']);
+    Route::get('/products/{id}/similar', [MobileProductController::class, 'similarProducts']);
     Route::get('/categories', [MobileCategoryController::class, 'index']);
     Route::get('/categories/{id}', [MobileCategoryController::class, 'show']);
     Route::get('/categories/{id}/attributes', [MobileCategoryController::class, 'attributes']);
+    Route::get('/brands', [MobileProductController::class, 'brands']);
+    Route::get('/vendors/{id}/products', [MobileProductController::class, 'vendorProducts']);
 
     // Authenticated: sell + inbox
     Route::middleware('auth:sanctum')->group(function () {
+        // Profile & settings
+        Route::get('/profile', [MobileProfileController::class, 'show']);
+        Route::post('/profile', [MobileProfileController::class, 'update']);
+        Route::post('/profile/password', [MobileProfileController::class, 'updatePassword']);
+        Route::post('/profile/notifications', [MobileProfileController::class, 'updateNotifications']);
+
+        Route::get('/my-products', [MobileProductController::class, 'mine']);
         Route::post('/products', [MobileProductController::class, 'store']);
+        Route::post('/products/{id}', [MobileProductController::class, 'update']);
+        Route::post('/products/{id}/report', [MobileProductController::class, 'report']);
+        Route::post('/products/{id}/status', [MobileProductController::class, 'updateStatus']);
+        Route::delete('/products/{id}', [MobileProductController::class, 'destroy']);
+        Route::post('/conversations', [MobileInboxController::class, 'startConversation']);
         Route::get('/conversations', [MobileInboxController::class, 'conversations']);
         Route::get('/conversations/{id}/messages', [MobileInboxController::class, 'messages']);
         Route::post('/conversations/{id}/messages', [MobileInboxController::class, 'sendMessage']);
@@ -60,9 +77,19 @@ Route::prefix('mobile')->group(function () {
         Route::post('/notifications/read', [MobileInboxController::class, 'markNotificationsRead']);
 
         // Offer actions
+        Route::post('/offers', [MobileOfferOrderController::class, 'createOffer']);
         Route::post('/offers/{id}/accept', [MobileOfferOrderController::class, 'acceptOffer']);
         Route::post('/offers/{id}/reject', [MobileOfferOrderController::class, 'rejectOffer']);
+        Route::post('/offers/{id}/counter', [MobileOfferOrderController::class, 'counterOffer']);
         Route::post('/offers/{id}/withdraw', [MobileOfferOrderController::class, 'withdrawOffer']);
+
+        // Checkout data (item, addresses, shipping, wallet) + address management
+        Route::get('/checkout/init', [MobileCheckoutController::class, 'init']);
+        Route::post('/addresses', [MobileCheckoutController::class, 'storeAddress']);
+        Route::delete('/addresses/{id}', [MobileCheckoutController::class, 'destroyAddress']);
+
+        // Checkout (accepted offer or direct buy) → order
+        Route::post('/checkout', [MobileOfferOrderController::class, 'checkout']);
 
         // Order actions
         Route::post('/orders/{id}/ship', [MobileOfferOrderController::class, 'shipOrder']);
@@ -79,6 +106,7 @@ Route::prefix('auth')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/revoke-all', [AuthController::class, 'revokeAll']);
+        Route::post('/refresh', [AuthController::class, 'refresh']);
     });
 });
 

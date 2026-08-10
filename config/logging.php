@@ -1,5 +1,7 @@
 <?php
 
+use App\Logging\SanitizeProcessor;
+use Monolog\Formatter\JsonFormatter;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -17,7 +19,7 @@ return [
     |
     */
 
-    'default' => env('LOG_CHANNEL', 'stack'),
+    'default' => env('LOG_CHANNEL', 'daily'),
 
     /*
     |--------------------------------------------------------------------------
@@ -44,14 +46,17 @@ return [
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
-            'level' => 'debug',
+            'level' => env('LOG_LEVEL', 'warning'),
+            'processors' => [SanitizeProcessor::class],
         ],
 
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),
-            'level' => 'debug',
-            'days' => 14,
+            'level' => env('LOG_LEVEL', 'warning'),
+            'days' => 90,
+            'formatter' => JsonFormatter::class,
+            'processors' => [SanitizeProcessor::class],
         ],
 
         'slack' => [

@@ -4,12 +4,55 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Chat\Models\Conversation;
+use Modules\Chat\Services\ChatService;
 
 class InboxController extends Controller
 {
+    /**
+     * Start (or reuse) a conversation with a product's seller — the "Message"
+     * button on the product page. Returns the conversation in list shape.
+     */
+    public function startConversation(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $validated = $request->validate(['product_id' => ['required', 'exists:products,id']]);
+
+        $product = Product::with('vendor')->findOrFail($validated['product_id']);
+        $seller = $product->vendor;
+
+        if (! $seller || $seller->id === $user->id) {
+            return response()->json(['message' => 'Impossible de démarrer cette conversation.'], 422);
+        }
+
+        $conv = app(ChatService::class)->getOrCreateConversation($user, $seller, $product);
+        $conv->load('lastMessage.user');
+        $last = $conv->lastMessage;
+
+        return response()->json([
+            'id' => $conv->id,
+            'other_user' => [
+                'id' => $seller->id,
+                'name' => $seller->full_name,
+                'avatar_url' => $seller->avatar_url,
+            ],
+            'product' => [
+                'id' => $product->id,
+                'title' => $product->name,
+                'image' => $product->getFeaturedImageUrl('thumb'),
+            ],
+            'last_message' => $last ? [
+                'body' => $last->body ?: '📎 Pièce jointe',
+                'sent_at' => $last->created_at->diffForHumans(),
+                'is_mine' => $last->user_id === $user->id,
+            ] : null,
+            'unread_count' => 0,
+        ]);
+    }
+
     public function conversations(Request $request): JsonResponse
     {
         $user = $request->user();
