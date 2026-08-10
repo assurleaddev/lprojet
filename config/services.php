@@ -76,4 +76,18 @@ return [
         'phone_verification_enabled' => env('PHONE_VERIFICATION_ENABLED', true),
     ],
 
+    // 1Confirmed — WhatsApp OTP (2FA). When enabled + configured, phone
+    // verification codes are delivered via WhatsApp instead of Twilio SMS.
+    'oneconfirmed' => [
+        'enabled' => env('ONECONFIRMED_ENABLED', false),
+        'base_url' => env('ONECONFIRMED_BASE_URL', 'https://1confirmed.com/api/v1'),
+        'token' => env('ONECONFIRMED_TOKEN'),
+        'template_id' => env('ONECONFIRMED_OTP_TEMPLATE_ID'),
+        'template_account_flow_id' => env('ONECONFIRMED_OTP_FLOW_ID'),
+        // The template variable that receives the code (as defined in your template).
+        'otp_variable' => env('ONECONFIRMED_OTP_VARIABLE', 'otp_code'),
+        'sms_fallback' => env('ONECONFIRMED_SMS_FALLBACK', true),
+        'sms_fallback_delay' => env('ONECONFIRMED_SMS_FALLBACK_DELAY', 90),
+    ],
+
 ];

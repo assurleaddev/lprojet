@@ -45,6 +45,9 @@ class Kernel extends ConsoleKernel
         // Recalculate seller reputation scores every night at 03:00.
         $schedule->job(new RecalculateSellerScores())->dailyAt('03:00')->withoutOverlapping();
 
+        // Purge personal data (action logs, expired tokens) older than 90 days — REQ.PRIV.3.
+        $schedule->command('app:purge-expired-data --days=90')->dailyAt('04:00')->withoutOverlapping();
+
         // Refresh tracking data for all active shipped orders every hour.
         $schedule->call(function () {
             Order::where('status', 'shipped')

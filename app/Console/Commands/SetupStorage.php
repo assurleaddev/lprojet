@@ -49,6 +49,16 @@ class SetupStorage extends Command
             $this->info("Created directory: {$dir}");
         }
 
+        // Harden log directory permissions — REQ.LOG.6
+        if (PHP_OS_FAMILY !== 'Windows') {
+            $logPath = storage_path('logs');
+            chmod($logPath, 0750);
+            foreach (glob($logPath.'/*.log') ?: [] as $file) {
+                chmod($file, 0640);
+            }
+            $this->info('Log directory permissions set to 750/640.');
+        }
+
         $this->info('Storage setup completed successfully!');
 
         return Command::SUCCESS;

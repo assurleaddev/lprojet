@@ -130,4 +130,24 @@ class AuthController extends ApiController
             'message' => 'All tokens revoked successfully',
         ], 200);
     }
+
+    /**
+     * Refresh the current token — revoke it and issue a new one.
+     * Mobile clients should call this before token expiry to stay authenticated.
+     *
+     * @tags Authentication
+     */
+    public function refresh(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $user->currentAccessToken()->delete();
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'token' => $token,
+            'token_type' => 'Bearer',
+        ], 200);
+    }
 }

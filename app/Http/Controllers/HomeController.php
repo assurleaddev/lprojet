@@ -81,19 +81,24 @@ class HomeController extends Controller
                 $catIds = $topCategories->keys()->toArray();
                 $brandIds = $topBrands->keys()->toArray();
 
-                $catIn = implode(',', array_map('intval', $catIds ?: [0]));
-                $brandIn = implode(',', array_map('intval', $brandIds ?: [0]));
-                $sellerIn = implode(',', array_map('intval', $followedIds ?: [0]));
+                $catIds = array_map('intval', $catIds ?: [0]);
+                $brandIds = array_map('intval', $brandIds ?: [0]);
+                $sellerIds = array_map('intval', $followedIds ?: [0]);
+
+                $catPlaceholders = implode(',', array_fill(0, count($catIds), '?'));
+                $brandPlaceholders = implode(',', array_fill(0, count($brandIds), '?'));
+                $sellerPlaceholders = implode(',', array_fill(0, count($sellerIds), '?'));
 
                 $query->selectRaw("
                     products.*,
                     (
                         score
-                        + CASE WHEN category_id IN ({$catIn}) THEN 2 ELSE 0 END
-                        + CASE WHEN brand_id    IN ({$brandIn}) THEN 1.5 ELSE 0 END
-                        + CASE WHEN vendor_id   IN ({$sellerIn}) THEN 3 ELSE 0 END
+                        + CASE WHEN category_id IN ({$catPlaceholders}) THEN 2 ELSE 0 END
+                        + CASE WHEN brand_id    IN ({$brandPlaceholders}) THEN 1.5 ELSE 0 END
+                        + CASE WHEN vendor_id   IN ({$sellerPlaceholders}) THEN 3 ELSE 0 END
                     ) AS personalized_score
-                ")->orderByRaw('personalized_score DESC, created_at DESC');
+                ", array_merge($catIds, $brandIds, $sellerIds))
+                ->orderByRaw('personalized_score DESC, created_at DESC');
 
                 return $query;
             }

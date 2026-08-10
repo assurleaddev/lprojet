@@ -2,11 +2,37 @@
 
 namespace App\Http\Resources\Api\Mobile;
 
+use App\Models\ShippingOption;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class ProductResource extends JsonResource
 {
+    /** Cheapest active shipping price, memoised for the whole request. */
+    private static ?float $shippingFrom = null;
+
+    private function shippingFrom(): float
+    {
+        return self::$shippingFrom ??= (float) (ShippingOption::where('is_active', true)->min('price')
+            ?? config('settings.delivery_fee_fixed', 25));
+    }
+
+    private function buyerProtection(float $price): float
+    {
+        $pct = (float) config('settings.buyer_protection_fee_percentage', 5);
+        $fixed = (float) config('settings.buyer_protection_fee_fixed', 0.70);
+
+        return round($price * $pct / 100 + $fixed, 2);
+    }
+
+    /** Whether the authenticated viewer owns this product (via bearer token). */
+    private function viewerOwns(Request $request): bool
+    {
+        $viewer = $request->user('sanctum') ?? $request->user();
+
+        return $viewer ? (int) $this->vendor_id === (int) $viewer->id : false;
+    }
+
     private function resolveFeaturedImage(): ?string
     {
         $featured = $this->getFirstMedia('featured');
@@ -50,11 +76,18 @@ class ProductResource extends JsonResource
                 'preview_url' => $m->hasGeneratedConversion('preview') ? $m->getUrl('preview') : $m->getUrl(),
             ])->values(),
             'featured_image' => $this->resolveFeaturedImage(),
+            'price_incl_protection' => (float) $this->price + $this->buyerProtection((float) $this->price),
+            'buyer_protection' => $this->buyerProtection((float) $this->price),
+            'shipping_from' => $this->shippingFrom(),
+            'favorites_count' => $this->whenCounted('favorites', fn () => (int) $this->favorites_count),
+            'fabric' => $this->fabric ?? [],
+            'option_ids' => $this->whenLoaded('options', fn () => $this->options->pluck('id')->values()),
             'is_favorited' => $this->when(
-                $request->user(),
-                fn () => $this->isFavoritedBy($request->user())
+                (bool) $request->user(),
+                fn () => $this->resource->isFavorited($request->user()->id)
             ),
             'status' => $this->status,
+            'is_owner' => $this->viewerOwns($request),
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

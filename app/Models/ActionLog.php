@@ -13,6 +13,7 @@ class ActionLog extends Model
     protected $fillable = [
         'type',
         'action_by',
+        'ip',
         'title',
         'data',
     ];
