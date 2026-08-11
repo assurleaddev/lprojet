@@ -35,9 +35,9 @@ workflows:
     max_build_duration: 60
     instance_type: mac_mini_m2
     integrations:
-      # Must exactly match the App Store Connect API key name you add in the
-      # Codemagic UI: Team settings -> Integrations -> App Store Connect.
-      app_store_connect: USED_ASC_API_KEY
+      # Must exactly match the App Store Connect API key name in the Codemagic
+      # UI (Developer Portal integration). Here it is named "Codemagic".
+      app_store_connect: Codemagic
     environment:
       flutter: 3.44.0
       xcode: latest
