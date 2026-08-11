@@ -48,10 +48,13 @@ workflows:
     scripts:
       - name: Install dependencies
         script: flutter pub get
+      - name: Prepare iOS project (pods + Flutter migrations)
+        # Run the no-codesign build FIRST so all Flutter/Xcode project
+        # migrations (SPM, UIScene, pbxproj upgrade) and pod install happen
+        # BEFORE we apply signing. Otherwise the migration rewrites
+        # project.pbxproj and wipes the signing config that use-profiles set.
+        script: flutter build ios --release --no-codesign --build-number=$BUILD_NUMBER
       - name: Set up code signing (create cert + profile if missing)
-        # Explicitly fetch OR create the distribution certificate and the
-        # App Store provisioning profile via the App Store Connect API key,
-        # then apply them to the Xcode project.
         script: |
           keychain initialize
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
@@ -59,11 +62,13 @@ workflows:
             --create
           keychain add-certificates
           xcode-project use-profiles
-      - name: Build signed IPA
+      - name: Build & sign IPA
+        # xcode-project build-ipa archives with the manual profiles applied
+        # above and infers the app-store export method from the profile type.
         script: |
-          flutter build ipa --release \
-            --build-number=$BUILD_NUMBER \
-            --export-options-plist=/Users/builder/export_options.plist
+          xcode-project build-ipa \
+            --workspace ios/Runner.xcworkspace \
+            --scheme Runner
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
