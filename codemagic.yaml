@@ -42,18 +42,23 @@ workflows:
       flutter: 3.44.0
       xcode: latest
       cocoapods: default
-      ios_signing:
-        # Codemagic fetches/creates the distribution cert + App Store
-        # provisioning profile automatically from the API key above.
-        distribution_type: app_store
-        bundle_identifier: com.usedis.app
+      vars:
+        BUNDLE_ID: "com.usedis.app"
     working_directory: usedandroid
     scripts:
       - name: Install dependencies
         script: flutter pub get
-      - name: Set up code signing
-        # Switches the project from Automatic to the fetched App Store profile.
-        script: xcode-project use-profiles
+      - name: Set up code signing (create cert + profile if missing)
+        # Explicitly fetch OR create the distribution certificate and the
+        # App Store provisioning profile via the App Store Connect API key,
+        # then apply them to the Xcode project.
+        script: |
+          keychain initialize
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          xcode-project use-profiles
       - name: Build signed IPA
         script: |
           flutter build ipa --release \
