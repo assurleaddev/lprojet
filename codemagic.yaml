@@ -39,15 +39,15 @@ workflows:
       # UI (Developer Portal integration). Here it is named "Codemagic".
       app_store_connect: Codemagic
     environment:
-      groups:
-        # Codemagic env group holding CERTIFICATE_PRIVATE_KEY (a persistent
-        # RSA key) so the signing certificate is reusable across builds.
-        - signing
       flutter: 3.44.0
       xcode: latest
       cocoapods: default
-      vars:
-        BUNDLE_ID: "com.usedis.app"
+      ios_signing:
+        # Codemagic creates the distribution certificate + App Store profile
+        # from the API key above and stores the certificate in your Codemagic
+        # account, so it is reused automatically on every build.
+        distribution_type: app_store
+        bundle_identifier: com.usedis.app
     working_directory: usedandroid
     scripts:
       - name: Install dependencies
@@ -58,15 +58,10 @@ workflows:
         # BEFORE we apply signing. Otherwise the migration rewrites
         # project.pbxproj and wipes the signing config that use-profiles set.
         script: flutter build ios --release --no-codesign --build-number=$BUILD_NUMBER
-      - name: Set up code signing (create cert + profile if missing)
-        script: |
-          keychain initialize
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY \
-            --create
-          keychain add-certificates
-          xcode-project use-profiles
+      - name: Set up code signing
+        # The ios_signing block above makes Codemagic fetch/create + store the
+        # certificate and profile; this applies them to the Xcode project.
+        script: xcode-project use-profiles
       - name: Build & sign IPA
         # flutter build ipa respects the PROVISIONING_PROFILE_SPECIFIER that
         # use-profiles wrote into the project (xcode-project build-ipa forces
