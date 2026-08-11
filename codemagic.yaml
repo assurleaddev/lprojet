@@ -63,12 +63,14 @@ workflows:
           keychain add-certificates
           xcode-project use-profiles
       - name: Build & sign IPA
-        # xcode-project build-ipa archives with the manual profiles applied
-        # above and infers the app-store export method from the profile type.
+        # flutter build ipa respects the PROVISIONING_PROFILE_SPECIFIER that
+        # use-profiles wrote into the project (xcode-project build-ipa forces
+        # CODE_SIGN_STYLE=Manual but drops the specifier). The project is
+        # already migrated in the step above, so nothing re-migrates here.
         script: |
-          xcode-project build-ipa \
-            --workspace ios/Runner.xcworkspace \
-            --scheme Runner
+          flutter build ipa --release \
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
