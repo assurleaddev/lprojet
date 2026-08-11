@@ -9,7 +9,7 @@ workflows:
       cocoapods: default
       ios_signing:
         distribution_type: development
-        bundle_identifier: com.usedis.usedandroid
+        bundle_identifier: com.usedis.app
     working_directory: usedandroid
     scripts:
       - name: Install dependencies
@@ -29,3 +29,40 @@ workflows:
     artifacts:
       - build/ios/ipa/*.ipa
       - /tmp/xcodebuild_logs/*.log
+
+  ios-testflight:
+    name: iOS TestFlight (USED)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      # Must exactly match the App Store Connect API key name you add in the
+      # Codemagic UI: Team settings -> Integrations -> App Store Connect.
+      app_store_connect: USED_ASC_API_KEY
+    environment:
+      flutter: 3.44.0
+      xcode: latest
+      cocoapods: default
+      ios_signing:
+        # Codemagic fetches/creates the distribution cert + App Store
+        # provisioning profile automatically from the API key above.
+        distribution_type: app_store
+        bundle_identifier: com.usedis.app
+    working_directory: usedandroid
+    scripts:
+      - name: Install dependencies
+        script: flutter pub get
+      - name: Set up code signing
+        # Switches the project from Automatic to the fetched App Store profile.
+        script: xcode-project use-profiles
+      - name: Build signed IPA
+        script: |
+          flutter build ipa --release \
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
