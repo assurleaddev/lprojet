@@ -9,10 +9,12 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class SellerWentLiveNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     public function __construct(public Live $live)
     {
@@ -20,13 +22,7 @@ class SellerWentLiveNotification extends Notification implements ShouldBroadcast
 
     public function via(object $notifiable): array
     {
-        $channels = ['database', 'broadcast'];
-
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable);
     }
 
     public function toBroadcast(object $notifiable): BroadcastMessage

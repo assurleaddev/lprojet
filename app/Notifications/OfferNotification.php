@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class OfferNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     /**
      * Create a new notification instance.
@@ -28,19 +30,7 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
 
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        // Check if user wants notifications for offers (treating as high priority messages)
-        if ($notifiable->getMeta('notify_high_priority_messages', '1') !== '1') {
-            return [];
-        }
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable, preferenceKey: 'notify_high_priority_messages');
     }
 
     public function toMail($notifiable)
@@ -59,7 +49,7 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
             default => "There is an update on your offer for {$this->offer->product->name}."
         };
 
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject($subject)
             ->line($line)
             ->action('View in Chat', route('chat.dashboard', ['id' => $this->offer->conversation_id]));
@@ -67,35 +57,31 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
 
     public function toBroadcast($notifiable)
     {
-        $message = match ($this->type) {
-            'received' => "New offer of $" . number_format($this->offer->offer_price, 2) . " on {$this->offer->product->name}",
-            'accepted' => "Your offer for {$this->offer->product->name} was accepted!",
-            'rejected' => "Your offer for {$this->offer->product->name} was rejected.",
-            default => "Offer update on {$this->offer->product->name}"
-        };
-
         return new BroadcastMessage([
             'type' => 'offer_' . $this->type,
             'offer_id' => $this->offer->id,
-            'message' => $message,
+            'message' => $this->notificationMessage(),
             'url' => route('chat.dashboard', ['id' => $this->offer->conversation_id]),
         ]);
     }
 
     public function toDatabase($notifiable)
     {
-        $message = match ($this->type) {
+        return [
+            'type' => 'offer_' . $this->type,
+            'offer_id' => $this->offer->id,
+            'message' => $this->notificationMessage(),
+            'url' => route('chat.dashboard', ['id' => $this->offer->conversation_id]),
+        ];
+    }
+
+    private function notificationMessage(): string
+    {
+        return match ($this->type) {
             'received' => "New offer of $" . number_format($this->offer->offer_price, 2) . " on {$this->offer->product->name}",
             'accepted' => "Your offer for {$this->offer->product->name} was accepted!",
             'rejected' => "Your offer for {$this->offer->product->name} was rejected.",
             default => "Offer update on {$this->offer->product->name}"
         };
-
-        return [
-            'type' => 'offer_' . $this->type,
-            'offer_id' => $this->offer->id,
-            'message' => $message,
-            'url' => route('chat.dashboard', ['id' => $this->offer->conversation_id]),
-        ];
     }
 }
