@@ -53,7 +53,12 @@ class OneConfirmedService
             'template_account_flow_id' => (int) $c['template_account_flow_id'],
             'phone' => $phone,
             'name' => 'OTP',
-            'data' => [($c['otp_variable'] ?? 'otp') => (string) $code],
+            // template 132 requires otp + otp_app + otp_reference (all non-empty).
+            'data' => [
+                ($c['otp_variable'] ?? 'otp') => (string) $code,
+                'otp_app' => (string) ($c['otp_app'] ?? 'USED'),
+                'otp_reference' => (string) ($c['otp_reference'] ?? 'USED'),
+            ],
             'sms_fallback' => (bool) ($c['sms_fallback'] ?? true),
             'sms_fallback_text' => "Votre code de vérification est : {$code}",
             'sms_fallback_delay' => (int) ($c['sms_fallback_delay'] ?? 90),

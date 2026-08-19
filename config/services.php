@@ -89,6 +89,9 @@ return [
         'template_account_flow_id' => env('ONECONFIRMED_OTP_FLOW_ID'),
         // The template variable that receives the code (as defined in your template).
         'otp_variable' => env('ONECONFIRMED_OTP_VARIABLE', 'otp'),
+        // Template 132 also requires these two (shown as the app/service label + a reference).
+        'otp_app' => env('ONECONFIRMED_OTP_APP', 'USED'),
+        'otp_reference' => env('ONECONFIRMED_OTP_REFERENCE', 'USED'),
         'sms_fallback' => env('ONECONFIRMED_SMS_FALLBACK', true),
         'sms_fallback_delay' => env('ONECONFIRMED_SMS_FALLBACK_DELAY', 90),
     ],
