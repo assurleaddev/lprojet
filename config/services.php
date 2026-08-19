@@ -81,11 +81,14 @@ return [
     'oneconfirmed' => [
         'enabled' => env('ONECONFIRMED_ENABLED', false),
         'base_url' => env('ONECONFIRMED_BASE_URL', 'https://1confirmed.com/api/v1'),
-        'token' => env('ONECONFIRMED_TOKEN'),
+        // 1Confirmed issues a JWT from the login endpoint (no static API key),
+        // so the service authenticates with email + password and caches the token.
+        'email' => env('ONECONFIRMED_EMAIL'),
+        'password' => env('ONECONFIRMED_PASSWORD'),
         'template_id' => env('ONECONFIRMED_OTP_TEMPLATE_ID'),
         'template_account_flow_id' => env('ONECONFIRMED_OTP_FLOW_ID'),
         // The template variable that receives the code (as defined in your template).
-        'otp_variable' => env('ONECONFIRMED_OTP_VARIABLE', 'otp_code'),
+        'otp_variable' => env('ONECONFIRMED_OTP_VARIABLE', 'otp'),
         'sms_fallback' => env('ONECONFIRMED_SMS_FALLBACK', true),
         'sms_fallback_delay' => env('ONECONFIRMED_SMS_FALLBACK_DELAY', 90),
     ],
