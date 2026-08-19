@@ -15,7 +15,7 @@ class EnsurePhoneIsVerified
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!config('services.twilio.phone_verification_enabled')) {
+        if (! config('services.twilio.phone_verification_enabled')) {
             return $next($request);
         }
 
@@ -23,27 +23,29 @@ class EnsurePhoneIsVerified
 
         // 1. If user is NOT logged in, let them proceed (it's likely a login page or public page)
         // OR the 'auth' middleware will catch them later if needed.
-        if (!$user) {
+        if (! $user) {
             return $next($request);
         }
 
-        // 2. Identify excluded routes (to prevent infinite loops)
-        // We must allow:
-        // - Logout
-        // - The "Secure your account" page itself
-        // - The "Verify Phone" page
-        // - The "Verify Code" page
-        // - Any API/Ajax calls needed for verification (like resending code)
-        if ($request->is('auth/*') || $request->is('logout') || $request->is('email/*') || $request->is('livewire/*')) {
+        // 2. Always allow the verification pages themselves, their actions, and
+        // logout — otherwise we'd redirect-loop or block the very screens the
+        // user needs to complete verification.
+        // NOTE: '/verify-email' must be allowed too (it is NOT under 'email/*').
+        if ($request->is('auth/*') || $request->is('logout') || $request->is('email/*')
+            || $request->is('livewire/*') || $request->routeIs('verify-email')) {
             return $next($request);
         }
 
-        // 3. Check if phone needs verification
+        // 3. Email must be verified BEFORE phone. Without this, the phone gate
+        // hijacks the post-registration redirect and skips email verification.
+        if (method_exists($user, 'hasVerifiedEmail') && ! $user->hasVerifiedEmail()) {
+            return redirect()->route('verify-email');
+        }
+
+        // 4. Then require a verified phone.
         // Either phone_number is missing, OR phone_verified_at is null
-        // Note: Our logic sets phone_number but keeps phone_verified_at null until confirmed.
-        // If we strictly want to block browsing until verified:
+        // (our logic sets phone_number but keeps phone_verified_at null until confirmed).
         if (empty($user->phone_number) || is_null($user->phone_verified_at)) {
-            // Redirect to the Secure Account prompt
             return redirect()->route('auth.secure_account');
         }
 
