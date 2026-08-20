@@ -94,6 +94,7 @@ class _SellViewState extends State<_SellView> {
   Future<void> _submit(SellItemProvider provider) async {
     setState(() => _submitting = true);
     try {
+      ApiProduct? created;
       if (provider.isEditing) {
         await ProductService().updateProduct(
           id: provider.editingProductId!,
@@ -108,7 +109,7 @@ class _SellViewState extends State<_SellView> {
           images: provider.images,
         );
       } else {
-        await ProductService().createProduct(
+        created = await ProductService().createProduct(
           name: provider.title,
           description: provider.description.isEmpty ? null : provider.description,
           price: provider.price!,
@@ -130,7 +131,7 @@ class _SellViewState extends State<_SellView> {
           );
           Navigator.of(context).pop(true);
         } else {
-          await _showListedDialog(provider);
+          await _showListedDialog(provider, created!);
         }
       }
     } on DioException catch (e) {
@@ -152,7 +153,11 @@ class _SellViewState extends State<_SellView> {
 
   /// Post-publish popup, mirroring the web "Item listed" modal: publish
   /// another, or leave. Resets the form either way.
-  Future<void> _showListedDialog(SellItemProvider provider) async {
+  Future<void> _showListedDialog(SellItemProvider provider, ApiProduct product) async {
+    final img = product.displayImageUrl;
+    final price = product.price == product.price.roundToDouble()
+        ? product.price.toStringAsFixed(0)
+        : product.price.toStringAsFixed(2);
     final choice = await showDialog<String>(
       context: context,
       barrierDismissible: false,
@@ -162,22 +167,65 @@ class _SellViewState extends State<_SellView> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 64,
-              height: 64,
+              width: 56,
+              height: 56,
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle, color: AppColors.primary, size: 40),
+              child: const Icon(Icons.check_circle, color: AppColors.primary, size: 36),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             const Text('Article publié !',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             const Text(
-              'Votre article est en cours de validation. Souhaitez-vous en publier un autre ?',
+              'En cours de validation.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.textSecondary),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+            // Preview card of the just-listed item (image + title + price).
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.inputFill,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: img.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: img,
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(width: 56, height: 56, color: AppColors.border),
+                            errorWidget: (_, __, ___) =>
+                                Container(width: 56, height: 56, color: AppColors.border, child: const Icon(Icons.image_outlined, color: AppColors.textSecondary)),
+                          )
+                        : Container(width: 56, height: 56, color: AppColors.border, child: const Icon(Icons.image_outlined, color: AppColors.textSecondary)),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(product.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 2),
+                        Text('$price MAD',
+                            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

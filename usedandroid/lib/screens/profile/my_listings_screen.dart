@@ -37,6 +37,65 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     if (updated == true) _load();
   }
 
+  Future<void> _changeStatus(ApiProduct product, String status) async {
+    final msg = switch (status) {
+      'sold' => 'Marqué comme vendu',
+      'reserved' => 'Marqué comme réservé',
+      'hidden' => 'Article masqué',
+      'approved' => 'Article remis en ligne',
+      _ => 'Mis à jour',
+    };
+    try {
+      await ProductService().updateStatus(product.id, status);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(msg), backgroundColor: AppColors.primary),
+        );
+      }
+      _load();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Action impossible'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDelete(ApiProduct product) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: const Text('Supprimer l\'article'),
+        content: const Text('Cette action est irréversible. Continuer ?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogCtx, false), child: const Text('Annuler')),
+          TextButton(
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () => Navigator.pop(dialogCtx, true),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await ProductService().deleteProduct(product.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Article supprimé'), backgroundColor: AppColors.primary),
+        );
+      }
+      _load();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Suppression impossible'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,22 +131,70 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
       padding: const EdgeInsets.all(12),
       itemCount: _products.length,
       separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (_, i) => _ListingCard(product: _products[i], onTap: () => _edit(_products[i])),
+      itemBuilder: (_, i) => _ListingCard(
+        product: _products[i],
+        onEdit: () => _edit(_products[i]),
+        onStatus: (s) => _changeStatus(_products[i], s),
+        onDelete: () => _confirmDelete(_products[i]),
+      ),
     );
   }
 }
 
 class _ListingCard extends StatelessWidget {
   final ApiProduct product;
-  final VoidCallback onTap;
+  final VoidCallback onEdit;
+  final ValueChanged<String> onStatus;
+  final VoidCallback onDelete;
 
-  const _ListingCard({required this.product, required this.onTap});
+  const _ListingCard({
+    required this.product,
+    required this.onEdit,
+    required this.onStatus,
+    required this.onDelete,
+  });
+
+  PopupMenuItem<String> _item(String value, IconData icon, String label, {Color? color}) {
+    return PopupMenuItem<String>(
+      value: value,
+      child: Row(children: [
+        Icon(icon, size: 20, color: color ?? AppColors.textPrimary),
+        const SizedBox(width: 12),
+        Text(label, style: TextStyle(color: color)),
+      ]),
+    );
+  }
+
+  List<PopupMenuEntry<String>> _menu(String status) {
+    final items = <PopupMenuEntry<String>>[_item('edit', Icons.edit_outlined, 'Modifier')];
+    switch (status) {
+      case 'sold':
+        items.add(_item('approved', Icons.refresh, 'Remettre en ligne'));
+        break;
+      case 'reserved':
+        items.add(_item('approved', Icons.undo, 'Annuler la réservation'));
+        items.add(_item('sold', Icons.sell_outlined, 'Marquer comme vendu'));
+        items.add(_item('hidden', Icons.visibility_off_outlined, 'Masquer'));
+        break;
+      case 'hidden':
+        items.add(_item('approved', Icons.visibility_outlined, 'Afficher'));
+        items.add(_item('sold', Icons.sell_outlined, 'Marquer comme vendu'));
+        break;
+      default: // approved / pending
+        items.add(_item('reserved', Icons.bookmark_outline, 'Marquer comme réservé'));
+        items.add(_item('sold', Icons.sell_outlined, 'Marquer comme vendu'));
+        items.add(_item('hidden', Icons.visibility_off_outlined, 'Masquer'));
+    }
+    items.add(const PopupMenuDivider());
+    items.add(_item('delete', Icons.delete_outline, 'Supprimer', color: Colors.red));
+    return items;
+  }
 
   @override
   Widget build(BuildContext context) {
     final img = product.displayImageUrl;
     return InkWell(
-      onTap: onTap,
+      onTap: onEdit,
       borderRadius: BorderRadius.circular(12),
       child: Container(
         padding: const EdgeInsets.all(10),
@@ -129,7 +236,20 @@ class _ListingCard extends StatelessWidget {
                 ],
               ),
             ),
-            const Icon(Icons.edit_outlined, size: 20, color: AppColors.textSecondary),
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
+              onSelected: (v) {
+                switch (v) {
+                  case 'edit':
+                    onEdit();
+                  case 'delete':
+                    onDelete();
+                  default:
+                    onStatus(v);
+                }
+              },
+              itemBuilder: (_) => _menu(product.status ?? ''),
+            ),
           ],
         ),
       ),
