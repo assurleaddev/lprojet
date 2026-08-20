@@ -39,6 +39,11 @@ workflows:
       # UI (Developer Portal integration). Here it is named "Codemagic".
       app_store_connect: Codemagic
     environment:
+      groups:
+        # Codemagic secure var group holding CERTIFICATE_PRIVATE_KEY — a
+        # persistent RSA key so ONE distribution cert is reused across builds
+        # (instead of creating a new cert every build and hitting Apple's cap).
+        - signing
       flutter: 3.44.0
       xcode: latest
       cocoapods: default
@@ -54,16 +59,15 @@ workflows:
         # BEFORE we apply signing. Otherwise the migration rewrites
         # project.pbxproj and wipes the signing config that use-profiles set.
         script: flutter build ios --release --no-codesign --build-number=$BUILD_NUMBER
-      - name: Set up code signing (create cert + profile)
-        # Generate a signing key for this build, then create the distribution
-        # certificate + App Store provisioning profile from it via the API key,
-        # add the cert to the keychain, and apply the profile to the project.
+      - name: Set up code signing (reuse persistent cert)
+        # Use the PERSISTENT private key from the CERTIFICATE_PRIVATE_KEY env
+        # var so the distribution certificate is fetched/created ONCE and then
+        # reused on every build — no per-build cert, no Apple cert-limit issues.
         script: |
           keychain initialize
-          openssl genrsa -out /tmp/dist_key.pem 2048
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
-            --certificate-key=@file:/tmp/dist_key.pem \
+            --certificate-key=@env:CERTIFICATE_PRIVATE_KEY \
             --create
           keychain add-certificates
           xcode-project use-profiles
