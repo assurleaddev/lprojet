@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 import '../../theme/app_colors.dart';
 
 class VerifyPhoneScreen extends StatefulWidget {
@@ -54,6 +55,7 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
     setState(() => _loading = true);
     try {
       await AuthService().verifyPhoneCode(code);
+      AuthState.instance.markPhoneVerified();
       if (mounted) context.go('/');
     } on DioException catch (e) {
       if (mounted) _showError(_msg(e, 'Code invalide ou expiré.'));
@@ -71,11 +73,26 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    await AuthService().logout();
+    if (mounted) context.go('/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0),
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          TextButton(
+            onPressed: _logout,
+            child: const Text('Se déconnecter', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -146,8 +163,6 @@ class _VerifyPhoneScreenState extends State<VerifyPhoneScreen> {
               ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
               : const Text('Envoyer le code'),
         ),
-        const SizedBox(height: 8),
-        TextButton(onPressed: () => context.go('/'), child: const Text('Plus tard')),
       ];
 
   List<Widget> _code() => [

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'api_client.dart';
+import 'auth_state.dart';
 
 class AuthUser {
   final int id;
@@ -48,7 +49,9 @@ class AuthService {
     });
     final token = response.data['token'] as String;
     await ApiClient.saveToken(token);
-    return AuthUser.fromJson(response.data['user']);
+    final user = AuthUser.fromJson(response.data['user']);
+    AuthState.instance.apply(email: user.emailVerified, phone: user.phoneVerified);
+    return user;
   }
 
   Future<AuthUser> register({
@@ -66,12 +69,31 @@ class AuthService {
     });
     final token = response.data['token'] as String;
     await ApiClient.saveToken(token);
-    return AuthUser.fromJson(response.data['user']);
+    final user = AuthUser.fromJson(response.data['user']);
+    AuthState.instance.apply(email: user.emailVerified, phone: user.phoneVerified);
+    return user;
   }
 
   Future<AuthUser> getUser() async {
     final response = await _client.dio.get('/auth/user');
-    return AuthUser.fromJson(response.data);
+    final user = AuthUser.fromJson(response.data);
+    AuthState.instance.apply(email: user.emailVerified, phone: user.phoneVerified);
+    return user;
+  }
+
+  /// Called once at app launch: if a token is stored, load the user so the
+  /// router knows the verification state (to gate unverified sessions).
+  Future<void> bootstrap() async {
+    if (!await ApiClient.isLoggedIn) {
+      AuthState.instance.clear();
+      return;
+    }
+    try {
+      await getUser();
+    } catch (_) {
+      // Transient/offline error: don't gate. A real 401 clears the token elsewhere.
+      AuthState.instance.clear();
+    }
   }
 
   // ── Verification ──────────────────────────────────────────────────────────
@@ -101,6 +123,7 @@ class AuthService {
       // ignore network errors on logout
     } finally {
       await ApiClient.clearToken();
+      AuthState.instance.clear();
     }
   }
 }

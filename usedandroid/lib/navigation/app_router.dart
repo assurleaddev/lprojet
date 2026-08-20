@@ -16,6 +16,7 @@ import '../screens/profile/settings_screen.dart';
 import '../screens/search/category_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/sell/sell_screen.dart';
+import '../services/auth_state.dart';
 import '../services/category_service.dart';
 import '../services/inbox_service.dart';
 import '../services/product_service.dart';
@@ -23,6 +24,19 @@ import 'main_nav_shell.dart';
 
 final appRouter = GoRouter(
   initialLocation: '/',
+  // Re-evaluate redirects whenever auth/verification state changes.
+  refreshListenable: AuthState.instance,
+  // Mandatory verification gate: a logged-in user must verify email then phone
+  // before using the app. Guests (not logged in) browse freely.
+  redirect: (context, state) {
+    final s = AuthState.instance;
+    if (!s.loggedIn) return null;
+    final loc = state.matchedLocation;
+    if (s.needsEmail && loc != '/verify-email') return '/verify-email';
+    if (s.needsPhone && loc != '/verify-phone') return '/verify-phone';
+    if (s.verified && (loc == '/verify-email' || loc == '/verify-phone')) return '/';
+    return null;
+  },
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, shell) => MainNavShell(shell: shell),

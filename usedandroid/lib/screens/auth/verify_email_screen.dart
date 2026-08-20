@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
+import '../../services/auth_state.dart';
 import '../../theme/app_colors.dart';
 
 class VerifyEmailScreen extends StatefulWidget {
@@ -54,6 +55,7 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     setState(() => _loading = true);
     try {
       await AuthService().verifyEmailCode(code);
+      AuthState.instance.markEmailVerified();
       if (mounted) context.go('/verify-phone');
     } on DioException catch (e) {
       final msg = e.response?.data is Map
@@ -71,11 +73,26 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     );
   }
 
+  Future<void> _logout() async {
+    await AuthService().logout();
+    if (mounted) context.go('/login');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surface,
-      appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0),
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          TextButton(
+            onPressed: _logout,
+            child: const Text('Se déconnecter', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),

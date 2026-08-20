@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'navigation/app_router.dart';
+import 'services/auth_service.dart';
 import 'theme/app_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Load verification state before the first frame so the router can gate
+  // an unverified logged-in session immediately (survives app restarts).
+  await AuthService().bootstrap();
   runApp(const UsedApp());
 }
 
