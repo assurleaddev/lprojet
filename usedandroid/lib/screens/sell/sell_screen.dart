@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -79,7 +80,10 @@ class _SellViewState extends State<_SellView> {
       return;
     }
 
-    final files = await _picker.pickMultiImage();
+    // Compress on pick — full-res phone photos routinely exceed the server's
+    // 5 MB per-image limit and get rejected (422). 1920px / 80% keeps them well
+    // under it with good quality.
+    final files = await _picker.pickMultiImage(imageQuality: 80, maxWidth: 1920);
     final remaining = 5 - provider.totalImageCount;
     for (final f in files.take(remaining)) {
       provider.addImage(File(f.path));
@@ -131,6 +135,12 @@ class _SellViewState extends State<_SellView> {
           provider.reset();
         }
       }
+    } on DioException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_validationMessage(e)), backgroundColor: Colors.red),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -140,6 +150,22 @@ class _SellViewState extends State<_SellView> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  /// Turn a 422 (or other) API error into a readable message showing the
+  /// offending field(s) instead of a raw DioException.
+  String _validationMessage(DioException e) {
+    final data = e.response?.data;
+    if (data is Map) {
+      final errors = data['errors'];
+      if (errors is Map && errors.isNotEmpty) {
+        return errors.values
+            .map((v) => v is List && v.isNotEmpty ? v.first.toString() : v.toString())
+            .join('\n');
+      }
+      if (data['message'] != null) return data['message'].toString();
+    }
+    return 'Impossible de publier. Vérifiez les champs et réessayez.';
   }
 
   @override
