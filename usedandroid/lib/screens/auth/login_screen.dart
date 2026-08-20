@@ -29,8 +29,16 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _loading = true);
     try {
-      await AuthService().login(_emailCtrl.text.trim(), _passCtrl.text);
-      if (mounted) context.go('/');
+      final user = await AuthService().login(_emailCtrl.text.trim(), _passCtrl.text);
+      if (!mounted) return;
+      // Route to the next required verification step, else home.
+      if (user.needsEmailVerification) {
+        context.go('/verify-email');
+      } else if (user.needsPhoneVerification) {
+        context.go('/verify-phone');
+      } else {
+        context.go('/');
+      }
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Identifiants incorrects';
       if (mounted) _showError(msg);

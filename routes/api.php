@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\ActionLogController;
 use App\Http\Controllers\Api\AiContentController;
 use App\Http\Controllers\Api\Auth\AuthController;
+use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Mobile\CategoryController as MobileCategoryController;
 use App\Http\Controllers\Api\Mobile\CheckoutController as MobileCheckoutController;
 use App\Http\Controllers\Api\Mobile\InboxController as MobileInboxController;
@@ -107,6 +108,12 @@ Route::prefix('auth')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::post('/revoke-all', [AuthController::class, 'revokeAll']);
         Route::post('/refresh', [AuthController::class, 'refresh']);
+
+        // Email + phone verification (mobile)
+        Route::post('/email/send', [VerificationController::class, 'sendEmail']);
+        Route::post('/email/verify', [VerificationController::class, 'verifyEmail']);
+        Route::post('/phone/send', [VerificationController::class, 'sendPhone']);
+        Route::post('/phone/verify', [VerificationController::class, 'verifyPhone']);
     });
 });
 

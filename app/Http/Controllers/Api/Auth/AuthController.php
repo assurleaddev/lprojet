@@ -47,6 +47,9 @@ class AuthController extends ApiController
                 'last_name' => $user->last_name,
                 'full_name' => $user->full_name,
                 'email' => $user->email,
+                'email_verified' => (bool) $user->hasVerifiedEmail(),
+                'phone_verified' => ! is_null($user->phone_verified_at),
+                'phone_number' => $user->phone_number,
             ],
         ], 201);
     }
@@ -77,6 +80,9 @@ class AuthController extends ApiController
                 'last_name' => $user->last_name,
                 'full_name' => $user->full_name,
                 'email' => $user->email,
+                'email_verified' => (bool) $user->hasVerifiedEmail(),
+                'phone_verified' => ! is_null($user->phone_verified_at),
+                'phone_number' => $user->phone_number,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ],
@@ -98,6 +104,9 @@ class AuthController extends ApiController
             'last_name' => $user->last_name,
             'full_name' => $user->full_name,
             'email' => $user->email,
+            'email_verified' => (bool) $user->hasVerifiedEmail(),
+            'phone_verified' => ! is_null($user->phone_verified_at),
+            'phone_number' => $user->phone_number,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
         ], 200);

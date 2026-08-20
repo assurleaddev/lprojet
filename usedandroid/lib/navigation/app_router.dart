@@ -1,5 +1,8 @@
 import 'package:go_router/go_router.dart';
 import '../screens/auth/login_screen.dart';
+import '../screens/auth/register_screen.dart';
+import '../screens/auth/verify_email_screen.dart';
+import '../screens/auth/verify_phone_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/inbox/conversation_screen.dart';
 import '../screens/inbox/inbox_screen.dart';
@@ -82,6 +85,9 @@ final appRouter = GoRouter(
       ],
     ),
     GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+    GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+    GoRoute(path: '/verify-email', builder: (_, __) => const VerifyEmailScreen()),
+    GoRoute(path: '/verify-phone', builder: (_, __) => const VerifyPhoneScreen()),
     GoRoute(
       path: '/listing/:id',
       builder: (_, state) =>
