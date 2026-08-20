@@ -113,9 +113,11 @@ class ProductController extends Controller
         }
 
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
+            foreach (array_values($request->file('images')) as $index => $image) {
                 try {
-                    $product->addMedia($image)->toMediaCollection('products');
+                    // First image = cover (featured), the rest = gallery. Mirrors
+                    // the web ItemController so the client-chosen order sets the cover.
+                    $product->addMedia($image)->toMediaCollection($index === 0 ? 'featured' : 'products');
                 } catch (\Exception $e) {
                     \Log::warning('Media upload failed for product '.$product->id.': '.$e->getMessage());
                 }
@@ -198,9 +200,13 @@ class ProductController extends Controller
 
         $addedImages = false;
         if ($request->hasFile('images')) {
-            foreach ($request->file('images') as $image) {
+            foreach (array_values($request->file('images')) as $index => $image) {
                 try {
-                    $product->addMedia($image)->toMediaCollection('products');
+                    // First image becomes the cover if none exists yet (mirror web).
+                    $collection = ($index === 0 && $product->getMedia('featured')->isEmpty())
+                        ? 'featured'
+                        : 'products';
+                    $product->addMedia($image)->toMediaCollection($collection);
                     $addedImages = true;
                 } catch (\Exception $e) {
                     \Log::warning('Media upload failed for product '.$product->id.': '.$e->getMessage());

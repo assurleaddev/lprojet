@@ -276,35 +276,69 @@ class _PhotosSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final canAdd = provider.totalImageCount < 5;
+    // On a fresh listing (no pre-existing images) the first picked photo is the
+    // cover; badge it so the reorder behaviour is obvious.
+    final showCover = provider.existingImageUrls.isEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text('Photos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
-        const Text("Ajoutez jusqu'à 5 photos",
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 100,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: [
-              ...provider.existingImageUrls.asMap().entries.map(
-                    (e) => _NetworkThumb(
-                      url: e.value,
-                      onRemove: () => provider.removeExistingImage(e.key),
-                    ),
-                  ),
-              ...provider.images.asMap().entries.map(
-                    (e) => _PhotoThumb(
-                      file: e.value,
-                      onRemove: () => provider.removeImage(e.key),
-                    ),
-                  ),
-              if (provider.totalImageCount < 5) _AddPhotoButton(onTap: onAdd),
-            ],
-          ),
+        Text(
+          provider.images.length > 1
+              ? 'Maintenez et glissez pour réordonner · la 1re photo est la couverture'
+              : "Ajoutez jusqu'à 5 photos",
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
+        const SizedBox(height: 12),
+        // Existing images (edit mode) — shown but not reorderable here.
+        if (provider.existingImageUrls.isNotEmpty)
+          SizedBox(
+            height: 100,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              children: provider.existingImageUrls
+                  .asMap()
+                  .entries
+                  .map((e) => _NetworkThumb(url: e.value, onRemove: () => provider.removeExistingImage(e.key)))
+                  .toList(),
+            ),
+          ),
+        if (provider.existingImageUrls.isNotEmpty && provider.images.isNotEmpty)
+          const SizedBox(height: 8),
+        // Picked images — drag to reorder; first one is the cover/featured.
+        if (provider.images.isNotEmpty)
+          SizedBox(
+            height: 108,
+            child: ReorderableListView.builder(
+              scrollDirection: Axis.horizontal,
+              buildDefaultDragHandles: true,
+              itemCount: provider.images.length,
+              onReorder: provider.reorderImages,
+              itemBuilder: (context, i) => Padding(
+                key: ValueKey(provider.images[i].path),
+                padding: const EdgeInsets.only(right: 8),
+                child: _PhotoThumb(
+                  file: provider.images[i],
+                  isCover: showCover && i == 0,
+                  onRemove: () => provider.removeImage(i),
+                ),
+              ),
+            ),
+          ),
+        if (provider.images.isNotEmpty) const SizedBox(height: 12),
+        if (canAdd)
+          OutlinedButton.icon(
+            onPressed: onAdd,
+            icon: const Icon(Icons.add_a_photo_outlined, size: 18),
+            label: Text(provider.totalImageCount == 0 ? 'Ajouter des photos' : 'Ajouter une photo'),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size.fromHeight(44),
+              foregroundColor: AppColors.textPrimary,
+            ),
+          ),
       ],
     );
   }
@@ -352,9 +386,10 @@ class _NetworkThumb extends StatelessWidget {
 
 class _PhotoThumb extends StatelessWidget {
   final File file;
+  final bool isCover;
   final VoidCallback onRemove;
 
-  const _PhotoThumb({required this.file, required this.onRemove});
+  const _PhotoThumb({required this.file, this.isCover = false, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
@@ -363,15 +398,29 @@ class _PhotoThumb extends StatelessWidget {
         Container(
           width: 90,
           height: 100,
-          margin: const EdgeInsets.only(right: 8),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
+            border: isCover ? Border.all(color: AppColors.primary, width: 2) : null,
             image: DecorationImage(image: FileImage(file), fit: BoxFit.cover),
           ),
+          child: isCover
+              ? Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    color: AppColors.primary,
+                    child: const Text('Couverture',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
+                  ),
+                )
+              : null,
         ),
         Positioned(
           top: 4,
-          right: 12,
+          right: 4,
           child: GestureDetector(
             onTap: onRemove,
             child: Container(
@@ -386,35 +435,6 @@ class _PhotoThumb extends StatelessWidget {
   }
 }
 
-class _AddPhotoButton extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _AddPhotoButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 90,
-        height: 100,
-        decoration: BoxDecoration(
-          color: AppColors.inputFill,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.add_photo_alternate_outlined, color: AppColors.primary, size: 28),
-            SizedBox(height: 4),
-            Text('Ajouter', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ── category picker ───────────────────────────────────────────────────────────
 

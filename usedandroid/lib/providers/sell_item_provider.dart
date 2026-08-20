@@ -85,6 +85,16 @@ class SellItemProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reorder picked photos (drag & drop). The first photo becomes the cover
+  /// (featured) image on publish, matching the website.
+  void reorderImages(int oldIndex, int newIndex) {
+    final next = [...images];
+    if (newIndex > oldIndex) newIndex -= 1;
+    next.insert(newIndex, next.removeAt(oldIndex));
+    images = next;
+    notifyListeners();
+  }
+
   void removeExistingImage(int index) {
     existingImageUrls = [...existingImageUrls]..removeAt(index);
     notifyListeners();

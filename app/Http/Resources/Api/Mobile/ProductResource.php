@@ -73,7 +73,8 @@ class ProductResource extends JsonResource
                 'avatar_url' => $this->vendor->avatar_url ?? null,
                 'member_since' => $this->vendor->created_at->year,
             ]),
-            'images' => $this->getMedia('products')->map(fn ($m) => [
+            // Cover (featured) first, then the rest of the gallery.
+            'images' => $this->getMedia('featured')->merge($this->getMedia('products'))->map(fn ($m) => [
                 'url' => $m->getUrl(),
                 'preview_url' => $m->hasGeneratedConversion('preview') ? $m->getUrl('preview') : $m->getUrl(),
             ])->values(),
