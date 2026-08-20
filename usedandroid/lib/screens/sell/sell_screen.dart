@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
@@ -120,19 +121,16 @@ class _SellViewState extends State<_SellView> {
         );
       }
       if (mounted) {
-        final wasEditing = provider.isEditing;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(wasEditing
-                ? 'Article mis à jour avec succès !'
-                : 'Article publié avec succès !'),
-            backgroundColor: AppColors.primary,
-          ),
-        );
-        if (wasEditing) {
+        if (provider.isEditing) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Article mis à jour avec succès !'),
+              backgroundColor: AppColors.primary,
+            ),
+          );
           Navigator.of(context).pop(true);
         } else {
-          provider.reset();
+          await _showListedDialog(provider);
         }
       }
     } on DioException catch (e) {
@@ -150,6 +148,64 @@ class _SellViewState extends State<_SellView> {
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  /// Post-publish popup, mirroring the web "Item listed" modal: publish
+  /// another, or leave. Resets the form either way.
+  Future<void> _showListedDialog(SellItemProvider provider) async {
+    final choice = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle, color: AppColors.primary, size: 40),
+            ),
+            const SizedBox(height: 16),
+            const Text('Article publié !',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 8),
+            const Text(
+              'Votre article est en cours de validation. Souhaitez-vous en publier un autre ?',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+        actionsAlignment: MainAxisAlignment.center,
+        actions: [
+          Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(dialogCtx, 'another'),
+                  child: const Text('Publier un autre'),
+                ),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogCtx, 'later'),
+                child: const Text('Plus tard', style: TextStyle(color: AppColors.textSecondary)),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    provider.reset();
+    // "Plus tard" → leave the sell tab for home; "Publier un autre" → stay.
+    if (choice != 'another') context.go('/');
   }
 
   /// Turn a 422 (or other) API error into a readable message showing the
