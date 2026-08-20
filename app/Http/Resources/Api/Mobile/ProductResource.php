@@ -52,15 +52,17 @@ class ProductResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
+            // Cast ids to int — multipart/form creates leave these as strings
+            // in-memory, which breaks strongly-typed mobile clients.
+            'id' => (int) $this->id,
             'title' => $this->name,
             'description' => $this->description,
             'price' => (float) $this->price,
             'condition' => $this->condition,
             'size' => $this->size,
             'brand' => $this->brand?->name,
-            'brand_id' => $this->brand_id,
-            'category_id' => $this->category_id,
+            'brand_id' => $this->brand_id !== null ? (int) $this->brand_id : null,
+            'category_id' => $this->category_id !== null ? (int) $this->category_id : null,
             'category' => $this->whenLoaded('category', fn () => [
                 'id' => $this->category->id,
                 'name' => $this->category->translated_name,
@@ -81,7 +83,7 @@ class ProductResource extends JsonResource
             'shipping_from' => $this->shippingFrom(),
             'favorites_count' => $this->whenCounted('favorites', fn () => (int) $this->favorites_count),
             'fabric' => $this->fabric ?? [],
-            'option_ids' => $this->whenLoaded('options', fn () => $this->options->pluck('id')->values()),
+            'option_ids' => $this->whenLoaded('options', fn () => $this->options->pluck('id')->map(fn ($id) => (int) $id)->values()),
             'is_favorited' => $this->when(
                 (bool) $request->user(),
                 fn () => $this->resource->isFavorited($request->user()->id)

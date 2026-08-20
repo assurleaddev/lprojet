@@ -2,6 +2,13 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'api_client.dart';
 
+// Coerce JSON numbers that may arrive as strings (multipart-created records
+// return ids/prices as strings) so parsing never throws a type error.
+int _asInt(dynamic v) => v is int ? v : int.tryParse('${v ?? ''}') ?? 0;
+int? _asIntOrNull(dynamic v) => v == null ? null : (v is int ? v : int.tryParse('$v'));
+double _asDouble(dynamic v) => v is num ? v.toDouble() : double.tryParse('${v ?? ''}') ?? 0;
+double? _asDoubleOrNull(dynamic v) => v == null ? null : (v is num ? v.toDouble() : double.tryParse('$v'));
+
 class ApiProduct {
   final int id;
   final String title;
@@ -54,15 +61,15 @@ class ApiProduct {
   });
 
   factory ApiProduct.fromJson(Map<String, dynamic> json) => ApiProduct(
-        id: json['id'],
+        id: _asInt(json['id']),
         title: json['title'] ?? '',
         description: json['description'],
-        price: (json['price'] as num).toDouble(),
+        price: _asDouble(json['price']),
         condition: json['condition'] ?? '',
         size: json['size'],
         brand: json['brand'],
-        brandId: json['brand_id'],
-        categoryId: json['category_id'],
+        brandId: _asIntOrNull(json['brand_id']),
+        categoryId: _asIntOrNull(json['category_id']),
         categoryName: json['category'] is Map ? json['category']['name'] : null,
         featuredImage: json['featured_image'] != null
             ? ApiClient.fixImageUrl(json['featured_image'])
@@ -72,14 +79,14 @@ class ApiProduct {
                 .toList() ??
             [],
         fabric: (json['fabric'] as List?)?.map((f) => f.toString()).toList() ?? [],
-        optionIds: (json['option_ids'] as List?)?.map((o) => o as int).toList() ?? [],
+        optionIds: (json['option_ids'] as List?)?.map(_asInt).toList() ?? [],
         status: json['status'],
         isFavorited: json['is_favorited'] ?? false,
         vendor: json['vendor'],
-        priceInclProtection: (json['price_incl_protection'] as num?)?.toDouble(),
-        buyerProtection: (json['buyer_protection'] as num?)?.toDouble(),
-        shippingFrom: (json['shipping_from'] as num?)?.toDouble(),
-        favoritesCount: json['favorites_count'] ?? 0,
+        priceInclProtection: _asDoubleOrNull(json['price_incl_protection']),
+        buyerProtection: _asDoubleOrNull(json['buyer_protection']),
+        shippingFrom: _asDoubleOrNull(json['shipping_from']),
+        favoritesCount: _asInt(json['favorites_count']),
         createdAt: json['created_at'],
         isOwner: json['is_owner'] ?? false,
       );
