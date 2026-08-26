@@ -7,6 +7,8 @@ import '../screens/home/home_screen.dart';
 import '../screens/inbox/conversation_screen.dart';
 import '../screens/inbox/inbox_screen.dart';
 import '../screens/listing/listing_detail_screen.dart';
+import '../screens/live/lives_screen.dart';
+import '../screens/live/live_watch_screen.dart';
 import '../screens/profile/balance_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
 import '../screens/profile/my_listings_screen.dart';
@@ -19,6 +21,7 @@ import '../screens/sell/sell_screen.dart';
 import '../services/auth_state.dart';
 import '../services/category_service.dart';
 import '../services/inbox_service.dart';
+import '../services/live_service.dart';
 import '../services/product_service.dart';
 import 'main_nav_shell.dart';
 
@@ -99,6 +102,11 @@ final appRouter = GoRouter(
       ],
     ),
     GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
+    GoRoute(path: '/lives', builder: (_, __) => const LivesScreen()),
+    GoRoute(
+      path: '/lives/watch/:id',
+      builder: (_, state) => LiveWatchScreen(live: state.extra as ApiLive),
+    ),
     GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
     GoRoute(path: '/verify-email', builder: (_, __) => const VerifyEmailScreen()),
     GoRoute(path: '/verify-phone', builder: (_, __) => const VerifyPhoneScreen()),

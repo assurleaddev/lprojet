@@ -120,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                _NotificationBell(),
+                const _LiveButton(),
               ],
             ),
             bottom: _categories.isEmpty
@@ -233,23 +233,28 @@ class _CategoryPills extends StatelessWidget {
   }
 }
 
-class _NotificationBell extends StatelessWidget {
+/// Entry point to the live auctions (replaces the old notification bell).
+class _LiveButton extends StatelessWidget {
+  const _LiveButton();
+
   @override
   Widget build(BuildContext context) {
     return Stack(
+      alignment: Alignment.center,
       children: [
         IconButton(
-          icon: const Icon(Icons.notifications_outlined),
-          onPressed: () {},
-          color: AppColors.textPrimary,
+          icon: const Icon(Icons.live_tv_outlined),
+          color: AppColors.primary,
+          tooltip: 'Lives',
+          onPressed: () => context.push('/lives'),
         ),
         Positioned(
-          top: 8,
-          right: 8,
+          top: 6,
+          right: 6,
           child: Container(
             width: 8,
             height: 8,
-            decoration: const BoxDecoration(color: AppColors.pink, shape: BoxShape.circle),
+            decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
           ),
         ),
       ],

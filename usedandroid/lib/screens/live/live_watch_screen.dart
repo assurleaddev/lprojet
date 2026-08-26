@@ -1,0 +1,307 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/material.dart';
+import '../../services/live_service.dart';
+import '../../theme/app_colors.dart';
+
+class LiveWatchScreen extends StatefulWidget {
+  final ApiLive live;
+  const LiveWatchScreen({super.key, required this.live});
+
+  @override
+  State<LiveWatchScreen> createState() => _LiveWatchScreenState();
+}
+
+class _LiveWatchScreenState extends State<LiveWatchScreen> {
+  late ApiLive _live;
+  List<ApiLiveComment> _comments = [];
+  final _commentCtrl = TextEditingController();
+  bool _bidding = false;
+  bool _sending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _live = widget.live;
+    _load();
+  }
+
+  @override
+  void dispose() {
+    _commentCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _load() async {
+    try {
+      final live = await LiveService().getLive(_live.id);
+      final comments = await LiveService().getComments(_live.id);
+      if (mounted) setState(() { _live = live; _comments = comments; });
+    } catch (_) {/* keep initial data */}
+  }
+
+  Future<void> _placeBid() async {
+    final amount = _live.minNextBid;
+    setState(() => _bidding = true);
+    try {
+      final res = await LiveService().placeBid(_live.id, amount);
+      if (!mounted) return;
+      if (res['ok'] == true) {
+        _snack('Enchère placée : ${amount.toStringAsFixed(0)} MAD', AppColors.primary);
+        _load();
+      }
+    } on DioException catch (e) {
+      if (!mounted) return;
+      final data = e.response?.data;
+      if (data is Map && data['insufficient_balance'] == true) {
+        _snack('Solde insuffisant. Rechargez votre portefeuille.', Colors.red);
+      } else {
+        _snack(data is Map && data['message'] != null ? data['message'].toString() : 'Enchère impossible', Colors.red);
+      }
+    } finally {
+      if (mounted) setState(() => _bidding = false);
+    }
+  }
+
+  Future<void> _sendComment() async {
+    final text = _commentCtrl.text.trim();
+    if (text.isEmpty) return;
+    setState(() => _sending = true);
+    try {
+      final c = await LiveService().comment(_live.id, text);
+      if (mounted) {
+        setState(() { _comments = [..._comments, c]; _commentCtrl.clear(); });
+      }
+    } on DioException catch (e) {
+      if (mounted) _snack(e.response?.statusCode == 422 ? 'Le live n\'est pas actif' : 'Envoi impossible', Colors.red);
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  Future<void> _like() async {
+    try {
+      await LiveService().like(_live.id);
+      if (mounted) setState(() => _live = _copyWithLikes(_live.likesCount + 1));
+    } catch (_) {}
+  }
+
+  ApiLive _copyWithLikes(int likes) => ApiLive(
+        id: _live.id, title: _live.title, status: _live.status, auctionStatus: _live.auctionStatus,
+        thumbnailUrl: _live.thumbnailUrl, likesCount: likes, startingBid: _live.startingBid,
+        currentBid: _live.currentBid, minNextBid: _live.minNextBid, countdownEndsAt: _live.countdownEndsAt,
+        agoraChannel: _live.agoraChannel, seller: _live.seller, currentProduct: _live.currentProduct,
+        currentBidderName: _live.currentBidderName, products: _live.products,
+      );
+
+  void _snack(String msg, Color color) => ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(msg), backgroundColor: color),
+      );
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Column(
+          children: [
+            _videoArea(),
+            Expanded(
+              child: Container(
+                color: AppColors.surface,
+                child: RefreshIndicator(
+                  onRefresh: _load,
+                  child: ListView(
+                    padding: const EdgeInsets.all(16),
+                    children: [
+                      if (_live.auctionActive && _live.currentProduct != null) _auctionCard(),
+                      const SizedBox(height: 12),
+                      const Text('Commentaires', style: TextStyle(fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 8),
+                      if (_comments.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          child: Text('Soyez le premier à commenter', style: TextStyle(color: AppColors.textSecondary)),
+                        )
+                      else
+                        ..._comments.map(_commentTile),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            _commentBar(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _videoArea() {
+    return AspectRatio(
+      aspectRatio: 16 / 11,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          if (_live.thumbnailUrl != null)
+            CachedNetworkImage(imageUrl: _live.thumbnailUrl!, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(color: Colors.black))
+          else
+            Container(color: Colors.black),
+          Container(color: Colors.black.withValues(alpha: 0.35)),
+          // "live video coming" note (Agora integration is the next phase)
+          const Center(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.videocam_outlined, color: Colors.white70, size: 40),
+              SizedBox(height: 8),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24),
+                child: Text('La vidéo en direct arrive dans la prochaine mise à jour',
+                    textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, fontSize: 12)),
+              ),
+            ]),
+          ),
+          // top bar: back, status, likes
+          Positioned(
+            top: 8, left: 4, right: 8,
+            child: Row(children: [
+              IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).maybePop()),
+              if (_live.isLive)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(6)),
+                  child: const Text('EN DIRECT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                ),
+              const Spacer(),
+              GestureDetector(
+                onTap: _like,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(20)),
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    const Icon(Icons.favorite, size: 15, color: Colors.white),
+                    const SizedBox(width: 5),
+                    Text('${_live.likesCount}', style: const TextStyle(color: Colors.white, fontSize: 12)),
+                  ]),
+                ),
+              ),
+            ]),
+          ),
+          // bottom: seller + title
+          Positioned(
+            left: 12, right: 12, bottom: 10,
+            child: Row(children: [
+              CircleAvatar(
+                radius: 14,
+                backgroundColor: Colors.white24,
+                backgroundImage: _live.seller?.avatarUrl != null ? CachedNetworkImageProvider(_live.seller!.avatarUrl!) : null,
+                child: _live.seller?.avatarUrl == null ? const Icon(Icons.person, size: 15, color: Colors.white) : null,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+                  Text(_live.seller?.name ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                  Text(_live.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                ]),
+              ),
+            ]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _auctionCard() {
+    final p = _live.currentProduct!;
+    final hasBid = _live.currentBid != null;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: AppColors.inputFill, borderRadius: BorderRadius.circular(14)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: p.image != null
+                  ? CachedNetworkImage(imageUrl: p.image!, width: 56, height: 56, fit: BoxFit.cover)
+                  : Container(width: 56, height: 56, color: AppColors.border, child: const Icon(Icons.image_outlined, color: AppColors.textSecondary)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(hasBid ? 'Enchère actuelle' : 'Enchère de départ', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                Text('${(hasBid ? _live.currentBid! : _live.startingBid).toStringAsFixed(0)} MAD',
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 18)),
+                if (hasBid && _live.currentBidderName != null)
+                  Text('Meilleure enchère : ${_live.currentBidderName}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+              ]),
+            ),
+          ]),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _bidding ? null : _placeBid,
+              child: _bidding
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  : Text('Enchérir ${_live.minNextBid.toStringAsFixed(0)} MAD'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _commentTile(ApiLiveComment c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        CircleAvatar(
+          radius: 13,
+          backgroundColor: AppColors.inputFill,
+          backgroundImage: c.avatarUrl != null ? CachedNetworkImageProvider(c.avatarUrl!) : null,
+          child: c.avatarUrl == null ? const Icon(Icons.person, size: 14, color: AppColors.textSecondary) : null,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: RichText(
+            text: TextSpan(style: const TextStyle(color: AppColors.textPrimary, fontSize: 13), children: [
+              TextSpan(text: '${c.username}  ', style: const TextStyle(fontWeight: FontWeight.w700)),
+              TextSpan(text: c.content, style: const TextStyle(color: AppColors.textSecondary)),
+            ]),
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _commentBar() {
+    final canComment = _live.isLive;
+    return Container(
+      padding: EdgeInsets.only(left: 12, right: 8, top: 8, bottom: MediaQuery.of(context).padding.bottom + 8),
+      color: AppColors.surface,
+      child: Row(children: [
+        Expanded(
+          child: TextField(
+            controller: _commentCtrl,
+            enabled: canComment,
+            decoration: InputDecoration(
+              hintText: canComment ? 'Ajouter un commentaire…' : 'Live inactif',
+              isDense: true,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            ),
+            onSubmitted: (_) => _sendComment(),
+          ),
+        ),
+        IconButton(
+          icon: _sending
+              ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+              : const Icon(Icons.send, color: AppColors.primary),
+          onPressed: canComment && !_sending ? _sendComment : null,
+        ),
+      ]),
+    );
+  }
+}

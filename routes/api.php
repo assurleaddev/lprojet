@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\Auth\VerificationController;
 use App\Http\Controllers\Api\Mobile\CategoryController as MobileCategoryController;
 use App\Http\Controllers\Api\Mobile\CheckoutController as MobileCheckoutController;
 use App\Http\Controllers\Api\Mobile\InboxController as MobileInboxController;
+use App\Http\Controllers\Api\Mobile\LiveController as MobileLiveController;
 use App\Http\Controllers\Api\Mobile\OfferOrderController as MobileOfferOrderController;
 use App\Http\Controllers\Api\Mobile\ProductController as MobileProductController;
 use App\Http\Controllers\Api\Mobile\ProfileController as MobileProfileController;
@@ -91,6 +92,17 @@ Route::prefix('mobile')->group(function () {
 
         // Checkout (accepted offer or direct buy) → order
         Route::post('/checkout', [MobileOfferOrderController::class, 'checkout']);
+
+        // Live auctions
+        Route::get('/lives', [MobileLiveController::class, 'index']);
+        Route::get('/lives/{id}', [MobileLiveController::class, 'show']);
+        Route::get('/lives/{id}/comments', [MobileLiveController::class, 'comments']);
+        Route::get('/lives/{id}/agora-token', [MobileLiveController::class, 'agoraToken']);
+        Route::post('/lives/{id}/bid', [MobileLiveController::class, 'placeBid']);
+        Route::post('/lives/{id}/comment', [MobileLiveController::class, 'postComment']);
+        Route::post('/lives/{id}/like', [MobileLiveController::class, 'toggleLike']);
+        Route::post('/lives/{id}/pre-bid', [MobileLiveController::class, 'preBid']);
+        Route::get('/live-balance', [MobileLiveController::class, 'balance']);
 
         // Order actions
         Route::post('/orders/{id}/ship', [MobileOfferOrderController::class, 'shipOrder']);
