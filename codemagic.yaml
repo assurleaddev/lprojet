@@ -14,6 +14,12 @@ workflows:
     scripts:
       - name: Install dependencies
         script: flutter pub get
+      - name: Disable Swift Package Manager (Agora needs CocoaPods headers)
+        # Flutter 3.44 auto-migrates projects to SPM, which integrates
+        # agora_rtc_engine as an SPM target and leaves the pod-delivered
+        # <AgoraRtcWrapper/AgoraPIPController.h> off the header search path
+        # ("file not found"). Force the pure-CocoaPods path.
+        script: flutter config --no-enable-swift-package-manager
       - name: Set up code signing
         script: xcode-project use-profiles
       - name: Build iOS
@@ -53,9 +59,15 @@ workflows:
     scripts:
       - name: Install dependencies
         script: flutter pub get
+      - name: Disable Swift Package Manager (Agora needs CocoaPods headers)
+        # Flutter 3.44 auto-migrates to SPM, which integrates agora_rtc_engine
+        # as an SPM target and leaves the pod-delivered
+        # <AgoraRtcWrapper/AgoraPIPController.h> off the header search path
+        # ("file not found"). Force the pure-CocoaPods integration Agora expects.
+        script: flutter config --no-enable-swift-package-manager
       - name: Prepare iOS project (pods + Flutter migrations)
         # Run the no-codesign build FIRST so all Flutter/Xcode project
-        # migrations (SPM, UIScene, pbxproj upgrade) and pod install happen
+        # migrations (UIScene, pbxproj upgrade) and pod install happen
         # BEFORE we apply signing. Otherwise the migration rewrites
         # project.pbxproj and wipes the signing config that use-profiles set.
         script: flutter build ios --release --no-codesign --build-number=$BUILD_NUMBER
