@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -19,25 +21,102 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
   bool _bidding = false;
   bool _sending = false;
 
+  // Agora (viewer subscribe)
+  RtcEngine? _engine;
+  String? _channel;
+  int? _remoteUid;
+
+  // Realtime via polling (until push websockets are wired)
+  Timer? _pollTimer;
+  Timer? _tick;
+  Duration _remaining = Duration.zero;
+
   @override
   void initState() {
     super.initState();
     _live = widget.live;
     _load();
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      if (mounted && (_live.isLive || _live.isScheduled)) _load();
+    });
+    _tick = Timer.periodic(const Duration(seconds: 1), (_) => _updateCountdown());
+    if (_live.isLive) _initAgora();
   }
 
   @override
   void dispose() {
+    _pollTimer?.cancel();
+    _tick?.cancel();
     _commentCtrl.dispose();
+    _disposeAgora();
     super.dispose();
+  }
+
+  Future<void> _initAgora() async {
+    try {
+      final t = await LiveService().agoraToken(_live.id);
+      final appId = (t['app_id'] as String?) ?? '';
+      if (appId.isEmpty) return; // Agora not configured → keep placeholder
+      final engine = createAgoraRtcEngine();
+      await engine.initialize(RtcEngineContext(appId: appId));
+      engine.registerEventHandler(RtcEngineEventHandler(
+        onUserJoined: (conn, uid, elapsed) {
+          if (mounted) setState(() => _remoteUid = uid);
+        },
+        onUserOffline: (conn, uid, reason) {
+          if (mounted) setState(() => _remoteUid = null);
+        },
+      ));
+      await engine.setChannelProfile(ChannelProfileType.channelProfileLiveBroadcasting);
+      await engine.setClientRole(role: ClientRoleType.clientRoleAudience);
+      await engine.enableVideo();
+      await engine.joinChannel(
+        token: (t['token'] as String?) ?? '',
+        channelId: (t['channel'] as String?) ?? '',
+        uid: (t['uid'] as num?)?.toInt() ?? 0,
+        options: const ChannelMediaOptions(
+          clientRoleType: ClientRoleType.clientRoleAudience,
+          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+        ),
+      );
+      if (mounted) setState(() { _engine = engine; _channel = t['channel'] as String?; });
+    } catch (_) {
+      // Streaming unavailable → the thumbnail placeholder stays.
+      await _disposeAgora();
+    }
+  }
+
+  Future<void> _disposeAgora() async {
+    final engine = _engine;
+    _engine = null;
+    if (engine != null) {
+      try {
+        await engine.leaveChannel();
+        await engine.release();
+      } catch (_) {}
+    }
+  }
+
+  void _updateCountdown() {
+    if (!mounted) return;
+    if (_live.auctionActive && _live.countdownEndsAt != null) {
+      final r = _live.countdownEndsAt!.difference(DateTime.now());
+      setState(() => _remaining = r.isNegative ? Duration.zero : r);
+    } else if (_remaining != Duration.zero) {
+      setState(() => _remaining = Duration.zero);
+    }
   }
 
   Future<void> _load() async {
     try {
       final live = await LiveService().getLive(_live.id);
       final comments = await LiveService().getComments(_live.id);
-      if (mounted) setState(() { _live = live; _comments = comments; });
-    } catch (_) {/* keep initial data */}
+      if (!mounted) return;
+      final wasLive = _live.isLive;
+      setState(() { _live = live; _comments = comments; });
+      // Stream just started while we were on the screen.
+      if (!wasLive && live.isLive && _engine == null) _initAgora();
+    } catch (_) {}
   }
 
   Future<void> _placeBid() async {
@@ -69,9 +148,7 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
     setState(() => _sending = true);
     try {
       final c = await LiveService().comment(_live.id, text);
-      if (mounted) {
-        setState(() { _comments = [..._comments, c]; _commentCtrl.clear(); });
-      }
+      if (mounted) setState(() { _comments = [..._comments, c]; _commentCtrl.clear(); });
     } on DioException catch (e) {
       if (mounted) _snack(e.response?.statusCode == 422 ? 'Le live n\'est pas actif' : 'Envoi impossible', Colors.red);
     } finally {
@@ -80,9 +157,9 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
   }
 
   Future<void> _like() async {
+    setState(() => _live = _copyWithLikes(_live.likesCount + 1));
     try {
       await LiveService().like(_live.id);
-      if (mounted) setState(() => _live = _copyWithLikes(_live.likesCount + 1));
     } catch (_) {}
   }
 
@@ -114,6 +191,11 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
                   child: ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
+                      if (_live.isEnded)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8),
+                          child: Text('Ce live est terminé.', style: TextStyle(color: AppColors.textSecondary)),
+                        ),
                       if (_live.auctionActive && _live.currentProduct != null) _auctionCard(),
                       const SizedBox(height: 12),
                       const Text('Commentaires', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -143,37 +225,44 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (_live.thumbnailUrl != null)
-            CachedNetworkImage(imageUrl: _live.thumbnailUrl!, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(color: Colors.black))
-          else
-            Container(color: Colors.black),
-          Container(color: Colors.black.withValues(alpha: 0.35)),
-          // "live video coming" note (Agora integration is the next phase)
-          const Center(
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Icon(Icons.videocam_outlined, color: Colors.white70, size: 40),
-              SizedBox(height: 8),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24),
-                child: Text('La vidéo en direct arrive dans la prochaine mise à jour',
-                    textAlign: TextAlign.center, style: TextStyle(color: Colors.white70, fontSize: 12)),
+          // Live video if the seller is publishing; otherwise the thumbnail.
+          if (_engine != null && _remoteUid != null && _channel != null)
+            AgoraVideoView(
+              controller: VideoViewController.remote(
+                rtcEngine: _engine!,
+                canvas: VideoCanvas(uid: _remoteUid),
+                connection: RtcConnection(channelId: _channel),
               ),
-            ]),
-          ),
-          // top bar: back, status, likes
+            )
+          else ...[
+            if (_live.thumbnailUrl != null)
+              CachedNetworkImage(imageUrl: _live.thumbnailUrl!, fit: BoxFit.cover, errorWidget: (_, __, ___) => Container(color: Colors.black))
+            else
+              Container(color: Colors.black),
+            Container(color: Colors.black.withValues(alpha: 0.35)),
+            Center(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                if (_live.isLive) ...[
+                  const SizedBox(height: 4),
+                  const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+                  const SizedBox(height: 10),
+                  const Text('Connexion au direct…', style: TextStyle(color: Colors.white70, fontSize: 12)),
+                ] else if (_live.isScheduled)
+                  const Text('Ce live n\'a pas encore commencé', style: TextStyle(color: Colors.white70, fontSize: 12))
+                else
+                  const Text('Live terminé', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              ]),
+            ),
+          ],
+          // top bar
           Positioned(
             top: 8, left: 4, right: 8,
             child: Row(children: [
               IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white), onPressed: () => Navigator.of(context).maybePop()),
-              if (_live.isLive)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(6)),
-                  child: const Text('EN DIRECT', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
-                ),
+              if (_live.isLive) _pill('EN DIRECT', AppColors.primary),
               const Spacer(),
               GestureDetector(
-                onTap: _like,
+                onTap: _live.isEnded ? null : _like,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(20)),
@@ -186,7 +275,7 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
               ),
             ]),
           ),
-          // bottom: seller + title
+          // seller + title
           Positioned(
             left: 12, right: 12, bottom: 10,
             child: Row(children: [
@@ -210,9 +299,16 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
     );
   }
 
+  Widget _pill(String text, Color color) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
+        child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+      );
+
   Widget _auctionCard() {
     final p = _live.currentProduct!;
     final hasBid = _live.currentBid != null;
+    final ending = _remaining.inSeconds > 0;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(color: AppColors.inputFill, borderRadius: BorderRadius.circular(14)),
@@ -238,6 +334,13 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
                   Text('Meilleure enchère : ${_live.currentBidderName}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
               ]),
             ),
+            if (ending)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                child: Text('${_remaining.inSeconds}s',
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w800, fontSize: 18)),
+              ),
           ]),
           const SizedBox(height: 12),
           SizedBox(

@@ -21,6 +21,7 @@ dependencies:
   dio: ^5.7.0
   flutter_secure_storage: ^9.2.2
   permission_handler: ^11.3.1
+  agora_rtc_engine: ^6.3.2
 
 dev_dependencies:
   flutter_test:

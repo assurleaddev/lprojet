@@ -52,7 +52,9 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Used needs access to your photo library to add photos to your listings.</string>
 		<key>NSCameraUsageDescription</key>
-		<string>Used needs access to your camera to take photos for your listings.</string>
+		<string>Used needs access to your camera to take photos for your listings and to broadcast live auctions.</string>
+		<key>NSMicrophoneUsageDescription</key>
+		<string>Used needs access to your microphone for live auctions.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
 	</dict>

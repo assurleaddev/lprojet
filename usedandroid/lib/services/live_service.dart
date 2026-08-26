@@ -141,4 +141,10 @@ class LiveService {
     final r = await _client.dio.get('/mobile/live-balance');
     return _d(r.data['balance']);
   }
+
+  /// Agora RTC credentials to watch the seller's stream: {token, channel, uid, app_id}.
+  Future<Map<String, dynamic>> agoraToken(int id) async {
+    final r = await _client.dio.get('/mobile/lives/$id/agora-token');
+    return Map<String, dynamic>.from(r.data);
+  }
 }
