@@ -29,7 +29,8 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
   RtcEngine? _engine;
   Map<String, dynamic>? _agoraToken;
   bool _joined = false;
-  bool _permDenied = false;
+  bool _camChecking = true; // silently checking existing grant on entry
+  bool _permDenied = false; // requested and refused
   bool _permPermanent = false; // denied for good → must open OS settings
 
   LiveRealtime? _rt;
@@ -49,7 +50,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
       if (mounted && !_live.isEnded) _reload();
     });
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
-    _requestPermsAndInit();
+    _initIfGranted();
     _initRealtime();
   }
 
@@ -73,10 +74,25 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
 
   // ---- Agora publisher ----
 
-  /// Request camera + mic, then set up Agora. Retriable from the denied UI and
-  /// from app-resume. On permanent denial it flags [_permPermanent] so the UI
-  /// offers "open settings" instead of a no-op re-request.
+  /// On entry: only START the camera if permission is ALREADY granted — never
+  /// prompt here. If it isn't granted, show a neutral call-to-action and let
+  /// the seller trigger the request in-context (tap to enable / go live).
+  Future<void> _initIfGranted() async {
+    final cam = await Permission.camera.status;
+    final mic = await Permission.microphone.status;
+    if (cam.isGranted && mic.isGranted) {
+      await _initAgoraEngine();
+      if (mounted && _engine == null) setState(() => _camChecking = false); // agora unavailable
+    } else if (mounted) {
+      setState(() => _camChecking = false); // show the neutral "Activer la caméra" CTA
+    }
+  }
+
+  /// Request camera + mic (in-context), then set up Agora. Called when the
+  /// seller taps to enable the camera or "Passer en direct". On permanent
+  /// denial it flags [_permPermanent] so the UI offers "open settings".
   Future<void> _requestPermsAndInit() async {
+    if (mounted) setState(() => _camChecking = true);
     final statuses = await [Permission.camera, Permission.microphone].request();
     final cam = statuses[Permission.camera];
     final mic = statuses[Permission.microphone];
@@ -88,6 +104,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
           mic == PermissionStatus.restricted;
       if (mounted) {
         setState(() {
+          _camChecking = false;
           _permDenied = true;
           _permPermanent = permanent;
         });
@@ -101,6 +118,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
       });
     }
     await _initAgoraEngine();
+    if (mounted && _engine == null) setState(() => _camChecking = false);
   }
 
   Future<void> _initAgoraEngine() async {
@@ -223,6 +241,12 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
   // ---- Seller actions ----
 
   Future<void> _goLive() async {
+    // Camera not up yet → request permission in-context first. Bail if refused
+    // (the video area already surfaces why + how to fix).
+    if (_engine == null) {
+      await _requestPermsAndInit();
+      if (_engine == null) return;
+    }
     setState(() => _busy = true);
     try {
       await LiveService().goLive(_live.id);
@@ -409,7 +433,27 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
                           ),
                         ]),
                       )
-                    : const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+                    : _camChecking
+                        ? const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2)
+                        : Padding(
+                            // Not granted yet — offer the camera in-context, no auto-prompt.
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(mainAxisSize: MainAxisSize.min, children: [
+                              const Icon(Icons.videocam_outlined, color: Colors.white54, size: 34),
+                              const SizedBox(height: 10),
+                              const Text(
+                                'Activez la caméra pour vérifier votre cadrage avant de diffuser.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                              const SizedBox(height: 12),
+                              ElevatedButton.icon(
+                                onPressed: _requestPermsAndInit,
+                                icon: const Icon(Icons.videocam),
+                                label: const Text('Activer la caméra'),
+                              ),
+                            ]),
+                          ),
               ),
             ),
           Positioned(
@@ -468,7 +512,9 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
           width: double.infinity,
           height: 50,
           child: ElevatedButton.icon(
-            onPressed: (_busy || _engine == null) ? null : _goLive,
+            // Enabled even before the camera is up: tapping requests the
+            // permission in-context, then goes live.
+            onPressed: _busy ? null : _goLive,
             icon: const Icon(Icons.videocam),
             label: _busy
                 ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
