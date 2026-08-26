@@ -101,6 +101,36 @@ class ApiLive {
         currentBidderName: j['current_bidder'] != null ? j['current_bidder']['name'] : null,
         products: (j['products'] as List?)?.map((p) => ApiLiveProduct.fromJson(Map<String, dynamic>.from(p))).toList() ?? [],
       );
+
+  /// Targeted copy for applying realtime push deltas without a full refetch.
+  /// Note: uses `?? this` semantics, so only non-null overrides take effect.
+  ApiLive copyWith({
+    String? status,
+    String? auctionStatus,
+    int? likesCount,
+    double? currentBid,
+    double? minNextBid,
+    DateTime? countdownEndsAt,
+    String? currentBidderName,
+    ApiLiveProduct? currentProduct,
+  }) =>
+      ApiLive(
+        id: id,
+        title: title,
+        status: status ?? this.status,
+        auctionStatus: auctionStatus ?? this.auctionStatus,
+        thumbnailUrl: thumbnailUrl,
+        likesCount: likesCount ?? this.likesCount,
+        startingBid: startingBid,
+        currentBid: currentBid ?? this.currentBid,
+        minNextBid: minNextBid ?? this.minNextBid,
+        countdownEndsAt: countdownEndsAt ?? this.countdownEndsAt,
+        agoraChannel: agoraChannel,
+        seller: seller,
+        currentProduct: currentProduct ?? this.currentProduct,
+        currentBidderName: currentBidderName ?? this.currentBidderName,
+        products: products,
+      );
 }
 
 class LiveService {

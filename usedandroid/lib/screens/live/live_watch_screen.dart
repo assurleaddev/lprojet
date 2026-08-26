@@ -3,6 +3,7 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import '../../services/live_realtime.dart';
 import '../../services/live_service.dart';
 import '../../theme/app_colors.dart';
 
@@ -26,8 +27,10 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
   String? _channel;
   int? _remoteUid;
 
-  // Realtime via polling (until push websockets are wired)
+  // Realtime: Reverb push (primary) with a poll as the safety-net fallback.
+  LiveRealtime? _rt;
   Timer? _pollTimer;
+  Duration _pollEvery = const Duration(seconds: 3);
   Timer? _tick;
   Duration _remaining = Duration.zero;
 
@@ -36,20 +39,78 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
     super.initState();
     _live = widget.live;
     _load();
-    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      if (mounted && (_live.isLive || _live.isScheduled)) _load();
-    });
+    _startPoll(const Duration(seconds: 3));
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _updateCountdown());
     if (_live.isLive) _initAgora();
+    _initRealtime();
   }
 
   @override
   void dispose() {
     _pollTimer?.cancel();
     _tick?.cancel();
+    _rt?.stop();
     _commentCtrl.dispose();
     _disposeAgora();
     super.dispose();
+  }
+
+  /// (Re)starts the reconciliation poll at [every]. While push is connected we
+  /// poll slowly (safety net); when it drops we poll fast (primary source).
+  void _startPoll(Duration every) {
+    if (_pollTimer != null && _pollEvery == every && _pollTimer!.isActive) return;
+    _pollEvery = every;
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(every, (_) {
+      if (mounted && (_live.isLive || _live.isScheduled)) _load();
+    });
+  }
+
+  Future<void> _initRealtime() async {
+    final rt = LiveRealtime(_live.id)
+      ..onConnected = (connected) {
+        if (!mounted) return;
+        // Push carries the deltas; poll just reconciles occasionally.
+        _startPoll(connected ? const Duration(seconds: 20) : const Duration(seconds: 3));
+      }
+      ..onBid = (d) {
+        if (!mounted) return;
+        setState(() => _live = _live.copyWith(
+              auctionStatus: 'active',
+              currentBid: (d['current_bid'] as num?)?.toDouble(),
+              minNextBid: (d['min_next_bid'] as num?)?.toDouble(),
+              currentBidderName: d['bidder_username']?.toString(),
+              countdownEndsAt: d['countdown_ends_at'] != null
+                  ? DateTime.tryParse('${d['countdown_ends_at']}')
+                  : null,
+            ));
+        _updateCountdown();
+      }
+      ..onComment = (d) {
+        if (!mounted) return;
+        final c = ApiLiveComment.fromJson(Map<String, dynamic>.from(d));
+        if (_comments.any((x) => x.id == c.id)) return; // de-dupe our own echo
+        setState(() => _comments = [..._comments, c]);
+      }
+      ..onLiked = (d) {
+        if (!mounted) return;
+        final n = (d['likes_count'] as num?)?.toInt();
+        if (n != null) setState(() => _live = _live.copyWith(likesCount: n));
+      }
+      // Structural changes → refetch authoritative state.
+      ..onProductChanged = (_) {
+        _load();
+      }
+      ..onAuctionClosed = (_) {
+        _load();
+      }
+      ..onStatusChanged = (_) {
+        _load();
+      };
+
+    final ok = await rt.start();
+    if (!ok) return; // realtime unavailable → poll fallback already running
+    _rt = rt;
   }
 
   Future<void> _initAgora() async {
@@ -157,19 +218,11 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
   }
 
   Future<void> _like() async {
-    setState(() => _live = _copyWithLikes(_live.likesCount + 1));
+    setState(() => _live = _live.copyWith(likesCount: _live.likesCount + 1));
     try {
       await LiveService().like(_live.id);
     } catch (_) {}
   }
-
-  ApiLive _copyWithLikes(int likes) => ApiLive(
-        id: _live.id, title: _live.title, status: _live.status, auctionStatus: _live.auctionStatus,
-        thumbnailUrl: _live.thumbnailUrl, likesCount: likes, startingBid: _live.startingBid,
-        currentBid: _live.currentBid, minNextBid: _live.minNextBid, countdownEndsAt: _live.countdownEndsAt,
-        agoraChannel: _live.agoraChannel, seller: _live.seller, currentProduct: _live.currentProduct,
-        currentBidderName: _live.currentBidderName, products: _live.products,
-      );
 
   void _snack(String msg, Color color) => ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(msg), backgroundColor: color),
