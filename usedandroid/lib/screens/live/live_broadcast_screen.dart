@@ -22,7 +22,7 @@ class LiveBroadcastScreen extends StatefulWidget {
   State<LiveBroadcastScreen> createState() => _LiveBroadcastScreenState();
 }
 
-class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> {
+class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsBindingObserver {
   late ApiLive _live;
   List<ApiLiveComment> _comments = [];
 
@@ -30,6 +30,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> {
   Map<String, dynamic>? _agoraToken;
   bool _joined = false;
   bool _permDenied = false;
+  bool _permPermanent = false; // denied for good → must open OS settings
 
   LiveRealtime? _rt;
   Timer? _poll;
@@ -41,18 +42,20 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _live = widget.live;
     _reload();
     _poll = Timer.periodic(const Duration(seconds: 5), (_) {
       if (mounted && !_live.isEnded) _reload();
     });
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
-    _initAgora();
+    _requestPermsAndInit();
     _initRealtime();
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _poll?.cancel();
     _tick?.cancel();
     _rt?.stop();
@@ -60,15 +63,48 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> {
     super.dispose();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Coming back from the OS settings page (after granting) → retry.
+    if (state == AppLifecycleState.resumed && _permDenied && _engine == null) {
+      _requestPermsAndInit();
+    }
+  }
+
   // ---- Agora publisher ----
 
-  Future<void> _initAgora() async {
-    final res = await [Permission.camera, Permission.microphone].request();
-    if (res[Permission.camera] != PermissionStatus.granted ||
-        res[Permission.microphone] != PermissionStatus.granted) {
-      if (mounted) setState(() => _permDenied = true);
+  /// Request camera + mic, then set up Agora. Retriable from the denied UI and
+  /// from app-resume. On permanent denial it flags [_permPermanent] so the UI
+  /// offers "open settings" instead of a no-op re-request.
+  Future<void> _requestPermsAndInit() async {
+    final statuses = await [Permission.camera, Permission.microphone].request();
+    final cam = statuses[Permission.camera];
+    final mic = statuses[Permission.microphone];
+    final granted = cam == PermissionStatus.granted && mic == PermissionStatus.granted;
+    if (!granted) {
+      final permanent = cam == PermissionStatus.permanentlyDenied ||
+          mic == PermissionStatus.permanentlyDenied ||
+          cam == PermissionStatus.restricted ||
+          mic == PermissionStatus.restricted;
+      if (mounted) {
+        setState(() {
+          _permDenied = true;
+          _permPermanent = permanent;
+        });
+      }
       return;
     }
+    if (mounted) {
+      setState(() {
+        _permDenied = false;
+        _permPermanent = false;
+      });
+    }
+    await _initAgoraEngine();
+  }
+
+  Future<void> _initAgoraEngine() async {
+    if (_engine != null) return;
     try {
       final t = await LiveService().agoraToken(_live.id);
       final appId = (t['app_id'] as String?) ?? '';
@@ -348,10 +384,30 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> {
               color: Colors.black,
               child: Center(
                 child: _permDenied
-                    ? const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 24),
-                        child: Text('Autorisez la caméra et le micro pour diffuser',
-                            textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)),
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: Column(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.videocam_off_outlined, color: Colors.white54, size: 34),
+                          const SizedBox(height: 10),
+                          Text(
+                            _permPermanent
+                                ? 'Caméra et micro refusés. Activez-les dans les réglages pour diffuser.'
+                                : 'Autorisez la caméra et le micro pour diffuser.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white70),
+                          ),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () async {
+                              if (_permPermanent) {
+                                await openAppSettings();
+                              } else {
+                                await _requestPermsAndInit();
+                              }
+                            },
+                            child: Text(_permPermanent ? 'Ouvrir les réglages' : 'Autoriser'),
+                          ),
+                        ]),
                       )
                     : const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
               ),
