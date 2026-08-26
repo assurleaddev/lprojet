@@ -103,6 +103,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/lives/{id}/like', [MobileLiveController::class, 'toggleLike']);
         Route::post('/lives/{id}/pre-bid', [MobileLiveController::class, 'preBid']);
         Route::get('/live-balance', [MobileLiveController::class, 'balance']);
+        Route::get('/live-config', [MobileLiveController::class, 'config']);
 
         // Order actions
         Route::post('/orders/{id}/ship', [MobileOfferOrderController::class, 'shipOrder']);

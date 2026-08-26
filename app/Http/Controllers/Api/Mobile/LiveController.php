@@ -204,4 +204,20 @@ class LiveController extends Controller
             'balance' => app(WalletService::class)->getBalance($request->user()),
         ]);
     }
+
+    /** Public realtime + video config for the app (Reverb client params, agora flag). */
+    public function config(): JsonResponse
+    {
+        $app = config('reverb.apps.apps.0', []);
+
+        return response()->json([
+            'reverb' => [
+                'key' => $app['key'] ?? null,
+                'host' => $app['options']['host'] ?? null,
+                'port' => (int) ($app['options']['port'] ?? 443),
+                'scheme' => $app['options']['scheme'] ?? 'https',
+            ],
+            'agora_enabled' => (bool) config('agora.app_id'),
+        ]);
+    }
 }
