@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+
 import 'api_client.dart';
 
 double _d(dynamic v) => v is num ? v.toDouble() : double.tryParse('${v ?? ''}') ?? 0;
@@ -133,8 +137,76 @@ class ApiLive {
       );
 }
 
+/// One of the seller's approved products, for the create-live picker.
+class ApiSellerProduct {
+  final int id;
+  final String title;
+  final double price;
+  final String? image;
+  const ApiSellerProduct({required this.id, required this.title, required this.price, this.image});
+  factory ApiSellerProduct.fromJson(Map<String, dynamic> j) => ApiSellerProduct(
+        id: _i(j['id']),
+        title: j['title'] ?? '',
+        price: _d(j['price']),
+        image: j['image'] != null ? ApiClient.fixImageUrl(j['image']) : null,
+      );
+}
+
+/// A product chosen for a live, with its pre-bid minimum.
+class LiveProductPick {
+  final int productId;
+  final double preBidMin;
+  const LiveProductPick(this.productId, this.preBidMin);
+}
+
 class LiveService {
   final _client = ApiClient();
+
+  // ----- Seller ("go live") -----
+
+  Future<List<ApiSellerProduct>> sellerProducts() async {
+    final r = await _client.dio.get('/mobile/live-products');
+    return (r.data['data'] as List)
+        .map((j) => ApiSellerProduct.fromJson(Map<String, dynamic>.from(j)))
+        .toList();
+  }
+
+  /// Create a scheduled live with a cover image + curated products.
+  Future<ApiLive> createLive({
+    required String title,
+    required File cover,
+    required List<LiveProductPick> products,
+  }) async {
+    final form = FormData.fromMap({'title': title});
+    form.files.add(MapEntry('thumbnail', await MultipartFile.fromFile(cover.path)));
+    for (final p in products) {
+      form.fields.add(MapEntry('product_ids[]', p.productId.toString()));
+      form.fields.add(MapEntry('pre_bid_min[${p.productId}]', p.preBidMin.toString()));
+    }
+    final r = await _client.dio.post('/mobile/lives', data: form);
+    return ApiLive.fromJson(Map<String, dynamic>.from(r.data));
+  }
+
+  Future<void> goLive(int id) async {
+    await _client.dio.post('/mobile/lives/$id/go-live');
+  }
+
+  Future<void> endLive(int id) async {
+    await _client.dio.post('/mobile/lives/$id/end');
+  }
+
+  Future<void> setProduct(int id, {required int productId, required double startingBid}) async {
+    await _client.dio.post('/mobile/lives/$id/set-product',
+        data: {'product_id': productId, 'starting_bid': startingBid});
+  }
+
+  /// Returns {ok, winner_username, winning_bid}.
+  Future<Map<String, dynamic>> closeAuction(int id) async {
+    final r = await _client.dio.post('/mobile/lives/$id/close-auction');
+    return Map<String, dynamic>.from(r.data);
+  }
+
+  // ----- Viewer -----
 
   Future<List<ApiLive>> getLives() async {
     final r = await _client.dio.get('/mobile/lives');

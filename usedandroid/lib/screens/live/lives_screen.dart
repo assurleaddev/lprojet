@@ -52,7 +52,19 @@ class _LivesScreenState extends State<LivesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ventes en direct')),
+      appBar: AppBar(
+        title: const Text('Ventes en direct'),
+        actions: [
+          TextButton.icon(
+            onPressed: () async {
+              await context.push('/lives/create');
+              _load();
+            },
+            icon: const Icon(Icons.videocam, size: 18, color: AppColors.primary),
+            label: const Text('Démarrer', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
       body: RefreshIndicator(onRefresh: _load, child: _body()),
     );
   }

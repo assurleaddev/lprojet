@@ -7,6 +7,8 @@ import '../screens/home/home_screen.dart';
 import '../screens/inbox/conversation_screen.dart';
 import '../screens/inbox/inbox_screen.dart';
 import '../screens/listing/listing_detail_screen.dart';
+import '../screens/live/live_broadcast_screen.dart';
+import '../screens/live/live_create_screen.dart';
 import '../screens/live/lives_screen.dart';
 import '../screens/live/live_watch_screen.dart';
 import '../screens/profile/balance_screen.dart';
@@ -103,6 +105,11 @@ final appRouter = GoRouter(
     ),
     GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
     GoRoute(path: '/lives', builder: (_, __) => const LivesScreen()),
+    GoRoute(path: '/lives/create', builder: (_, __) => const LiveCreateScreen()),
+    GoRoute(
+      path: '/lives/broadcast/:id',
+      builder: (_, state) => LiveBroadcastScreen(live: state.extra as ApiLive),
+    ),
     GoRoute(
       path: '/lives/watch/:id',
       builder: (_, state) => LiveWatchScreen(live: state.extra as ApiLive),
