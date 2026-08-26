@@ -78,6 +78,16 @@ return [
 
     // 1Confirmed — WhatsApp OTP (2FA). When enabled + configured, phone
     // verification codes are delivered via WhatsApp instead of Twilio SMS.
+    // Public Reverb client params handed to the mobile app (safe: app key is a
+    // public client key). Prefer the VITE_ (client-facing) values; the plain
+    // REVERB_HOST is the server-internal bind and must NOT be sent to clients.
+    'reverb_client' => [
+        'key' => env('VITE_REVERB_APP_KEY', env('REVERB_APP_KEY')),
+        'host' => env('VITE_REVERB_HOST', env('REVERB_HOST')),
+        'port' => (int) env('VITE_REVERB_PORT', 443),
+        'scheme' => env('VITE_REVERB_SCHEME', 'https'),
+    ],
+
     'oneconfirmed' => [
         'enabled' => env('ONECONFIRMED_ENABLED', false),
         'base_url' => env('ONECONFIRMED_BASE_URL', 'https://1confirmed.com/api/v1'),
