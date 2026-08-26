@@ -1,18 +1,18 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
     public function up(): void
     {
-        // Modify status enum to include 'hidden' and 'holiday'
+        // Modify status enum to include 'hidden' and 'holiday' (MySQL/MariaDB only).
         // We include all previous statuses: pending, approved, sold, reserved
-        \Illuminate\Support\Facades\DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold', 'reserved', 'hidden', 'holiday') DEFAULT 'pending'");
+        if (\Illuminate\Support\Facades\DB::getDriverName() === 'mysql') {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold', 'reserved', 'hidden', 'holiday') DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -23,6 +23,8 @@ return new class extends Migration {
         // Revert status enum to original
         // We should handle potential data loss for 'hidden'/'holiday' rows, but for rollback we'll just set them to pending usually.
         \Illuminate\Support\Facades\DB::statement("UPDATE products SET status = 'pending' WHERE status IN ('hidden', 'holiday')");
-        \Illuminate\Support\Facades\DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold', 'reserved') DEFAULT 'pending'");
+        if (\Illuminate\Support\Facades\DB::getDriverName() === 'mysql') {
+            \Illuminate\Support\Facades\DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold', 'reserved') DEFAULT 'pending'");
+        }
     }
 };

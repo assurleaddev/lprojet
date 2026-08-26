@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers\Api\Mobile;
 
+use App\Events\AuctionProductChanged;
 use App\Events\BidPlaced;
 use App\Events\CommentPosted;
 use App\Events\LiveLiked;
+use App\Events\LiveStatusChanged;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\Mobile\LiveResource;
 use App\Models\Live;
 use App\Models\LivePreBid;
+use App\Models\Product;
+use App\Notifications\SellerWentLiveNotification;
+use App\Services\LiveService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Str;
 use Modules\Wallet\Services\WalletService;
 use Peterujah\Agora\Agora as AgoraClient;
 use Peterujah\Agora\Builders\RtcToken;
@@ -44,6 +50,166 @@ class LiveController extends Controller
         $live = Live::with(['seller', 'product', 'currentBidder', 'liveProducts'])->findOrFail($id);
 
         return response()->json(new LiveResource($live));
+    }
+
+    // ---------------------------------------------------------------------
+    // Seller ("go live") — mirrors the web App\Http\Controllers\LiveController
+    // ---------------------------------------------------------------------
+
+    /** The seller's approved products, for the create-live product picker. */
+    public function sellerProducts(Request $request): JsonResponse
+    {
+        $products = Product::query()
+            ->where('vendor_id', $request->user()->id)
+            ->where('status', 'approved')
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'data' => $products->map(fn ($p) => [
+                'id' => (int) $p->id,
+                'title' => $p->name,
+                'price' => (float) $p->price,
+                'image' => $p->getFirstMediaUrl('featured', 'preview')
+                    ?: $p->getFirstMediaUrl('products', 'preview')
+                    ?: $p->getFirstMediaUrl('featured')
+                    ?: $p->getFirstMediaUrl('products')
+                    ?: null,
+            ])->values(),
+        ]);
+    }
+
+    /** Create a scheduled live with a cover image + curated products. */
+    public function store(Request $request): JsonResponse
+    {
+        $request->validate([
+            'title' => 'required|string|max:100',
+            'thumbnail' => 'required|image|max:8192',
+            'product_ids' => 'required|array|min:1',
+            'product_ids.*' => 'exists:products,id',
+            'pre_bid_min' => 'required|array',
+            'pre_bid_min.*' => 'numeric|min:1',
+        ]);
+
+        $userId = $request->user()->id;
+
+        // Only the seller's own approved products may be listed in a live.
+        $ownedApproved = Product::whereIn('id', $request->product_ids)
+            ->where('vendor_id', $userId)
+            ->where('status', 'approved')
+            ->pluck('id')
+            ->all();
+
+        abort_if(count($ownedApproved) !== count($request->product_ids), 422, 'One or more products are not yours or not approved.');
+
+        $path = $request->file('thumbnail')->store('lives/thumbnails', 'public');
+
+        $live = Live::create([
+            'seller_id' => $userId,
+            'title' => $request->title,
+            'thumbnail' => $path,
+            'agora_channel' => 'live-'.Str::uuid(),
+            'status' => 'scheduled',
+            'auction_status' => 'idle',
+            'starting_bid' => 0,
+        ]);
+
+        $pivotData = [];
+        foreach ($request->product_ids as $productId) {
+            $pivotData[$productId] = [
+                'pre_bid_min' => (float) ($request->input("pre_bid_min.{$productId}") ?? 1),
+            ];
+        }
+        $live->liveProducts()->attach($pivotData);
+
+        $live->load(['seller', 'product', 'liveProducts']);
+
+        return response()->json(new LiveResource($live), 201);
+    }
+
+    /** Go on air. */
+    public function goLive(Request $request, int $id): JsonResponse
+    {
+        $live = Live::findOrFail($id);
+        abort_if($live->seller_id !== $request->user()->id, 403);
+        abort_if($live->status !== 'scheduled', 422, 'Live is not schedulable.');
+
+        $live->update(['status' => 'live', 'started_at' => now()]);
+
+        broadcast(new LiveStatusChanged($live))->toOthers();
+
+        $live->load('seller');
+        $live->seller->followers()->each(
+            fn ($follower) => $follower->notify(new SellerWentLiveNotification($live))
+        );
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** End the live (closing any active auction first). */
+    public function endLive(Request $request, int $id): JsonResponse
+    {
+        $live = Live::findOrFail($id);
+        abort_if($live->seller_id !== $request->user()->id, 403);
+        abort_if($live->status !== 'live', 422, 'Live is not active.');
+
+        if ($live->auction_status === 'active' && $live->current_bidder_id) {
+            app(LiveService::class)->closeAuction($live);
+        }
+
+        $live->update(['status' => 'ended', 'ended_at' => now()]);
+
+        broadcast(new LiveStatusChanged($live));
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Put a session product up for auction (starts a fresh countdown-less auction). */
+    public function setProduct(Request $request, int $id): JsonResponse
+    {
+        $live = Live::findOrFail($id);
+        abort_if($live->seller_id !== $request->user()->id, 403);
+        abort_if($live->status !== 'live', 422, 'Live is not active.');
+
+        $request->validate([
+            'product_id' => 'required|exists:products,id',
+            'starting_bid' => 'required|numeric|min:1',
+        ]);
+
+        $product = Product::findOrFail($request->product_id);
+        abort_if($product->vendor_id !== $request->user()->id, 403);
+        abort_if(! $live->liveProducts()->where('product_id', $product->id)->exists(), 422, 'Product not in live session.');
+
+        $live->update([
+            'product_id' => $request->product_id,
+            'starting_bid' => $request->starting_bid,
+            'current_bid' => null,
+            'current_bidder_id' => null,
+            'countdown_ends_at' => null,
+            'auction_status' => 'active',
+        ]);
+
+        $live->load('product');
+
+        broadcast(new AuctionProductChanged($live));
+
+        return response()->json(['ok' => true]);
+    }
+
+    /** Close the active auction (settle winner) — also fired by the seller's device at 0s. */
+    public function closeAuction(Request $request, int $id): JsonResponse
+    {
+        $live = Live::findOrFail($id);
+        abort_if($live->seller_id !== $request->user()->id, 403);
+        abort_if($live->auction_status !== 'active', 422, 'No active auction.');
+
+        $winner = app(LiveService::class)->closeAuction($live);
+
+        return response()->json([
+            'ok' => true,
+            'winner_username' => $winner?->username,
+            'winning_bid' => (float) $live->current_bid,
+        ]);
     }
 
     /** Recent comments (oldest → newest) for initial render before realtime kicks in. */

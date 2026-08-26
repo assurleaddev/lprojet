@@ -93,7 +93,7 @@ Route::prefix('mobile')->group(function () {
         // Checkout (accepted offer or direct buy) → order
         Route::post('/checkout', [MobileOfferOrderController::class, 'checkout']);
 
-        // Live auctions
+        // Live auctions — viewer
         Route::get('/lives', [MobileLiveController::class, 'index']);
         Route::get('/lives/{id}', [MobileLiveController::class, 'show']);
         Route::get('/lives/{id}/comments', [MobileLiveController::class, 'comments']);
@@ -104,6 +104,14 @@ Route::prefix('mobile')->group(function () {
         Route::post('/lives/{id}/pre-bid', [MobileLiveController::class, 'preBid']);
         Route::get('/live-balance', [MobileLiveController::class, 'balance']);
         Route::get('/live-config', [MobileLiveController::class, 'config']);
+
+        // Live auctions — seller ("go live")
+        Route::get('/live-products', [MobileLiveController::class, 'sellerProducts']);
+        Route::post('/lives', [MobileLiveController::class, 'store']);
+        Route::post('/lives/{id}/go-live', [MobileLiveController::class, 'goLive']);
+        Route::post('/lives/{id}/end', [MobileLiveController::class, 'endLive']);
+        Route::post('/lives/{id}/set-product', [MobileLiveController::class, 'setProduct']);
+        Route::post('/lives/{id}/close-auction', [MobileLiveController::class, 'closeAuction']);
 
         // Order actions
         Route::post('/orders/{id}/ship', [MobileOfferOrderController::class, 'shipOrder']);

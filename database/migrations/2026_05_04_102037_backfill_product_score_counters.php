@@ -6,6 +6,12 @@ use Illuminate\Support\Facades\DB;
 return new class () extends Migration {
     public function up(): void
     {
+        // Correlated-UPDATE backfill uses MySQL syntax; on a fresh sqlite test DB
+        // there is nothing to backfill, so skip it there.
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         // Backfill favorites_count from existing favorites rows
         DB::statement("
             UPDATE products p

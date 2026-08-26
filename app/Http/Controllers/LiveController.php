@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\AuctionClosed;
-use App\Notifications\SellerWentLiveNotification;
 use App\Events\AuctionProductChanged;
 use App\Events\BidPlaced;
 use App\Events\CommentPosted;
@@ -11,13 +9,12 @@ use App\Events\LiveLiked;
 use App\Events\LiveStatusChanged;
 use App\Models\Live;
 use App\Models\LivePreBid;
-use App\Models\Order;
 use App\Models\Product;
+use App\Notifications\SellerWentLiveNotification;
+use App\Services\LiveService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-use Modules\Chat\Services\ChatService;
 use Modules\Wallet\Services\WalletService;
 use Peterujah\Agora\Agora as AgoraClient;
 use Peterujah\Agora\Builders\RtcToken;
@@ -207,7 +204,7 @@ class LiveController extends Controller
 
         // Close any active auction first
         if ($live->auction_status === 'active' && $live->current_bidder_id) {
-            $this->closeAuctionInternal($live);
+            app(LiveService::class)->closeAuction($live);
         }
 
         $live->update(['status' => 'ended', 'ended_at' => now()]);
@@ -323,7 +320,7 @@ class LiveController extends Controller
         abort_if($live->seller_id !== Auth::id(), 403);
         abort_if($live->auction_status !== 'active', 422);
 
-        $winner = $this->closeAuctionInternal($live);
+        $winner = app(LiveService::class)->closeAuction($live);
 
         return response()->json([
             'ok' => true,
@@ -424,80 +421,5 @@ class LiveController extends Controller
             'uid' => $uid,
             'app_id' => config('agora.app_id'),
         ]);
-    }
-
-    private function closeAuctionInternal(Live $live): ?object
-    {
-        $winner = $live->currentBidder;
-        $product = $live->product;
-
-        if ($product && $winner) {
-            DB::transaction(function () use ($live, $winner, $product) {
-                $bidAmount = (float) $live->current_bid;
-
-                // --- Fee calculation (mirrors CheckoutController) ---
-                $shippingCost = (float) config('settings.delivery_fee_fixed', 25.00);
-                $buyerProtectionPct = (float) config('settings.buyer_protection_fee_percentage', 5);
-                $buyerProtectionFixed = (float) config('settings.buyer_protection_fee_fixed', 0.70);
-                $platformCommissionPct = (float) config('settings.platform_commission_percentage', 0);
-
-                $buyerProtectionFee = ($bidAmount * ($buyerProtectionPct / 100)) + $buyerProtectionFixed;
-                $platformCommission = $bidAmount * ($platformCommissionPct / 100);
-                $totalAmount = $bidAmount + $shippingCost + $buyerProtectionFee;
-                $platformRevenue = $buyerProtectionFee + $platformCommission;
-                $vendorPayout = $bidAmount - $platformCommission;
-
-                // --- Wallet: move funds to escrow ---
-                app(WalletService::class)->payToEscrow(
-                    $winner,
-                    $product->vendor,
-                    $totalAmount,
-                    $vendorPayout,
-                    "Live auction #{$live->id}",
-                    $platformRevenue
-                );
-
-                // --- Create Order ---
-                $winnerAddress = $winner->addresses()->first();
-
-                $order = Order::create([
-                    'user_id' => $winner->id,
-                    'product_id' => $product->id,
-                    'vendor_id' => $product->vendor_id,
-                    'amount' => $bidAmount,
-                    'shipping_cost' => $shippingCost,
-                    'buyer_protection_fee' => $buyerProtectionFee,
-                    'platform_commission' => $platformCommission,
-                    'total_amount' => $totalAmount,
-                    'status' => 'processing',
-                    'payment_method' => 'wallet',
-                    'address_id' => $winnerAddress?->id,
-                    'wants_verification' => false,
-                    'verification_fee' => 0,
-                    'source' => 'live',
-                ]);
-
-                // --- Order item + mark product sold ---
-                $order->items()->create([
-                    'product_id' => $product->id,
-                    'price' => $bidAmount,
-                ]);
-
-                $product->update(['status' => 'sold']);
-
-                // --- Chat: notify both parties ---
-                $chatService = app(ChatService::class);
-                $conversation = $chatService->getOrCreateConversation($winner, $product->vendor, $product);
-
-                $chatService->sendItemSoldMessage($conversation, $winner, $order);
-                $chatService->sendOrderPlacedMessage($conversation, $winner, $order);
-            });
-        }
-
-        $live->update(['auction_status' => 'idle']);
-
-        broadcast(new AuctionClosed($live));
-
-        return $winner;
     }
 }

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration {
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -15,9 +15,10 @@ return new class extends Migration {
             $table->foreignId('buyer_id')->nullable()->constrained('users')->nullOnDelete()->after('vendor_id');
         });
 
-        // Modify status enum to include 'reserved'
-        // Using raw statement to be database agnostic if possible, but for MySQL/MariaDB modifying ENUM requires ALTER TABLE
-        DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold', 'reserved') DEFAULT 'pending'");
+        // Modify status enum to include 'reserved' (MySQL/MariaDB only; sqlite uses plain strings).
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold', 'reserved') DEFAULT 'pending'");
+        }
     }
 
     /**
@@ -32,6 +33,8 @@ return new class extends Migration {
 
         // Revert status enum to original
         DB::statement("UPDATE products SET status = 'pending' WHERE status = 'reserved'");
-        DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold') DEFAULT 'pending'");
+        if (DB::getDriverName() === 'mysql') {
+            DB::statement("ALTER TABLE products MODIFY COLUMN status ENUM('pending', 'approved', 'sold') DEFAULT 'pending'");
+        }
     }
 };
