@@ -64,6 +64,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/profile', [MobileProfileController::class, 'update']);
         Route::post('/profile/password', [MobileProfileController::class, 'updatePassword']);
         Route::post('/profile/notifications', [MobileProfileController::class, 'updateNotifications']);
+        Route::post('/users/{id}/follow', [MobileProfileController::class, 'toggleFollow']);
 
         Route::get('/my-products', [MobileProductController::class, 'mine']);
         Route::post('/products', [MobileProductController::class, 'store']);

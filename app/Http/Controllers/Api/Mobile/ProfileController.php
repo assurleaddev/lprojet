@@ -152,6 +152,31 @@ class ProfileController extends Controller
         ];
     }
 
+    /** Follow / unfollow a user (mirrors the web HomeController::toggleFollow). */
+    public function toggleFollow(Request $request, int $id): JsonResponse
+    {
+        $me = $request->user();
+        $user = User::findOrFail($id);
+
+        abort_if($me->is($user), 422, 'You cannot follow yourself.');
+
+        $me->isFollowing($user) ? $me->unfollow($user) : $me->follow($user);
+        $isFollowing = $me->isFollowing($user);
+
+        if ($isFollowing) {
+            try {
+                $user->notify(new \App\Notifications\NewFollowerNotification($me));
+            } catch (\Throwable $e) {
+                // Notification failure must not break the follow action.
+            }
+        }
+
+        return response()->json([
+            'following' => $isFollowing,
+            'followers_count' => $user->followers()->count(),
+        ]);
+    }
+
     private function notifications(User $user): array
     {
         $out = [];

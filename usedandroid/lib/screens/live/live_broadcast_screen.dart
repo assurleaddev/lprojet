@@ -5,7 +5,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 
+import '../../config/app_config.dart';
 import '../../services/live_realtime.dart';
 import '../../services/live_service.dart';
 import '../../theme/app_colors.dart';
@@ -41,6 +43,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
   Duration _remaining = Duration.zero;
   bool _closing = false;
   bool _busy = false;
+  double? _balance;
 
   @override
   void initState() {
@@ -54,6 +57,24 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
     _initIfGranted();
     _initRealtime();
+    _loadBalance();
+  }
+
+  Future<void> _loadBalance() async {
+    try {
+      final b = await LiveService().balance();
+      if (mounted) setState(() => _balance = b);
+    } catch (_) {}
+  }
+
+  Future<void> _share() async {
+    final web = AppConfig.apiBaseUrl.replaceAll('/api', '');
+    await Share.share('$web/lives/${_live.id}', subject: _live.title);
+  }
+
+  void _showBalance() {
+    final b = _balance;
+    _snack(b == null ? 'Solde indisponible' : 'Solde du portefeuille : ${b.toStringAsFixed(0)} MAD', AppColors.primary);
   }
 
   @override
@@ -377,6 +398,22 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
         children: [
           Positioned.fill(child: _videoLayer()),
           const Positioned.fill(child: LiveScrim()),
+          // Right action rail (share + wallet)
+          Positioned(
+            right: 10,
+            bottom: 260,
+            child: SafeArea(
+              child: Column(mainAxisSize: MainAxisSize.min, children: [
+                LiveSideButton(icon: Icons.reply, label: 'Partager', onTap: _share),
+                const SizedBox(height: 16),
+                LiveSideButton(
+                  icon: Icons.account_balance_wallet,
+                  label: _balance != null ? _balance!.toStringAsFixed(0) : 'Solde',
+                  onTap: _showBalance,
+                ),
+              ]),
+            ),
+          ),
           SafeArea(
             bottom: false,
             child: Padding(
@@ -387,7 +424,7 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
           SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, bottom: 8 + MediaQuery.of(context).viewInsets.bottom),
+              padding: EdgeInsets.only(left: 10, right: 76, bottom: 8 + MediaQuery.of(context).viewInsets.bottom),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -406,6 +443,15 @@ class _LiveBroadcastScreenState extends State<LiveBroadcastScreen> with WidgetsB
               ),
             ),
           ),
+          if (_live.isEnded)
+            Positioned.fill(
+              child: LiveEndedOverlay(
+                username: _live.seller?.name ?? '',
+                avatarUrl: _live.seller?.avatarUrl,
+                likes: _live.likesCount,
+                onBack: () => context.pop(),
+              ),
+            ),
         ],
       ),
     );

@@ -3,6 +3,8 @@ import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../config/app_config.dart';
 import '../../services/live_realtime.dart';
 import '../../services/live_service.dart';
 import '../../theme/app_colors.dart';
@@ -35,11 +37,18 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
   Timer? _tick;
   Duration _remaining = Duration.zero;
 
+  // Full-parity extras
+  final _heartsKey = GlobalKey<FloatingHeartsState>();
+  double? _balance;
+  bool _following = false;
+
   @override
   void initState() {
     super.initState();
     _live = widget.live;
+    _following = widget.live.seller?.isFollowing ?? false;
     _load();
+    _loadBalance();
     _startPoll(const Duration(seconds: 3));
     _tick = Timer.periodic(const Duration(seconds: 1), (_) => _updateCountdown());
     if (_live.isLive) _initAgora();
@@ -175,10 +184,147 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
       final comments = await LiveService().getComments(_live.id);
       if (!mounted) return;
       final wasLive = _live.isLive;
-      setState(() { _live = live; _comments = comments; });
+      setState(() {
+        _live = live;
+        _comments = comments;
+        _following = live.seller?.isFollowing ?? _following;
+      });
       // Stream just started while we were on the screen.
       if (!wasLive && live.isLive && _engine == null) _initAgora();
     } catch (_) {}
+  }
+
+  Future<void> _loadBalance() async {
+    try {
+      final b = await LiveService().balance();
+      if (mounted) setState(() => _balance = b);
+    } catch (_) {}
+  }
+
+  Future<void> _share() async {
+    final web = AppConfig.apiBaseUrl.replaceAll('/api', '');
+    await Share.share('$web/lives/${_live.id}', subject: _live.title);
+  }
+
+  Future<void> _toggleFollow() async {
+    final seller = _live.seller;
+    if (seller == null) return;
+    final prev = _following;
+    setState(() => _following = !prev); // optimistic
+    try {
+      final now = await LiveService().toggleFollow(seller.id);
+      if (mounted) setState(() => _following = now);
+    } catch (_) {
+      if (mounted) setState(() => _following = prev); // revert
+    }
+  }
+
+  void _showBalance() {
+    final b = _balance;
+    _snack(b == null ? 'Solde indisponible' : 'Solde du portefeuille : ${b.toStringAsFixed(0)} MAD', AppColors.primary);
+  }
+
+  Future<void> _preBid(ApiLiveProduct p) async {
+    final ctrl = TextEditingController(text: p.preBidMin > 0 ? p.preBidMin.toStringAsFixed(0) : '10');
+    final amount = await showDialog<double>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Pré-enchère — ${p.title}', maxLines: 2, style: const TextStyle(fontSize: 16)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(suffixText: 'MAD', helperText: 'Min ${p.preBidMin.toStringAsFixed(0)} MAD'),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () {
+              final v = double.tryParse(ctrl.text.trim());
+              if (v == null || v < p.preBidMin) return;
+              Navigator.pop(ctx, v);
+            },
+            child: const Text('Valider'),
+          ),
+        ],
+      ),
+    );
+    if (amount == null) return;
+    try {
+      await LiveService().preBid(_live.id, productId: p.id, maxAmount: amount);
+      if (mounted) _snack('Pré-enchère enregistrée : ${amount.toStringAsFixed(0)} MAD', AppColors.primary);
+    } on DioException catch (e) {
+      if (mounted) {
+        final data = e.response?.data;
+        _snack(data is Map && data['message'] != null ? data['message'].toString() : 'Pré-enchère impossible', Colors.red);
+      }
+    }
+  }
+
+  void _openShopSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: const Color(0xFF121212),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+          child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Center(
+              child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+            ),
+            Text('Boutique · ${_live.products.length} articles',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+            const SizedBox(height: 4),
+            const Text('Pré-enchérissez sur les articles à venir.',
+                style: TextStyle(color: Colors.white54, fontSize: 12)),
+            const SizedBox(height: 12),
+            if (_live.products.isEmpty)
+              const Padding(padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Text('Aucun article', style: TextStyle(color: Colors.white54)))
+            else
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _live.products.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (_, i) {
+                    final p = _live.products[i];
+                    return Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.06), borderRadius: BorderRadius.circular(12)),
+                      child: Row(children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: p.image != null
+                              ? CachedNetworkImage(imageUrl: p.image!, width: 44, height: 44, fit: BoxFit.cover)
+                              : Container(width: 44, height: 44, color: Colors.white12, child: const Icon(Icons.image_outlined, color: Colors.white54)),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                            Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                            Text('Pré-enchère dès ${p.preBidMin.toStringAsFixed(0)} MAD',
+                                style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                          ]),
+                        ),
+                        ElevatedButton(
+                          onPressed: () { Navigator.pop(ctx); _preBid(p); },
+                          style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                          child: const Text('Pré-enchérir'),
+                        ),
+                      ]),
+                    );
+                  },
+                ),
+              ),
+          ]),
+        ),
+      ),
+    );
   }
 
   Future<void> _placeBid() async {
@@ -220,6 +366,7 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
 
   Future<void> _like() async {
     setState(() => _live = _live.copyWith(likesCount: _live.likesCount + 1));
+    _heartsKey.currentState?.add();
     try {
       await LiveService().like(_live.id);
     } catch (_) {}
@@ -240,6 +387,14 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
         children: [
           Positioned.fill(child: _videoLayer()),
           const Positioned.fill(child: LiveScrim()),
+          // Right action rail
+          Positioned(
+            right: 10,
+            bottom: 260,
+            child: SafeArea(child: _actionRail()),
+          ),
+          // Floating hearts rise from just under the rail
+          Positioned(right: 6, bottom: 250, width: 60, height: 300, child: FloatingHearts(key: _heartsKey)),
           // Top chrome
           SafeArea(
             bottom: false,
@@ -252,7 +407,7 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
           SafeArea(
             top: false,
             child: Padding(
-              padding: EdgeInsets.only(left: 10, right: 10, bottom: 8 + MediaQuery.of(context).viewInsets.bottom),
+              padding: EdgeInsets.only(left: 10, right: 76, bottom: 8 + MediaQuery.of(context).viewInsets.bottom),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -271,9 +426,47 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
               ),
             ),
           ),
+          if (_live.isEnded)
+            Positioned.fill(
+              child: LiveEndedOverlay(
+                username: _live.seller?.name ?? '',
+                avatarUrl: _live.seller?.avatarUrl,
+                likes: _live.likesCount,
+                showFollow: _live.seller != null,
+                isFollowing: _following,
+                onFollow: _toggleFollow,
+                onBack: () => Navigator.of(context).maybePop(),
+              ),
+            ),
         ],
       ),
     );
+  }
+
+  Widget _actionRail() {
+    return Column(mainAxisSize: MainAxisSize.min, children: [
+      LiveSideButton(
+        icon: Icons.favorite,
+        iconColor: AppColors.primary,
+        label: '${_live.likesCount}',
+        onTap: _live.isEnded ? null : _like,
+      ),
+      const SizedBox(height: 16),
+      LiveSideButton(icon: Icons.reply, label: 'Partager', onTap: _share),
+      const SizedBox(height: 16),
+      LiveSideButton(
+        icon: Icons.account_balance_wallet,
+        label: _balance != null ? _balance!.toStringAsFixed(0) : 'Solde',
+        onTap: _showBalance,
+      ),
+      const SizedBox(height: 16),
+      LiveSideButton(
+        icon: Icons.shopping_bag,
+        label: 'Boutique',
+        badge: _live.products.isNotEmpty ? '${_live.products.length}' : null,
+        onTap: _openShopSheet,
+      ),
+    ]);
   }
 
   Widget _videoLayer() {
@@ -318,21 +511,11 @@ class _LiveWatchScreenState extends State<LiveWatchScreen> {
         avatarUrl: _live.seller?.avatarUrl,
         status: _live.status,
       ),
+      const SizedBox(width: 8),
+      if (_live.seller != null && !_live.isEnded)
+        LiveFollowButton(following: _following, onTap: _toggleFollow),
       const Spacer(),
-      _likeButton(),
     ]);
-  }
-
-  Widget _likeButton() {
-    return LiveGlassButton(
-      onTap: _live.isEnded ? null : _like,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        const Icon(Icons.favorite, size: 16, color: AppColors.primary),
-        const SizedBox(width: 6),
-        Text('${_live.likesCount}', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-      ]),
-    );
   }
 
   Widget _auctionPanel() {

@@ -42,6 +42,10 @@ class LiveResource extends JsonResource
                 'id' => (int) $this->seller->id,
                 'name' => $this->seller->full_name ?: $this->seller->username,
                 'avatar_url' => $this->seller->avatar_url ?? null,
+                'is_following' => $request->user() && $request->user()->id !== $this->seller->id
+                    ? $request->user()->isFollowing($this->seller)
+                    : false,
+                'followers_count' => $this->seller->followers()->count(),
             ] : null),
 
             'current_product' => $this->whenLoaded('product', fn () => $this->product ? [

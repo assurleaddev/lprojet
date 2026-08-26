@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -391,5 +393,221 @@ class _SlideToBidState extends State<SlideToBid> {
         ]),
       );
     });
+  }
+}
+
+/// A vertical action-rail button (icon bubble + label + optional badge),
+/// matching the web's right sidebar.
+class LiveSideButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final String? badge;
+  final Color iconColor;
+  const LiveSideButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.onTap,
+    this.badge,
+    this.iconColor = Colors.white,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Stack(clipBehavior: Clip.none, children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.35), shape: BoxShape.circle),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          if (badge != null)
+            Positioned(
+              right: -2,
+              top: -2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(color: AppColors.greenBadge, borderRadius: BorderRadius.circular(10)),
+                constraints: const BoxConstraints(minWidth: 18),
+                child: Text(badge!, textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
+              ),
+            ),
+        ]),
+        const SizedBox(height: 4),
+        Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
+      ]),
+    );
+  }
+}
+
+/// Small follow / following pill for the top bar.
+class LiveFollowButton extends StatelessWidget {
+  final bool following;
+  final VoidCallback? onTap;
+  const LiveFollowButton({super.key, required this.following, this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: following ? Colors.black.withValues(alpha: 0.35) : AppColors.primary,
+          borderRadius: BorderRadius.circular(20),
+          border: following ? Border.all(color: Colors.white54) : null,
+        ),
+        child: Text(following ? 'Suivi' : 'Suivre',
+            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+      ),
+    );
+  }
+}
+
+/// Emits floating hearts (call [FloatingHeartsState.add] via a GlobalKey).
+class FloatingHearts extends StatefulWidget {
+  const FloatingHearts({super.key});
+  @override
+  State<FloatingHearts> createState() => FloatingHeartsState();
+}
+
+class _HeartAnim {
+  final AnimationController ctrl;
+  final double startX; // 0..1
+  final double scale;
+  final double drift;
+  _HeartAnim(this.ctrl, this.startX, this.scale, this.drift);
+}
+
+class FloatingHeartsState extends State<FloatingHearts> with TickerProviderStateMixin {
+  final _rand = math.Random();
+  final List<_HeartAnim> _hearts = [];
+
+  void add() {
+    final ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 1700));
+    final h = _HeartAnim(ctrl, _rand.nextDouble(), 0.7 + _rand.nextDouble() * 0.5, (_rand.nextDouble() - 0.5) * 36);
+    ctrl.addStatusListener((s) {
+      if (s == AnimationStatus.completed && mounted) {
+        setState(() => _hearts.remove(h));
+        ctrl.dispose();
+      }
+    });
+    setState(() => _hearts.add(h));
+    ctrl.forward();
+  }
+
+  @override
+  void dispose() {
+    for (final h in _hearts) {
+      h.ctrl.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: Stack(clipBehavior: Clip.none, children: _hearts.map((h) {
+        return AnimatedBuilder(
+          animation: h.ctrl,
+          builder: (_, __) {
+            final t = h.ctrl.value;
+            final opacity = (t < 0.15 ? t / 0.15 : (1 - (t - 0.15) / 0.85)).clamp(0.0, 1.0);
+            return Positioned(
+              right: 6 + h.startX * 14 + h.drift * math.sin(t * math.pi * 2),
+              bottom: 10 + t * 240,
+              child: Opacity(
+                opacity: opacity,
+                child: Transform.scale(
+                  scale: h.scale,
+                  child: const Icon(Icons.favorite, color: AppColors.primary, size: 26),
+                ),
+              ),
+            );
+          },
+        );
+      }).toList()),
+    );
+  }
+}
+
+/// Full-screen "LIVE terminé" overlay shown when a live has ended.
+class LiveEndedOverlay extends StatelessWidget {
+  final String username;
+  final String? avatarUrl;
+  final int likes;
+  final bool showFollow;
+  final bool isFollowing;
+  final VoidCallback? onFollow;
+  final VoidCallback onBack;
+  const LiveEndedOverlay({
+    super.key,
+    required this.username,
+    required this.likes,
+    required this.onBack,
+    this.avatarUrl,
+    this.showFollow = false,
+    this.isFollowing = false,
+    this.onFollow,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black.withValues(alpha: 0.85),
+      alignment: Alignment.center,
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          padding: const EdgeInsets.all(3),
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2)),
+          child: CircleAvatar(
+            radius: 40,
+            backgroundColor: Colors.white12,
+            backgroundImage: avatarUrl != null ? CachedNetworkImageProvider(avatarUrl!) : null,
+            child: avatarUrl == null ? const Icon(Icons.person, size: 40, color: Colors.white54) : null,
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text('LIVE terminé', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 6),
+        Text('@$username', style: const TextStyle(color: Colors.white70, fontSize: 14)),
+        const SizedBox(height: 18),
+        Column(children: [
+          Text('$likes', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800)),
+          const Text('J’aime', style: TextStyle(color: Colors.white54, fontSize: 12)),
+        ]),
+        const SizedBox(height: 22),
+        if (showFollow)
+          SizedBox(
+            width: 200,
+            child: ElevatedButton(
+              onPressed: onFollow,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isFollowing ? Colors.white24 : AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
+              child: Text(isFollowing ? 'Suivi' : 'Suivre'),
+            ),
+          ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: 200,
+          child: OutlinedButton(
+            onPressed: onBack,
+            style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white38)),
+            child: const Text('Retour'),
+          ),
+        ),
+        const SizedBox(height: 16),
+        const Text('Merci d’avoir regardé', style: TextStyle(color: Colors.white38, fontSize: 12)),
+      ]),
+    );
   }
 }

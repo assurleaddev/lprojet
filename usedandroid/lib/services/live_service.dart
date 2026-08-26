@@ -12,12 +12,17 @@ class ApiLiveUser {
   final int id;
   final String name;
   final String? avatarUrl;
-  const ApiLiveUser({required this.id, required this.name, this.avatarUrl});
+  final bool isFollowing;
+  const ApiLiveUser({required this.id, required this.name, this.avatarUrl, this.isFollowing = false});
   factory ApiLiveUser.fromJson(Map<String, dynamic> j) => ApiLiveUser(
         id: _i(j['id']),
         name: j['name'] ?? '',
         avatarUrl: j['avatar_url'] != null ? ApiClient.fixImageUrl(j['avatar_url']) : null,
+        isFollowing: j['is_following'] == true,
       );
+
+  ApiLiveUser copyWith({bool? isFollowing}) =>
+      ApiLiveUser(id: id, name: name, avatarUrl: avatarUrl, isFollowing: isFollowing ?? this.isFollowing);
 }
 
 class ApiLiveProduct {
@@ -117,6 +122,7 @@ class ApiLive {
     DateTime? countdownEndsAt,
     String? currentBidderName,
     ApiLiveProduct? currentProduct,
+    ApiLiveUser? seller,
   }) =>
       ApiLive(
         id: id,
@@ -130,7 +136,7 @@ class ApiLive {
         minNextBid: minNextBid ?? this.minNextBid,
         countdownEndsAt: countdownEndsAt ?? this.countdownEndsAt,
         agoraChannel: agoraChannel,
-        seller: seller,
+        seller: seller ?? this.seller,
         currentProduct: currentProduct ?? this.currentProduct,
         currentBidderName: currentBidderName ?? this.currentBidderName,
         products: products,
@@ -204,6 +210,19 @@ class LiveService {
   Future<Map<String, dynamic>> closeAuction(int id) async {
     final r = await _client.dio.post('/mobile/lives/$id/close-auction');
     return Map<String, dynamic>.from(r.data);
+  }
+
+  /// Pre-bid a max amount on an upcoming product. Returns {ok, pre_bid_count}.
+  Future<Map<String, dynamic>> preBid(int id, {required int productId, required double maxAmount}) async {
+    final r = await _client.dio.post('/mobile/lives/$id/pre-bid',
+        data: {'product_id': productId, 'max_amount': maxAmount});
+    return Map<String, dynamic>.from(r.data);
+  }
+
+  /// Follow / unfollow the given user. Returns the new following state.
+  Future<bool> toggleFollow(int userId) async {
+    final r = await _client.dio.post('/mobile/users/$userId/follow');
+    return r.data['following'] == true;
   }
 
   // ----- Viewer -----

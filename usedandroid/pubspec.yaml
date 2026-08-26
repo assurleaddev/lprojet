@@ -23,6 +23,7 @@ dependencies:
   permission_handler: ^11.3.1
   agora_rtc_engine: ^6.3.2
   web_socket_channel: ^3.0.0
+  share_plus: ^10.0.0
 
 dev_dependencies:
   flutter_test:
