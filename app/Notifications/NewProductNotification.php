@@ -47,7 +47,7 @@ class NewProductNotification extends Notification implements ShouldBroadcast, Sh
             'type' => 'new_product',
             'product_id' => $this->product->id,
             'vendor_id' => $this->product->vendor_id,
-            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
+            'product_image' => $this->product->getFeaturedImageUrl('preview'),
             'message' => "New product from {$this->product->vendor->full_name}: {$this->product->name}",
             'url' => route('products.show', $this->product),
         ]);
@@ -59,7 +59,7 @@ class NewProductNotification extends Notification implements ShouldBroadcast, Sh
             'type' => 'new_product',
             'product_id' => $this->product->id,
             'vendor_id' => $this->product->vendor_id,
-            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
+            'product_image' => $this->product->getFeaturedImageUrl('preview'),
             'message' => "New product from {$this->product->vendor->full_name}: {$this->product->name}",
             'url' => route('products.show', $this->product),
         ];

@@ -42,7 +42,7 @@
         <div class="max-h-[400px] overflow-y-auto">
             @if($currentViewCategory)
                 <!-- "All" option for current category -->
-                <a href="{{ route('search', array_merge(request()->except(['categories', 'page']), ['categories' => [$currentViewCategory->id]])) }}"
+                <a href="{{ route('search', array_merge($baseQuery, ['categories' => [$currentViewCategory->id]])) }}"
                     class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 group">
                     <span class="text-gray-900 font-medium">All in {{ $currentViewCategory->name }}</span>
                     <div class="w-5 h-5 rounded-full border border-gray-300 {{ in_array($currentViewCategory->id, $categoryIds) ? 'border-gray-900' : '' }}"
@@ -51,7 +51,7 @@
                 </a>
             @else
                 <!-- Clear filter option if root -->
-                <a href="{{ route('search', request()->except(['categories', 'page'])) }}"
+                <a href="{{ route('search', $baseQuery) }}"
                     class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 group text-gray-500">
                     <span class="font-medium">All Categories</span>
                 </a>
@@ -60,7 +60,7 @@
             @foreach($categories as $category)
                 <div class="flex items-center justify-between px-4 py-3 hover:bg-gray-50 border-b border-gray-50 group cursor-pointer"
                     @if($category->children->count() > 0) wire:click="drillDown({{ $category->id }})" @else
-                        onclick="window.location='{{ route('search', array_merge(request()->except(['categories', 'page']), ['categories' => [$category->id]])) }}'"
+                        onclick="window.location='{{ route('search', array_merge($baseQuery, ['categories' => [$category->id]])) }}'"
                     @endif>
                     <span class="text-gray-700 {{ in_array($category->id, $categoryIds) ? 'font-bold text-gray-900' : '' }}">
                         {{ $category->translated_name }}

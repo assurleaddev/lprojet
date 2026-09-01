@@ -87,7 +87,7 @@
                                 <path
                                     d="M12 8a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm-1-6h2v4h-2V2Zm0 16h2v4h-2v-4ZM2 11h4v2H2v-2Zm16 0h4v2h-4v-2Zm-9.78-6.36 1.41-1.41 2.83 2.83-1.41 1.41-2.83-2.83Zm8.49 11.32 2.83 2.83-1.41 1.41-2.83-2.83 1.41-1.41Z" />
                             </svg>
-                            Vu il y a 3 heures
+                            {{ __('Vu') }} {{ $user->last_seen_at ? $user->last_seen_at->diffForHumans() : __('récemment') }}
                         </div>
                         <livewire:follower-stats :user="$user" />
                     </div>

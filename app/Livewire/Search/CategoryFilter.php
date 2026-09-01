@@ -10,17 +10,23 @@ class CategoryFilter extends Component
     public $categoryIds = [];
     public $viewCategoryId = null;
 
+    // Captured ONCE from the initial page request. Using request() during a
+    // Livewire re-render would leak the /livewire/update payload into the
+    // filter links, producing malformed /search URLs → full-page 500.
+    public $baseQuery = [];
+
     public function mount($categoryIds = [])
     {
         $this->categoryIds = $categoryIds;
+        $this->baseQuery = request()->except(['categories', 'page']);
 
         // If a category is selected, start view at its parent (or itself if it has children)
         // ideally we want to see the list containing the selected item
-        if (!empty($categoryIds)) {
+        if (! empty($categoryIds)) {
             $firstId = $categoryIds[0];
             $selected = Category::find($firstId);
             if ($selected) {
-                // If selected has children, viewed category is itself? 
+                // If selected has children, viewed category is itself?
                 // No, usually filters show siblings. So view parent.
                 // But if we want Vinted style:
                 // "Clothes" -> "Men" -> "Jeans".
@@ -47,12 +53,12 @@ class CategoryFilter extends Component
     public function render()
     {
         if ($this->viewCategoryId) {
-            $currentViewCategory = Category::with(['children'])->find($this->viewCategoryId);
+            $currentViewCategory = Category::with(['children.children'])->find($this->viewCategoryId);
             $categories = $currentViewCategory ? $currentViewCategory->children : collect();
             $title = $currentViewCategory ? $currentViewCategory->name : 'Categories';
         } else {
             // Root
-            $categories = Category::whereNull('parent_id')->with(['children'])->get();
+            $categories = Category::whereNull('parent_id')->with(['children.children'])->get();
             $currentViewCategory = null;
             $title = 'Categories';
         }
@@ -60,7 +66,7 @@ class CategoryFilter extends Component
         return view('livewire.search.category-filter', [
             'categories' => $categories,
             'currentViewCategory' => $currentViewCategory,
-            'title' => $title
+            'title' => $title,
         ]);
     }
 }

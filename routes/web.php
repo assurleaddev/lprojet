@@ -330,6 +330,7 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'middleware' => ['auth', 'r
     });
 
     Route::resource('shipping-options', \App\Http\Controllers\Backend\ShippingOptionController::class);
+    Route::resource('brands', \App\Http\Controllers\Backend\BrandController::class)->except(['show']);
 });
 
 /**

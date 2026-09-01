@@ -422,8 +422,14 @@
                     <div class="p-6 bg-white rounded-lg shadow-sm border border-gray-100">
                         <div class="flex items-center justify-between mb-4">
                             <a href="{{ route('vendor.show', $product->vendor) }}" class="flex items-center gap-3 group">
-                                <img src="{{ $product->vendor->avatar_url }}" alt="{{ $product->vendor->username }}"
-                                    class="w-12 h-12 rounded-full border border-gray-100">
+                                @if($product->vendor->avatar_id && $product->vendor->avatar)
+                                    <img src="{{ $product->vendor->avatar_url }}" alt="{{ $product->vendor->username }}"
+                                        class="w-12 h-12 rounded-full border border-gray-100 object-cover">
+                                @else
+                                    <div class="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center bg-gray-900 text-white font-semibold">
+                                        {{ $product->vendor->initials }}
+                                    </div>
+                                @endif
                                 <div>
                                     <h3 class="text-base font-semibold text-gray-900 group-hover:underline">
                                         {{ $product->vendor->username }}

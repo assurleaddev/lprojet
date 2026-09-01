@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>@yield('title', config('app.name'))</title>
-    <link rel="icon" href="{{ asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ config('settings.site_favicon') ?? config('settings.site_icon') ?? asset('favicon.ico') }}">
 
     @include('backend.layouts.partials.theme-colors')
     @yield('before_vite_build')

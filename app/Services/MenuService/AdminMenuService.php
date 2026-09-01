@@ -150,6 +150,13 @@ class AdminMenuService
                     'permissions' => 'attributes.manage',
                 ],
                 [
+                    'label' => __('Brands'),
+                    'route' => route('admin.brands.index'),
+                    'active' => Route::is('admin.brands.*'),
+                    'priority' => 35,
+                    'permissions' => 'categories.manage',
+                ],
+                [
                     'label' => __('Shipping Options'),
                     'route' => route('admin.shipping-options.index'),
                     'active' => Route::is('admin.shipping-options.*'),

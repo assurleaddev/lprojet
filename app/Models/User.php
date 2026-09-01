@@ -197,13 +197,15 @@ class User extends Authenticatable
      */
     public function getInitialsAttribute(): string
     {
-        $name = $this->full_name ?: $this->username;
-        $words = explode(' ', (string) $name);
-        $initials = '';
-        foreach ($words as $word) {
-            $initials .= strtoupper(substr($word, 0, 1));
+        $name = trim($this->full_name ?: (string) $this->username);
+        $words = array_values(array_filter(preg_split('/\s+/', $name)));
+
+        // Two words → first letter of first + last name; single word → first 2 chars.
+        if (count($words) >= 2) {
+            return strtoupper(substr($words[0], 0, 1).substr($words[1], 0, 1));
         }
-        return substr($initials, 0, 2);
+
+        return strtoupper(substr($name, 0, 2));
     }
 
     public function orders()

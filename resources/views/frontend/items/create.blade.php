@@ -47,14 +47,14 @@
                     <label class="block font-semibold mb-1">{{ __('Title') }}</label>
                     <input type="text" name="title" value="{{ $duplicateProduct->name ?? '' }}"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
-                        placeholder="ex. Pull blanc COS" required>
+                        placeholder="{{ __('Tell your buyer what you\'re selling') }}" required>
                 </div>
 
                 <div>
                     <label class="block font-semibold mb-1">{{ __('Describe your item') }}</label>
                     <textarea name="description" rows="4"
                         class="w-full border border-gray-300 rounded-md p-2.5 focus:ring-gray-500 focus:border-gray-500"
-                        placeholder="ex. porté quelques fois seulement, taille fidèle"
+                        placeholder="{{ __('Describe what you\'re selling') }}"
                         required>{{ $duplicateProduct->description ?? '' }}</textarea>
                 </div>
             </div>

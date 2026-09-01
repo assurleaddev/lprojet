@@ -1,11 +1,11 @@
 <div x-data="{ open: @entangle('open') }" x-show="open" style="display: none;"
-    class="fixed inset-0 z-40 flex items-center justify-center bg-gray-100 dark:bg-gray-900 backdrop-blur-sm"
+    class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-gray-100 dark:bg-gray-900 backdrop-blur-sm"
     x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
     x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
     x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
 
     <div @click.away="open = false"
-        class="relative w-full max-w-md p-6 bg-white rounded-xl shadow-xl dark:bg-gray-800 transform transition-all"
+        class="relative w-full max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6 bg-white rounded-xl shadow-xl dark:bg-gray-800 transform transition-all"
         x-transition:enter="transition ease-out duration-300"
         x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -37,22 +37,6 @@
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 mr-3" alt="Google">
                         {{ __('Continuer avec Google') }}
                     </a>
-
-                    <!-- Apple — not available -->
-                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
-                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.45-1.64 3.98-1.64 1.57 0 3.36.81 4.31 2.37-3.72 1.99-3.08 7.33.65 8.94-.67 1.64-1.59 3.23-2.82 4.41l.05.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                        </svg>
-                        {{ __('Continuer avec Apple') }}
-                    </span>
-
-                    <!-- Facebook — not available -->
-                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
-                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                        </svg>
-                        {{ __('Continuer avec Facebook') }}
-                    </span>
                 </div>
 
                 <div class="mt-8 space-y-2">
@@ -80,22 +64,6 @@
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" class="w-5 h-5 mr-3" alt="Google">
                         {{ __('Continuer avec Google') }}
                     </a>
-
-                    <!-- Apple — not available -->
-                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
-                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.45-1.64 3.98-1.64 1.57 0 3.36.81 4.31 2.37-3.72 1.99-3.08 7.33.65 8.94-.67 1.64-1.59 3.23-2.82 4.41l.05.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                        </svg>
-                        {{ __('Continuer avec Apple') }}
-                    </span>
-
-                    <!-- Facebook — not available -->
-                    <span class="flex items-center justify-center w-full px-4 py-2.5 text-sm font-medium text-gray-400 bg-white border border-gray-200 rounded-full cursor-not-allowed opacity-50 dark:bg-gray-800 dark:border-gray-700 select-none">
-                        <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.791-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                        </svg>
-                        {{ __('Continuer avec Facebook') }}
-                    </span>
                 </div>
 
                 <div class="mt-8 space-y-2">

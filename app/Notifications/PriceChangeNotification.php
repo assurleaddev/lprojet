@@ -70,7 +70,7 @@ class PriceChangeNotification extends Notification implements ShouldQueue
         return [
             'type' => 'price_change',
             'product_id' => $this->product->id,
-            'product_image' => $this->product->getFeaturedImageUrl('thumb'),
+            'product_image' => $this->product->getFeaturedImageUrl('preview'),
             'old_price' => $this->oldPrice,
             'new_price' => $this->newPrice,
             'message' => "Price drop! {$this->product->name} is now " . number_format($this->newPrice, 2) . " MAD (-{$discount}%)",

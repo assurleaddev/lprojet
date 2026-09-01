@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name'))</title>
 
-    <link rel="icon" href="{{ config('settings.site_favicon') ?? asset('favicon.ico') }}" type="image/x-icon">
+    <link rel="icon" href="{{ config('settings.site_favicon') ?? config('settings.site_icon') ?? asset('favicon.ico') }}">
 
     @include('backend.layouts.partials.theme-colors')
     @yield('before_vite_build')

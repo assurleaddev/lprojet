@@ -18,7 +18,7 @@
                     <a href="{{ route('notifications.read', $notification->id) }}"
                         class="p-4 border-b last:border-b-0 hover:bg-gray-50 transition-colors flex items-start gap-4 {{ $notification->read_at ? '' : 'bg-blue-50' }}">
                         @if(!empty($notification->data['product_image']))
-                            <img src="{{ $notification->data['product_image'] }}" class="w-12 h-12 rounded object-cover flex-shrink-0 mt-0.5">
+                            <img src="{{ $notification->data['product_image'] }}" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('div'),{className:'w-12 h-12 rounded bg-gray-100 flex-shrink-0 mt-0.5'}))" class="w-12 h-12 rounded object-cover flex-shrink-0 mt-0.5">
                         @else
                             <div class="w-12 h-12 rounded bg-gray-100 flex-shrink-0 mt-0.5"></div>
                         @endif
