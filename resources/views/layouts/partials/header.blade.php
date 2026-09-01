@@ -133,7 +133,7 @@
                                                 <a :href="notification.url"
                                                     class="px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-0 flex items-start gap-3 group">
                                                     <template x-if="notification.product_image">
-                                                        <img :src="notification.product_image" @error="notification.product_image = null" class="w-10 h-10 rounded object-cover flex-shrink-0 mt-0.5">
+                                                        <img :src="notification.product_image" x-on:error="notification.product_image = null" class="w-10 h-10 rounded object-cover flex-shrink-0 mt-0.5">
                                                     </template>
                                                     <template x-if="!notification.product_image">
                                                         <div class="w-10 h-10 rounded bg-gray-100 flex-shrink-0 mt-0.5"></div>
