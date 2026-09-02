@@ -7,7 +7,6 @@ use App\Models\User;
 use Livewire\Component;
 use Modules\Chat\Services\ChatService;
 use Modules\Chat\Models\Conversation;
-use Illuminate\Support\Facades\Log;
 
 class BundleBuilder extends Component
 {
@@ -44,7 +43,25 @@ class BundleBuilder extends Component
         }
 
         $buyer = auth()->user();
-        $products = Product::whereIn('id', $this->selectedProducts)->get();
+
+        // A vendor cannot bundle-buy from themselves.
+        if ($buyer->id === $this->vendor->id) {
+            $this->dispatch('toast', message: 'You cannot buy your own products.', type: 'error');
+            return;
+        }
+
+        // Only the mounted vendor's own, currently sellable products — never trust
+        // client-supplied IDs (they could reference other sellers' or sold items).
+        $products = Product::whereIn('id', $this->selectedProducts)
+            ->where('vendor_id', $this->vendor->id)
+            ->whereIn('status', ['approved', 'active'])
+            ->get();
+
+        if ($products->count() !== count(array_unique($this->selectedProducts))) {
+            $this->selectedProducts = $products->pluck('id')->all();
+            $this->dispatch('toast', message: 'Some selected products are no longer available.', type: 'error');
+            return;
+        }
 
         // Calculate price using ChatService
         $priceData = $chatService->calculateBundlePrice($this->vendor, $products->all());
@@ -68,7 +85,7 @@ class BundleBuilder extends Component
         $products = $this->vendor->products()->whereIn('status', ['approved', 'active'])->get();
 
         return view('chat::livewire.bundle-builder', [
-            'vendorProducts' => $products
+            'vendorProducts' => $products,
         ]);
     }
 }

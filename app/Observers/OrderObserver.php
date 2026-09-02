@@ -38,14 +38,24 @@ class OrderObserver
      */
     public function updated(Order $order): void
     {
-        // Check if status was changed to 'delivered' or 'completed'
+        // Check if status was changed to 'delivered' or 'completed'.
+        // This observer is the SINGLE place seller payout happens — callers must
+        // only change the order status and never credit/release wallets themselves
+        // (doing both used to double-pay sellers).
         if ($order->isDirty('status') && in_array($order->status, ['delivered', 'completed'])) {
             $originalStatus = $order->getOriginal('status');
 
             // Only release if moving FROM a non-final status
-            if (!in_array($originalStatus, ['delivered', 'completed'])) {
+            if (! in_array($originalStatus, ['delivered', 'completed'])) {
                 try {
-                    $this->walletService->releasePendingFunds($order->vendor, $order->payout_amount, 'Order #' . $order->id);
+                    if ($order->payment_method === 'cod') {
+                        // Cash was collected by the courier — nothing sits in escrow;
+                        // credit the seller's available balance directly.
+                        $this->walletService->credit($order->vendor, $order->payout_amount, 'sale', 'COD sale for Order #' . $order->id, 'order_' . $order->id);
+                    } else {
+                        // Wallet/card — move the escrowed payout from pending to available.
+                        $this->walletService->releasePendingFunds($order->vendor, $order->payout_amount, 'Order #' . $order->id);
+                    }
                 } catch (\Exception $e) {
                     \Log::error("OrderObserver: Error releasing funds for Order #{$order->id}: " . $e->getMessage());
                 }

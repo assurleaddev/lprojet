@@ -51,8 +51,9 @@ class ReviewController extends Controller
             'author_type' => User::class,
         ]);
 
-        // Complete Order & Release Funds
-        $walletService->releasePendingFunds($order->vendor, $order->amount, 'Order #' . $order->id);
+        // Complete Order. Payout is handled by OrderObserver on the status change
+        // to delivered/completed — this path used to release $order->amount (which
+        // wrongly included the platform commission) on top of the observer release.
         $order->update(['status' => 'completed']);
 
         // Notify via Chat

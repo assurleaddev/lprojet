@@ -567,6 +567,13 @@ class ChatWindow extends Component
             return;
         }
 
+        // Only the product's owner can relist it — Livewire actions are callable
+        // directly, so the $isSeller gate in the blade is not enough.
+        if ((int) $this->conversation->product->vendor_id !== (int) Auth::id()) {
+            $this->dispatch('toast', message: 'Unauthorized.', type: 'error');
+            return;
+        }
+
         if ($this->conversation->product->status === 'approved') {
             $this->dispatch('toast', message: 'Item is already listed.', type: 'info');
             return;
@@ -839,19 +846,10 @@ class ChatWindow extends Component
             'author_type' => \App\Models\User::class,
         ]);
 
-        // 2. Release Funds & Complete Order
+        // 2. Complete Order — the payout (escrow release, or COD credit) happens in
+        // OrderObserver on this status change. Crediting here as well double-paid
+        // sellers whenever they had other pending funds.
         try {
-            $vendorPayout = $order->amount - ($order->platform_commission ?? 0);
-            $walletService = app(\Modules\Wallet\Services\WalletService::class);
-
-            if ($order->payment_method === 'cod') {
-                // Cash was collected by the delivery company — credit the seller's balance directly, no escrow to release.
-                $walletService->credit($order->vendor, $vendorPayout, 'sale', 'COD sale for Order #' . $order->id, 'order_' . $order->id);
-            } else {
-                // Wallet or card — move from pending_balance to available balance.
-                $walletService->releasePendingFunds($order->vendor, $vendorPayout, 'Order #' . $order->id);
-            }
-
             $order->update(['status' => 'completed']);
 
             // 3. Send Message

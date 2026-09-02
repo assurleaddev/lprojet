@@ -457,15 +457,14 @@ class OfferOrderController extends Controller
             return response()->json(['message' => 'Order must be shipped before confirming receipt'], 422);
         }
 
+        // The status change triggers OrderObserver, which is the single place the
+        // seller payout happens (escrow release, or direct credit for COD). Never
+        // credit wallets here — the old manual increment double-paid the seller
+        // and wrote to a users.wallet_balance column that doesn't exist.
         $order->update([
             'status' => 'completed',
             'received_at' => now(),
         ]);
-
-        // Credit seller wallet
-        if ($order->vendor && $order->payout_amount > 0) {
-            $order->vendor->increment('wallet_balance', $order->payout_amount);
-        }
 
         $conversation = $order->offer?->conversation;
         if ($conversation) {

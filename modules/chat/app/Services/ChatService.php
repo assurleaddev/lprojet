@@ -47,6 +47,11 @@ class ChatService
 
     public function getOrCreateConversation(User $userA, User $userB, ?Product $product = null): Conversation
     {
+        // Defense in depth: a user can never converse (or make offers) with themselves.
+        if ($userA->id === $userB->id) {
+            throw new \Exception('Cannot start a conversation with yourself.');
+        }
+
         // To ensure consistency, sort users IDs before querying/creating
         $ids = [$userA->id, $userB->id];
         sort($ids);
@@ -133,12 +138,14 @@ class ChatService
     public function markAsRead(Conversation $conversation, User $user): void
     {
         // Mark messages as read and delivered
+        // NB: no NOW() — it is MySQL-only (sqlite tests use the same code path).
+        $timestamp = now()->format('Y-m-d H:i:s');
         $updated = $conversation->messages()
             ->where('user_id', '!=', $user->id)
             ->whereNull('read_at')
             ->update([
                 'read_at' => now(),
-                'delivered_at' => \DB::raw('COALESCE(delivered_at, NOW())'),
+                'delivered_at' => \DB::raw("COALESCE(delivered_at, '{$timestamp}')"),
             ]);
 
         // Mark related database notifications as read

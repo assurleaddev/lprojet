@@ -41,13 +41,14 @@ class MakeOfferModal extends Component
 
         $this->productPrice = $this->product->price; // Set the price
 
-        // If it's a counter offer, ensure the user is the owner (Seller)
-        if ($this->isCounter && $this->product->user_id !== Auth::id()) {
+        // If it's a counter offer, ensure the user is the owner (Seller).
+        // NB: products use vendor_id — there is no user_id column.
+        if ($this->isCounter && (int) $this->product->vendor_id !== (int) Auth::id()) {
             return; // Unauthorized
         }
 
         // If it's a normal offer, ensure the user is NOT the owner (Buyer)
-        if (! $this->isCounter && $this->product->user_id === Auth::id()) {
+        if (! $this->isCounter && (int) $this->product->vendor_id === (int) Auth::id()) {
             return; // Owner cannot make offer on own product
         }
 
@@ -74,6 +75,15 @@ class MakeOfferModal extends Component
         if (! $user) {
             return;
         } // Should not happen
+
+        // Re-validate roles at submit time — public Livewire properties are
+        // client-writable, so the openModal() checks alone are not enough.
+        if (! $this->isCounter && (int) $this->product->vendor_id === (int) $user->id) {
+            return; // Owner cannot offer on their own product
+        }
+        if ($this->isCounter && (int) $this->product->vendor_id !== (int) $user->id) {
+            return; // Only the owner can counter
+        }
 
         $validated = $this->validate([
             'offerPrice' => ['required', 'numeric', 'min:0.01', 'max:' . $this->product->price],
