@@ -6,7 +6,7 @@
         <!-- Hero -->
         @guest
             <section class="relative mb-8 h-[350px] md:h-[450px] bg-cover bg-center"
-                style="background-image:url('{{ asset('images/home/hero.png') }}');">
+                style="background-image:url('{{ asset('images/home/hero.jpg') }}');">
                 <div class="shell px-4 md:px-6 h-full">
                     <div class="absolute top-1/2 -translate-y-1/2 bg-white p-6 md:p-8 rounded-lg shadow-lg w-[90%] max-w-sm">
                         <h1 class="text-[28px] md:text-[32px] leading-tight font-extrabold text-gray-800 mb-5">{{ __('Ready to declutter your wardrobe?') }}</h1>
