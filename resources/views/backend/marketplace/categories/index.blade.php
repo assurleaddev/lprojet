@@ -38,14 +38,5 @@
         </div>
     </x-card>
 
-    @push('scripts')
-        <script>
-            $(document).on("click", ".togggler", function () {
-                // Your custom jQuery logic here
-                const targetId = $(this)[0].dataset.tergetId;
-                $(`[data-parent-id="${targetId}"]`).css('display', 'table-row')
-            });
-        </script>
-    @endpush
 
 </x-layouts.backend-layout>
