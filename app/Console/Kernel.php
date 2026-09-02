@@ -30,8 +30,18 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // Schedule the demo database refresh command every 15 minutes in demo mode.
-        $schedule->command('demo:refresh-database')->everyFifteenMinutes();
+        // Schedule the demo database refresh command every 15 minutes — DEMO
+        // environment only. This runs migrate:fresh --seed; it must never be
+        // schedulable in production even if demo_mode is misconfigured.
+        if (app()->environment('demo', 'local')) {
+            $schedule->command('demo:refresh-database')->everyFifteenMinutes();
+        }
+
+        // Expire stale chat offers (24h window) so old offers cannot be accepted.
+        $schedule->command('offers:expire')->everyFifteenMinutes()->withoutOverlapping();
+
+        // Keep failed_jobs from growing unbounded (7-day retention).
+        $schedule->command('queue:prune-failed --hours=168')->daily();
 
         // Recalculate product ranking scores every hour.
         $schedule->job(new RecalculateProductScores())->hourly()->withoutOverlapping();

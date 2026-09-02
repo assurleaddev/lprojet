@@ -58,18 +58,21 @@ class InboxController extends Controller
         $user = $request->user();
 
         $conversations = Conversation::query()
-            ->where('user_one_id', $user->id)
-            ->orWhere('user_two_id', $user->id)
+            ->where(function ($q) use ($user) {
+                $q->where('user_one_id', $user->id)->orWhere('user_two_id', $user->id);
+            })
             ->with(['product', 'userOne', 'userTwo', 'lastMessage.user'])
+            ->withCount([
+                'messages as unread_count' => function ($q) use ($user) {
+                    $q->where('user_id', '!=', $user->id)->whereNull('read_at');
+                },
+            ])
             ->orderByDesc('last_message_at')
             ->get()
             ->map(function ($conv) use ($user) {
                 $other = $conv->user_one_id === $user->id ? $conv->userTwo : $conv->userOne;
                 $last = $conv->lastMessage;
-                $unread = $conv->messages()
-                    ->where('user_id', '!=', $user->id)
-                    ->whereNull('read_at')
-                    ->count();
+                $unread = (int) $conv->unread_count;
 
                 return [
                     'id' => $conv->id,
@@ -125,10 +128,10 @@ class InboxController extends Controller
             })
             ->firstOrFail();
 
-        $conversation->messages()
-            ->where('user_id', '!=', $user->id)
-            ->whereNull('read_at')
-            ->update(['read_at' => now()]);
+        // Mark as read via ChatService so delivered_at is backfilled, the related
+        // chat notifications are cleared, and MessageRead is broadcast to the
+        // sender's open web chat (read receipts) — parity with the web flow.
+        app(ChatService::class)->markAsRead($conversation, $user);
 
         // Find the active order for this conversation (for messages without offer_id)
         $activeOrder = Order::query()
@@ -208,12 +211,10 @@ class InboxController extends Controller
 
         $request->validate(['body' => ['required', 'string', 'max:2000']]);
 
-        $message = $conversation->messages()->create([
-            'user_id' => $user->id,
-            'body' => $request->body,
-        ]);
-
-        $conversation->update(['last_message_at' => now()]);
+        // Route through ChatService for full parity with the web: it creates the
+        // message, bumps last_message_at, broadcasts MessageSent (so open web chat
+        // windows refresh live) and notifies the recipient.
+        $message = app(ChatService::class)->sendMessage($conversation, $user, $request->body);
 
         return response()->json([
             'data' => [

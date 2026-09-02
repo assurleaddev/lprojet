@@ -174,6 +174,7 @@ class MakeOfferModal extends Component
             $existingOffer->update([
                 'offer_price' => $validated['offerPrice'],
                 'created_at' => now(), // Bump timestamp
+                'expires_at' => now()->addHours(24), // Re-pricing restarts the window
                 // If it was a counter offer update, status remains AwaitingBuyer.
                 // If it was a normal offer update, status remains Pending.
             ]);

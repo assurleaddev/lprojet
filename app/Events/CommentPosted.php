@@ -5,11 +5,11 @@ namespace App\Events;
 use App\Models\LiveComment;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class CommentPosted implements ShouldBroadcast
+class CommentPosted implements ShouldBroadcastNow
 {
     use Dispatchable;
     use InteractsWithSockets;

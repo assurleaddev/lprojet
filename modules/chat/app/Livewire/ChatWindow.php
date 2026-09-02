@@ -428,6 +428,16 @@ class ChatWindow extends Component
     {
         $user = Auth::user();
 
+        // Expired offers can no longer be accepted (the sweep may not have run yet).
+        if ($offer->expires_at && $offer->expires_at->isPast()
+            && in_array($offer->status, [OfferStatus::Pending, OfferStatus::AwaitingBuyer], true)) {
+            $offer->update(['status' => OfferStatus::Expired, 'responded_at' => now()]);
+            $this->dispatch('toast', message: 'This offer has expired.', type: 'error');
+            $this->loadConversation($chatService);
+
+            return;
+        }
+
         // Case 1: Seller accepting a Pending offer (Standard flow)
         if ($offer->status === OfferStatus::Pending && $offer->seller_id === $user->id) {
             $offer->status = OfferStatus::Accepted;

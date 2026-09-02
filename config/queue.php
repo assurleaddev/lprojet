@@ -39,6 +39,9 @@ return [
             'table' => 'jobs',
             'queue' => 'default',
             'retry_after' => 90,
+            // Never hand a job to a worker before the enclosing DB transaction
+            // commits (e.g. notifications dispatched inside LiveService::closeAuction).
+            'after_commit' => true,
         ],
 
         'beanstalkd' => [

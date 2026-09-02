@@ -47,6 +47,15 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \Illuminate\Pagination\Paginator::useTailwind();
 
+        // Queued job failures must never be silent: after --tries are exhausted
+        // the job lands in failed_jobs AND leaves a diagnosable log line.
+        \Illuminate\Support\Facades\Queue::failing(function (\Illuminate\Queue\Events\JobFailed $event) {
+            \Illuminate\Support\Facades\Log::error('Queue job failed: ' . $event->job->resolveName(), [
+                'connection' => $event->connectionName,
+                'exception' => $event->exception->getMessage(),
+            ]);
+        });
+
         // Inject trending product IDs (from Redis) into every render of the product grid partial
         View::composer('layouts.partials._product_grid_items', ProductGridComposer::class);
 

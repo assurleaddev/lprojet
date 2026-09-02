@@ -179,9 +179,14 @@ class ProfileController extends Controller
 
     private function notifications(User $user): array
     {
+        // Defaults must MATCH enforcement: the notification classes' via() use
+        // getMeta($key, '1') for these, so an untouched account shows them ON.
+        // The two marketing opt-ins are unenforced and default OFF.
+        $defaults = ['notify_vinted_updates' => '0', 'notify_marketing' => '0'];
+
         $out = [];
         foreach (self::NOTIFICATION_KEYS as $key) {
-            $out[$key] = $user->getMeta($key, '0') === '1';
+            $out[$key] = $user->getMeta($key, $defaults[$key] ?? '1') === '1';
         }
         $out['notification_limit'] = $user->getMeta('notification_limit', 'unlimited');
 

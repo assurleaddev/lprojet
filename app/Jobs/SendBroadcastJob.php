@@ -13,8 +13,23 @@ class SendBroadcastJob implements ShouldQueue
 {
     use Queueable;
 
+    /**
+     * A fan-out over every user must not be retried blindly (duplicate platform
+     * messages) nor killed by the default 60s timeout mid-run.
+     */
+    public int $tries = 1;
+
+    public int $timeout = 900;
+
     public function __construct(public readonly int $broadcastId)
     {
+    }
+
+    /** Leave a diagnosable state instead of a broadcast stuck on 'sending'. */
+    public function failed(\Throwable $e): void
+    {
+        Broadcast::where('id', $this->broadcastId)->update(['status' => 'failed']);
+        \Log::error("SendBroadcastJob failed for broadcast {$this->broadcastId}: " . $e->getMessage());
     }
 
     public function handle(): void
@@ -45,6 +60,17 @@ class SendBroadcastJob implements ShouldQueue
                             'product_id' => null,
                         ]
                     );
+
+                    // Idempotency: never deliver the same broadcast twice to a user
+                    // (re-dispatch after a partial failure resumes where it stopped).
+                    $alreadySent = Message::where('conversation_id', $conversation->id)
+                        ->where('type', 'platform_broadcast')
+                        ->where('metadata->broadcast_id', $broadcast->id)
+                        ->exists();
+                    if ($alreadySent) {
+                        $count++;
+                        continue;
+                    }
 
                     Message::create([
                         'conversation_id' => $conversation->id,

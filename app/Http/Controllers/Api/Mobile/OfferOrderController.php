@@ -325,6 +325,13 @@ class OfferOrderController extends Controller
             return response()->json(['message' => 'This offer cannot be accepted in its current state'], 422);
         }
 
+        // Expired offers can no longer be accepted (the sweep may not have run yet).
+        if ($offer->expires_at && $offer->expires_at->isPast()) {
+            $offer->update(['status' => OfferStatus::Expired, 'responded_at' => now()]);
+
+            return response()->json(['message' => 'This offer has expired'], 422);
+        }
+
         $offer->update([
             'status' => OfferStatus::Accepted,
             'responded_at' => now(),

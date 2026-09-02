@@ -351,6 +351,9 @@ class ChatService
 
     public function sendOfferCounteredMessage(Conversation $conversation, User $sender, Offer $offer): Message
     {
+        // A counter restarts the 24h acceptance window.
+        $offer->update(['expires_at' => now()->addHours(24)]);
+
         $productName = $offer->product ? $offer->product->name : 'a bundle';
         $body = sprintf(
             "%s made a counter offer of %s MAD for %s.",

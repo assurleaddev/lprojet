@@ -32,7 +32,10 @@ class EnsurePhoneIsVerified
         // user needs to complete verification.
         // NOTE: '/verify-email' must be allowed too (it is NOT under 'email/*').
         if ($request->is('auth/*') || $request->is('logout') || $request->is('email/*')
-            || $request->is('livewire/*') || $request->routeIs('verify-email')) {
+            || $request->is('livewire/*') || $request->routeIs('verify-email')
+            // Echo private-channel auth is an XHR, not a page navigation — blocking
+            // it silently kills realtime (notifications/chat) for unverified users.
+            || $request->is('broadcasting/*')) {
             return $next($request);
         }
 

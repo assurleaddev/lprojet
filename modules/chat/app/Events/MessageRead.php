@@ -7,12 +7,13 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
-use Modules\Chat\Models\Message;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
-class MessageRead implements ShouldBroadcast
+class MessageRead implements ShouldBroadcastNow
 {
-    use Dispatchable, InteractsWithSockets, SerializesModels;
+    use Dispatchable;
+    use InteractsWithSockets;
+    use SerializesModels;
 
     public int $conversationId;
     public int $userId; // The user who read the messages
