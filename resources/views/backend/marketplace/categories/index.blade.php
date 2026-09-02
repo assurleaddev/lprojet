@@ -40,51 +40,6 @@
 
     @push('scripts')
         <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const searchInput = document.getElementById('search-input');
-                const tableBody = document.getElementById('categories-table-body');
-                const paginationContainer = document.getElementById('categories-pagination');
-                let searchTimeout;
-
-                searchInput.addEventListener('keyup', function () {
-                    clearTimeout(searchTimeout);
-                    // Debounce the search to avoid sending requests on every keystroke
-                    searchTimeout = setTimeout(() => {
-                        performSearch(searchInput.value);
-                    }, 300); // Wait for 300ms of inactivity before searching
-                });
-
-                function performSearch(query) {
-                    const url = new URL('{{ route('admin.categories.index') }}');
-                    url.searchParams.set('search', query);
-
-                    // Add a spinner or loading indicator
-                    tableBody.innerHTML = '<tr><td colspan="3" class="text-center p-6">Loading...</td></tr>';
-
-                    fetch(url, {
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            // Replace the table body and pagination with the new content
-                            tableBody.innerHTML = data.table;
-                            paginationContainer.innerHTML = data.pagination;
-
-                            // Update the browser's URL without a full reload
-                            window.history.pushState({}, '', url);
-                        })
-                        .catch(error => {
-                            tableBody.innerHTML = '<tr><td colspan="3" class="text-center p-6 text-red-500">Error loading data.</td></tr>';
-                            console.error('Search error:', error);
-                        });
-                }
-            });
-        </script>
-    @endpush --}}
-    @push('scripts')
-        <script>
             $(document).on("click", ".togggler", function () {
                 // Your custom jQuery logic here
                 const targetId = $(this)[0].dataset.tergetId;
