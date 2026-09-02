@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Livewire\Datatable\BrandDatatable;
 use App\Livewire\Search\CategoryFilter;
+use App\Models\Brand;
 use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -49,4 +52,34 @@ test('base query is captured once at mount, not from the live-update request', f
         ->call('goBack')
         // baseQuery stays an array (never the Livewire payload) across re-renders.
         ->assertSet('baseQuery', fn ($v) => is_array($v));
+});
+
+// --- Brands admin: products-style datatable (search + sort + counts) ---
+
+test('brand datatable renders, searches, and sorts by product count', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $cat = Category::create(['name' => 'C', 'slug' => 'c-'.uniqid()]);
+    $nike = Brand::create(['name' => 'Nike', 'slug' => 'nike']);
+    Brand::create(['name' => 'Adidas', 'slug' => 'adidas']);
+    foreach (range(1, 2) as $i) {
+        Product::create([
+            'name' => 'P'.$i, 'description' => 'd', 'price' => 10,
+            'vendor_id' => $user->id, 'category_id' => $cat->id,
+            'brand_id' => $nike->id, 'status' => 'approved',
+        ]);
+    }
+
+    Livewire::test(BrandDatatable::class)
+        ->assertOk()
+        ->assertSee('Nike')
+        ->assertSee('Adidas')
+        ->set('search', 'nik')
+        ->assertSee('Nike')
+        ->assertDontSee('Adidas')
+        ->set('search', '')
+        ->call('sortBy', 'products_count')
+        ->assertOk()
+        ->assertSee('Nike');
 });
