@@ -18,10 +18,10 @@ class NotificationController extends Controller
 
     public function markAllRead()
     {
+        // Mass update — hydrating every unread model issued one UPDATE per row.
         Auth::user()->unreadNotifications()
             ->whereNotIn('data->type', User::getChatNotificationTypes())
-            ->get()
-            ->markAsRead();
+            ->update(['read_at' => now()]);
 
         return back()->with('success', 'All notifications marked as read.');
     }

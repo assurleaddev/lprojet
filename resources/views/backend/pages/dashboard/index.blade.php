@@ -147,6 +147,59 @@
             ])
         </div>
     </div>
+
+    {{-- Operations: the queues an operator clears daily --}}
+    <div class="mt-6">
+        <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{{ __('Operations — today') }}</h2>
+        <div class="grid grid-cols-2 gap-4 md:grid-cols-5 md:gap-6">
+            @include('backend.pages.dashboard.partials.card', [
+                'icon' => 'heroicons:shopping-cart',
+                'icon_bg' => '#0EA5E9',
+                'label' => __('Orders Today'),
+                'value' => $orders_today,
+                'class' => 'bg-white',
+                'url' => route('admin.orders.index'),
+                'enable_full_div_click' => true,
+            ])
+            @include('backend.pages.dashboard.partials.card', [
+                'icon' => 'heroicons:banknotes',
+                'icon_bg' => '#16A34A',
+                'label' => __('GMV Today (MAD)'),
+                'value' => $gmv_today,
+                'class' => 'bg-white',
+                'url' => route('admin.orders.index'),
+                'enable_full_div_click' => true,
+            ])
+            @include('backend.pages.dashboard.partials.card', [
+                'icon' => 'heroicons:exclamation-triangle',
+                'icon_bg' => '#F97316',
+                'label' => __('Open Claims'),
+                'value' => $open_claims,
+                'class' => 'bg-white',
+                'url' => route('admin.claims.index'),
+                'enable_full_div_click' => true,
+            ])
+            @include('backend.pages.dashboard.partials.card', [
+                'icon' => 'heroicons:arrow-up-tray',
+                'icon_bg' => '#8B5CF6',
+                'label' => __('Pending Withdrawals'),
+                'value' => $pending_withdrawals,
+                'class' => 'bg-white',
+                'url' => route('admin.withdrawals.index'),
+                'enable_full_div_click' => true,
+            ])
+            @include('backend.pages.dashboard.partials.card', [
+                'icon' => 'heroicons:video-camera',
+                'icon_bg' => '#FC0E00',
+                'label' => __('Live Now'),
+                'value' => $live_now,
+                'class' => 'bg-white',
+                'url' => route('lives.index'),
+                'enable_full_div_click' => true,
+            ])
+        </div>
+    </div>
+
     {{-- Active Listings Network --}}
     <div class="mt-6">
         <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">{{ __('Listings') }}</h2>

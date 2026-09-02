@@ -98,3 +98,27 @@ test('dashboard exposes the pending-approval queue instead of a nonexistent reje
         ->assertSee('Pending Approval')
         ->assertDontSee('Rejected Listings');
 });
+
+test('chat window paginates messages and can load older ones', function () {
+    $a = User::factory()->create();
+    $b = User::factory()->create();
+    $conv = \Modules\Chat\Models\Conversation::create([
+        'user_one_id' => min($a->id, $b->id),
+        'user_two_id' => max($a->id, $b->id),
+    ]);
+    foreach (range(1, 60) as $i) {
+        $conv->messages()->create(['user_id' => $a->id, 'body' => "m{$i}"]);
+    }
+
+    $this->actingAs($b);
+    $component = Livewire\Livewire::test(\Modules\Chat\Livewire\ChatWindow::class, ['conversationId' => $conv->id]);
+
+    expect(count($component->get('messages')))->toBe(50);
+    $component->assertSet('hasOlderMessages', true)
+        ->assertSee('m60')      // newest is present
+        ->assertDontSee('m1"')  // oldest is outside the window
+        ->call('loadOlderMessages');
+
+    expect(count($component->get('messages')))->toBe(60);
+    $component->assertSet('hasOlderMessages', false);
+});

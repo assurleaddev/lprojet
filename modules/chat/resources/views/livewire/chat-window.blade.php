@@ -314,6 +314,16 @@
             </div>
             @endif
 
+            @if($hasOlderMessages)
+                <div class="flex justify-center py-2">
+                    <button type="button" wire:click="loadOlderMessages"
+                        class="px-4 py-1.5 text-xs font-medium text-gray-600 bg-gray-100 rounded-full hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+                        <span wire:loading.remove wire:target="loadOlderMessages">{{ __('Load older messages') }}</span>
+                        <span wire:loading wire:target="loadOlderMessages">{{ __('Loading…') }}</span>
+                    </button>
+                </div>
+            @endif
+
             @forelse($messages as $key => $message)
                 {{-- Robust data access & preparation --}}
                 @php

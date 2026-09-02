@@ -10,8 +10,18 @@ use Illuminate\Support\Facades\DB;
 
 class IncomeChartService extends ChartService
 {
+    /**
+     * Per-request memo: four Livewire chart components each call
+     * getIncomeData() with the same period on every dashboard load.
+     */
+    private static array $incomeMemo = [];
+
     public function getIncomeData(string $period = 'last_6_months'): array
     {
+        if (isset(self::$incomeMemo[$period])) {
+            return self::$incomeMemo[$period];
+        }
+
         [$startDate, $endDate] = $this->getDateRange($period);
 
         $isLessThanMonth = $startDate->diffInMonths($endDate) < 1;
@@ -39,7 +49,7 @@ class IncomeChartService extends ChartService
             $total[] = $row ? round((float) $row->total, 2) : 0;
         }
 
-        return [
+        return self::$incomeMemo[$period] = [
             'labels' => $labels->values()->toArray(),
             'commission' => $commission,
             'protection' => $protection,

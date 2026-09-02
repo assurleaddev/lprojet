@@ -37,19 +37,15 @@ class ChatWindow extends Component
             return null;
         }
 
+        // NB: messages are intentionally NOT eager-loaded here — loadConversation()
+        // fetches only the latest window (see $messagesLimit) instead of the
+        // whole history on every Livewire render.
         return Conversation::where('id', $this->conversationId)
             ->where(function ($query) use ($user) {
                 $query->where('user_one_id', $user->id)
                     ->orWhere('user_two_id', $user->id);
             })
-            ->with([
-                'messages' => function ($query) {
-                    $query->with(['user', 'offer.product', 'attachments']);
-                },
-                'product',
-                'userOne',
-                'userTwo',
-            ])
+            ->with(['product', 'userOne', 'userTwo'])
             ->first();
     }
 
@@ -88,6 +84,22 @@ class ChatWindow extends Component
      * @var array
      */
     public array $messages = [];
+
+    /**
+     * How many of the latest messages to load (grows via "load older").
+     * Keeps the Livewire payload bounded instead of shipping the full history
+     * on every event.
+     */
+    public int $messagesLimit = 50;
+
+    /** Whether older messages exist beyond the current window. */
+    public bool $hasOlderMessages = false;
+
+    public function loadOlderMessages(ChatService $chatService): void
+    {
+        $this->messagesLimit += 50;
+        $this->loadConversation($chatService);
+    }
 
     /**
      * Bound to the message input field.
@@ -175,11 +187,21 @@ class ChatWindow extends Component
             $chatService->markAsDelivered($conversation, $user);
             $this->dispatch('chat-messages-read');
 
-            // Re-fetch conversation to get updated timestamps in messages
-            $conversation->refresh();
+            // Load only the latest window of messages (chronological order),
+            // with everything the mapping below needs eager-loaded.
+            $totalMessages = $conversation->messages()->count();
+            $this->hasOlderMessages = $totalMessages > $this->messagesLimit;
+
+            $windowed = $conversation->messages()
+                ->with(['user', 'offer.product', 'offer.items.product', 'attachments'])
+                ->latest('id')
+                ->limit($this->messagesLimit)
+                ->get()
+                ->reverse()
+                ->values();
 
             // Prepare messages array, ensuring offer/product data is structured correctly
-            $this->messages = $conversation->messages->map(function ($message) {
+            $this->messages = $windowed->map(function ($message) {
                 $messageArray = $message->toArray();
 
                 if ($message->offer) {
