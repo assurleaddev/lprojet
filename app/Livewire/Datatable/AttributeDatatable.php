@@ -3,7 +3,6 @@
 namespace App\Livewire\Datatable;
 
 use App\Models\Attribute;
-use Illuminate\Database\Eloquent\Model;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class AttributeDatatable extends Datatable
@@ -44,9 +43,35 @@ class AttributeDatatable extends Datatable
             );
     }
 
-    public function renderRow(Model $item)
+    /** Type as a coloured pill. */
+    public function renderTypeColumn($item): string
     {
-        return view('backend.marketplace.attributes._datatable_row', ['attribute' => $item]);
+        if (! $item->type) {
+            return '<span class="text-gray-400">—</span>';
+        }
+
+        return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">'.e($item->type).'</span>';
+    }
+
+    /** Code in a monospace style. */
+    public function renderCodeColumn($item): string
+    {
+        return '<span class="font-mono text-sm text-gray-500">'.e($item->code ?: '—').'</span>';
+    }
+
+    /** A count badge + the option values inline (not the raw JSON). */
+    public function renderOptionsColumn($item): string
+    {
+        $count = (int) ($item->options_count ?? $item->options->count());
+        $badge = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 shrink-0">'.$count.'</span>';
+
+        $values = $item->options->pluck('value')->implode(', ');
+        if ($values === '') {
+            return $badge;
+        }
+
+        return '<div class="flex items-center gap-2">'.$badge
+            .'<span class="text-xs text-gray-500 line-clamp-1" title="'.e($values).'">'.e($values).'</span></div>';
     }
 
     public function getRoutes(): array

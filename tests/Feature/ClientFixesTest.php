@@ -100,6 +100,7 @@ test('attribute datatable renders, searches, and shows option counts', function 
         ->assertSee('Color')
         ->assertSee('Size')
         ->assertSee('Red')
+        ->assertDontSee('attribute_id') // must render values, not the raw options JSON
         ->set('search', 'colo')
         ->assertSee('Color')
         ->assertDontSee('Size')

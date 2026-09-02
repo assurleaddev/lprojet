@@ -3,7 +3,6 @@
 namespace App\Livewire\Datatable;
 
 use App\Models\Brand;
-use Illuminate\Database\Eloquent\Model;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class BrandDatatable extends Datatable
@@ -41,9 +40,12 @@ class BrandDatatable extends Datatable
             );
     }
 
-    public function renderRow(Model $item)
+    /** Product count as a badge (the header id is "products" → override the raw relation). */
+    public function renderProductsColumn($item): string
     {
-        return view('backend.brands._datatable_row', ['brand' => $item]);
+        $count = (int) ($item->products_count ?? 0);
+
+        return '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200">'.$count.'</span>';
     }
 
     public function getRoutes(): array
