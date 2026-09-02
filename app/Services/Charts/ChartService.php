@@ -12,15 +12,21 @@ abstract class ChartService
     {
         switch ($period) {
             case 'last_7_days':
-                return [Carbon::now()->subDays(7), Carbon::now()];
+                // subDays(6)->startOfDay() yields exactly 7 daily buckets incl. today.
+                return [Carbon::now()->subDays(6)->startOfDay(), Carbon::now()];
             case 'last_30_days':
-                return [Carbon::now()->subDays(30), Carbon::now()];
+                return [Carbon::now()->subDays(29)->startOfDay(), Carbon::now()];
             case 'this_month':
                 return [Carbon::now()->startOfMonth(), Carbon::now()];
             case 'last_year':
                 return [Carbon::now()->subYear()->startOfYear(), Carbon::now()->subYear()->endOfYear()];
+            case 'last_6_months':
+                // The default period of every admin chart — was silently falling
+                // through to this_year, mislabelling all charts.
+                return [Carbon::now()->subMonths(5)->startOfMonth(), Carbon::now()];
             case 'last_12_months':
-                return [Carbon::now()->subMonths(12)->startOfMonth(), Carbon::now()];
+                // subMonths(11) yields exactly 12 monthly buckets incl. the current one.
+                return [Carbon::now()->subMonths(11)->startOfMonth(), Carbon::now()];
             case 'this_year':
             default:
                 return [Carbon::now()->startOfYear(), Carbon::now()];

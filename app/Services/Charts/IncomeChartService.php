@@ -65,6 +65,7 @@ class IncomeChartService extends ChartService
 
         $rows = Order::selectRaw("{$dateTrunc} as period, SUM(total_amount) as gross, COUNT(*) as order_count")
             ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', '!=', 'cancelled') // cancelled orders are refunded — not revenue
             ->groupBy('period')
             ->orderBy('period')
             ->get()
@@ -99,6 +100,7 @@ class IncomeChartService extends ChartService
 
         $counts = Order::selectRaw('source, COUNT(*) as total')
             ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', '!=', 'cancelled') // cancelled orders are refunded — not revenue
             ->groupBy('source')
             ->pluck('total', 'source');
 
@@ -131,6 +133,7 @@ class IncomeChartService extends ChartService
                 SUM(platform_commission + buyer_protection_fee + verification_fee) as total
             ")
             ->whereBetween('created_at', [$startDate, $endDate])
+            ->where('status', '!=', 'cancelled') // cancelled orders are refunded — not revenue
             ->groupBy('period')
             ->orderBy('period')
             ->get()

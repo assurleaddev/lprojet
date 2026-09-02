@@ -15,8 +15,10 @@ class UserChartService extends ChartService
     {
         [$startDate, $endDate] = $this->getDateRange($period);
 
-        // Determine if the range spans less than a month
-        $isLessThanMonth = $startDate->diffInMonths($endDate) === 0;
+        // Determine if the range spans less than a month.
+        // Carbon 3 returns a FLOAT from diffInMonths, so `=== 0` was always false
+        // and daily periods (7/30 days) wrongly grouped by month.
+        $isLessThanMonth = $startDate->diffInMonths($endDate) < 1;
 
         $format = $isLessThanMonth ? 'd M Y' : 'M Y';
         $dbFormat = $isLessThanMonth ? 'Y-m-d' : 'Y-m';

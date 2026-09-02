@@ -26,11 +26,13 @@ class DashboardController extends Controller
     {
         $this->authorize('viewDashboard', User::class);
 
+        // NB: 'rejected' is not a real product status (enum: pending/approved/
+        // sold/reserved/hidden/holiday) — 'pending' is the actual moderation queue.
         $listingCounts = Product::selectRaw("
             COUNT(*) as total,
             SUM(status = 'approved') as active,
             SUM(status = 'sold') as sold,
-            SUM(status = 'rejected') as rejected
+            SUM(status = 'pending') as pending
         ")->first();
 
         return view(
@@ -39,7 +41,7 @@ class DashboardController extends Controller
                 'total_users' => number_format(User::count()),
                 'active_listings' => number_format((int) $listingCounts->active),
                 'sold_listings' => number_format((int) $listingCounts->sold),
-                'rejected_listings' => number_format((int) $listingCounts->rejected),
+                'pending_listings' => number_format((int) $listingCounts->pending),
                 'total_roles' => number_format(Role::count()),
                 'total_permissions' => number_format(Permission::count()),
                 'languages' => [

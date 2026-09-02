@@ -137,12 +137,12 @@
                 'enable_full_div_click' => true,
             ])
             @include('backend.pages.dashboard.partials.card', [
-                'icon' => 'heroicons:x-circle',
+                'icon' => 'heroicons:clock',
                 'icon_bg' => '#EF4444',
-                'label' => __('Rejected Listings'),
-                'value' => $rejected_listings,
+                'label' => __('Pending Approval'),
+                'value' => $pending_listings,
                 'class' => 'bg-white',
-                'url' => route('admin.products.index', ['status' => 'rejected']),
+                'url' => route('admin.products.index', ['status' => 'pending']),
                 'enable_full_div_click' => true,
             ])
         </div>
