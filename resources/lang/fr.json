@@ -167,7 +167,6 @@
     "Draft": "Brouillon",
     "Drag and drop to reorder. The first photo will be the main one.": "Glissez-déposez pour réorganiser. La première photo sera la principale.",
     "Drag and drop your module file here, or": "Faites glisser et déposez votre fichier de module ici, ou",
-    "Earn money from your homeware": "Gagnez de l'argent avec vos articles",
     "Edit": "Éditer",
     "Edit address": "Modifier l'adresse",
     "Edit Category": "Modifier la catégorie",
@@ -586,7 +585,6 @@
     "Your payment was successful. The vendor has been notified to prepare your package.": "Votre paiement a été effectué avec succès. Le vendeur a été notifié pour préparer votre colis.",
     "Your phone number will only be used to help you log in. It will not be made public or used for marketing.": "Votre numéro de téléphone sera uniquement utilisé pour vous aider à vous connecter. Il ne sera pas rendu public ni utilisé à des fins marketing.",
     "Your photo": "Votre photo",
-
     "LIVE has ended": "Le LIVE est terminé",
     "'s live stream is no longer available": " n'est plus en direct",
     "Thanks for watching": "Merci d'avoir regardé",
@@ -662,5 +660,7 @@
     "Select a product first.": "Sélectionnez d'abord un produit.",
     "Starting bid must be at least": "L'enchère de départ doit être d'au moins",
     "Please add a shipping address before watching a live auction.": "Veuillez ajouter une adresse de livraison avant de regarder une enchère en direct.",
-    "Store Value": "Valeur de la boutique"
+    "Store Value": "Valeur de la boutique",
+    "Earn money from your wardrobe": "Gagnez de l'argent avec vos articles",
+    "List your items in minutes and reach thousands of buyers.": "Mettez vos articles en vente en quelques minutes et touchez des milliers d'acheteurs."
 }

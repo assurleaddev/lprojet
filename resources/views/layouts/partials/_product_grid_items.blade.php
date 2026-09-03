@@ -83,12 +83,19 @@
     </a>
     </div>
 
-    {{-- ✨ BANNER LOGIC: Insert a banner after every 20th product ✨ --}}
+    {{-- ✨ BANNER LOGIC: Insert a sell banner after every 16th product ✨ --}}
     @if ($loop->iteration > 0 && $loop->iteration % 16 == 0)
-        <div class="col-span-full bg-[#f6f2ff] rounded-lg p-8 min-h-[150px] h-[300px] flex flex-col items-start justify-between bannner"
-            style="background-repeat:no-repeat;background-position:right center;background-size:cover;background-image: url('{{ asset('images/home/banner.png') }}')">
-            <h2 class="text-xl md:text-2xl font-bold mb-4">{{ __('Earn money from your homeware') }}</h2>
-            <a href="{{ route('items.create') }}" class="px-4 py-2 rounded text-white font-bold text-sm bg-gray-900 hover:bg-gray-800">{{ __('Sell now') }}</a>
+        <div class="col-span-full relative rounded-lg overflow-hidden h-[240px] md:h-[300px]">
+            <img src="{{ asset('images/home/banner.png') }}" alt=""
+                class="absolute inset-0 w-full h-full object-cover object-[70%_30%]" loading="lazy">
+            {{-- Left-to-right scrim keeps the text readable over any crop of the photo --}}
+            <div class="absolute inset-0 bg-gradient-to-r from-black/70 via-black/35 to-transparent"></div>
+            <div class="relative h-full max-w-xl flex flex-col items-start justify-center gap-2 p-6 md:p-10">
+                <h2 class="text-2xl md:text-3xl font-bold text-white">{{ __('Earn money from your wardrobe') }}</h2>
+                <p class="text-sm md:text-base text-white/90">{{ __('List your items in minutes and reach thousands of buyers.') }}</p>
+                <a href="{{ route('items.create') }}"
+                    class="mt-3 px-5 py-2.5 rounded font-bold text-sm text-gray-900 bg-white hover:bg-gray-100">{{ __('Sell now') }}</a>
+            </div>
         </div>
     @endif
 @empty

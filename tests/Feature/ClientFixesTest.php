@@ -109,3 +109,22 @@ test('attribute datatable renders, searches, and shows option counts', function 
         ->assertOk()
         ->assertSee('Color');
 });
+
+// --- Home sell banner: readable scrimmed banner every 16 products ---
+
+test('home grid inserts the sell banner with readable scrimmed text', function () {
+    $vendor = User::factory()->create();
+    $cat = Category::create(['name' => 'Grid', 'slug' => 'grid-'.uniqid()]);
+    foreach (range(1, 17) as $i) {
+        Product::create([
+            'name' => 'Item '.$i, 'description' => 'd', 'price' => 10,
+            'vendor_id' => $vendor->id, 'category_id' => $cat->id, 'status' => 'approved',
+        ]);
+    }
+
+    $this->get('/')
+        ->assertOk()
+        ->assertSee(__('Earn money from your wardrobe'))
+        ->assertSee(__('List your items in minutes and reach thousands of buyers.'))
+        ->assertSee('bg-gradient-to-r from-black/70', false); // the scrim that keeps text legible
+});
