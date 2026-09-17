@@ -711,13 +711,13 @@ class TrackingService
             }
         }
 
-        $last = end($events);
+        $last = end($events) ?: [];
 
         $info = [
             'receipt' => $barcode,
             'last_update' => $last['date'] ?? '',
             'current_status' => $last['status'] ?? '',
-            'destination' => $last['step'] !== 'Digylog' ? ($last['step'] ?? '') : '',
+            'destination' => ($last['step'] ?? 'Digylog') !== 'Digylog' ? $last['step'] : '',
             'amount' => '',
             'phone' => '',
         ];
