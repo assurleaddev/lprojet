@@ -6,10 +6,12 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class PriceChangeNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     /**
      * Create a new notification instance.
@@ -32,19 +34,7 @@ class PriceChangeNotification extends Notification implements ShouldQueue
      */
     public function via($notifiable)
     {
-        $channels = ['database'];
-
-        // Check if user wants notifications for price reductions
-        if ($notifiable->getMeta('notify_high_priority_reduced_items', '1') !== '1') {
-            return [];
-        }
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable, ['database'], 'notify_high_priority_reduced_items');
     }
 
     /**

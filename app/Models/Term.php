@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Concerns\HasFeaturedImage;
 use App\Concerns\HasUniqueSlug;
 use App\Concerns\QueryBuilderTrait;
 use App\Concerns\HasMedia;
@@ -16,13 +17,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 #[ObservedBy([TermObserver::class])]
 class Term extends Model implements SpatieHasMedia
 {
     use HasFactory;
+    use HasFeaturedImage;
     use HasUniqueSlug;
     use QueryBuilderTrait;
     use HasMedia;
@@ -109,9 +110,7 @@ class Term extends Model implements SpatieHasMedia
      */
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('featured')
-            ->singleFile()
-            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp']);
+        $this->addFeaturedImageCollection();
     }
 
     /**
@@ -119,46 +118,6 @@ class Term extends Model implements SpatieHasMedia
      */
     public function registerMediaConversions(?Media $media = null): void
     {
-        // Preview conversion for admin interface
-        $this->addMediaConversion('preview')
-            ->fit(Fit::Contain, 300, 300);
-
-        // Thumbnail for featured images
-        $this->addMediaConversion('thumb')
-            ->width(200)
-            ->height(200)
-            ->sharpen(10);
-
-        // Medium size for content display
-        $this->addMediaConversion('medium')
-            ->width(500)
-            ->height(500);
-
-        // Large size for detailed view
-        $this->addMediaConversion('large')
-            ->width(1000)
-            ->height(1000);
-    }
-
-    /**
-     * Get the featured image URL
-     */
-    public function getFeaturedImageUrl(string $conversion = ''): ?string
-    {
-        $media = $this->getFirstMedia('featured');
-
-        if (! $media) {
-            return null;
-        }
-
-        return $conversion ? $media->getUrl($conversion) : $media->getUrl();
-    }
-
-    /**
-     * Check if term has featured image
-     */
-    public function hasFeaturedImage(): bool
-    {
-        return $this->hasMedia('featured');
+        $this->registerFeaturedImageConversions();
     }
 }

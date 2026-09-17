@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class ItemShippedNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     public $order;
     public $vendor;
@@ -25,22 +27,13 @@ class ItemShippedNotification extends Notification implements ShouldBroadcast, S
 
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        // Transactional notification - always send database
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable);
     }
 
     public function toMail($notifiable)
     {
         $productName = $this->order->product ? $this->order->product->name : 'your bundle';
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Item Shipped: ' . $productName)
             ->line('Good news! ' . $this->vendor->full_name . ' has shipped your item: ' . $productName)
             ->line('You can track the status in the chat.')

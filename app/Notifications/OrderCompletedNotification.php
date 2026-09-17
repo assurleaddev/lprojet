@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class OrderCompletedNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     public $order;
     public $buyer;
@@ -25,22 +27,13 @@ class OrderCompletedNotification extends Notification implements ShouldBroadcast
 
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        // Transactional notification - always send database
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable);
     }
 
     public function toMail($notifiable)
     {
         $productName = $this->order->product ? $this->order->product->name : 'multiple items';
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Order Completed: ' . $productName)
             ->line('Success! ' . $this->buyer->full_name . ' has received the item and the order is complete.')
             ->line('The funds have been released to your wallet.')

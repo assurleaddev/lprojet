@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class ItemSoldNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     public $order;
     public $buyer;
@@ -25,28 +27,19 @@ class ItemSoldNotification extends Notification implements ShouldBroadcast, Shou
 
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        // Transactional notification - always send database
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable);
     }
 
     public function toMail($notifiable)
     {
         $productName = $this->order->product ? $this->order->product->name : 'multiple items';
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('Item Sold: ' . $productName)
             ->line('Great news! ' . $this->buyer->full_name . ' has bought your item: ' . $productName)
             ->line('Please download the shipping label and ship the item.')
             ->action('View Order', route('chat.dashboard'));
-        // Note: Linking to chat is tricky if conversation ID isn't handy. 
-        // Ideally we pass conversation or find it. 
+        // Note: Linking to chat is tricky if conversation ID isn't handy.
+        // Ideally we pass conversation or find it.
         // For now, let's assume the user can find it in their inbox or we link to a "My Sales" page if it existed.
         // Let's try to link to the chat dashboard generally or the specific conversation if we can resolve it easily.
         // In CheckoutController we create the conversation. We should probably pass it or the URL.

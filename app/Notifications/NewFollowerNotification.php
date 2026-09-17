@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class NewFollowerNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     /**
      * Create a new notification instance.
@@ -31,14 +33,7 @@ class NewFollowerNotification extends Notification implements ShouldBroadcast, S
      */
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable);
     }
 
     public function toBroadcast($notifiable)
@@ -53,7 +48,7 @@ class NewFollowerNotification extends Notification implements ShouldBroadcast, S
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('You have a new follower!')
             ->line("{$this->follower->full_name} started following you.")
             ->action('View Profile', route('vendor.show', $this->follower))

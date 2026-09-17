@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class ProductLikedNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     /**
      * Create a new notification instance.
@@ -33,18 +35,7 @@ class ProductLikedNotification extends Notification implements ShouldBroadcast, 
      */
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        if ($notifiable->getMeta('notify_favourited_items', '1') !== '1') {
-            return [];
-        }
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable, preferenceKey: 'notify_favourited_items');
     }
 
     public function toBroadcast($notifiable)

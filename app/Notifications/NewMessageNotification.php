@@ -9,10 +9,12 @@ use Illuminate\Notifications\Notification;
 
 use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Notifications\Concerns\ResolvesNotificationChannels;
 
 class NewMessageNotification extends Notification implements ShouldBroadcast, ShouldQueue
 {
     use Queueable;
+    use ResolvesNotificationChannels;
 
     public $message;
     public $sender;
@@ -25,19 +27,7 @@ class NewMessageNotification extends Notification implements ShouldBroadcast, Sh
 
     public function via($notifiable)
     {
-        $channels = ['database', 'broadcast'];
-
-        // Check if user wants notifications for new messages
-        if ($notifiable->getMeta('notify_high_priority_messages', '1') !== '1') {
-            return [];
-        }
-
-        // Check if user wants email notifications globally
-        if ($notifiable->getMeta('enable_email_notifications', '1') === '1') {
-            $channels[] = 'mail';
-        }
-
-        return $channels;
+        return $this->resolveChannels($notifiable, preferenceKey: 'notify_high_priority_messages');
     }
 
     public function toBroadcast($notifiable)
@@ -53,7 +43,7 @@ class NewMessageNotification extends Notification implements ShouldBroadcast, Sh
 
     public function toMail($notifiable)
     {
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject('New message from ' . $this->sender->full_name)
             ->line($this->sender->full_name . ' sent you a message:')
             ->line('"' . \Illuminate\Support\Str::limit($this->message->body, 100) . '"')
@@ -71,5 +61,3 @@ class NewMessageNotification extends Notification implements ShouldBroadcast, Sh
         ];
     }
 }
-
-
