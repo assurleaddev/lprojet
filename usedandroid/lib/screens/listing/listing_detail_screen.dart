@@ -8,6 +8,7 @@ import '../../services/api_client.dart';
 import '../../services/inbox_service.dart';
 import '../../services/product_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/api_item_card.dart';
 import '../../widgets/favorite_heart.dart';
 import '../../widgets/rating_stars.dart';
 import '../checkout/checkout_screen.dart';
@@ -656,7 +657,8 @@ class _ProductTabs extends StatefulWidget {
 }
 
 class _ProductTabsState extends State<_ProductTabs> with SingleTickerProviderStateMixin {
-  late final TabController _tab = TabController(length: 2, vsync: this);
+  late final TabController _tab = TabController(length: 2, vsync: this)
+    ..addListener(() => setState(() {})); // rebuild the grid below on switch
 
   @override
   void dispose() {
@@ -666,6 +668,9 @@ class _ProductTabsState extends State<_ProductTabs> with SingleTickerProviderSta
 
   @override
   Widget build(BuildContext context) {
+    // The page already scrolls, so the grid takes its full height (no inner
+    // scroll) and the tab switches its content instead of a swipe view.
+    final showDressing = _tab.index == 0;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -680,72 +685,35 @@ class _ProductTabsState extends State<_ProductTabs> with SingleTickerProviderSta
           tabs: const [Tab(text: 'Dressing du membre'), Tab(text: 'Articles similaires')],
         ),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 196,
-          child: TabBarView(
-            controller: _tab,
-            children: [
-              _grid(widget.dressing, 'Aucun autre article de ce membre'),
-              _grid(widget.similar, 'Aucun article similaire'),
-            ],
-          ),
-        ),
+        showDressing
+            ? _grid(widget.dressing, 'Aucun autre article de ce membre')
+            : _grid(widget.similar, 'Aucun article similaire'),
       ],
     );
   }
 
+  /// Same 2-column cards as the home page.
   Widget _grid(List<ApiProduct> items, String emptyLabel) {
     if (items.isEmpty) {
-      return Center(child: Text(emptyLabel, style: const TextStyle(color: AppColors.textSecondary)));
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: Center(child: Text(emptyLabel, style: const TextStyle(color: AppColors.textSecondary))),
+      );
     }
-    return ListView.separated(
-      scrollDirection: Axis.horizontal,
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(width: 10),
-      itemBuilder: (_, i) => _MiniProductCard(product: items[i]),
-    );
-  }
-}
-
-class _MiniProductCard extends StatelessWidget {
-  final ApiProduct product;
-  const _MiniProductCard({required this.product});
-
-  @override
-  Widget build(BuildContext context) {
-    final img = product.displayImageUrl;
-    return GestureDetector(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => ListingDetailScreen(product: product)),
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 8,
+        mainAxisSpacing: 8,
+        childAspectRatio: 0.62,
       ),
-      child: SizedBox(
-        width: 130,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                width: 130,
-                height: 140,
-                child: img.isEmpty
-                    ? Container(color: AppColors.inputFill)
-                    : CachedNetworkImage(
-                        imageUrl: img,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: AppColors.inputFill),
-                        errorWidget: (_, __, ___) => Container(color: AppColors.inputFill),
-                      ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text('${product.price.toStringAsFixed(0)} MAD',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-            if (product.priceInclProtection != null)
-              Text('${product.priceInclProtection!.toStringAsFixed(2)} MAD incl.',
-                  style: const TextStyle(fontSize: 11, color: AppColors.primary)),
-          ],
-        ),
+      itemCount: items.length,
+      itemBuilder: (context, i) => ApiItemCard(
+        product: items[i],
+        onTap: () => context.push('/listing/${items[i].id}', extra: items[i]),
       ),
     );
   }
