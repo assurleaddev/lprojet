@@ -16,14 +16,35 @@ const kFabricOptions = [
   'Other',
 ];
 
+/// One photo of the listing: either already on the server ([mediaId] + [url])
+/// or newly picked on the phone ([file]).
+class SellPhoto {
+  final int? mediaId;
+  final String? url;
+  final File? file;
+
+  const SellPhoto.existing({required this.mediaId, required this.url}) : file = null;
+  const SellPhoto.picked(File this.file)
+      : mediaId = null,
+        url = null;
+
+  bool get isNew => file != null;
+
+  /// Stable key for drag & drop.
+  String get key => file?.path ?? 'm:$mediaId:$url';
+}
+
 class SellItemProvider extends ChangeNotifier {
   // ── edit mode ────────────────────────────────────────────────────────────
   int? editingProductId;
   bool get isEditing => editingProductId != null;
-  List<String> existingImageUrls = []; // network images already on the product
 
   // ── form fields ──────────────────────────────────────────────────────────
-  List<File> images = [];
+  /// All photos in display order — existing and new together. First = cover.
+  List<SellPhoto> photos = [];
+
+  /// Newly picked files, in display order (what gets uploaded).
+  List<File> get images => [for (final p in photos) if (p.file != null) p.file!];
   String title = '';
   String description = '';
   int? categoryId;
@@ -43,8 +64,8 @@ class SellItemProvider extends ChangeNotifier {
   List<int> _pendingOptionIds = [];
 
   bool get canSubmit =>
-      // Create requires at least one photo; editing keeps the existing ones.
-      (isEditing || images.isNotEmpty || existingImageUrls.isNotEmpty) &&
+      // At least one photo, when creating and when editing.
+      photos.isNotEmpty &&
       title.isNotEmpty &&
       categoryId != null &&
       price != null &&
@@ -68,7 +89,10 @@ class SellItemProvider extends ChangeNotifier {
     brandId = p.brandId;
     brandName = p.brand;
     fabric = [...p.fabric];
-    existingImageUrls = [...p.images];
+    photos = [
+      for (var i = 0; i < p.images.length; i++)
+        SellPhoto.existing(mediaId: i < p.imageIds.length ? p.imageIds[i] : null, url: p.images[i]),
+    ];
     _pendingOptionIds = [...p.optionIds];
     notifyListeners();
     if (p.categoryId != null) _loadAttributes(p.categoryId!);
@@ -76,31 +100,35 @@ class SellItemProvider extends ChangeNotifier {
 
   // ── images ───────────────────────────────────────────────────────────────
   void addImage(File file) {
-    images = [...images, file];
+    photos = [...photos, SellPhoto.picked(file)];
     notifyListeners();
   }
 
-  void removeImage(int index) {
-    images = [...images]..removeAt(index);
+  void removePhoto(int index) {
+    photos = [...photos]..removeAt(index);
     notifyListeners();
   }
 
-  /// Reorder picked photos (drag & drop). The first photo becomes the cover
-  /// (featured) image on publish, matching the website.
-  void reorderImages(int oldIndex, int newIndex) {
-    final next = [...images];
-    if (newIndex > oldIndex) newIndex -= 1;
+  /// Reorder photos (drag & drop), existing and new alike. The first photo
+  /// becomes the cover (featured) image, matching the website. [newIndex] is
+  /// the final position (ReorderableListView.onReorderItem semantics).
+  void reorderPhotos(int oldIndex, int newIndex) {
+    final next = [...photos];
     next.insert(newIndex, next.removeAt(oldIndex));
-    images = next;
+    photos = next;
     notifyListeners();
   }
 
-  void removeExistingImage(int index) {
-    existingImageUrls = [...existingImageUrls]..removeAt(index);
-    notifyListeners();
-  }
+  int get totalImageCount => photos.length;
 
-  int get totalImageCount => images.length + existingImageUrls.length;
+  /// The final order sent when editing: `m:<media id>` for a photo already on
+  /// the product, `n:<i>` for the i-th uploaded file. Null when an existing
+  /// photo has no id (old server response) — the server then only appends.
+  List<String>? get photoOrder {
+    if (photos.any((p) => !p.isNew && p.mediaId == null)) return null;
+    var newIndex = 0;
+    return [for (final p in photos) p.isNew ? 'n:${newIndex++}' : 'm:${p.mediaId}'];
+  }
 
   // ── simple fields ──────────────────────────────────────────────────────────
   void setTitle(String v) {
@@ -212,8 +240,7 @@ class SellItemProvider extends ChangeNotifier {
 
   void reset() {
     editingProductId = null;
-    existingImageUrls = [];
-    images = [];
+    photos = [];
     title = '';
     description = '';
     categoryId = null;

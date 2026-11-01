@@ -11,6 +11,7 @@ use App\Models\Product;
 use App\Notifications\ProductLikedNotification;
 use ChristianKuri\LaravelFavorite\Models\Favorite;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -256,12 +257,30 @@ class ProductController extends Controller
             'images.*' => ['image', 'max:5120'],
             'options' => ['nullable', 'array'],
             'options.*' => ['integer', 'exists:options,id'],
+            // Final photo order: "m:<media id>" = a photo already on the product,
+            // "n:<i>" = the i-th file in images[]. First = cover; existing photos
+            // left out are deleted. Absent (older app builds) = append only.
+            'photo_order' => ['nullable', 'array', 'min:1', 'max:5'],
+            'photo_order.*' => ['string', 'regex:/^(m|n):\d+$/'],
+        ], [
+            'photo_order.min' => 'Ajoutez au moins une photo.',
+            'photo_order.max' => '5 photos maximum.',
         ]);
 
-        $product->update(collect($validated)->except('options', 'images')->toArray());
+        $product->update(collect($validated)->except('options', 'images', 'photo_order')->toArray());
 
         if (array_key_exists('options', $validated)) {
             $product->options()->sync($validated['options'] ?? []);
+        }
+
+        if (! empty($validated['photo_order'])) {
+            $addedImages = $this->applyPhotoOrder($product, $validated['photo_order'], array_values($request->file('images') ?? []));
+            if ($addedImages && $product->status === 'approved') {
+                $product->update(['status' => 'pending']);
+            }
+            $product->load(['vendor', 'category', 'brand', 'media']);
+
+            return response()->json(new ProductResource($product));
         }
 
         $addedImages = false;
@@ -401,6 +420,60 @@ class ProductController extends Controller
         ]);
 
         return response()->json(['message' => 'Merci, votre signalement a été envoyé.']);
+    }
+
+    /**
+     * Apply the edit screen's photo order: upload the new files, delete the
+     * existing photos that were removed, then make the first photo the cover
+     * (`featured`) and the rest the gallery, in order. Returns whether new
+     * photos were added (they send the listing back to review).
+     *
+     * @param  list<string>  $order  "m:<media id>" or "n:<index in $files>"
+     * @param  list<UploadedFile>  $files
+     */
+    private function applyPhotoOrder(Product $product, array $order, array $files): bool
+    {
+        $existing = $product->media()->whereIn('collection_name', ['featured', 'products'])->get()->keyBy('id');
+
+        $ordered = [];
+        $added = false;
+        foreach ($order as $token) {
+            [$kind, $ref] = explode(':', $token);
+            if ($kind === 'm') {
+                if ($media = $existing->get((int) $ref)) {
+                    $ordered[$media->id] = $media;
+                }
+            } elseif (isset($files[(int) $ref])) {
+                try {
+                    $media = $product->addMedia($files[(int) $ref])->toMediaCollection('products');
+                    $ordered[$media->id] = $media;
+                    $added = true;
+                } catch (\Exception $e) {
+                    Log::warning('Media upload failed for product '.$product->id.': '.$e->getMessage());
+                }
+            }
+        }
+
+        // Nothing usable (bad ids / failed uploads): keep the photos as they were.
+        if ($ordered === []) {
+            return $added;
+        }
+
+        foreach ($existing as $id => $media) {
+            if (! isset($ordered[$id])) {
+                $media->delete();
+            }
+        }
+
+        $position = 0;
+        foreach ($ordered as $media) {
+            $media->collection_name = $position === 0 ? 'featured' : 'products';
+            $media->order_column = $position + 1;
+            $media->save();
+            $position++;
+        }
+
+        return $added;
     }
 
     private function descendantIds(int $categoryId): array

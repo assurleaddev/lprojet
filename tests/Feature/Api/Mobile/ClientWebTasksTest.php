@@ -430,3 +430,61 @@ test('web: a sold product the user cannot view falls back to the stored link', f
 
     $this->actingAs($buyer)->get("/notifications/{$id}/read")->assertRedirect('/chat');
 });
+
+// ---------- Mobile edit: photo order ----------
+
+function cwtPhotoProduct(User $seller): array
+{
+    $product = cwtProduct($seller);
+    $a = $product->addMedia(\Illuminate\Http\UploadedFile::fake()->image('a.jpg'))->toMediaCollection('featured');
+    $b = $product->addMedia(\Illuminate\Http\UploadedFile::fake()->image('b.jpg'))->toMediaCollection('products');
+
+    return [$product, $a, $b];
+}
+
+test('edit: reordering existing photos makes the first one the cover', function () {
+    \Illuminate\Support\Facades\Storage::fake('public');
+    $seller = User::factory()->create();
+    [$product, $a, $b] = cwtPhotoProduct($seller);
+    Sanctum::actingAs($seller);
+
+    $this->post("/api/mobile/products/{$product->id}", ['photo_order' => ["m:{$b->id}", "m:{$a->id}"]], ['Accept' => 'application/json'])
+        ->assertOk()
+        ->assertJsonPath('images.0.id', $b->id)
+        ->assertJsonPath('images.1.id', $a->id);
+
+    $product->refresh();
+    expect($product->getFirstMedia('featured')->id)->toBe($b->id)
+        ->and($product->getMedia('products')->pluck('id')->all())->toBe([$a->id])
+        ->and($product->status)->toBe('approved'); // reorder alone is not a re-review
+});
+
+test('edit: removed photos are deleted and new ones placed where the seller put them', function () {
+    \Illuminate\Support\Facades\Storage::fake('public');
+    $seller = User::factory()->create();
+    [$product, $a, $b] = cwtPhotoProduct($seller);
+    Sanctum::actingAs($seller);
+
+    $this->post("/api/mobile/products/{$product->id}", [
+        'photo_order' => ['n:0', "m:{$b->id}"],
+        'images' => [\Illuminate\Http\UploadedFile::fake()->image('new.jpg')],
+    ], ['Accept' => 'application/json'])->assertOk();
+
+    $product->refresh();
+    $cover = $product->getFirstMedia('featured');
+    expect($cover->id)->not->toBe($a->id)->not->toBe($b->id)
+        ->and($product->getMedia('products')->pluck('id')->all())->toBe([$b->id])
+        ->and(\App\Models\Media::find($a->id))->toBeNull()
+        ->and($product->status)->toBe('pending'); // new photo → re-review
+});
+
+test('edit: photo order must reference at least one photo and be well formed', function () {
+    \Illuminate\Support\Facades\Storage::fake('public');
+    $seller = User::factory()->create();
+    [$product] = cwtPhotoProduct($seller);
+    Sanctum::actingAs($seller);
+
+    $this->postJson("/api/mobile/products/{$product->id}", ['photo_order' => ['x:1']])->assertStatus(422);
+    $this->postJson("/api/mobile/products/{$product->id}", ['photo_order' => []])->assertStatus(422); // can't remove every photo
+    expect($product->fresh()->getMedia('featured'))->toHaveCount(1);
+});

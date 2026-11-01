@@ -80,6 +80,8 @@ class ProductResource extends JsonResource
             ]),
             // Cover (featured) first, then the rest of the gallery.
             'images' => $this->getMedia('featured')->merge($this->getMedia('products'))->map(fn ($m) => [
+                // Media id: the edit screen sends it back in photo_order.
+                'id' => (int) $m->id,
                 'url' => $m->getUrl(),
                 'preview_url' => $m->hasGeneratedConversion('preview') ? $m->getUrl('preview') : $m->getUrl(),
             ])->values(),

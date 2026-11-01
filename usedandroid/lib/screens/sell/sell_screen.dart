@@ -107,6 +107,7 @@ class _SellViewState extends State<_SellView> {
           fabric: provider.fabric,
           optionIds: provider.allOptionIds,
           images: provider.images,
+          photoOrder: provider.photoOrder,
         );
       } else {
         created = await ProductService().createProduct(
@@ -381,9 +382,6 @@ class _PhotosSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canAdd = provider.totalImageCount < 5;
-    // On a fresh listing (no pre-existing images) the first picked photo is the
-    // cover; badge it so the reorder behaviour is obvious.
-    final showCover = provider.existingImageUrls.isEmpty;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -391,48 +389,34 @@ class _PhotosSection extends StatelessWidget {
         const Text('Photos', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
         const SizedBox(height: 4),
         Text(
-          provider.images.length > 1
+          provider.photos.length > 1
               ? 'Maintenez et glissez pour réordonner · la 1re photo est la couverture'
               : "Ajoutez jusqu'à 5 photos",
           style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
         ),
         const SizedBox(height: 12),
-        // Existing images (edit mode) — shown but not reorderable here.
-        if (provider.existingImageUrls.isNotEmpty)
-          SizedBox(
-            height: 100,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: provider.existingImageUrls
-                  .asMap()
-                  .entries
-                  .map((e) => _NetworkThumb(url: e.value, onRemove: () => provider.removeExistingImage(e.key)))
-                  .toList(),
-            ),
-          ),
-        if (provider.existingImageUrls.isNotEmpty && provider.images.isNotEmpty)
-          const SizedBox(height: 8),
-        // Picked images — drag to reorder; first one is the cover/featured.
-        if (provider.images.isNotEmpty)
+        // All photos — existing and new — in one row: hold & drag to reorder;
+        // the first one is the cover (featured), on create and on edit.
+        if (provider.photos.isNotEmpty)
           SizedBox(
             height: 108,
             child: ReorderableListView.builder(
               scrollDirection: Axis.horizontal,
               buildDefaultDragHandles: true,
-              itemCount: provider.images.length,
-              onReorder: provider.reorderImages,
+              itemCount: provider.photos.length,
+              onReorderItem: provider.reorderPhotos,
               itemBuilder: (context, i) => Padding(
-                key: ValueKey(provider.images[i].path),
+                key: ValueKey(provider.photos[i].key),
                 padding: const EdgeInsets.only(right: 8),
                 child: _PhotoThumb(
-                  file: provider.images[i],
-                  isCover: showCover && i == 0,
-                  onRemove: () => provider.removeImage(i),
+                  photo: provider.photos[i],
+                  isCover: i == 0,
+                  onRemove: () => provider.removePhoto(i),
                 ),
               ),
             ),
           ),
-        if (provider.images.isNotEmpty) const SizedBox(height: 12),
+        if (provider.photos.isNotEmpty) const SizedBox(height: 12),
         if (canAdd)
           OutlinedButton.icon(
             onPressed: onAdd,
@@ -448,55 +432,18 @@ class _PhotosSection extends StatelessWidget {
   }
 }
 
-class _NetworkThumb extends StatelessWidget {
-  final String url;
-  final VoidCallback onRemove;
-
-  const _NetworkThumb({required this.url, required this.onRemove});
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: 90,
-          height: 100,
-          margin: const EdgeInsets.only(right: 8),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
-          child: CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            placeholder: (_, __) => Container(color: AppColors.inputFill),
-            errorWidget: (_, __, ___) => Container(color: AppColors.inputFill),
-          ),
-        ),
-        Positioned(
-          top: 4,
-          right: 12,
-          child: GestureDetector(
-            onTap: onRemove,
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-              child: const Icon(Icons.close, size: 14, color: Colors.white),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
 class _PhotoThumb extends StatelessWidget {
-  final File file;
+  final SellPhoto photo;
   final bool isCover;
   final VoidCallback onRemove;
 
-  const _PhotoThumb({required this.file, this.isCover = false, required this.onRemove});
+  const _PhotoThumb({required this.photo, this.isCover = false, required this.onRemove});
 
   @override
   Widget build(BuildContext context) {
+    final ImageProvider image = photo.file != null
+        ? FileImage(photo.file!)
+        : CachedNetworkImageProvider(photo.url ?? '') as ImageProvider;
     return Stack(
       children: [
         Container(
@@ -504,9 +451,10 @@ class _PhotoThumb extends StatelessWidget {
           height: 100,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
+            color: AppColors.inputFill,
             borderRadius: BorderRadius.circular(10),
             border: isCover ? Border.all(color: AppColors.primary, width: 2) : null,
-            image: DecorationImage(image: FileImage(file), fit: BoxFit.cover),
+            image: DecorationImage(image: image, fit: BoxFit.cover),
           ),
           child: isCover
               ? Align(

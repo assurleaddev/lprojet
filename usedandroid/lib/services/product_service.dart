@@ -22,6 +22,9 @@ class ApiProduct {
   final String? categoryName;
   final String? featuredImage;
   final List<String> images;
+
+  /// Server media id of each entry in [images] (null on old responses).
+  final List<int?> imageIds;
   final List<String> fabric;
   final List<int> optionIds;
   final String? status;
@@ -47,6 +50,7 @@ class ApiProduct {
     this.categoryName,
     this.featuredImage,
     this.images = const [],
+    this.imageIds = const [],
     this.fabric = const [],
     this.optionIds = const [],
     this.status,
@@ -78,6 +82,7 @@ class ApiProduct {
                 ?.map((i) => ApiClient.fixImageUrl(i['preview_url'] as String))
                 .toList() ??
             [],
+        imageIds: (json['images'] as List?)?.map((i) => _asIntOrNull(i['id'])).toList() ?? [],
         fabric: (json['fabric'] as List?)?.map((f) => f.toString()).toList() ?? [],
         optionIds: (json['option_ids'] as List?)?.map(_asInt).toList() ?? [],
         status: json['status'],
@@ -204,8 +209,9 @@ class ProductService {
     return ApiProduct.fromJson(response.data);
   }
 
-  /// Update one of the seller's own products. New [images] are appended
-  /// (existing ones are preserved server-side). Sent as multipart POST because
+  /// Update one of the seller's own products. With [photoOrder], the server
+  /// applies that exact order (removed photos are deleted, first = cover);
+  /// without it new [images] are appended. Sent as multipart POST because
   /// PHP does not parse multipart PUT bodies.
   Future<ApiProduct> updateProduct({
     required int id,
@@ -218,6 +224,7 @@ class ProductService {
     List<String> fabric = const [],
     List<int> optionIds = const [],
     List<File> images = const [],
+    List<String>? photoOrder,
   }) async {
     final formData = FormData.fromMap({
       if (name != null) 'name': name,
@@ -239,6 +246,11 @@ class ProductService {
         'images[]',
         await MultipartFile.fromFile(image.path),
       ));
+    }
+
+    // Final photo order ("m:<media id>" / "n:<index in images>"); first = cover.
+    for (final token in photoOrder ?? const <String>[]) {
+      formData.fields.add(MapEntry('photo_order[]', token));
     }
 
     final response = await _client.dio.post('/mobile/products/$id', data: formData);
