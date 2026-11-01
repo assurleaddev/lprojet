@@ -42,9 +42,10 @@ class AuthUser {
 class AuthService {
   final _client = ApiClient();
 
-  Future<AuthUser> login(String email, String password) async {
+  /// [login] is an email address or a username.
+  Future<AuthUser> login(String login, String password) async {
     final response = await _client.dio.post('/auth/login', data: {
-      'email': email,
+      'login': login,
       'password': password,
     });
     final token = response.data['token'] as String;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'navigation/app_router.dart';
 import 'services/auth_service.dart';
+import 'services/unread_store.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -8,6 +9,7 @@ void main() async {
   // Load verification state before the first frame so the router can gate
   // an unverified logged-in session immediately (survives app restarts).
   await AuthService().bootstrap();
+  UnreadStore.instance.start();
   runApp(const UsedApp());
 }
 

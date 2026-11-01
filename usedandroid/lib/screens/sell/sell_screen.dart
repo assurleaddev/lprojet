@@ -312,7 +312,7 @@ class _SellViewState extends State<_SellView> {
             title: 'Titre',
             child: TextFormField(
               initialValue: provider.title,
-              decoration: const InputDecoration(hintText: 'Ex: Robe fleurie Zara taille S'),
+              decoration: const InputDecoration(hintText: "Dites à l'acheteur ce que vous vendez"),
               onChanged: provider.setTitle,
             ),
           ),

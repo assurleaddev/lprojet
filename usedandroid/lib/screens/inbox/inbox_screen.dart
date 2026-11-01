@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/api_client.dart';
 import '../../services/inbox_service.dart';
+import '../../services/live_service.dart';
+import '../../services/unread_store.dart';
 import '../../theme/app_colors.dart';
 
 class InboxScreen extends StatefulWidget {
@@ -26,11 +28,18 @@ class _InboxScreenState extends State<InboxScreen> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    // The tab is kept alive in the shell: react to login/logout and to new
+    // unread messages/notifications instead of only loading once.
+    ApiClient.authState.addListener(_init);
+    UnreadStore.instance.addListener(_onUnreadChanged);
     _init();
   }
 
   @override
   void dispose() {
+    ApiClient.authState.removeListener(_init);
+    UnreadStore.instance.removeListener(_onUnreadChanged);
     _tabController.dispose();
     super.dispose();
   }
@@ -41,8 +50,63 @@ class _InboxScreenState extends State<InboxScreen> with SingleTickerProviderStat
       if (mounted) setState(() { _loggedIn = false; _loading = false; });
       return;
     }
-    setState(() => _loggedIn = true);
+    if (mounted) setState(() => _loggedIn = true);
     await _load();
+  }
+
+  void _onUnreadChanged() {
+    if (_loggedIn && !_loading) _load();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging && _tabController.index == 1) _markNotificationsRead();
+  }
+
+  /// Opening the Notifications tab marks them read (clears that badge).
+  Future<void> _markNotificationsRead() async {
+    if (_notifications.every((n) => n.read)) return;
+    try {
+      await _service.markAllRead();
+      await UnreadStore.instance.refresh();
+    } catch (_) {/* badge stays until next refresh */}
+  }
+
+  Future<void> _openConversation(ApiConversation conv) async {
+    await context.push('/inbox/conversation/${conv.id}', extra: conv);
+    await UnreadStore.instance.refresh(); // reading the chat cleared its unread count
+    _load();
+  }
+
+  /// Where a notification leads: the product page first, else the chat,
+  /// the live or the member.
+  Future<void> _openNotification(ApiNotification n) async {
+    final id = n.targetId;
+    if (id == null) return;
+    switch (n.targetType) {
+      case 'product':
+        context.push('/listing/$id');
+      case 'user':
+        context.push('/user/$id');
+      case 'conversation':
+        var conv = _conversations.where((c) => c.id == id).firstOrNull;
+        if (conv == null) {
+          try {
+            conv = (await _service.getConversations()).where((c) => c.id == id).firstOrNull;
+          } catch (_) {}
+        }
+        if (conv != null && mounted) _openConversation(conv);
+      case 'live':
+        try {
+          final live = await LiveService().getLive(id);
+          if (mounted) context.push('/lives/watch/$id', extra: live);
+        } catch (_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Ce live n'est plus disponible")),
+            );
+          }
+        }
+    }
   }
 
   Future<void> _load() async {
@@ -73,7 +137,10 @@ class _InboxScreenState extends State<InboxScreen> with SingleTickerProviderStat
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
-          tabs: const [Tab(text: 'Messages'), Tab(text: 'Notifications')],
+          tabs: [
+            Tab(child: _TabLabel(text: 'Messages', count: UnreadStore.instance.value.messages)),
+            Tab(child: _TabLabel(text: 'Notifications', count: UnreadStore.instance.value.notifications)),
+          ],
         ),
       ),
       body: !_loggedIn
@@ -83,8 +150,16 @@ class _InboxScreenState extends State<InboxScreen> with SingleTickerProviderStat
               : TabBarView(
                   controller: _tabController,
                   children: [
-                    _ConversationsList(conversations: _conversations, onRefresh: _load),
-                    _NotificationsList(notifications: _notifications, onRefresh: _load),
+                    _ConversationsList(
+                      conversations: _conversations,
+                      onRefresh: _load,
+                      onOpen: _openConversation,
+                    ),
+                    _NotificationsList(
+                      notifications: _notifications,
+                      onRefresh: _load,
+                      onOpen: _openNotification,
+                    ),
                   ],
                 ),
     );
@@ -94,8 +169,9 @@ class _InboxScreenState extends State<InboxScreen> with SingleTickerProviderStat
 class _ConversationsList extends StatelessWidget {
   final List<ApiConversation> conversations;
   final Future<void> Function() onRefresh;
+  final ValueChanged<ApiConversation> onOpen;
 
-  const _ConversationsList({required this.conversations, required this.onRefresh});
+  const _ConversationsList({required this.conversations, required this.onRefresh, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
@@ -109,7 +185,7 @@ class _ConversationsList extends StatelessWidget {
         itemCount: conversations.length,
         separatorBuilder: (_, __) =>
             const Divider(height: 1, thickness: 1, indent: 84, color: AppColors.border),
-        itemBuilder: (_, i) => _ConversationTile(conv: conversations[i]),
+        itemBuilder: (_, i) => _ConversationTile(conv: conversations[i], onTap: () => onOpen(conversations[i])),
       ),
     );
   }
@@ -117,8 +193,9 @@ class _ConversationsList extends StatelessWidget {
 
 class _ConversationTile extends StatelessWidget {
   final ApiConversation conv;
+  final VoidCallback onTap;
 
-  const _ConversationTile({required this.conv});
+  const _ConversationTile({required this.conv, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +205,7 @@ class _ConversationTile extends StatelessWidget {
         : (conv.lastMessageIsMine ? 'Vous : ${conv.lastMessageBody}' : conv.lastMessageBody!);
 
     return InkWell(
-      onTap: () => context.push('/inbox/conversation/${conv.id}', extra: conv),
+      onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
         child: Row(
@@ -244,8 +321,9 @@ class _ConversationTile extends StatelessWidget {
 class _NotificationsList extends StatelessWidget {
   final List<ApiNotification> notifications;
   final Future<void> Function() onRefresh;
+  final ValueChanged<ApiNotification> onOpen;
 
-  const _NotificationsList({required this.notifications, required this.onRefresh});
+  const _NotificationsList({required this.notifications, required this.onRefresh, required this.onOpen});
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +335,7 @@ class _NotificationsList extends StatelessWidget {
       child: ListView.separated(
         itemCount: notifications.length,
         separatorBuilder: (_, __) => const Divider(height: 1, indent: 60),
-        itemBuilder: (_, i) => _NotifTile(notif: notifications[i]),
+        itemBuilder: (_, i) => _NotifTile(notif: notifications[i], onTap: () => onOpen(notifications[i])),
       ),
     );
   }
@@ -265,18 +343,20 @@ class _NotificationsList extends StatelessWidget {
 
 class _NotifTile extends StatelessWidget {
   final ApiNotification notif;
+  final VoidCallback onTap;
 
-  const _NotifTile({required this.notif});
+  const _NotifTile({required this.notif, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final (icon, color) = _iconFor(notif.type);
     return ListTile(
-      tileColor: notif.read ? null : AppColors.primary.withOpacity(0.05),
+      onTap: notif.targetId != null ? onTap : null,
+      tileColor: notif.read ? null : AppColors.primary.withValues(alpha: 0.05),
       leading: Container(
         width: 40,
         height: 40,
-        decoration: BoxDecoration(color: color.withOpacity(0.12), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: color.withValues(alpha: 0.12), shape: BoxShape.circle),
         child: Icon(icon, color: color, size: 20),
       ),
       title: Text(notif.message, style: const TextStyle(fontSize: 14)),
@@ -336,4 +416,23 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TabLabel extends StatelessWidget {
+  final String text;
+  final int count;
+
+  const _TabLabel({required this.text, required this.count});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(text),
+          if (count > 0) ...[
+            const SizedBox(width: 6),
+            Badge(label: Text(count > 99 ? '99+' : '$count'), backgroundColor: AppColors.primary),
+          ],
+        ],
+      );
 }

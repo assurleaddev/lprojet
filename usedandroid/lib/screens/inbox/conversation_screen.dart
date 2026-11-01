@@ -2,8 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import '../../services/inbox_service.dart';
+import '../../services/profile_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/rating_stars.dart';
 import '../checkout/checkout_screen.dart';
 
 // ── carriers ──────────────────────────────────────────────────────────────────
@@ -44,11 +47,27 @@ class _ConversationScreenState extends State<ConversationScreen> {
   bool _sending = false;
   bool _actionLoading = false;
   String? _error;
+  ApiMember? _otherMember; // for the rating under the name in the header
 
   @override
   void initState() {
     super.initState();
     _load();
+    _loadOtherMember();
+  }
+
+  Future<void> _loadOtherMember() async {
+    final id = widget.conversation.otherUserId;
+    if (id == null) return;
+    try {
+      final m = await ProfileService().getMember(id);
+      if (mounted) setState(() => _otherMember = m);
+    } catch (_) {/* header just shows the name */}
+  }
+
+  void _openOtherProfile() {
+    final id = widget.conversation.otherUserId;
+    if (id != null) context.push('/user/$id');
   }
 
   @override
@@ -376,7 +395,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
       backgroundColor: const Color(0xFFF7F8FA),
       appBar: AppBar(
         titleSpacing: 0,
-        title: Row(
+        // Tapping the photo or the name opens the member's profile.
+        title: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: _openOtherProfile,
+          child: Row(
           children: [
             Container(
               decoration: BoxDecoration(
@@ -405,7 +428,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   Text(conv.otherUserName,
                       style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
                       overflow: TextOverflow.ellipsis),
-                  if (conv.productTitle != null)
+                  // Rating under the name; the product stays in the bar below.
+                  if (_otherMember != null)
+                    RatingStars(average: _otherMember!.ratingAvg, count: _otherMember!.ratingCount, size: 13)
+                  else if (conv.productTitle != null)
                     Text(conv.productTitle!,
                         style: const TextStyle(fontSize: 11, color: AppColors.primary),
                         overflow: TextOverflow.ellipsis),
@@ -413,6 +439,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               ),
             ),
           ],
+        ),
         ),
         actions: [
           if (_actionLoading)
@@ -570,6 +597,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
         );
 
       case 'item_sold':
+        // Seller-only card ("Article vendu !"); the message is attributed to the buyer.
+        if (msg.order != null ? !msg.order!.isSeller : msg.isMine) return const SizedBox.shrink();
         return _ItemSoldCard(
           msg: msg,
           onShip: msg.order != null && msg.order!.isSeller && msg.order!.isPending
@@ -578,6 +607,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
         );
 
       case 'order_placed':
+        // Buyer-only card ("Commande passée !"); the message is attributed to the seller.
+        if (msg.order != null ? !msg.order!.isBuyer : msg.isMine) return const SizedBox.shrink();
         return _OrderPlacedCard(msg: msg);
 
       case 'item_shipped':

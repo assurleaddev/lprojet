@@ -23,6 +23,10 @@ class MobileProfile {
   final Map<String, bool> notifications;
   final String notificationLimit;
   final int productsCount;
+  final int followersCount;
+  final int followingCount;
+  final double ratingAvg;
+  final int ratingCount;
 
   const MobileProfile({
     required this.id,
@@ -44,6 +48,10 @@ class MobileProfile {
     this.notifications = const {},
     this.notificationLimit = 'unlimited',
     this.productsCount = 0,
+    this.followersCount = 0,
+    this.followingCount = 0,
+    this.ratingAvg = 0,
+    this.ratingCount = 0,
   });
 
   String get location => [city, country].where((e) => e != null && e.isNotEmpty).join(', ');
@@ -70,12 +78,92 @@ class MobileProfile {
       notifications: notif.map((k, v) => MapEntry(k.toString(), v == true)),
       notificationLimit: json['notifications']?['notification_limit']?.toString() ?? 'unlimited',
       productsCount: json['stats']?['products_count'] ?? 0,
+      followersCount: json['stats']?['followers_count'] ?? 0,
+      followingCount: json['stats']?['following_count'] ?? 0,
+      ratingAvg: (json['stats']?['rating_avg'] as num?)?.toDouble() ?? 0,
+      ratingCount: json['stats']?['rating_count'] ?? 0,
     );
   }
 }
 
+/// Another member's public profile (seller page) or a member-search result.
+class ApiMember {
+  final int id;
+  final String? username;
+  final String fullName;
+  final String? avatarUrl;
+  final double ratingAvg;
+  final int ratingCount;
+  final int followersCount;
+  final int followingCount;
+  final int productsCount;
+  final int? memberSince;
+  final String? about;
+  final String? city;
+  final bool isFollowing;
+  final bool isMe;
+
+  const ApiMember({
+    required this.id,
+    this.username,
+    required this.fullName,
+    this.avatarUrl,
+    this.ratingAvg = 0,
+    this.ratingCount = 0,
+    this.followersCount = 0,
+    this.followingCount = 0,
+    this.productsCount = 0,
+    this.memberSince,
+    this.about,
+    this.city,
+    this.isFollowing = false,
+    this.isMe = false,
+  });
+
+  /// Name to show: the full name, else the username.
+  String get displayName => fullName.trim().isNotEmpty ? fullName : (username ?? '');
+
+  factory ApiMember.fromJson(Map<String, dynamic> json) => ApiMember(
+        id: json['id'],
+        username: json['username'],
+        fullName: json['full_name'] ?? '',
+        avatarUrl: json['avatar_url'] != null ? ApiClient.fixImageUrl(json['avatar_url']) : null,
+        ratingAvg: (json['rating_avg'] as num?)?.toDouble() ?? 0,
+        ratingCount: json['rating_count'] ?? 0,
+        followersCount: json['followers_count'] ?? 0,
+        followingCount: json['following_count'] ?? 0,
+        productsCount: json['products_count'] ?? 0,
+        memberSince: json['member_since'],
+        about: json['about'],
+        city: json['city'],
+        isFollowing: json['is_following'] ?? false,
+        isMe: json['is_me'] ?? false,
+      );
+}
+
 class ProfileService {
   final _client = ApiClient();
+
+  /// A member's public profile (works signed in or not).
+  Future<ApiMember> getMember(int id) async {
+    final response = await _client.dio.get('/mobile/users/$id');
+    return ApiMember.fromJson(response.data);
+  }
+
+  /// Member search ("Membres" in the search bar). [query] needs 2+ characters.
+  Future<List<ApiMember>> searchMembers(String query) async {
+    final response = await _client.dio.get('/mobile/users/search', queryParameters: {'q': query});
+    return (response.data['data'] as List).map((j) => ApiMember.fromJson(j)).toList();
+  }
+
+  /// Follow / unfollow a member. Returns the new state and follower count.
+  Future<({bool following, int followersCount})> toggleFollow(int userId) async {
+    final response = await _client.dio.post('/mobile/users/$userId/follow');
+    return (
+      following: response.data['following'] == true,
+      followersCount: (response.data['followers_count'] as num?)?.toInt() ?? 0,
+    );
+  }
 
   Future<MobileProfile> getProfile() async {
     final response = await _client.dio.get('/mobile/profile');

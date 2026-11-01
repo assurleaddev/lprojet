@@ -7,12 +7,15 @@ import '../screens/home/home_screen.dart';
 import '../screens/inbox/conversation_screen.dart';
 import '../screens/inbox/inbox_screen.dart';
 import '../screens/listing/listing_detail_screen.dart';
+import '../screens/listing/listing_loader_screen.dart';
 import '../screens/live/live_broadcast_screen.dart';
 import '../screens/live/live_create_screen.dart';
 import '../screens/live/lives_screen.dart';
 import '../screens/live/live_watch_screen.dart';
 import '../screens/profile/balance_screen.dart';
 import '../screens/profile/edit_profile_screen.dart';
+import '../screens/profile/favorites_screen.dart';
+import '../screens/profile/member_profile_screen.dart';
 import '../screens/profile/my_listings_screen.dart';
 import '../screens/profile/orders_screen.dart';
 import '../screens/profile/profile_screen.dart';
@@ -88,6 +91,7 @@ final appRouter = GoRouter(
               GoRoute(path: 'settings', builder: (_, __) => const SettingsScreen()),
               GoRoute(path: 'balance', builder: (_, __) => const BalanceScreen()),
               GoRoute(path: 'orders', builder: (_, __) => const OrdersScreen()),
+              GoRoute(path: 'favorites', builder: (_, __) => const FavoritesScreen()),
               GoRoute(
                 path: 'my-listings',
                 builder: (_, __) => const MyListingsScreen(),
@@ -119,8 +123,15 @@ final appRouter = GoRouter(
     GoRoute(path: '/verify-phone', builder: (_, __) => const VerifyPhoneScreen()),
     GoRoute(
       path: '/listing/:id',
-      builder: (_, state) =>
-          ListingDetailScreen(product: state.extra as ApiProduct),
+      // With the product in hand (lists) show it at once; with only the id
+      // (notifications) load it first.
+      builder: (_, state) => state.extra is ApiProduct
+          ? ListingDetailScreen(product: state.extra as ApiProduct)
+          : ListingLoaderScreen(productId: int.parse(state.pathParameters['id']!)),
+    ),
+    GoRoute(
+      path: '/user/:id',
+      builder: (_, state) => MemberProfileScreen(userId: int.parse(state.pathParameters['id']!)),
     ),
     GoRoute(
       path: '/categories/:id',

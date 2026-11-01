@@ -2,6 +2,7 @@ import 'api_client.dart';
 
 class ApiConversation {
   final int id;
+  final int? otherUserId;
   final String otherUserName;
   final String? otherUserAvatar;
   final String? productTitle;
@@ -13,6 +14,7 @@ class ApiConversation {
 
   const ApiConversation({
     required this.id,
+    this.otherUserId,
     required this.otherUserName,
     this.otherUserAvatar,
     this.productTitle,
@@ -29,6 +31,7 @@ class ApiConversation {
     final product = json['product'] as Map<String, dynamic>?;
     return ApiConversation(
       id: json['id'],
+      otherUserId: other['id'] as int?,
       otherUserName: other['name'] ?? '',
       otherUserAvatar: other['avatar_url'] != null ? ApiClient.fixImageUrl(other['avatar_url']) : null,
       productTitle: product?['title'],
@@ -164,21 +167,50 @@ class ApiNotification {
   final bool read;
   final String createdAt;
 
+  /// Where tapping it should go: 'product', 'conversation', 'live' or 'user'.
+  final String? targetType;
+  final int? targetId;
+
   const ApiNotification({
     required this.id,
     required this.type,
     required this.message,
     required this.read,
     required this.createdAt,
+    this.targetType,
+    this.targetId,
   });
 
-  factory ApiNotification.fromJson(Map<String, dynamic> json) => ApiNotification(
-        id: json['id'],
-        type: json['type'] ?? '',
-        message: json['message'] ?? '',
-        read: json['read'] ?? false,
-        createdAt: json['created_at'] ?? '',
-      );
+  factory ApiNotification.fromJson(Map<String, dynamic> json) {
+    final target = json['target'] as Map<String, dynamic>?;
+    return ApiNotification(
+      id: json['id'],
+      type: json['type'] ?? '',
+      message: json['message'] ?? '',
+      read: json['read'] ?? false,
+      createdAt: json['created_at'] ?? '',
+      targetType: target?['type'] as String?,
+      targetId: target?['id'] as int?,
+    );
+  }
+}
+
+/// Unread badges for the bottom bar.
+class UnreadCounts {
+  final int messages;
+  final int notifications;
+
+  const UnreadCounts({this.messages = 0, this.notifications = 0});
+
+  int get total => messages + notifications;
+
+  // Value equality so listeners only fire when a count actually changes.
+  @override
+  bool operator ==(Object other) =>
+      other is UnreadCounts && other.messages == messages && other.notifications == notifications;
+
+  @override
+  int get hashCode => Object.hash(messages, notifications);
 }
 
 class InboxService {
@@ -272,5 +304,13 @@ class InboxService {
 
   Future<void> markAllRead() async {
     await _client.dio.post('/mobile/notifications/read');
+  }
+
+  Future<UnreadCounts> getUnreadCounts() async {
+    final response = await _client.dio.get('/mobile/unread-counts');
+    return UnreadCounts(
+      messages: (response.data['messages'] as num?)?.toInt() ?? 0,
+      notifications: (response.data['notifications'] as num?)?.toInt() ?? 0,
+    );
   }
 }

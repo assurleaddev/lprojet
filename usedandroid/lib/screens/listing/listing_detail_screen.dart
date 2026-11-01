@@ -8,6 +8,8 @@ import '../../services/api_client.dart';
 import '../../services/inbox_service.dart';
 import '../../services/product_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/favorite_heart.dart';
+import '../../widgets/rating_stars.dart';
 import '../checkout/checkout_screen.dart';
 import '../inbox/conversation_screen.dart';
 import '../sell/sell_screen.dart';
@@ -288,7 +290,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                           color: AppColors.textPrimary,
                         ),
                       ),
-                      _FavoriteButton(initial: product.isFavorited),
+                      FavoriteHeart(product: product, compact: false),
                     ],
                   ),
                   if (product.priceInclProtection != null) ...[
@@ -334,7 +336,7 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                   const SizedBox(height: 16),
                   const Divider(),
                   const SizedBox(height: 16),
-                  _SellerCard(vendor: product.vendor, onMessage: (_loggedIn && !product.isOwner) ? _message : null),
+                  _SellerCard(product: product, onMessage: (_loggedIn && !product.isOwner) ? _message : null),
                   const SizedBox(height: 16),
                   const _BuyerProtectionCard(),
                   const SizedBox(height: 20),
@@ -528,18 +530,22 @@ class _DetailRow extends StatelessWidget {
 }
 
 class _SellerCard extends StatelessWidget {
-  final Map<String, dynamic>? vendor;
+  final ApiProduct product;
   final VoidCallback? onMessage;
 
-  const _SellerCard({this.vendor, this.onMessage});
+  const _SellerCard({required this.product, this.onMessage});
 
   @override
   Widget build(BuildContext context) {
+    final vendor = product.vendor;
     final name = vendor?['name'] ?? 'Vendeur';
     final since = vendor?['member_since']?.toString();
     final avatarUrl = vendor?['avatar_url'] as String?;
+    final vendorId = product.vendorId;
+    final ratingAvg = product.vendorRatingAvg;
 
-    return Row(
+    // Tapping the photo or the name opens the seller's profile.
+    final seller = Row(
       children: [
         Container(
           decoration: BoxDecoration(
@@ -554,15 +560,33 @@ class _SellerCard extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
+        Flexible(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+              if (ratingAvg != null) ...[
+                const SizedBox(height: 2),
+                RatingStars(average: ratingAvg, count: product.vendorRatingCount ?? 0),
+              ],
               if (since != null)
                 Text('Membre depuis $since', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
             ],
           ),
+        ),
+      ],
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: vendorId == null
+              ? seller
+              : InkWell(
+                  onTap: () => context.push('/user/$vendorId'),
+                  borderRadius: BorderRadius.circular(8),
+                  child: seller,
+                ),
         ),
         if (onMessage != null)
           OutlinedButton.icon(
@@ -747,33 +771,6 @@ class _SignalerRow extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _FavoriteButton extends StatefulWidget {
-  final bool initial;
-  const _FavoriteButton({this.initial = false});
-
-  @override
-  State<_FavoriteButton> createState() => _FavoriteButtonState();
-}
-
-class _FavoriteButtonState extends State<_FavoriteButton> {
-  late bool _favorited;
-
-  @override
-  void initState() {
-    super.initState();
-    _favorited = widget.initial;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return IconButton(
-      icon: Icon(_favorited ? Icons.favorite : Icons.favorite_border),
-      color: _favorited ? AppColors.pink : AppColors.textSecondary,
-      onPressed: () => setState(() => _favorited = !_favorited),
     );
   }
 }

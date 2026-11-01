@@ -21,6 +21,10 @@ class AppConfig {
 
   static String get apiBaseUrl => isLocalDev ? _localApiBase : _prodApiBase;
 
+  /// Public website root (legal pages, web-only settings). Always production:
+  /// these pages are opened in the phone's browser, not the emulator.
+  static const String siteUrl = 'https://usedis.com';
+
   /// The single-threaded local dev server drops some concurrent image
   /// requests; retry on the emulator only. Production needs no retries.
   static int get imageMaxRetries => isLocalDev ? 6 : 0;

@@ -143,6 +143,16 @@ class CheckoutService {
     return CheckoutInit.fromJson(response.data);
   }
 
+  /// Saved delivery addresses (Settings → Livraison).
+  Future<List<CheckoutAddress>> getAddresses() async {
+    final response = await _client.dio.get('/mobile/addresses');
+    return (response.data['data'] as List).map((j) => CheckoutAddress.fromJson(j)).toList();
+  }
+
+  Future<void> deleteAddress(int id) async {
+    await _client.dio.delete('/mobile/addresses/$id');
+  }
+
   Future<CheckoutAddress> addAddress({
     required String country,
     required String fullName,

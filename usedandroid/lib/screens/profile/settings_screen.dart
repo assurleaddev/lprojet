@@ -2,7 +2,9 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/profile_service.dart';
+import '../../services/web_links.dart';
 import '../../theme/app_colors.dart';
+import 'addresses_screen.dart';
 
 // App-facing notification toggles → backend meta keys (subset of the web page).
 const _notifToggles = [
@@ -24,7 +26,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   MobileProfile? _profile;
   Map<String, bool> _notifs = {};
   bool _loading = true;
-  bool _darkMode = false; // local only
 
   @override
   void initState() {
@@ -41,21 +42,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
-  Future<void> _toggleNotif(String key, bool value) async {
-    final previous = _notifs[key] ?? false;
-    setState(() => _notifs[key] = value); // optimistic
-    try {
-      await _service.updateNotifications({key: value});
-    } catch (_) {
-      if (mounted) {
-        setState(() => _notifs[key] = previous); // revert
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Impossible de mettre à jour la préférence')),
-        );
-      }
-    }
+  void _openPage(String title, List<Widget> Function() children) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: Text(title)),
+        body: ListView(children: children()),
+      ),
+    ));
   }
 
+  /// Same sections as the website's settings menu.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,9 +60,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ? const Center(child: CircularProgressIndicator())
           : ListView(
               children: [
-                _SectionHeader('Compte'),
                 _SettingsTile(
-                  title: 'Modifier le profil',
+                  title: 'Profil',
                   icon: Icons.person_outline,
                   onTap: () async {
                     await context.push('/profile/edit');
@@ -74,55 +69,86 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
                 ),
                 _SettingsTile(
-                  title: 'Changer le mot de passe',
-                  icon: Icons.lock_outline,
-                  onTap: _changePassword,
+                  title: 'Paramètres du compte',
+                  icon: Icons.manage_accounts_outlined,
+                  onTap: () => _openPage('Paramètres du compte', () => [
+                        _InfoTile(title: 'E-mail', icon: Icons.email_outlined, value: _profile?.email ?? '—'),
+                        _InfoTile(
+                          title: 'Téléphone',
+                          icon: Icons.phone_outlined,
+                          value: (_profile?.phoneNumber?.isNotEmpty ?? false) ? _profile!.phoneNumber! : 'Non renseigné',
+                        ),
+                        _InfoTile(
+                          title: "Nom d'utilisateur",
+                          icon: Icons.alternate_email,
+                          value: _profile?.username ?? '—',
+                        ),
+                      ]),
                 ),
                 _SettingsTile(
-                  title: 'Email',
-                  icon: Icons.email_outlined,
-                  subtitle: _profile?.email,
-                  onTap: () {},
-                ),
-                _SettingsTile(
-                  title: 'Téléphone',
-                  icon: Icons.phone_outlined,
-                  subtitle: (_profile?.phoneNumber?.isNotEmpty ?? false)
-                      ? _profile!.phoneNumber
-                      : 'Non renseigné',
-                  onTap: () {},
-                ),
-                const SizedBox(height: 8),
-                _SectionHeader('Notifications'),
-                for (final t in _notifToggles)
-                  SwitchListTile(
-                    secondary: Icon(t.$3, color: AppColors.textPrimary),
-                    title: Text(t.$2),
-                    value: _notifs[t.$1] ?? false,
-                    onChanged: (v) => _toggleNotif(t.$1, v),
-                    activeColor: AppColors.primary,
+                  title: 'Livraison',
+                  icon: Icons.local_shipping_outlined,
+                  subtitle: 'Adresses de livraison',
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AddressesScreen()),
                   ),
-                const SizedBox(height: 8),
-                _SectionHeader('Préférences'),
-                SwitchListTile(
-                  secondary: const Icon(Icons.dark_mode_outlined, color: AppColors.textPrimary),
-                  title: const Text('Mode sombre'),
-                  value: _darkMode,
-                  onChanged: (v) => setState(() => _darkMode = v),
-                  activeColor: AppColors.primary,
                 ),
-                const SizedBox(height: 8),
-                _SectionHeader('Confidentialité'),
-                _SettingsTile(title: 'Politique de confidentialité', icon: Icons.privacy_tip_outlined, onTap: () {}),
-                _SettingsTile(title: 'Conditions d\'utilisation', icon: Icons.description_outlined, onTap: () {}),
-                const SizedBox(height: 8),
-                _SectionHeader('Danger'),
                 _SettingsTile(
-                  title: 'Supprimer le compte',
-                  icon: Icons.delete_outline,
-                  textColor: Colors.red,
-                  iconColor: Colors.red,
-                  onTap: () => _confirmDelete(context),
+                  title: 'Paiements',
+                  icon: Icons.account_balance_outlined,
+                  subtitle: 'Comptes de versement · sur usedis.com',
+                  external: true,
+                  onTap: () => WebLinks.open(context, WebLinks.paymentsSettings),
+                ),
+                _SettingsTile(
+                  title: 'Remises groupées',
+                  icon: Icons.percent,
+                  subtitle: 'Réductions par lot · sur usedis.com',
+                  external: true,
+                  onTap: () => WebLinks.open(context, WebLinks.bundleDiscountsSettings),
+                ),
+                _SettingsTile(
+                  title: 'Notifications',
+                  icon: Icons.notifications_outlined,
+                  onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                    builder: (_) => _NotificationSettingsPage(initial: _notifs, onChanged: (m) => _notifs = m),
+                  )),
+                ),
+                _SettingsTile(
+                  title: 'Confidentialité',
+                  icon: Icons.privacy_tip_outlined,
+                  onTap: () => _openPage('Confidentialité', () => [
+                        _SettingsTile(
+                          title: 'Politique de confidentialité',
+                          icon: Icons.privacy_tip_outlined,
+                          external: true,
+                          onTap: () => WebLinks.open(context, WebLinks.privacyPolicy),
+                        ),
+                        _SettingsTile(
+                          title: "Conditions générales d'utilisation",
+                          icon: Icons.description_outlined,
+                          external: true,
+                          onTap: () => WebLinks.open(context, WebLinks.terms),
+                        ),
+                      ]),
+                ),
+                _SettingsTile(
+                  title: 'Sécurité',
+                  icon: Icons.lock_outline,
+                  onTap: () => _openPage('Sécurité', () => [
+                        _SettingsTile(
+                          title: 'Changer le mot de passe',
+                          icon: Icons.password,
+                          onTap: _changePassword,
+                        ),
+                        _SettingsTile(
+                          title: 'Supprimer le compte',
+                          icon: Icons.delete_outline,
+                          textColor: Colors.red,
+                          iconColor: Colors.red,
+                          onTap: () => _confirmDelete(context),
+                        ),
+                      ]),
                 ),
               ],
             ),
@@ -210,32 +236,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: const Text('Supprimer le compte'),
-        content: const Text('Cette action est irréversible. Toutes vos données seront supprimées.'),
+        content: const Text(
+          'Pour supprimer votre compte, écrivez à contact@usedis.com avec pour objet '
+          '« Supprimer mon compte Usedis ». Les commandes en cours seront annulées.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Annuler')),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
         ],
-      ),
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-
-  const _SectionHeader(this.title);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
-      child: Text(
-        title.toUpperCase(),
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary, letterSpacing: 0.8),
       ),
     );
   }
@@ -249,6 +256,9 @@ class _SettingsTile extends StatelessWidget {
   final Color? textColor;
   final Color? iconColor;
 
+  /// Opens a page of the website (shown with an "open in browser" icon).
+  final bool external;
+
   const _SettingsTile({
     required this.title,
     required this.icon,
@@ -256,6 +266,7 @@ class _SettingsTile extends StatelessWidget {
     this.subtitle,
     this.textColor,
     this.iconColor,
+    this.external = false,
   });
 
   @override
@@ -264,8 +275,73 @@ class _SettingsTile extends StatelessWidget {
       leading: Icon(icon, color: iconColor ?? AppColors.textPrimary, size: 22),
       title: Text(title, style: TextStyle(color: textColor ?? AppColors.textPrimary)),
       subtitle: subtitle != null ? Text(subtitle!, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)) : null,
-      trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+      trailing: Icon(external ? Icons.open_in_new : Icons.chevron_right, color: AppColors.textSecondary, size: external ? 18 : 24),
       onTap: onTap,
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final String value;
+
+  const _InfoTile({required this.title, required this.icon, required this.value});
+
+  @override
+  Widget build(BuildContext context) => ListTile(
+        leading: Icon(icon, color: AppColors.textPrimary, size: 22),
+        title: Text(title),
+        subtitle: Text(value, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+      );
+}
+
+/// Notification preferences (same keys as the web notifications page).
+class _NotificationSettingsPage extends StatefulWidget {
+  final Map<String, bool> initial;
+  final ValueChanged<Map<String, bool>> onChanged;
+
+  const _NotificationSettingsPage({required this.initial, required this.onChanged});
+
+  @override
+  State<_NotificationSettingsPage> createState() => _NotificationSettingsPageState();
+}
+
+class _NotificationSettingsPageState extends State<_NotificationSettingsPage> {
+  final _service = ProfileService();
+  late final Map<String, bool> _notifs = Map.of(widget.initial);
+
+  Future<void> _toggle(String key, bool value) async {
+    final previous = _notifs[key] ?? false;
+    setState(() => _notifs[key] = value); // optimistic
+    try {
+      await _service.updateNotifications({key: value});
+      widget.onChanged(Map.of(_notifs));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _notifs[key] = previous); // revert
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Impossible de mettre à jour la préférence')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Notifications')),
+      body: ListView(
+        children: [
+          for (final t in _notifToggles)
+            SwitchListTile(
+              secondary: Icon(t.$3, color: AppColors.textPrimary),
+              title: Text(t.$2),
+              value: _notifs[t.$1] ?? false,
+              onChanged: (v) => _toggle(t.$1, v),
+              activeThumbColor: AppColors.primary,
+            ),
+        ],
+      ),
     );
   }
 }

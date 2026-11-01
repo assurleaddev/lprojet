@@ -93,11 +93,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 TextFormField(
                   controller: _emailCtrl,
                   keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  textInputAction: TextInputAction.next,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    labelText: "Nom d'utilisateur ou e-mail",
+                    prefixIcon: Icon(Icons.person_outline),
                   ),
-                  validator: (v) => v != null && v.contains('@') ? null : 'Email invalide',
+                  validator: (v) => v != null && v.trim().isNotEmpty
+                      ? null
+                      : "Saisissez votre nom d'utilisateur ou votre e-mail",
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

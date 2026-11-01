@@ -44,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadInitial() async {
     try {
       final results = await Future.wait([
-        _productService.getProducts(categoryId: _selectedCategoryId),
+        _productService.getProducts(categoryId: _selectedCategoryId, includeSubcategories: true),
         _categoryService.getRootCategories(),
       ]);
       if (mounted) {
@@ -67,8 +67,10 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final page = await _productService.getProducts(
         categoryId: _selectedCategoryId,
+        includeSubcategories: true,
         page: _page + 1,
       );
+      if (!mounted) return;
       setState(() {
         _products.addAll(page.items);
         _page++;
@@ -76,7 +78,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadingMore = false;
       });
     } catch (_) {
-      setState(() => _loadingMore = false);
+      if (mounted) setState(() => _loadingMore = false);
     }
   }
 
@@ -87,13 +89,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _onCategorySelected(int? id) async {
-    setState(() { _selectedCategoryId = id; _loading = true; _page = 1; _products = []; });
+    setState(() { _selectedCategoryId = id; _loading = true; _error = null; _page = 1; _products = []; });
     try {
-      final page = await _productService.getProducts(categoryId: id);
+      final page = await _productService.getProducts(categoryId: id, includeSubcategories: true);
+      if (!mounted || _selectedCategoryId != id) return; // a newer tap won
       setState(() { _products = page.items; _hasMore = page.hasMore; _loading = false; });
-    } catch (_) {
-      setState(() => _loading = false);
+    } catch (e) {
+      if (mounted && _selectedCategoryId == id) setState(() { _loading = false; _error = e.toString(); });
     }
+  }
+
+  Future<void> _retry() async {
+    setState(() { _loading = true; _error = null; _page = 1; });
+    await _loadInitial();
   }
 
   @override
@@ -114,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: GestureDetector(
                     onTap: () => context.push('/search'),
                     child: const SearchBarWidget(
-                      hintText: 'Rechercher des articles...',
+                      hintText: 'Rechercher des articles ou des membres',
                       readOnly: true,
                     ),
                   ),
@@ -148,9 +156,32 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 12),
                     const Text('Impossible de charger les articles'),
                   const SizedBox(height: 8),
-                  Text(_error ?? '', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary), textAlign: TextAlign.center),
                     const SizedBox(height: 12),
-                    ElevatedButton(onPressed: _loadInitial, child: const Text('Réessayer')),
+                    ElevatedButton(onPressed: _retry, child: const Text('Réessayer')),
+                  ],
+                ),
+              ),
+            )
+          else if (_products.isEmpty)
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.checkroom_outlined, size: 48, color: AppColors.textSecondary),
+                    const SizedBox(height: 12),
+                    Text(
+                      _selectedCategoryId == null
+                          ? 'Aucun article pour le moment'
+                          : 'Aucun article dans cette catégorie',
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
+                    ),
+                    if (_selectedCategoryId != null)
+                      TextButton(
+                        onPressed: () => _onCategorySelected(null),
+                        child: const Text('Voir tous les articles'),
+                      ),
                   ],
                 ),
               ),

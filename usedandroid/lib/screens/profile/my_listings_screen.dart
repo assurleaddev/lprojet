@@ -37,6 +37,12 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
     if (updated == true) _load();
   }
 
+  /// Tapping an item opens its product page (editing is in the ⋮ menu there and here).
+  Future<void> _open(ApiProduct product) async {
+    await context.push('/listing/${product.id}', extra: product);
+    _load(); // it may have been edited, sold or deleted there
+  }
+
   Future<void> _changeStatus(ApiProduct product, String status) async {
     final msg = switch (status) {
       'sold' => 'Marqué comme vendu',
@@ -127,12 +133,19 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
         ],
       );
     }
-    return ListView.separated(
+    // Two-column grid like the website's dressing.
+    return GridView.builder(
       padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.66,
+      ),
       itemCount: _products.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
       itemBuilder: (_, i) => _ListingCard(
         product: _products[i],
+        onOpen: () => _open(_products[i]),
         onEdit: () => _edit(_products[i]),
         onStatus: (s) => _changeStatus(_products[i], s),
         onDelete: () => _confirmDelete(_products[i]),
@@ -143,12 +156,14 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
 
 class _ListingCard extends StatelessWidget {
   final ApiProduct product;
+  final VoidCallback onOpen;
   final VoidCallback onEdit;
   final ValueChanged<String> onStatus;
   final VoidCallback onDelete;
 
   const _ListingCard({
     required this.product,
+    required this.onOpen,
     required this.onEdit,
     required this.onStatus,
     required this.onDelete,
@@ -193,62 +208,92 @@ class _ListingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final img = product.displayImageUrl;
-    return InkWell(
-      onTap: onEdit,
-      borderRadius: BorderRadius.circular(12),
+    return GestureDetector(
+      onTap: onOpen,
       child: Container(
-        padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.border),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: SizedBox(
-                width: 64,
-                height: 64,
-                child: img.isEmpty
-                    ? Container(color: AppColors.inputFill, child: const Icon(Icons.image_not_supported, color: AppColors.textSecondary))
-                    : CachedNetworkImage(
-                        imageUrl: img,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: AppColors.inputFill),
-                        errorWidget: (_, __, ___) => Container(color: AppColors.inputFill),
+            Expanded(
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      child: img.isEmpty
+                          ? Container(
+                              color: AppColors.inputFill,
+                              child: const Icon(Icons.image_not_supported, color: AppColors.textSecondary),
+                            )
+                          : CachedNetworkImage(
+                              imageUrl: img,
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Container(color: AppColors.inputFill),
+                              errorWidget: (_, __, ___) => Container(color: AppColors.inputFill),
+                            ),
+                    ),
+                  ),
+                  Positioned(
+                    left: 8,
+                    top: 8,
+                    // White backing keeps the tinted badge readable over the photo.
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(6)),
+                      child: _StatusBadge(status: product.status ?? ''),
+                    ),
+                  ),
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Material(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      shape: const CircleBorder(),
+                      child: PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, size: 20, color: AppColors.textPrimary),
+                        tooltip: 'Gérer',
+                        onSelected: (v) {
+                          switch (v) {
+                            case 'edit':
+                              onEdit();
+                            case 'delete':
+                              onDelete();
+                            default:
+                              onStatus(v);
+                          }
+                        },
+                        itemBuilder: (_) => _menu(product.status ?? ''),
                       ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(product.title,
-                      maxLines: 1, overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                  if (product.size != null || product.brand != null)
+                    Text(
+                      [if (product.brand != null) product.brand!, if (product.size != null) product.size!].join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                    ),
                   const SizedBox(height: 4),
                   Text('${product.price.toStringAsFixed(0)} MAD',
-                      style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
-                  const SizedBox(height: 6),
-                  _StatusBadge(status: product.status ?? ''),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
                 ],
               ),
-            ),
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
-              onSelected: (v) {
-                switch (v) {
-                  case 'edit':
-                    onEdit();
-                  case 'delete':
-                    onDelete();
-                  default:
-                    onStatus(v);
-                }
-              },
-              itemBuilder: (_) => _menu(product.status ?? ''),
             ),
           ],
         ),

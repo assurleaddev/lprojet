@@ -6,7 +6,9 @@ import '../../services/api_client.dart';
 import '../../services/auth_service.dart';
 import '../../services/product_service.dart';
 import '../../services/profile_service.dart';
+import '../../services/web_links.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/rating_stars.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -316,6 +318,8 @@ class _ProfileHeader extends StatelessWidget {
                 Text(profile.fullName,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                 const SizedBox(height: 2),
+                RatingStars(average: profile.ratingAvg, count: profile.ratingCount),
+                const SizedBox(height: 2),
                 Text(
                   profile.location.isNotEmpty ? profile.location : profile.email,
                   style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
@@ -357,9 +361,9 @@ class _StatsRow extends StatelessWidget {
         children: [
           _StatItem(label: 'Articles', value: '${profile.productsCount}'),
           _VertDivider(),
-          _StatItem(label: 'Abonnés', value: '—'),
+          _StatItem(label: 'Abonnés', value: '${profile.followersCount}'),
           _VertDivider(),
-          _StatItem(label: 'Abonnements', value: '—'),
+          _StatItem(label: 'Abonnements', value: '${profile.followingCount}'),
         ],
       ),
     );
@@ -418,9 +422,9 @@ class _MyListingsSectionState extends State<_MyListingsSection> {
     _load(); // refresh in case something changed
   }
 
-  Future<void> _edit(ApiProduct p) async {
-    final updated = await context.push<bool>('/profile/my-listings/edit', extra: p);
-    if (updated == true) _load();
+  Future<void> _open(ApiProduct p) async {
+    await context.push('/listing/${p.id}', extra: p);
+    _load(); // it may have been edited, sold or deleted there
   }
 
   @override
@@ -471,7 +475,7 @@ class _MyListingsSectionState extends State<_MyListingsSection> {
                   final p = _products[i];
                   final img = p.displayImageUrl;
                   return GestureDetector(
-                    onTap: () => _edit(p),
+                    onTap: () => _open(p),
                     child: SizedBox(
                       width: 100,
                       child: Column(
@@ -520,9 +524,9 @@ class _MenuSection extends StatelessWidget {
     final items = [
       _MenuItem(icon: Icons.account_balance_wallet_outlined, title: 'Mon solde', onTap: () => context.push('/profile/balance')),
       _MenuItem(icon: Icons.shopping_bag_outlined, title: 'Mes achats', onTap: () => context.push('/profile/orders')),
-      _MenuItem(icon: Icons.favorite_outline, title: 'Mes favoris', onTap: () {}),
+      _MenuItem(icon: Icons.favorite_outline, title: 'Mes favoris', onTap: () => context.push('/profile/favorites')),
       _MenuItem(icon: Icons.settings_outlined, title: 'Paramètres', onTap: () => context.push('/profile/settings')),
-      _MenuItem(icon: Icons.help_outline, title: 'Aide & support', onTap: () {}),
+      _MenuItem(icon: Icons.help_outline, title: 'Aide & support', onTap: () => WebLinks.open(context, WebLinks.faq)),
       _MenuItem(
         icon: Icons.logout,
         title: 'Se déconnecter',

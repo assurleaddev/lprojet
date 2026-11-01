@@ -93,6 +93,12 @@ class ApiProduct {
 
   String get displayImageUrl =>
       featuredImage ?? (images.isNotEmpty ? images.first : '');
+
+  int? get vendorId => _asIntOrNull(vendor?['id']);
+
+  /// Seller rating — only sent on the product page (null elsewhere).
+  double? get vendorRatingAvg => _asDoubleOrNull(vendor?['rating_avg']);
+  int? get vendorRatingCount => _asIntOrNull(vendor?['rating_count']);
 }
 
 class ProductPage {
@@ -273,6 +279,29 @@ class ProductService {
   /// Owner: delete a listing.
   Future<void> deleteProduct(int productId) async {
     await _client.dio.delete('/mobile/products/$productId');
+  }
+
+  /// Like / unlike a product. Throws DioException 422 on the seller's own item.
+  Future<({bool favorited, int count})> toggleFavorite(int productId) async {
+    final response = await _client.dio.post('/mobile/products/$productId/favorite');
+    return (
+      favorited: response.data['favorited'] == true,
+      count: _asInt(response.data['favorites_count']),
+    );
+  }
+
+  /// The user's liked products ("Mes favoris"), most recently liked first.
+  Future<ProductPage> getFavorites({int page = 1}) async {
+    final response = await _client.dio.get('/mobile/favorites', queryParameters: {'page': page});
+    final data = response.data;
+    final items = (data['data'] as List).map((j) => ApiProduct.fromJson(j)).toList();
+    final meta = data['meta'] as Map<String, dynamic>?;
+    return ProductPage(
+      items: items,
+      currentPage: meta?['current_page'] ?? 1,
+      lastPage: meta?['last_page'] ?? 1,
+      total: meta?['total'] ?? items.length,
+    );
   }
 
   /// Brands for the searchable picker (optionally filtered by [query]).

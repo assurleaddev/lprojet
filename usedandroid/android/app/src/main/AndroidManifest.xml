@@ -46,4 +46,12 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+    <!-- Android 11+ package visibility: let url_launcher open web pages
+         (privacy policy, CGU, web-only settings) in the browser. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+    </queries>
 </manifest>
