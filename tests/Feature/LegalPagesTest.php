@@ -53,3 +53,10 @@ test('signup popup links to the cgu and privacy policy', function () {
         ->assertSeeHtml('href="'.route('cgu').'"')
         ->assertSeeHtml('href="'.route('privacy').'"');
 });
+
+test('mentions legales show the usedis contact email', function () {
+    $this->get(route('mentions-legales'))
+        ->assertOk()
+        ->assertSee('contact@usedis.com')
+        ->assertDontSee('used.ma');
+});

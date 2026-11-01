@@ -15,7 +15,7 @@
 
         <div>
             <h2 class="text-base font-semibold text-gray-900 mb-3">Contact commercial</h2>
-            <p><a href="mailto:contact@used.ma" class="text-gray-900 underline">contact@used.ma</a></p>
+            <p><a href="mailto:contact@usedis.com" class="text-gray-900 underline">contact@usedis.com</a></p>
         </div>
 
     </div>
