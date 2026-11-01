@@ -338,3 +338,35 @@ test('unread counts count unread messages from the other person only', function 
         ->assertJsonPath('messages', 2)
         ->assertJsonPath('total', 2);
 });
+
+// ---------- Mobile app support ----------
+
+test('public product endpoints report is_favorited for the app user', function () {
+    $seller = User::factory()->create();
+    $me = User::factory()->create();
+    $product = cwtProduct($seller);
+    $product->addFavorite($me->id);
+    Sanctum::actingAs($me);
+
+    $this->getJson("/api/mobile/products/{$product->id}")
+        ->assertOk()
+        ->assertJsonPath('is_favorited', true);
+
+    $this->getJson('/api/mobile/products')
+        ->assertOk()
+        ->assertJsonPath('data.0.is_favorited', true);
+});
+
+test('addresses endpoint lists only my delivery addresses', function () {
+    $me = User::factory()->create();
+    $other = User::factory()->create();
+    $address = ['country' => 'Maroc', 'full_name' => 'Houda', 'address_line_1' => '1 rue X', 'city' => 'Rabat', 'postcode' => '10000'];
+    $me->addresses()->create($address);
+    $other->addresses()->create($address);
+    Sanctum::actingAs($me);
+
+    $this->getJson('/api/mobile/addresses')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.city', 'Rabat');
+});

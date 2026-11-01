@@ -91,6 +91,22 @@ class CheckoutController extends Controller
         ]);
     }
 
+    /** The user's saved delivery addresses (Settings → Livraison). */
+    public function addresses(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => $request->user()->addresses()->latest()->get()->map(fn ($a) => [
+                'id' => $a->id,
+                'full_name' => $a->full_name,
+                'address_line_1' => $a->address_line_1,
+                'address_line_2' => $a->address_line_2,
+                'city' => $a->city,
+                'postcode' => $a->postcode,
+                'country' => $a->country,
+            ])->values(),
+        ]);
+    }
+
     public function storeAddress(Request $request): JsonResponse
     {
         $validated = $request->validate([

@@ -93,6 +93,7 @@ Route::prefix('mobile')->group(function () {
 
         // Checkout data (item, addresses, shipping, wallet) + address management
         Route::get('/checkout/init', [MobileCheckoutController::class, 'init']);
+        Route::get('/addresses', [MobileCheckoutController::class, 'addresses']);
         Route::post('/addresses', [MobileCheckoutController::class, 'storeAddress']);
         Route::delete('/addresses/{id}', [MobileCheckoutController::class, 'destroyAddress']);
 

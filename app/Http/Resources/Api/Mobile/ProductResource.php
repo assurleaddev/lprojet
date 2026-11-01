@@ -90,9 +90,11 @@ class ProductResource extends JsonResource
             'favorites_count' => $this->whenCounted('favorites', fn () => (int) $this->favorites_count),
             'fabric' => $this->fabric ?? [],
             'option_ids' => $this->whenLoaded('options', fn () => $this->options->pluck('id')->map(fn ($id) => (int) $id)->values()),
+            // Public routes have no auth middleware, so resolve the app user
+            // from the bearer token (sanctum guard) like is_owner does.
             'is_favorited' => $this->when(
-                (bool) $request->user(),
-                fn () => $this->resource->isFavorited($request->user()->id)
+                (bool) ($viewer = $request->user('sanctum') ?? $request->user()),
+                fn () => $this->resource->isFavorited($viewer->id)
             ),
             'status' => $this->status,
             'is_owner' => $this->viewerOwns($request),
