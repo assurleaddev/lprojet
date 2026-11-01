@@ -370,3 +370,63 @@ test('addresses endpoint lists only my delivery addresses', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.city', 'Rabat');
 });
+
+// ---------- Web: notification click target ----------
+
+function cwtNotify(User $user, string $type, array $data): string
+{
+    $id = (string) Str::uuid();
+    DB::table('notifications')->insert([
+        'id' => $id,
+        'type' => $type,
+        'notifiable_type' => $user->getMorphClass(),
+        'notifiable_id' => $user->id,
+        'data' => json_encode($data),
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return $id;
+}
+
+test('web: a product notification opens the product page, not the chat', function () {
+    $seller = User::factory()->create();
+    $liker = User::factory()->create();
+    $product = cwtProduct($seller);
+    $id = cwtNotify($seller, \App\Notifications\ProductLikedNotification::class, [
+        'type' => 'product_liked',
+        'product_id' => $product->id,
+        'liker_id' => $liker->id,
+        'url' => '/chat/start-with-user',
+    ]);
+
+    $this->actingAs($seller)->get("/notifications/{$id}/read")
+        ->assertRedirect(route('products.show', $product));
+    expect(DB::table('notifications')->where('id', $id)->value('read_at'))->not->toBeNull();
+});
+
+test('web: an old offer notification finds its product through the offer', function () {
+    $seller = User::factory()->create();
+    $offer = cwtOffer(User::factory()->create(), $seller, cwtProduct($seller));
+    $id = cwtNotify($seller, OfferNotification::class, [
+        'type' => 'offer_received',
+        'offer_id' => $offer->id,
+        'url' => '/chat?id='.$offer->conversation_id,
+    ]);
+
+    $this->actingAs($seller)->get("/notifications/{$id}/read")
+        ->assertRedirect(route('products.show', $offer->product_id));
+});
+
+test('web: a sold product the user cannot view falls back to the stored link', function () {
+    $seller = User::factory()->create();
+    $buyer = User::factory()->create();
+    $product = cwtProduct($seller, 'sold');
+    $id = cwtNotify($buyer, \App\Notifications\ItemShippedNotification::class, [
+        'type' => 'item_shipped',
+        'product_id' => $product->id,
+        'url' => '/chat',
+    ]);
+
+    $this->actingAs($buyer)->get("/notifications/{$id}/read")->assertRedirect('/chat');
+});

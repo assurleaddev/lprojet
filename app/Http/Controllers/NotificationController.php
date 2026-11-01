@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Modules\Chat\Models\Offer;
 
 class NotificationController extends Controller
 {
@@ -33,14 +35,25 @@ class NotificationController extends Controller
 
         $data = $notification->data;
 
-        // Product liked: open a chat with the liker instead of showing the product page
-        if (($data['type'] ?? null) === 'product_liked' && ! empty($data['liker_id'])) {
-            return redirect()->route('chat.start-with-user', [
-                'user_id' => $data['liker_id'],
-                'product_id' => $data['product_id'] ?? null,
-            ]);
+        // A notification about a product opens that product's page (likes,
+        // offers, new items, price drops…). Older offer notifications only
+        // stored the offer, so resolve the product through it.
+        $productId = $data['product_id']
+            ?? (isset($data['offer_id']) ? Offer::whereKey($data['offer_id'])->value('product_id') : null);
+        $product = $productId ? Product::find($productId) : null;
+
+        if ($product && $this->canViewProductPage($product)) {
+            return redirect()->route('products.show', $product);
         }
 
+        // Product gone or no longer viewable (e.g. sold): keep the stored link (the chat).
         return redirect($data['url'] ?? route('home'));
+    }
+
+    /** Same rule as HomeController::show — sold/pending items are only visible to their seller. */
+    private function canViewProductPage(Product $product): bool
+    {
+        return ! in_array($product->status, ['sold', 'pending'], true)
+            || Auth::id() === (int) $product->vendor_id;
     }
 }
