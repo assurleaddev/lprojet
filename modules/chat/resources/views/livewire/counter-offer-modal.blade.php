@@ -24,14 +24,14 @@
                     Make a Counter Offer for {{ $this->product->name }}
                 </h3>
                 <p class="text-sm text-gray-500 dark:text-gray-400">Original Price:
-                    ${{ number_format($this->product->price, 2) }}
+                    {{ number_format($this->product->price, 2) }} MAD
                 </p>
 
                 <form wire:submit.prevent="submitCounterOffer" class="mt-4 space-y-4">
                     <div>
                         <label for="counterOfferPriceInput"
                             class="block text-sm font-medium text-gray-700 dark:text-gray-300">Your Counter Offer
-                            ($)</label>
+                            (MAD)</label>
                         <input type="number" step="0.01" min="0.01" max="{{ $this->product->price }}"
                             wire:model="offerPrice" id="counterOfferPriceInput"
                             class="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm dark:bg-gray-700 dark:text-gray-200"

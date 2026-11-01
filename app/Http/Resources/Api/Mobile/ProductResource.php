@@ -72,6 +72,11 @@ class ProductResource extends JsonResource
                 'name' => $this->vendor->full_name,
                 'avatar_url' => $this->vendor->avatar_url ?? null,
                 'member_since' => $this->vendor->created_at->year,
+                // Only when the query loaded it (User::withRating), e.g. the product page.
+                ...(array_key_exists('rating_count', $this->vendor->getAttributes()) ? [
+                    'rating_avg' => round((float) $this->vendor->rating_avg, 1),
+                    'rating_count' => (int) $this->vendor->rating_count,
+                ] : []),
             ]),
             // Cover (featured) first, then the rest of the gallery.
             'images' => $this->getMedia('featured')->merge($this->getMedia('products'))->map(fn ($m) => [

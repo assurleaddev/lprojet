@@ -8,9 +8,13 @@ use App\Models\Brand;
 use App\Models\Category;
 use App\Models\Option;
 use App\Models\Product;
+use App\Notifications\ProductLikedNotification;
+use ChristianKuri\LaravelFavorite\Models\Favorite;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -76,11 +80,73 @@ class ProductController extends Controller
     public function show(int $id): JsonResponse
     {
         $product = Product::where('status', 'approved')
-            ->with(['vendor', 'category', 'brand', 'media', 'options'])
+            ->with(['vendor' => fn ($q) => $q->withRating(), 'category', 'brand', 'media', 'options'])
             ->withCount('favorites')
             ->findOrFail($id);
 
         return response()->json(new ProductResource($product));
+    }
+
+    /**
+     * Like / unlike a product (mirrors the web HomeController::toggleFavorite).
+     * Sellers cannot like their own items.
+     */
+    public function toggleFavorite(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        $product = Product::findOrFail($id);
+
+        abort_if((int) $product->vendor_id === (int) $user->id, 422, 'Vous ne pouvez pas aimer votre propre article.');
+
+        try {
+            $product->toggleFavorite($user->id);
+        } catch (UniqueConstraintViolationException) {
+            // A concurrent request already inserted the row; treat as favorited.
+        }
+
+        $liked = $product->isFavorited($user->id);
+        $count = $product->favorites()->count();
+
+        // Keep the denormalised counter in sync without touching updated_at or firing model events.
+        Product::query()->whereKey($product->id)->toBase()->update(['favorites_count' => $count]);
+
+        if ($liked) {
+            try {
+                $product->vendor?->notify(new ProductLikedNotification($user, $product));
+            } catch (\Throwable $e) {
+                Log::error('ProductLikedNotification failed: '.$e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'favorited' => $liked,
+            'favorites_count' => $count,
+        ]);
+    }
+
+    /**
+     * The viewer's liked products ("Mes favoris"), most recently liked first.
+     * Hidden and pending items are left out.
+     */
+    public function favorites(Request $request): AnonymousResourceCollection
+    {
+        $userId = $request->user()->id;
+
+        $products = Product::query()
+            ->whereIn('status', ['approved', 'reserved', 'sold'])
+            ->whereHas('favorites', fn ($q) => $q->where('user_id', $userId))
+            ->with(['vendor', 'category', 'brand', 'media'])
+            ->withCount('favorites')
+            ->orderByDesc(
+                Favorite::query()->select('created_at')
+                    ->whereColumn('favoriteable_id', 'products.id')
+                    ->where('favoriteable_type', (new Product())->getMorphClass())
+                    ->where('user_id', $userId)
+                    ->limit(1)
+            )
+            ->paginate(max(1, min((int) $request->query('per_page', 20), 50)));
+
+        return ProductResource::collection($products);
     }
 
     public function store(Request $request): JsonResponse

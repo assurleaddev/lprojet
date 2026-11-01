@@ -199,7 +199,7 @@ class OrderDatatable extends Datatable
 
     public function renderAmountColumn($item): string
     {
-        return '$' . number_format($item->amount, 2);
+        return number_format($item->amount, 2) . ' MAD';
     }
 
     public function renderStatusColumn($item): string

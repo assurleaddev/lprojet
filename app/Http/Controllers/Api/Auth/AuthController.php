@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api\Auth;
 
 use App\Http\Controllers\Api\ApiController;
-use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Api\Auth\GoogleLoginRequest;
+use App\Http\Requests\Api\Auth\MobileLoginRequest;
 use App\Models\User;
+use App\Services\GoogleIdTokenVerifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -59,9 +61,14 @@ class AuthController extends ApiController
      *
      * @tags Authentication
      */
-    public function login(LoginRequest $request): JsonResponse
+    public function login(MobileLoginRequest $request): JsonResponse
     {
-        $user = User::where('email', $request->email)->first();
+        // The identifier is an email address or a username.
+        $identifier = $request->identifier();
+        $user = User::where(
+            filter_var($identifier, FILTER_VALIDATE_EMAIL) ? 'email' : 'username',
+            $identifier
+        )->first();
 
         if (! $user || ! Hash::check($request->password, $user->password)) {
             return response()->json([
@@ -69,7 +76,66 @@ class AuthController extends ApiController
             ], 401);
         }
 
-        // Create a token for the user
+        return $this->tokenResponse($user);
+    }
+
+    /**
+     * Sign in (or sign up) with a Google ID token from the mobile app.
+     *
+     * @tags Authentication
+     */
+    public function google(GoogleLoginRequest $request, GoogleIdTokenVerifier $verifier): JsonResponse
+    {
+        $identity = $verifier->verify($request->string('id_token')->toString());
+
+        if (! $identity) {
+            return response()->json([
+                'message' => 'Invalid Google token',
+            ], 401);
+        }
+
+        // Google has verified this email address, so an existing account with
+        // the same email is the same person (same rule as the web Google login).
+        $user = User::where('email', $identity['email'])->first()
+            ?? $this->createGoogleUser($identity);
+
+        if (! $user->hasVerifiedEmail()) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
+        return $this->tokenResponse($user);
+    }
+
+    /**
+     * @param  array{email: string, name: ?string, given_name: ?string, family_name: ?string}  $identity
+     */
+    private function createGoogleUser(array $identity): User
+    {
+        $fullName = $identity['name'] ?: explode('@', $identity['email'])[0];
+        $firstName = $identity['given_name'] ?: explode(' ', $fullName, 2)[0];
+        $lastName = $identity['family_name'] ?? (explode(' ', $fullName, 2)[1] ?? '');
+
+        $baseUsername = Str::slug($fullName) ?: 'user';
+        $username = $baseUsername;
+        $count = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername.$count++;
+        }
+
+        $user = User::create([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $identity['email'],
+            'username' => $username,
+            'password' => Hash::make(Str::random(32)),
+        ]);
+        $user->forceFill(['email_verified_at' => now()])->save();
+
+        return $user;
+    }
+
+    private function tokenResponse(User $user): JsonResponse
+    {
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([

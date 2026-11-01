@@ -56,6 +56,8 @@ Route::prefix('mobile')->group(function () {
     Route::get('/categories/{id}/attributes', [MobileCategoryController::class, 'attributes']);
     Route::get('/brands', [MobileProductController::class, 'brands']);
     Route::get('/vendors/{id}/products', [MobileProductController::class, 'vendorProducts']);
+    Route::get('/users/search', [MobileProfileController::class, 'searchUsers']);
+    Route::get('/users/{id}', [MobileProfileController::class, 'showUser'])->whereNumber('id');
 
     // Authenticated: sell + inbox
     Route::middleware('auth:sanctum')->group(function () {
@@ -65,6 +67,8 @@ Route::prefix('mobile')->group(function () {
         Route::post('/profile/password', [MobileProfileController::class, 'updatePassword']);
         Route::post('/profile/notifications', [MobileProfileController::class, 'updateNotifications']);
         Route::post('/users/{id}/follow', [MobileProfileController::class, 'toggleFollow']);
+        Route::get('/favorites', [MobileProductController::class, 'favorites']);
+        Route::post('/products/{id}/favorite', [MobileProductController::class, 'toggleFavorite']);
 
         Route::get('/my-products', [MobileProductController::class, 'mine']);
         Route::post('/products', [MobileProductController::class, 'store']);
@@ -78,6 +82,7 @@ Route::prefix('mobile')->group(function () {
         Route::post('/conversations/{id}/messages', [MobileInboxController::class, 'sendMessage']);
         Route::get('/notifications', [MobileInboxController::class, 'notifications']);
         Route::post('/notifications/read', [MobileInboxController::class, 'markNotificationsRead']);
+        Route::get('/unread-counts', [MobileInboxController::class, 'unreadCounts']);
 
         // Offer actions
         Route::post('/offers', [MobileOfferOrderController::class, 'createOffer']);
@@ -123,7 +128,8 @@ Route::prefix('mobile')->group(function () {
 // Authentication routes
 Route::prefix('auth')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
-    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:mobile-login');
+    Route::post('/google', [AuthController::class, 'google'])->middleware('throttle:mobile-login');
 
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);

@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
@@ -35,7 +38,9 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Mobile sign-in attempts (password and Google). Named, so it keeps its
+        // own counter instead of sharing the api group's unnamed throttle:60,1.
+        RateLimiter::for('mobile-login', fn (Request $request) => Limit::perMinute(10)->by($request->ip()));
 
         parent::boot();
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\Hash;
 use Tests\ApiTestUtils;
 
@@ -81,14 +82,14 @@ test('user cannot login with invalid credentials', function () {
         ]);
 });
 
-test('login requires email field', function () {
+test('login requires an email or username', function () {
     $response = $this->postJson('/api/auth/login', [
         'password' => 'password123',
     ]);
 
     $response->assertStatus(422)
         ->assertJsonStructure($this->getValidationErrorStructure())
-        ->assertJsonPath('errors.email', ['The email field is required.']);
+        ->assertJsonPath('errors.login', ["L'e-mail ou le nom d'utilisateur est requis."]);
 });
 
 test('login requires password field', function () {
@@ -98,32 +99,35 @@ test('login requires password field', function () {
 
     $response->assertStatus(422)
         ->assertJsonStructure($this->getValidationErrorStructure())
-        ->assertJsonPath('errors.password', ['The password field is required.']);
+        ->assertJsonPath('errors.password', ['Le mot de passe est requis.']);
 });
 
-test('login validates email format', function () {
-    $invalidEmails = [
-        'not-an-email',
-        '@domain.com',
-        'test@',
-        'test.domain.com',
-        '',
-        null,
-        123,
-        'test@.com',
+test('login with an unknown email or username is rejected', function () {
+    // The identifier may be a username, so any non-empty string is looked up;
+    // empty or non-string values fail validation.
+    $this->withoutMiddleware(ThrottleRequests::class);
+    $cases = [
+        'not-an-email' => 401,
+        '@domain.com' => 401,
+        'test@' => 401,
+        'test.domain.com' => 401,
+        'test@.com' => 401,
+        '' => 422,
     ];
 
-    foreach ($invalidEmails as $email) {
-        $response = $this->postJson('/api/auth/login', [
-            'email' => $email,
+    foreach ($cases as $identifier => $status) {
+        $this->postJson('/api/auth/login', [
+            'email' => (string) $identifier,
             'password' => 'password123',
-        ]);
-
-        $response->assertStatus(422);
+        ])->assertStatus($status);
     }
+
+    $this->postJson('/api/auth/login', ['email' => null, 'password' => 'password123'])->assertStatus(422);
+    $this->postJson('/api/auth/login', ['email' => 123, 'password' => 'password123'])->assertStatus(422);
 });
 
 test('login handles edge case inputs', function () {
+    $this->withoutMiddleware(ThrottleRequests::class);
     $edgeCases = $this->getEdgeCaseData();
 
     foreach ($edgeCases as $case => $value) {
@@ -132,8 +136,17 @@ test('login handles edge case inputs', function () {
             'password' => $value,
         ]);
 
-        $response->assertStatus(422);
+        // Never a token, never a server error.
+        expect($response->status())->toBeIn([401, 422], "case: {$case}");
     }
+});
+
+test('login is rate limited to 10 attempts per minute', function () {
+    for ($i = 0; $i < 10; $i++) {
+        $this->postJson('/api/auth/login', ['login' => 'nobody', 'password' => 'x'])->assertStatus(401);
+    }
+
+    $this->postJson('/api/auth/login', ['login' => 'nobody', 'password' => 'x'])->assertStatus(429);
 });
 
 test('authenticated user can get user profile', function () {

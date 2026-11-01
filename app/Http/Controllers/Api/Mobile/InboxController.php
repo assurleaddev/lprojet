@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Api\Mobile;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
+use App\Notifications\NewMessageNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\Chat\Models\Conversation;
+use Modules\Chat\Models\Message;
+use Modules\Chat\Models\Offer;
 use Modules\Chat\Services\ChatService;
 
 class InboxController extends Controller
@@ -102,19 +105,82 @@ class InboxController extends Controller
     {
         $user = $request->user();
 
+        // Chat messages live in the Messages tab only.
         $notifications = $user->notifications()
+            ->where('type', '!=', NewMessageNotification::class)
             ->latest()
             ->limit(50)
-            ->get()
-            ->map(fn ($n) => [
+            ->get();
+
+        // Offer notifications stored before they carried product/conversation ids.
+        $legacyOfferIds = $notifications
+            ->filter(fn ($n) => isset($n->data['offer_id']) && ! isset($n->data['product_id']))
+            ->pluck('data.offer_id')
+            ->unique();
+        $offers = $legacyOfferIds->isEmpty()
+            ? collect()
+            : Offer::query()->whereIn('id', $legacyOfferIds)->get(['id', 'product_id', 'conversation_id'])->keyBy('id');
+
+        $data = $notifications->map(function ($n) use ($offers) {
+            $d = $n->data;
+            $offer = isset($d['offer_id']) ? $offers->get($d['offer_id']) : null;
+
+            $productId = $d['product_id'] ?? $offer?->product_id;
+            $conversationId = $d['conversation_id'] ?? $offer?->conversation_id;
+            $userId = $d['follower_id'] ?? $d['reviewer_id'] ?? null;
+            $liveId = $d['live_id'] ?? null;
+
+            // Where tapping the notification should go in the app.
+            $target = match (true) {
+                $productId !== null => ['type' => 'product', 'id' => (int) $productId],
+                $conversationId !== null => ['type' => 'conversation', 'id' => (int) $conversationId],
+                $liveId !== null => ['type' => 'live', 'id' => (int) $liveId],
+                $userId !== null => ['type' => 'user', 'id' => (int) $userId],
+                default => null,
+            };
+
+            return [
                 'id' => $n->id,
-                'type' => $n->data['type'] ?? 'notification',
-                'message' => $n->data['message'] ?? '',
+                'type' => $d['type'] ?? 'notification',
+                'message' => $d['message'] ?? '',
                 'read' => $n->read_at !== null,
                 'created_at' => $n->created_at->diffForHumans(),
-            ]);
+                'product_id' => $productId !== null ? (int) $productId : null,
+                'conversation_id' => $conversationId !== null ? (int) $conversationId : null,
+                'user_id' => $userId !== null ? (int) $userId : null,
+                'live_id' => $liveId !== null ? (int) $liveId : null,
+                'target' => $target,
+            ];
+        });
 
-        return response()->json(['data' => $notifications]);
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Unread badges for the bottom bar: unread chat messages and unread
+     * notifications (chat-message notifications excluded, as in the list).
+     */
+    public function unreadCounts(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $messages = Message::query()
+            ->whereNull('read_at')
+            ->where('user_id', '!=', $user->id)
+            ->whereHas('conversation', function ($q) use ($user) {
+                $q->where('user_one_id', $user->id)->orWhere('user_two_id', $user->id);
+            })
+            ->count();
+
+        $notifications = $user->unreadNotifications()
+            ->where('type', '!=', NewMessageNotification::class)
+            ->count();
+
+        return response()->json([
+            'messages' => $messages,
+            'notifications' => $notifications,
+            'total' => $messages + $notifications,
+        ]);
     }
 
     public function messages(Request $request, int $id): JsonResponse

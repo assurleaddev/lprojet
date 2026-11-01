@@ -78,7 +78,7 @@
             <div class="label">ITEM DETAILS:</div>
             <div class="value">
                 Product: {{ $order->product->name }}<br>
-                Price: ${{ number_format($order->amount, 2) }}
+                Price: {{ number_format($order->amount, 2) }} MAD
             </div>
         </div>
 

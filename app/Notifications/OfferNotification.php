@@ -53,13 +53,13 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
         };
 
         $line = match ($this->type) {
-            'received' => "You've received a new offer of $" . number_format($this->offer->offer_price, 2) . " on {$this->offer->product->name}.",
+            'received' => "You've received a new offer of " . number_format($this->offer->offer_price, 2) . " MAD on {$this->offer->product->name}.",
             'accepted' => "Your offer for {$this->offer->product->name} was accepted!",
             'rejected' => "Your offer for {$this->offer->product->name} was rejected.",
             default => "There is an update on your offer for {$this->offer->product->name}."
         };
 
-        return (new MailMessage)
+        return (new MailMessage())
             ->subject($subject)
             ->line($line)
             ->action('View in Chat', route('chat.dashboard', ['id' => $this->offer->conversation_id]));
@@ -68,7 +68,7 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
     public function toBroadcast($notifiable)
     {
         $message = match ($this->type) {
-            'received' => "New offer of $" . number_format($this->offer->offer_price, 2) . " on {$this->offer->product->name}",
+            'received' => "New offer of " . number_format($this->offer->offer_price, 2) . " MAD on {$this->offer->product->name}",
             'accepted' => "Your offer for {$this->offer->product->name} was accepted!",
             'rejected' => "Your offer for {$this->offer->product->name} was rejected.",
             default => "Offer update on {$this->offer->product->name}"
@@ -77,6 +77,8 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
         return new BroadcastMessage([
             'type' => 'offer_' . $this->type,
             'offer_id' => $this->offer->id,
+            'product_id' => $this->offer->product_id,
+            'conversation_id' => $this->offer->conversation_id,
             'message' => $message,
             'url' => route('chat.dashboard', ['id' => $this->offer->conversation_id]),
         ]);
@@ -85,7 +87,7 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
     public function toDatabase($notifiable)
     {
         $message = match ($this->type) {
-            'received' => "New offer of $" . number_format($this->offer->offer_price, 2) . " on {$this->offer->product->name}",
+            'received' => "New offer of " . number_format($this->offer->offer_price, 2) . " MAD on {$this->offer->product->name}",
             'accepted' => "Your offer for {$this->offer->product->name} was accepted!",
             'rejected' => "Your offer for {$this->offer->product->name} was rejected.",
             default => "Offer update on {$this->offer->product->name}"
@@ -94,6 +96,8 @@ class OfferNotification extends Notification implements ShouldBroadcast, ShouldQ
         return [
             'type' => 'offer_' . $this->type,
             'offer_id' => $this->offer->id,
+            'product_id' => $this->offer->product_id,
+            'conversation_id' => $this->offer->conversation_id,
             'message' => $message,
             'url' => route('chat.dashboard', ['id' => $this->offer->conversation_id]),
         ];

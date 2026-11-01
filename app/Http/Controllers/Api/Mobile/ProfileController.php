@@ -148,7 +148,98 @@ class ProfileController extends Controller
             'notifications' => $this->notifications($user),
             'stats' => [
                 'products_count' => $user->products()->count(),
+                'followers_count' => $user->followers()->count(),
+                'following_count' => $user->followings()->count(),
+                ...$this->rating($user),
             ],
+        ];
+    }
+
+    /**
+     * Public profile of any member (seller page): rating, follower counts and
+     * whether the viewer follows them. Works signed in or not.
+     */
+    public function showUser(Request $request, int $id): JsonResponse
+    {
+        $user = User::query()
+            ->notBanned()
+            ->where('is_system', false)
+            ->withRating()
+            ->withCount(['followers', 'followings', 'products' => fn ($q) => $q->where('status', 'approved')])
+            ->with('userMeta')
+            ->findOrFail($id);
+
+        $viewer = $request->user('sanctum');
+
+        return response()->json([
+            ...$this->memberSummary($user),
+            'member_since' => $user->created_at?->year,
+            'about' => $user->getMeta('about'),
+            'city' => $user->getMeta('show_city', '0') === '1' ? $user->getMeta('city') : null,
+            'following_count' => (int) $user->followings_count,
+            'is_following' => $viewer ? $viewer->isFollowing($user) : false,
+            'is_me' => $viewer ? $viewer->is($user) : false,
+        ]);
+    }
+
+    /** Member search — the "Members" side of the search bar (web: search type "user"). */
+    public function searchUsers(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'q' => ['required', 'string', 'min:2', 'max:100'],
+        ], [
+            'q.required' => 'Saisissez un nom de membre.',
+            'q.min' => 'Saisissez au moins 2 caractères.',
+        ]);
+
+        $term = '%'.addcslashes($validated['q'], '%_\\').'%';
+
+        $users = User::query()
+            ->notBanned()
+            ->where('is_system', false)
+            ->where(function ($q) use ($term) {
+                $q->where('username', 'like', $term)
+                    ->orWhere('first_name', 'like', $term)
+                    ->orWhere('last_name', 'like', $term);
+            })
+            ->withRating()
+            ->withCount(['followers', 'products' => fn ($q) => $q->where('status', 'approved')])
+            ->orderByDesc('followers_count')
+            ->paginate(max(1, min((int) $request->query('per_page', 20), 50)));
+
+        return response()->json([
+            'data' => collect($users->items())->map(fn (User $u) => $this->memberSummary($u))->values(),
+            'meta' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'total' => $users->total(),
+            ],
+        ]);
+    }
+
+    /** Compact member card (expects withRating + followers/products counts loaded). */
+    private function memberSummary(User $user): array
+    {
+        return [
+            'id' => $user->id,
+            'username' => $user->username,
+            'full_name' => $user->full_name,
+            'avatar_url' => $user->avatar_url,
+            'rating_avg' => round((float) $user->rating_avg, 1),
+            'rating_count' => (int) $user->rating_count,
+            'followers_count' => (int) $user->followers_count,
+            'products_count' => (int) $user->products_count,
+        ];
+    }
+
+    /** @return array{rating_avg: float, rating_count: int} */
+    private function rating(User $user): array
+    {
+        $reviews = $user->receivedReviews()->whereNull('parent_id');
+
+        return [
+            'rating_avg' => round((float) $reviews->clone()->avg('rating'), 1),
+            'rating_count' => $reviews->count(),
         ];
     }
 

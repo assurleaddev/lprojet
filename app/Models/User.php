@@ -234,6 +234,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Load the seller rating as `rating_avg` / `rating_count` — top-level
+     * reviews only (replies excluded), same as the web profile page.
+     */
+    public function scopeWithRating($query)
+    {
+        $topLevel = fn ($q) => $q->whereNull('parent_id');
+
+        return $query
+            ->withAvg(['receivedReviews as rating_avg' => $topLevel], 'rating')
+            ->withCount(['receivedReviews as rating_count' => $topLevel]);
+    }
+
+    /**
      * Check if the user is banned.
      */
     public function isBanned(): bool
