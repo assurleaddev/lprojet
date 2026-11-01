@@ -43,6 +43,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/faq', fn () => view('frontend.pages.faq'))->name('faq');
 Route::get('/mentions-legales', fn () => view('frontend.pages.mentions-legales'))->name('mentions-legales');
 Route::get('/cgu', fn () => view('frontend.pages.cgu'))->name('cgu');
+Route::get('/politique-de-confidentialite', fn () => view('frontend.pages.politique-confidentialite'))->name('privacy');
 Route::get('/how-to-sell', fn () => view('frontend.pages.how-to-sell'))->name('how-to-sell');
 Route::get('/how-to-buy', fn () => view('frontend.pages.how-to-buy'))->name('how-to-buy');
 Route::get('/need-help', fn () => view('frontend.pages.need-help'))->name('need-help');

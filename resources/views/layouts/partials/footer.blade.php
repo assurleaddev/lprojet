@@ -20,6 +20,7 @@
                     <li><a href="#" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Contact</a></li>
                     <li><a href="{{ route('mentions-legales') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Mentions Légales</a></li>
                     <li><a href="{{ route('cgu') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">CGU</a></li>
+                    <li><a href="{{ route('privacy') }}" class="text-gray-400 hover:text-gray-700 text-sm transition-colors">Politique de confidentialité</a></li>
                 </ul>
             </div>
 

@@ -133,7 +133,7 @@
                             <input type="checkbox" wire:model="terms"
                                 class="mt-1 border-gray-300 rounded w-5 h-5 text-gray-900">
                             <span class="text-sm text-gray-500">
-                                {!! __('En t\'inscrivant, tu confirmes que tu acceptes les <a href="#" class="underline text-gray-900">Termes & Conditions</a>, avoir lu la <a href="#" class="underline text-gray-900">Politique de confidentialité</a> et avoir au moins 18 ans.') !!}
+                                {!! __('En t\'inscrivant, tu confirmes que tu acceptes les <a href=":cgu" target="_blank" class="underline text-gray-900">Termes & Conditions</a>, avoir lu la <a href=":privacy" target="_blank" class="underline text-gray-900">Politique de confidentialité</a> et avoir au moins 18 ans.', ['cgu' => route('cgu'), 'privacy' => route('privacy')]) !!}
                             </span>
                         </label>
                         @error('terms') <span class="block text-xs text-red-500">{{ $message }}</span> @enderror

@@ -62,7 +62,7 @@
                             </label>
                             <label class="flex items-start">
                                 <input type="checkbox" wire:model.defer="termsAccepted" class="w-5 h-5 mt-0.5 border-gray-300 rounded focus:ring-0 @error('termsAccepted') border-red-500 @enderror text-gray-900">
-                                <span class="ml-2 text-sm text-gray-600">En m'inscrivant, je confirme que j'accepte les <a href="{{ route('cgu') }}" class="font-semibold hover:underline text-gray-900">Conditions Générales d'Utilisation</a>, que j'ai lu la <a href="{{ route('mentions-legales') }}" class="font-semibold hover:underline text-gray-900">Politique de confidentialité</a>, et que j'ai au moins 18 ans.</span>
+                                <span class="ml-2 text-sm text-gray-600">En m'inscrivant, je confirme que j'accepte les <a href="{{ route('cgu') }}" class="font-semibold hover:underline text-gray-900">Conditions Générales d'Utilisation</a>, que j'ai lu la <a href="{{ route('privacy') }}" class="font-semibold hover:underline text-gray-900">Politique de confidentialité</a>, et que j'ai au moins 18 ans.</span>
                             </label>
                              @error('termsAccepted') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
