@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirect;
 class SocialAuthController extends Controller
 {
     /** Providers the website can sign in with, when their keys are configured. */
-    private const PROVIDERS = ['google', 'facebook', 'apple'];
+    private const PROVIDERS = ['google', 'apple'];
 
     /**
      * Redirect the user to the provider authentication page.

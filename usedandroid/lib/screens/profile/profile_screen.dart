@@ -152,28 +152,6 @@ class _LoginGate extends StatelessWidget {
               const SizedBox(height: 12),
               // Google login
               GoogleSignInButton(onSignedIn: (_) => onLogin()),
-              const SizedBox(height: 12),
-              // Facebook login
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: AppColors.border),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () {},
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.facebook, color: Color(0xFF1877F2), size: 22),
-                      SizedBox(width: 10),
-                      Text('Continuer avec Facebook',
-                          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ),
-              ),
               const SizedBox(height: 24),
               Row(
                 children: [

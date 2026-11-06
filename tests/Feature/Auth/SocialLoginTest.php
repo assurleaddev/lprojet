@@ -94,6 +94,8 @@ test('a google error shows a message instead of an error page', function () {
 test('unknown or unconfigured providers return 404', function () {
     $this->get('/auth/github')->assertNotFound();
 
-    config(['services.facebook.client_id' => null]);
+    // Facebook login was removed: refused even when keys are configured.
+    config(['services.facebook.client_id' => 'fb-id']);
     $this->get('/auth/facebook')->assertNotFound();
+    $this->get('/auth/facebook/callback')->assertNotFound();
 });

@@ -532,14 +532,6 @@
                         <span class="font-medium">{{ __('Continue with Apple') }}</span>
                     </a>
 
-                    <a href="#"
-                        class="flex items-center justify-center gap-3 rounded-lg border border-zinc-300 px-4 py-3 hover:bg-zinc-50">
-                        <svg viewBox="0 0 24 24" class="h-5 w-5 fill-[#1877F2]">
-                            <path
-                                d="M22 12a10 10 0 1 0-11.6 9.9v-7h-2.3V12h2.3V9.7c0-2.3 1.4-3.6 3.5-3.6 1 0 2 .2 2 .2v2.2h-1.1c-1.1 0-1.5.7-1.5 1.4V12h2.6l-.4 2.9h-2.2v7A10 10 0 0 0 22 12Z" />
-                        </svg>
-                        <span class="font-medium">{{ __('Continue with Facebook') }}</span>
-                    </a>
                 </div>
 
                 <div class="mt-6 text-center text-[15px] text-zinc-700">

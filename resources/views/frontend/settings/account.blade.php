@@ -132,11 +132,6 @@
 
                     <!-- Social Accounts -->
                     <div class="mb-8 pb-8 border-b border-gray-100">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-base font-medium text-gray-900">Facebook</h3>
-                            <button type="button"
-                                class="text-gray-900 border border-gray-900 px-4 py-2 rounded text-sm font-medium hover:bg-gray-50">{{ __('Link') }}</button>
-                        </div>
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="text-base font-medium text-gray-900">Google</h3>
                             <button type="button"
