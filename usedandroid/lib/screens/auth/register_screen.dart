@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/google_sign_in_button.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -51,6 +52,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (mounted) _showError(msg.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Google sign-up: Google has verified the email, so go to the next step
+  /// still required (phone), else home — same as after a login.
+  void _afterGoogle(AuthUser user) {
+    if (user.needsEmailVerification) {
+      context.go('/verify-email');
+    } else if (user.needsPhoneVerification) {
+      context.go('/verify-phone');
+    } else {
+      context.go('/');
     }
   }
 
@@ -121,6 +134,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       : const Text('S\'inscrire'),
                 ),
                 const SizedBox(height: 16),
+                const Row(
+                  children: [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('ou', style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                GoogleSignInButton(onSignedIn: _afterGoogle),
+                const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => context.go('/login'),
                   child: const Text.rich(TextSpan(children: [
