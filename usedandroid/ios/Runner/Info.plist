@@ -57,5 +57,23 @@
 		<string>Used needs access to your microphone for live auctions.</string>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		<!-- Google Sign-In: "USED iOS" client, and the "USED mobile server"
+		     client the ID token is issued for (see AppConfig). -->
+		<key>GIDClientID</key>
+		<string>151137971968-ihkadraaffkree4clcf2u9ike25dpmpk.apps.googleusercontent.com</string>
+		<key>GIDServerClientID</key>
+		<string>151137971968-annl42g99iph8paki883nft62pl6mgk8.apps.googleusercontent.com</string>
+		<!-- Lets Google return to the app after the account picker (reversed iOS client ID). -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>com.googleusercontent.apps.151137971968-ihkadraaffkree4clcf2u9ike25dpmpk</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

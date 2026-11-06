@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/google_sign_in_button.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,19 +32,23 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final user = await AuthService().login(_emailCtrl.text.trim(), _passCtrl.text);
       if (!mounted) return;
-      // Route to the next required verification step, else home.
-      if (user.needsEmailVerification) {
-        context.go('/verify-email');
-      } else if (user.needsPhoneVerification) {
-        context.go('/verify-phone');
-      } else {
-        context.go('/');
-      }
+      _afterLogin(user);
     } on DioException catch (e) {
       final msg = e.response?.data?['message'] ?? 'Identifiants incorrects';
       if (mounted) _showError(msg);
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Route to the next required verification step, else home.
+  void _afterLogin(AuthUser user) {
+    if (user.needsEmailVerification) {
+      context.go('/verify-email');
+    } else if (user.needsPhoneVerification) {
+      context.go('/verify-phone');
+    } else {
+      context.go('/');
     }
   }
 
@@ -125,6 +130,19 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text('Se connecter'),
                 ),
                 const SizedBox(height: 16),
+                const Row(
+                  children: [
+                    Expanded(child: Divider()),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text('ou', style: TextStyle(color: AppColors.textSecondary)),
+                    ),
+                    Expanded(child: Divider()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                GoogleSignInButton(onSignedIn: _afterLogin),
+                const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => context.push('/register'),
                   child: const Text.rich(TextSpan(children: [

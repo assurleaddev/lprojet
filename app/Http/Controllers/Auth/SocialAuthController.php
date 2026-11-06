@@ -4,102 +4,135 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Laravel\Socialite\Contracts\User as SocialUser;
 use Laravel\Socialite\Facades\Socialite;
+use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirect;
 
 class SocialAuthController extends Controller
 {
+    /** Providers the website can sign in with, when their keys are configured. */
+    private const PROVIDERS = ['google', 'facebook', 'apple'];
+
     /**
      * Redirect the user to the provider authentication page.
-     *
-     * @param  string  $provider
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function redirect($provider)
+    public function redirect(string $provider): SymfonyRedirect
     {
+        $this->ensureProvider($provider);
+
         return Socialite::driver($provider)->redirect();
     }
 
     /**
-     * Obtain the user information from the provider.
-     *
-     * @param  string  $provider
-     * @return \Illuminate\Http\RedirectResponse
+     * Obtain the user information from the provider and sign in (or sign up).
      */
-    public function callback($provider)
+    public function callback(Request $request, string $provider): RedirectResponse
     {
+        $this->ensureProvider($provider);
+
         try {
             $socialUser = Socialite::driver($provider)->user();
         } catch (\Exception $e) {
-            \Log::error('Socialite Error: ' . $e->getMessage());
-            return redirect()->route('login')->with('error', 'Unable to login using ' . $provider . '. Please try again.');
+            Log::error('Socialite Error: '.$e->getMessage());
+
+            return $this->failed(__('Connexion avec :provider impossible. Veuillez réessayer.', ['provider' => ucfirst($provider)]));
         }
 
-        // Check if user already exists
-        $user = User::where('email', $socialUser->getEmail())->first();
+        $email = strtolower((string) $socialUser->getEmail());
+        if ($email === '') {
+            return $this->failed(__('Votre compte :provider ne fournit pas d\'adresse e-mail.', ['provider' => ucfirst($provider)]));
+        }
 
-        if ($user) {
-            // Update provider ID if not set (or create a linked_social_accounts table logic if robust)
-            // For simplicity, we just log them in if email matches. 
-            // In a real app, strict security checks (like verifying email ownership) are recommended.
-            Auth::login($user);
+        // An existing account is matched by email, so the provider must have
+        // verified that the address belongs to this person.
+        if (! $this->emailIsVerified($provider, $socialUser)) {
+            return $this->failed(__('Votre adresse e-mail n\'est pas vérifiée chez :provider.', ['provider' => ucfirst($provider)]));
+        }
 
-            // Redirect to secure account if phone is missing
-            if (config('services.twilio.phone_verification_enabled') && empty($user->phone_number)) {
-                return redirect()->route('auth.secure_account');
-            }
+        $user = User::where('email', $email)->first();
+        $isNew = $user === null;
 
-            return redirect('/');
-        } else {
-            // Generate a unique username
-            $baseUsername = Str::slug($socialUser->getName() ?? $socialUser->getNickname() ?? explode('@', $socialUser->getEmail())[0]);
-            if (empty($baseUsername)) {
-                $baseUsername = 'user';
-            }
-
-            $username = $baseUsername;
-            $count = 1;
-            while (User::where('username', $username)->exists()) {
-                $username = $baseUsername . $count;
-                $count++;
-            }
-
+        if ($isNew) {
             try {
-                // Split name
-                $fullName = $socialUser->getName() ?? $socialUser->getNickname() ?? 'User';
-                $nameParts = explode(' ', $fullName, 2);
-                $firstName = $nameParts[0];
-                $lastName = $nameParts[1] ?? '';
-
-                // Create a new user
-                $user = User::create([
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'email' => $socialUser->getEmail(),
-                    'username' => $username, // Added username
-                    'password' => bcrypt(Str::random(16)), // Random password
-                    'email_verified_at' => now(), // Assuming social login verifies email
-                    // 'provider_id' => $socialUser->getId(), // if you have this column
-                    // 'provider_name' => $provider,        // if you have this column
-                ]);
-
-                // Try to download avatar if possible (Optional, requires HasMedia or custom logic)
-                // Leaving this purely as user creation for now to solve the crash.
-
-                Auth::login($user);
-
-                if (config('services.twilio.phone_verification_enabled')) {
-                    return redirect()->route('auth.secure_account');
-                }
-
-                return redirect()->route('home');
+                $user = $this->createUser($socialUser, $email);
             } catch (\Exception $e) {
-                dd($e->getMessage());
-                // \Log::error('Social Login Error: ' . $e->getMessage());
-                // return redirect()->route('login')->with('error', 'Unable to create account. Please try again.');
+                Log::error('Social Login Error: '.$e->getMessage());
+
+                return $this->failed(__('Impossible de créer votre compte. Veuillez réessayer.'));
             }
+        } elseif (! $user->hasVerifiedEmail()) {
+            $user->forceFill(['email_verified_at' => now()])->save();
         }
+
+        if ($user->isBanned()) {
+            return $this->failed(__('Ce compte a été suspendu.'));
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+
+        // Ask for the phone number when phone verification is enabled.
+        if (config('services.twilio.phone_verification_enabled') && empty($user->phone_number)) {
+            return redirect()->route('auth.secure_account');
+        }
+
+        return redirect()->intended(route('home'));
+    }
+
+    private function ensureProvider(string $provider): void
+    {
+        abort_unless(
+            in_array($provider, self::PROVIDERS, true) && config("services.{$provider}.client_id"),
+            404
+        );
+    }
+
+    private function emailIsVerified(string $provider, SocialUser $socialUser): bool
+    {
+        // Google says so explicitly; the other providers only return verified emails.
+        if ($provider !== 'google') {
+            return true;
+        }
+
+        $raw = method_exists($socialUser, 'getRaw') ? $socialUser->getRaw() : [];
+
+        return in_array($raw['email_verified'] ?? null, [true, 'true', 1, '1'], true);
+    }
+
+    private function createUser(SocialUser $socialUser, string $email): User
+    {
+        $fullName = $socialUser->getName() ?: ($socialUser->getNickname() ?: explode('@', $email)[0]);
+        [$firstName, $lastName] = array_pad(explode(' ', trim($fullName), 2), 2, '');
+
+        $baseUsername = Str::slug($fullName) ?: 'user';
+        $username = $baseUsername;
+        $count = 1;
+        while (User::where('username', $username)->exists()) {
+            $username = $baseUsername.$count++;
+        }
+
+        $user = User::create([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'username' => $username,
+            'password' => Hash::make(Str::random(32)),
+        ]);
+
+        // Not mass-assignable: set it explicitly (the provider verified the email).
+        $user->forceFill(['email_verified_at' => now()])->save();
+
+        return $user;
+    }
+
+    private function failed(string $message): RedirectResponse
+    {
+        return redirect()->route('home')->with('error', $message);
     }
 }

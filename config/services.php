@@ -34,13 +34,15 @@ return [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),
         'redirect' => env('GOOGLE_REDIRECT_URI'),
-        // Extra OAuth client IDs whose ID tokens the mobile API accepts
-        // (comma-separated, e.g. the iOS client). The web client_id above is
-        // always accepted — Android sign-in uses it as serverClientId.
+        // OAuth client IDs whose ID tokens the mobile API accepts
+        // (comma-separated): the "mobile server" web client (Android/iOS
+        // serverClientId) and the iOS client. The website client_id above is
+        // accepted too.
         'mobile_client_ids' => array_filter(array_map('trim', explode(',', (string) env('GOOGLE_MOBILE_CLIENT_IDS', '')))),
-        // FIX: Bypass SSL certificate error for local development
+        // TLS verification of Google calls: off only in local dev (Windows PHP
+        // often lacks a CA bundle), always on elsewhere.
         'guzzle' => [
-            'verify' => false,
+            'verify' => (bool) env('GOOGLE_HTTP_VERIFY', env('APP_ENV', 'production') !== 'local'),
         ],
     ],
 

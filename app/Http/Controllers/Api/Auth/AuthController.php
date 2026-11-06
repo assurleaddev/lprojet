@@ -99,6 +99,12 @@ class AuthController extends ApiController
         $user = User::where('email', $identity['email'])->first()
             ?? $this->createGoogleUser($identity);
 
+        if ($user->isBanned()) {
+            return response()->json([
+                'message' => 'Ce compte a été suspendu.',
+            ], 403);
+        }
+
         if (! $user->hasVerifiedEmail()) {
             $user->forceFill(['email_verified_at' => now()])->save();
         }

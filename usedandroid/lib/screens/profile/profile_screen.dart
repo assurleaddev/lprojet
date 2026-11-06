@@ -8,6 +8,7 @@ import '../../services/product_service.dart';
 import '../../services/profile_service.dart';
 import '../../services/web_links.dart';
 import '../../theme/app_colors.dart';
+import '../../widgets/google_sign_in_button.dart';
 import '../../widgets/rating_stars.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -150,26 +151,7 @@ class _LoginGate extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               // Google login
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: AppColors.border),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () {},
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _GoogleIcon(),
-                      const SizedBox(width: 10),
-                      const Text('Continuer avec Google',
-                          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ),
-              ),
+              GoogleSignInButton(onSignedIn: (_) => onLogin()),
               const SizedBox(height: 12),
               // Facebook login
               SizedBox(
@@ -220,28 +202,6 @@ class _LoginGate extends StatelessWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _GoogleIcon extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 20,
-      height: 20,
-      child: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(shape: BoxShape.circle, color: Colors.white),
-          ),
-          const Center(
-            child: Text('G',
-                style: TextStyle(
-                    color: Color(0xFF4285F4), fontWeight: FontWeight.w700, fontSize: 14)),
-          ),
-        ],
       ),
     );
   }

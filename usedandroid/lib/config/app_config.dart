@@ -25,6 +25,16 @@ class AppConfig {
   /// these pages are opened in the phone's browser, not the emulator.
   static const String siteUrl = 'https://usedis.com';
 
+  /// Google Sign-In OAuth clients (public identifiers, not secrets).
+  /// The "USED mobile server" web client: Google issues the app's ID tokens
+  /// for it and the API verifies them (Android requires it as serverClientId).
+  static const String googleServerClientId =
+      '151137971968-annl42g99iph8paki883nft62pl6mgk8.apps.googleusercontent.com';
+
+  /// The "USED iOS" client (also set as GIDClientID / URL scheme in Info.plist).
+  static const String googleIosClientId =
+      '151137971968-ihkadraaffkree4clcf2u9ike25dpmpk.apps.googleusercontent.com';
+
   /// The single-threaded local dev server drops some concurrent image
   /// requests; retry on the emulator only. Production needs no retries.
   static int get imageMaxRetries => isLocalDev ? 6 : 0;

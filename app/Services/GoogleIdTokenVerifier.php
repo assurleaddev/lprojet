@@ -34,7 +34,9 @@ class GoogleIdTokenVerifier
         }
 
         try {
-            $response = Http::timeout(10)->get(self::TOKENINFO_URL, ['id_token' => $idToken]);
+            $response = Http::timeout(10)
+                ->withOptions(['verify' => config('services.google.guzzle.verify', true)])
+                ->get(self::TOKENINFO_URL, ['id_token' => $idToken]);
         } catch (\Throwable $e) {
             Log::warning('Google tokeninfo request failed: '.$e->getMessage());
 

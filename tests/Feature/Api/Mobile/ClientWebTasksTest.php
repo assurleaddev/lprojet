@@ -488,3 +488,11 @@ test('edit: photo order must reference at least one photo and be well formed', f
     $this->postJson("/api/mobile/products/{$product->id}", ['photo_order' => []])->assertStatus(422); // can't remove every photo
     expect($product->fresh()->getMedia('featured'))->toHaveCount(1);
 });
+
+test('google login refuses a banned account', function () {
+    config(['services.google.client_id' => 'web-client.apps.googleusercontent.com']);
+    User::factory()->create(['email' => 'sara.deals@gmail.com', 'banned_at' => now()]);
+    Http::fake(['oauth2.googleapis.com/*' => Http::response(cwtGoogleClaims())]);
+
+    $this->postJson('/api/auth/google', ['id_token' => 'tok'])->assertStatus(403);
+});

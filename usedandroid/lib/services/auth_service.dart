@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import '../config/app_config.dart';
 import 'api_client.dart';
 import 'auth_state.dart';
 
@@ -48,6 +51,41 @@ class AuthService {
       'login': login,
       'password': password,
     });
+    final token = response.data['token'] as String;
+    await ApiClient.saveToken(token);
+    final user = AuthUser.fromJson(response.data['user']);
+    AuthState.instance.apply(email: user.emailVerified, phone: user.phoneVerified);
+    return user;
+  }
+
+  static Future<void>? _googleReady;
+
+  /// Google Sign-In must be initialised once before use.
+  Future<void> _initGoogle() => _googleReady ??= GoogleSignIn.instance.initialize(
+        // iOS needs its own client; Android takes it from package name + SHA-1.
+        clientId: Platform.isIOS ? AppConfig.googleIosClientId : null,
+        serverClientId: AppConfig.googleServerClientId,
+      );
+
+  /// "Continuer avec Google": Google account picker, then the API exchanges
+  /// Google's ID token for a USED session. Returns null if the user cancels.
+  Future<AuthUser?> loginWithGoogle() async {
+    await _initGoogle();
+
+    final GoogleSignInAccount account;
+    try {
+      account = await GoogleSignIn.instance.authenticate();
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) return null;
+      rethrow;
+    }
+
+    final idToken = account.authentication.idToken;
+    if (idToken == null) {
+      throw StateError('Google did not return an ID token');
+    }
+
+    final response = await _client.dio.post('/auth/google', data: {'id_token': idToken});
     final token = response.data['token'] as String;
     await ApiClient.saveToken(token);
     final user = AuthUser.fromJson(response.data['user']);
@@ -125,6 +163,12 @@ class AuthService {
     } finally {
       await ApiClient.clearToken();
       AuthState.instance.clear();
+      // Next Google sign-in shows the account picker again.
+      if (_googleReady != null) {
+        try {
+          await GoogleSignIn.instance.signOut();
+        } catch (_) {}
+      }
     }
   }
 }
